@@ -3,36 +3,32 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React, { useEffect, useRef } from "react";
 
-
-// const objectLoaded = () => console.log("Object is loaded");
-// const imageLoaded = () => console.log("Image is loaded");
-
-
 export default function Home() {
+  const objectLoaded = () => {
+    const objElement = objectRef.current;
+
+    if (objElement) {
+      console.log("objElement", objElement);
+      const svgDocument = objElement.getSVGDocument();
+      const countries = ["DE", "AT", "IT", "ES", "FR", "PT", "IT-SA", "HR", "FI", "EN", "EG", "TH", "US", "LU", "BE", "NL", "PL", "FR-GP", "MT", "MT-GZ", "GR"];
+      countries.forEach((country) => {
+        svgDocument?.getElementById(country)?.setAttribute("fill", "gray");
+      });
+    }
+  };
+
   const objectRef = useRef<HTMLObjectElement>(null);
-  // const imageRef = useRef<HTMLImageElement>(null);
 
   useEffect(
     () => {
       const objElement = objectRef.current;
-      // const imageElement = imageRef.current;
-
+      objectLoaded();
       if (objElement) {
-        console.log("objElement", objElement);
-        const svgDocument = objElement.getSVGDocument();
-        const countries = ["DE", "AT", "IT", "ES", "FR", "PT", "IT-SA", "HR", "FI", "EN", "EG", "TH", "US", "LU", "BE", "NL", "PL", "FR-GP", "MT", "MT-GZ", "GR"];
-        countries.forEach((country) => {
-          svgDocument?.getElementById(country)?.setAttribute("fill", "gray");
-        });
+        objElement.addEventListener("load", objectLoaded);
+        return () => {
+          objElement.removeEventListener("load", objectLoaded);
+        };
       }
-
-      // if (imageElement) {
-      //   console.log("imageElement", imageElement);
-      //   imageElement.addEventListener("load", imageLoaded);
-      //   return () => {
-      //     imageElement.removeEventListener("load", imageLoaded);
-      //   };
-      // } 
     }, 
     []
   );
@@ -55,7 +51,7 @@ export default function Home() {
       <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
         <object 
           ref={objectRef}
-          // onLoad={objectLoaded}
+          onLoad={objectLoaded}
           className="map"
           type="image/svg+xml"
           data="world.svg"
