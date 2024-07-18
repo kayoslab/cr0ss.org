@@ -24,20 +24,30 @@ export default function Home() {
     y: number;
   }
 
-  function polygons(path: SVGPathElement): SVGPointList {
-    var NUM_POINTS = 6;
-    var len = path.getTotalLength();
-    var points = new SVGPointList();
+  function polygons(element: string, svgDocument: Document): SVGPoint[] {
+    const NUM_POINTS = 20;
+    const world = svgDocument.getElementById("world") as SVGSVGElement | null
+    const path = world?.getElementById(element) as unknown as SVGPolygonElement;
+    var len = path?.getTotalLength();
+    var points: SVGPoint[] = [];
 
-    for (var i=0; i < NUM_POINTS; i++) {
-        var pt = path.getPointAtLength(i * len / (NUM_POINTS-1));
-        points.appendItem(new SVGPoint(pt.x, pt.y));
+    console.log(path);
+
+    if (world) {
+      for (var i=0; i < NUM_POINTS; i++) {
+          var point = world.createSVGPoint();
+          var pt = path.getPointAtLength(i * len / (NUM_POINTS-1));
+          point.x = pt.x;
+          point.y = pt.y;
+          points.push(point);
+      }
     }
-
+    
+    console.log(points);
     return points;
   }
 
-  function area(pts: SVGPointList): number {
+  function area(pts: SVGPoint[]): number {
     var area = 0;
     var nPts = pts.length;
     var j = nPts - 1;
@@ -54,7 +64,7 @@ export default function Home() {
     return area;
   };
 
-  function computeCentroid(pts: SVGPointList) {
+  function computeCentroid(pts: SVGPoint[]) {
       var nPts = pts.length;
       var x=0; var y=0;
       var f;
@@ -78,18 +88,14 @@ export default function Home() {
     countries.forEach((country) => {
       svgDocument?.getElementById(country)?.setAttribute("fill", "gray");
     });
-    svgDocument?.getElementById("GEO")?.setAttribute("fill", "red");
+    svgDocument?.getElementById("GEO")?.setAttribute("fill", "blue");
     svgDocument?.getElementById("GEO")?.setAttribute("stroke", "white");
     svgDocument?.getElementById("GEO")?.setAttribute("stroke-width", "1");
     
-    const country = svgDocument?.getElementById("DE") as SVGPolygonElement | null;
-    if (country) {
-      // const center = computeCentroid(polygons(country));
-      // console.log(center);
-      // svgDocument?.getElementById("GEO")?.setAttribute("transform", "translate(center.x, center.y)");
-      svgDocument?.getElementById("GEO")?.setAttribute("transform", "translate(1043.9,185.9)");
+    if (svgDocument) {
+      const center = computeCentroid(polygons("DE", svgDocument));
+      svgDocument?.getElementById("GEO")?.setAttribute("transform", "translate(" + center[0] + ", " + center[1] + ")");
     }
-    
 
     // All paths for hover effect
     // objectRef.current?.contentDocument?.querySelectorAll("path").forEach((path) => {
