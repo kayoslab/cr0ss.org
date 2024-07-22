@@ -58,7 +58,7 @@ export default async function Home() {
               )
             ) 
           }
-          <circle cx="3.75" cy="3.75" r="3.75" fill="blue" id="GEO" name="Location" />
+          {/* <circle cx="3.75" cy="3.75" r="3.75" fill="blue" id="GEO" name="Location" /> */}
         </svg>
       </div>
 

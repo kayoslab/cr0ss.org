@@ -4,13 +4,15 @@ import { COUNTRY_GRAPHQL_FIELDS } from './props/country';
 function extractCountries(fetchResponse: {
   data: { countryCollection: { items: any } };
 }) {
-  return fetchResponse?.data?.countryCollection?.items;
+  var items = fetchResponse?.data?.countryCollection?.items;
+  console.log(items.length);
+  return items
 }
 
 export async function getAllCountries() {
   const countries = await fetchGraphQL(
     `query {
-      countryCollection(order: id_ASC, preview: false) {
+      countryCollection(order: id_ASC, preview: false, limit: 1000) {
           items {
             ${COUNTRY_GRAPHQL_FIELDS}
           }
@@ -25,7 +27,7 @@ export async function getAllCountries() {
 export async function getVisitedCountries(visited = true) {  
   const countries = await fetchGraphQL(
     `query {
-      countryCollection(where:{visited: ${visited}}, order: id_ASC, preview: false) {
+      countryCollection(where:{visited: ${visited}}, order: id_ASC, preview: false, limit: 1000) {
           items {
             ${COUNTRY_GRAPHQL_FIELDS}
           }
