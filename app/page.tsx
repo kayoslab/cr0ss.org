@@ -52,7 +52,7 @@ export default async function Home() {
                 <path
                   id={country.id}
                   key={country.id}
-                  d={country.path}
+                  d={ country.data.path }
                   fill={ country.visited ? "gray" : "#ececec" }
                 />
               )

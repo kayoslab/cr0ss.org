@@ -5,7 +5,6 @@ function extractCountries(fetchResponse: {
   data: { countryCollection: { items: any } };
 }) {
   var items = fetchResponse?.data?.countryCollection?.items;
-  console.log(items.length);
   return items
 }
 
