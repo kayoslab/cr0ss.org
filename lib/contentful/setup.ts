@@ -29,7 +29,7 @@ const client = management.createClient({
 
 client.getSpace(CONTENTFUL_SPACE_ID).then((space: any) => {
   space.getEnvironment('master').then((environment: any) => {
-    environment.getEntries({'limit': '1000'}).then((entries: any) => {
+    environment.getEntries({'content_type': 'country', 'limit': '1000'}).then(async (entries: any) => {
 
       // entries.items.forEach((entry: any) => {
       //   entry.unpublish();
@@ -40,7 +40,6 @@ client.getSpace(CONTENTFUL_SPACE_ID).then((space: any) => {
       var localCountries = countries.filter((country: any) => !entryIds.includes(country.id));
 
       console.log('Countries to create', localCountries.length);
-
       localCountries.forEach(async (country: any) => {
         if (!country.id || !country.title || !country.d) {
           console.error('Invalid country data', country);
@@ -51,7 +50,7 @@ client.getSpace(CONTENTFUL_SPACE_ID).then((space: any) => {
           console.log('Country already exists', country.title);
           return
         }
-  
+
         environment.createEntry('country', {
           fields: {
             id: {
@@ -69,8 +68,14 @@ client.getSpace(CONTENTFUL_SPACE_ID).then((space: any) => {
           },
         })
         .then(async (entry: any) => {
-          console.log('Country created', country.title);
-          entry.publish();
+          entry.publish()
+          .then(() => {
+            console.log('Country published', country.title);
+          })
+          .catch(() => {
+            console.log('Country created', country.title);
+            console.error
+          });
         })
         .catch(async () => {
           console.error
