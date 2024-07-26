@@ -7,7 +7,7 @@ function extractBlogEntries(fetchResponse: {
   return fetchResponse?.data?.blogPostCollection?.items;
 }
 
-export async function getAllBlogs(limit = 3) {
+export async function getAllBlogs(limit = 10) {
   const blogs = await fetchGraphQL(
     `query {
       blogPostCollection(where:{slug_exists: true}, order: date_DESC, limit: ${limit}, preview: false) {
@@ -16,9 +16,11 @@ export async function getAllBlogs(limit = 3) {
           }
         }
       }`,
-    ['blogs']
+    ['blogPosts']
   );
 
+
+  console.log(blogs);
   return extractBlogEntries(blogs);
 }
 
@@ -33,5 +35,7 @@ export async function getBlog(slug: string) {
       }`,
     [slug]
   );
+
+  console.log(blog);
   return extractBlogEntries(blog)[0];
 }

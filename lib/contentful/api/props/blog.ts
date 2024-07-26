@@ -5,14 +5,12 @@ export interface BlogProps {
   slug: string;
   title: string;
   summary: string;
-  author: string;
   heroImage?: {
     sys: {
       id: string;
     };
     url: string;
   };
-  categoryName: string;
   date: Date;
   details: {
     json: any;
@@ -46,8 +44,6 @@ export const BLOG_GRAPHQL_FIELDS = `
     }
   }
   date
-  author
-  categoryName
   heroImage {
     sys {
       id
