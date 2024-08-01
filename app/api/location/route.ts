@@ -26,6 +26,8 @@ export async function POST(request: Request) {
 
   if (!storedLocation) {
     await kv.set(locationKey, currentLocation);
+
+    return NextResponse.json({ revalidated: true, now: Date.now() });
   } else {
     const storedLat = storedLocation[0].lat;
     const storedLon = storedLocation[0].lon;
@@ -34,7 +36,11 @@ export async function POST(request: Request) {
 
     if (distance > locationThreshold) {
       await kv.set(locationKey, currentLocation);
+      return NextResponse.json({ revalidated: true, now: Date.now() });
+    } else {
+      return NextResponse.json({ revalidated: false, now: Date.now() });
     }
+
   }
 
   // Revalidate the stored geo location if difference is significant
