@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Invalid secret' }, { status: 401 });
   }
 
-  const storedLocation = await kv.get<{ lat: number; lon: number }[]>(locationKey);
+  const storedLocation = await kv.get<{ lat: number; lon: number }>(locationKey);
   const body = await request.json();
 
   const lat = body.lat;
@@ -29,8 +29,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ revalidated: true, now: Date.now() });
   } else {
     const distance = distanceInKmBetweenEarthCoordinates(
-      storedLocation[0].lat,
-      storedLocation[0].lon,
+      storedLocation.lat,
+      storedLocation.lon,
       currentLocation.lat,
       currentLocation.lon
     );
