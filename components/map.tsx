@@ -5,6 +5,9 @@ export default async function Map(location: { lat: number; lon: number }) {
   const countries = await getAllCountries();
   const mapWidth = 1009.6727;
   const mapHeight = 665.96301;
+  
+
+  console.log(location.lat, location.lon);
 
   const { x, y } = calculatePixels(mapWidth, mapHeight, location.lat, location.lon);
 
@@ -38,10 +41,17 @@ export default async function Map(location: { lat: number; lon: number }) {
 }
 
 function calculatePixels(mapWidth: number, mapHeight: number, lat: number, lon: number) {
-  let latitudeToRadians = ((lat * Math.PI) / 180);
+  let leftLon = -169.110266 
+  let rightLon = 190.486279
+  let topLat = 83.600842 
+  let bottomLat= -58.508473
+  let totalLon = (rightLon - leftLon)
+  let totalLat = (topLat - bottomLat)
+
+  let latitudeToRadians = ((lat * Math.PI) / totalLat);
   let mercN = Math.log(Math.tan((Math.PI / 4) + (latitudeToRadians / 2)));
 
-  let x = ((lon + 180) * (mapWidth / 360));
+  let x = ((lon + totalLon / 2) * (mapWidth / totalLon));
   let y = ((mapHeight / 2) - ((mapWidth * mercN) / (2 * Math.PI)))
 
   return { x, y };
