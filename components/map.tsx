@@ -8,7 +8,6 @@ export default async function Map(location: { lat: number; lon: number }) {
   
 
   console.log(location.lat, location.lon);
-  console.log(totalLat, totalLon);
   const { x, y } = calculatePixels(mapWidth, mapHeight, location.lat, location.lon);
 
   return (
