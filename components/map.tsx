@@ -8,7 +8,7 @@ export default async function Map(location: { lat: number; lon: number }) {
   
 
   console.log(location.lat, location.lon);
-
+  console.log(totalLat, totalLon);
   const { x, y } = calculatePixels(mapWidth, mapHeight, location.lat, location.lon);
 
   return (
@@ -48,10 +48,13 @@ function calculatePixels(mapWidth: number, mapHeight: number, lat: number, lon: 
   let totalLon = (rightLon - leftLon)
   let totalLat = (topLat - bottomLat)
 
-  let latitudeToRadians = ((lat * Math.PI) / totalLat);
+  let relativeLat = (lat - bottomLat) / totalLat
+  let relativeLon = (lon - leftLon) / totalLon
+
+  let latitudeToRadians = ((relativeLat * Math.PI) / 180);
   let mercN = Math.log(Math.tan((Math.PI / 4) + (latitudeToRadians / 2)));
 
-  let x = ((lon + totalLon / 2) * (mapWidth / totalLon));
+  let x = ((relativeLon + 180) * (mapWidth / 360));
   let y = ((mapHeight / 2) - ((mapWidth * mercN) / (2 * Math.PI)))
 
   return { x, y };
