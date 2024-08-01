@@ -26,15 +26,11 @@ export async function POST(request: Request) {
 
   if (!storedLocation) {
     await kv.set(locationKey, currentLocation);
-
     return NextResponse.json({ revalidated: true, now: Date.now() });
   } else {
-    const storedLat = storedLocation[0].lat;
-    const storedLon = storedLocation[0].lon;
-
     const distance = distanceInKmBetweenEarthCoordinates(
-      storedLat,
-      storedLon,
+      storedLocation[0].lat,
+      storedLocation[0].lon,
       currentLocation.lat,
       currentLocation.lon
     );
