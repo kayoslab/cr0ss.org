@@ -29,10 +29,15 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ revalidated: true, now: Date.now() });
   } else {
-    const storedLat = storedLocation[0]["lat"];
-    const storedLon = storedLocation[0]["lon"];
+    const storedLat = storedLocation[0].lat;
+    const storedLon = storedLocation[0].lon;
 
-    const distance = distanceInKmBetweenEarthCoordinates(storedLat, storedLon, lat, lon);
+    const distance = distanceInKmBetweenEarthCoordinates(
+      storedLat,
+      storedLon,
+      currentLocation.lat,
+      currentLocation.lon
+    );
 
     if (distance > locationThreshold) {
       await kv.set(locationKey, currentLocation);
