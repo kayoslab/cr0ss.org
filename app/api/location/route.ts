@@ -22,15 +22,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'No geo position provided' }, { status: 400 });
   }
 
-  const currentLocation = { lat, lon };
+  const currentLocation = { lat: lat, lon: lon };
 
   if (!storedLocation) {
     await kv.set(locationKey, currentLocation);
 
     return NextResponse.json({ revalidated: true, now: Date.now() });
   } else {
-    const storedLat = storedLocation[0].lat;
-    const storedLon = storedLocation[0].lon;
+    const storedLat = storedLocation[0]["lat"];
+    const storedLon = storedLocation[0]["lon"];
 
     const distance = distanceInKmBetweenEarthCoordinates(storedLat, storedLon, lat, lon);
 
@@ -40,12 +40,7 @@ export async function POST(request: Request) {
     } else {
       return NextResponse.json({ revalidated: false, now: Date.now() });
     }
-
   }
-
-  // Revalidate the stored geo location if difference is significant
-
-  return NextResponse.json({ revalidated: true, now: Date.now() });
 }
 
 function degreesToRadians(degrees: number) {
