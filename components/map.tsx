@@ -1,5 +1,6 @@
 import { CountryProps } from '@/lib/contentful/api/props/country';
 import { getAllCountries } from '@/lib/contentful/api/country';
+import { map } from 'zod';
 
 export default async function Map(location: { lat: number; lon: number }) {
   const countries = await getAllCountries();
@@ -9,7 +10,7 @@ export default async function Map(location: { lat: number; lon: number }) {
 
   console.log(location.lat, location.lon);
   const { x, y } = calculatePixels(mapWidth, mapHeight, location.lat, location.lon);
-
+  const r = + 3.75;
   return (
     <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -34,27 +35,34 @@ export default async function Map(location: { lat: number; lon: number }) {
               )
             ) 
           }
-          <circle cx={ x } cy= { y } r="3.75" fill="blue" id="GEO" name="Location" />
+          <circle cx={ x + r / 2 } cy= { y + r / 2 } r={ r } fill="blue" id="GEO" name="Location" />
         </svg>
   )
 }
 
 function calculatePixels(mapWidth: number, mapHeight: number, lat: number, lon: number) {
-  let leftLon = -169.110266 
-  let rightLon = 190.486279
-  let topLat = 83.600842 
-  let bottomLat= -58.508473
-  let totalLon = (rightLon - leftLon)
-  let totalLat = (topLat - bottomLat)
+  let totalLon = 360
+  let totalLat = 180
+  let mapLeftLon = -169.110266 
+  let mapRightLon = 190.486279
+  let mapTotalLon = mapRightLon - mapLeftLon
+  let lonFactor = mapTotalLon / totalLon
+  let mapShiftLon = ((totalLon / 2) + mapLeftLon)
+  let newLon = (lon - mapShiftLon) * lonFactor
 
-  let relativeLat = (lat - bottomLat) / totalLat
-  let relativeLon = (lon - leftLon) / totalLon
 
-  let latitudeToRadians = ((relativeLat * Math.PI) / 180);
-  let mercN = Math.log(Math.tan((Math.PI / 4) + (latitudeToRadians / 2)));
+  let mapTopLat = 83.600842 
+  let mapBottomLat= -58.508473
+  let mapTotalLat = mapTopLat - mapBottomLat
+  let relativeLat = lat * (mapTotalLat / totalLat)
+  let latFactor = mapTotalLat / totalLat
 
-  let x = ((relativeLon + 180) * (mapWidth / 360));
-  let y = ((mapHeight / 2) - ((mapWidth * mercN) / (2 * Math.PI)))
 
+  let latitudeToRadians = ((relativeLat * Math.PI * latFactor) / mapTotalLat);
+  let mercN = Math.log(Math.tan((Math.PI * latFactor / 4 ) + (latitudeToRadians / 2 * latFactor )));
+  
+  let y = ((mapHeight * lonFactor / 2) - ((mapWidth * lonFactor * mercN) / (2 * Math.PI)))
+ 
+  let x = ((newLon + mapTotalLon / 2) * (mapWidth / mapTotalLon));
   return { x, y };
 }
