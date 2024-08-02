@@ -36,6 +36,5 @@ export async function getBlog(slug: string) {
     [slug]
   );
 
-  console.log(blog);
   return extractBlogEntries(blog)[0];
 }

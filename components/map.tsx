@@ -6,17 +6,17 @@ export default async function Map(location: { lat: number; lon: number }) {
   const countries = await getAllCountries();
   const mapWidth = 1009.6727;
   const mapHeight = 665.96301;
-  
 
-  console.log(location.lat, location.lon);
   const { x, y } = calculatePixels(mapWidth, mapHeight, location.lat, location.lon);
   const r = + 3.75;
   return (
     <svg
           xmlns="http://www.w3.org/2000/svg"
           id="world"
+          viewBox={ "0 0 " +  mapWidth + " " + mapHeight }
           width={ mapWidth }
           height={ mapHeight }
+          style={{ width: "100%", height: "auto" }}
           fill="#ececec"
           stroke="#666666" 
           strokeLinecap="round"
@@ -49,7 +49,6 @@ function calculatePixels(mapWidth: number, mapHeight: number, lat: number, lon: 
   let lonFactor = mapTotalLon / totalLon
   let mapShiftLon = ((totalLon / 2) + mapLeftLon)
   let newLon = (lon - mapShiftLon) * lonFactor
-
 
   let mapTopLat = 83.600842 
   let mapBottomLat= -58.508473
