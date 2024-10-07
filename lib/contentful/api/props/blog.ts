@@ -52,4 +52,5 @@ export const BLOG_GRAPHQL_FIELDS = `
     __typename
     url
   }
+  metaText
 `;
