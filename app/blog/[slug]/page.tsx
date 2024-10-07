@@ -12,7 +12,7 @@ export async function generateStaticParams() {
   }));
 }
 
-export default async function BlogPage({
+export default async function BlogContent({
   params,
 }: {
   params: { slug: string };
