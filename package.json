@@ -26,6 +26,7 @@
     "next": "14.2.2",
     "react": "^18",
     "react-dom": "^18",
+    "react-syntax-highlighter": "^15.5.0",
     "tailwind": "^4.0.0",
     "vercel": "^35.2.2",
     "zod": "^3.23.0"
@@ -34,6 +35,7 @@
     "@types/node": "20.14.10",
     "@types/react": "18.3.3",
     "@types/react-dom": "^18",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "autoprefixer": "^10.0.1",
     "contentful-import": "^9.4.38",
     "eslint": "^8",

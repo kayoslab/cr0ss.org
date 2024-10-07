@@ -27,15 +27,17 @@ export default async function Home() {
                   key={blog.sys.id}
                   className='flex h-full flex-col overflow-hidden rounded-lg shadow-lg'
                 >
-                  <Image
-                    alt='placeholder'
-                    className='aspect-[4/3] w-full object-cover'
-                    height='263'
-                    src={blog?.heroImage?.url ?? ''}
-                    width='350'
-                  />
+                  <Link href={`/blog/${blog.slug}`}>
+                    <Image
+                      alt='placeholder'
+                      className='aspect-[4/3] w-full object-cover'
+                      height='263'
+                      src={blog?.heroImage?.url ?? ''}
+                      width='350'
+                    />
+                  </Link>
                   <div className='flex-1 p-6'>
-                    <Link href={`/blogs/${blog.slug}`}>
+                    <Link href={`/blog/${blog.slug}`}>
                       <h3 className='py-4 text-2xl font-bold leading-tight text-zinc-900  dark:text-zinc-50'>
                         {blog.title}
                       </h3>
