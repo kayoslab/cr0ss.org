@@ -33,13 +33,13 @@ export default function Navigation() {
         </div>
 
         <Popover.Group className='hidden lg:flex lg:gap-x-12'>
-          <a href='https://cr0ss.org/blog' className='text-sm font-semibold leading-6 text-gray-900'>
+          <a href='/blog' className='text-sm font-semibold leading-6 text-gray-900'>
             Blog
           </a>
-          <a href='https://cr0ss.org/about' className='text-sm font-semibold leading-6 text-gray-900'>
+          <a href='/page/about' className='text-sm font-semibold leading-6 text-gray-900'>
             About
           </a>
-          <a href='https://cr0ss.org/imprint' className='text-sm font-semibold leading-6 text-gray-900'>
+          <a href='/page/imprint' className='text-sm font-semibold leading-6 text-gray-900'>
             Imprint
           </a>
         </Popover.Group>
@@ -76,19 +76,19 @@ export default function Navigation() {
               <div className='space-y-2 py-6'>                
                 
                 <a
-                  href='https://cr0ss.org/blog'
+                  href='/blog'
                   className='-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50'
                 >
                   Blog
                 </a>
                 <a
-                  href='https://cr0ss.org/about'
+                  href='/page/about'
                   className='-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50'
                 >
                   About
                 </a>
                 <a
-                  href='https://cr0ss.org/imprint'
+                  href='/page/imprint'
                   className='-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50'
                 >
                   Imprint
