@@ -18,9 +18,6 @@ export async function getAllBlogs(limit = 10) {
       }`,
     ['blogPosts']
   );
-
-
-  console.log(blogs);
   return extractBlogEntries(blogs);
 }
 

@@ -13,11 +13,11 @@ export default async function Home() {
           <div className='flex flex-col items-center justify-center space-y-4 text-center'>
             <div className='space-y-2'>
               <h1 className='text-3xl font-bold tracking-tighter sm:text-5xl'>
-                Welcome to the Blog
+                Blog
               </h1>
-              <p className='max-w-[900px] text-zinc-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-zinc-400'>
+              {/* <p className='max-w-[900px] text-zinc-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-zinc-400'>
                 Discover the latest travel stories from around the world.
-              </p>
+              </p> */}
             </div>
           </div>
           <div className='space-y-12'>
