@@ -16,6 +16,7 @@ export interface BlogProps {
     json: any;
     links?: any;
   };
+  metaText: string;
 }
 
 // Set a variable that contains all the fields needed for blogs when a fetch for content is performed
