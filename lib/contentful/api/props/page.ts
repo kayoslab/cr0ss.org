@@ -4,6 +4,7 @@ export interface PageProps {
   };
   slug: string;
   title: string;
+  date: Date;
   heroImage?: {
     sys: {
       id: string;
@@ -24,6 +25,7 @@ export const PAGE_GRAPHQL_FIELDS = `
   __typename
   title
   slug
+  date
   details {
     json
     links {

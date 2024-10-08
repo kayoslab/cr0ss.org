@@ -2,13 +2,13 @@ import { fetchGraphQL } from './api';
 import { PAGE_GRAPHQL_FIELDS } from './props/page';
 
 function extractPageEntries(fetchResponse: {
-  data: { blogPostCollection: { items: any } };
+  data: { pagesCollection: { items: any } };
 }) {
-  return fetchResponse?.data?.blogPostCollection?.items;
+  return fetchResponse?.data?.pagesCollection?.items;
 }
 
 export async function getAllPages(limit = 10) {
-  const blogs = await fetchGraphQL(
+  const pages = await fetchGraphQL(
     `query {
       pageCollection(where:{slug_exists: true}, order: date_DESC, limit: ${limit}, preview: false) {
           items {
@@ -16,13 +16,13 @@ export async function getAllPages(limit = 10) {
           }
         }
       }`,
-    ['blogPosts']
+    ['pages']
   );
-  return extractPageEntries(blogs);
+  return pages.data.pageCollection.items;
 }
 
 export async function getPage(slug: string) {
-  const blog = await fetchGraphQL(
+  const pages = await fetchGraphQL(
     `query {
       pageCollection(where:{slug: "${slug}"}, limit: 1, preview: false) {
           items {
@@ -33,5 +33,5 @@ export async function getPage(slug: string) {
     [slug]
   );
 
-  return extractPageEntries(blog)[0];
+  return pages.data.pageCollection.items[0];
 }

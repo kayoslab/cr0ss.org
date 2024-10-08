@@ -4,13 +4,13 @@ import { getAllPages, getPage } from '@/lib/contentful/api/page';
 import { PageProps } from '@/lib/contentful/api/props/page';
 import { Page } from '@/components/page';
 
-// At build time, fetch all slugs to build the blog pages so they are static and cached
-export async function generateStaticParams() {
-  const allBlogs = await getAllPages();
-  return allBlogs.map((blog: PageProps) => ({
-    slug: blog.slug,
-  }));
-}
+// At build time, fetch all slugs to build the pages so they are static and cached
+// export async function generateStaticParams() {
+//   const allPages = await getAllPages();
+//   return allPages.map((page: PageProps) => ({
+//     slug: page.slug,
+//   }));
+// }
 
 export default async function PageContent({
   params,
