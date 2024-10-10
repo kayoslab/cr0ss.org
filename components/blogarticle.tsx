@@ -58,7 +58,11 @@ function renderOptions(links: any) {
         const asset = assetMap.get(node.data.target.sys.id);
 
         // render the asset accordingly
-        return <img src={asset.url} alt={asset.description} />;
+        return (
+          <Link href={asset.url} >
+            <img src={asset.url} alt={asset.description} />
+          </Link>
+        );
       },
     },
     [INLINES.HYPERLINK]: (node: any, children: any) => {
@@ -104,9 +108,9 @@ export const Blog = ({ blog }: { blog: BlogProps }) => {
             <Image
               alt='Blog Image'
               className='aspect-video w-full overflow-hidden rounded-xl object-cover'
-              height='365'
               src={blog.heroImage?.url as string}
-              width='650'
+              layout='fill'
+              objectFit='contain'
             />
             {/* <div className="space-y-8 lg:space-y-10"> */}
             <div className='flex flex-col justify-between md:flex-row'>
