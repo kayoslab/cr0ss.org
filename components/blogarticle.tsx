@@ -109,8 +109,10 @@ export const Blog = ({ blog }: { blog: BlogProps }) => {
               alt='Blog Image'
               className='aspect-video w-full overflow-hidden rounded-xl object-cover'
               src={blog.heroImage?.url as string}
-              layout='fill'
-              objectFit='contain'
+              width={0}
+              height={0}
+              sizes="100vw"
+              style={{ width: '100%', height: 'auto' }} // optional
             />
             {/* <div className="space-y-8 lg:space-y-10"> */}
             <div className='flex flex-col justify-between md:flex-row'>
