@@ -103,8 +103,10 @@ export const Page = ({ page }: { page: PageProps }) => {
               alt='Page Image'
               className='aspect-video w-full overflow-hidden rounded-xl object-cover'
               src={page.heroImage?.url as string}
-              layout='fill'
-              objectFit='contain'
+              width={0}
+              height={0}
+              sizes="100vw"
+              style={{ width: '100%', height: 'auto' }} // optional
             />
             <div className='space-y-4 md:space-y-6'>
               <div className='space-y-2'>
