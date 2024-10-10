@@ -58,7 +58,11 @@ function renderOptions(links: any) {
         const asset = assetMap.get(node.data.target.sys.id);
 
         // render the asset accordingly
-        return <img src={asset.url} alt={asset.description} />;
+        return (
+          <Link href={asset.url} >
+            <img src={asset.url} alt={asset.description} />
+          </Link>
+        );
       },
     },
     [INLINES.HYPERLINK]: (node: any, children: any) => {
@@ -98,9 +102,9 @@ export const Page = ({ page }: { page: PageProps }) => {
             <Image
               alt='Page Image'
               className='aspect-video w-full overflow-hidden rounded-xl object-cover'
-              height='365'
               src={page.heroImage?.url as string}
-              width='650'
+              layout='fill'
+              objectFit='contain'
             />
             <div className='space-y-4 md:space-y-6'>
               <div className='space-y-2'>
