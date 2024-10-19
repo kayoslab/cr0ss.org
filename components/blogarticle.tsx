@@ -5,6 +5,41 @@ import { BLOCKS, INLINES } from '@contentful/rich-text-types';
 import Link from 'next/link';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import type { Metadata, ResolvingMetadata } from 'next'
+
+export async function generateMetadata(
+  blog: BlogProps,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+ 
+  // optionally access and extend (rather than replace) parent metadata
+  const previousImages = (await parent).openGraph?.images || []
+ 
+  return {
+    title: blog.title,
+    description: blog.seoDescription,
+    openGraph: {
+      title: blog.title,
+      description: blog.seoDescription,
+      images: [blog.heroImage?.url as string, ...previousImages],
+      url: 'https://cr0ss.org/blog/' + blog.slug,
+    },
+    creator: blog.author,
+    robots: {
+      index: true,
+      follow: true,
+      nocache: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        noimageindex: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
+    },
+  }
+}
 
 function renderOptions(links: any) {
   // create an asset map
@@ -139,7 +174,7 @@ export const Blog = ({ blog }: { blog: BlogProps }) => {
                 <svg className="w-8 h-8 text-gray-400 dark:text-gray-600 mb-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 14">
                     <path d="M6 0H2a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h4v1a3 3 0 0 1-3 3H2a1 1 0 0 0 0 2h1a5.006 5.006 0 0 0 5-5V2a2 2 0 0 0-2-2Zm10 0h-4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h4v1a3 3 0 0 1-3 3h-1a1 1 0 0 0 0 2h1a5.006 5.006 0 0 0 5-5V2a2 2 0 0 0-2-2Z"/>
                 </svg>
-                <p>{ blog.metaText }</p>
+                <p>{ blog.authorText }</p>
             </blockquote>
             </div>
           </div>
