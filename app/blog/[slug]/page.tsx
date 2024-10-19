@@ -19,8 +19,6 @@ export default async function BlogContent({
 }) {
   const blog = await getBlog(params.slug);
 
-  console.log(blog);
-
   if (!blog) {
     notFound();
   }

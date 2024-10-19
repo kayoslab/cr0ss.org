@@ -4,6 +4,7 @@ export interface BlogProps {
   };
   slug: string;
   title: string;
+  author: string;
   summary: string;
   heroImage?: {
     sys: {
@@ -11,12 +12,13 @@ export interface BlogProps {
     };
     url: string;
   };
-  date: Date;
   details: {
     json: any;
     links?: any;
   };
-  metaText: string;
+  authorText: string;
+  seoDescription: string;
+  seoKeywords: string;
 }
 
 // Set a variable that contains all the fields needed for blogs when a fetch for content is performed
@@ -27,6 +29,7 @@ export const BLOG_GRAPHQL_FIELDS = `
   __typename
   title
   slug
+  author
   summary
   details {
     json
@@ -44,7 +47,6 @@ export const BLOG_GRAPHQL_FIELDS = `
       }
     }
   }
-  date
   heroImage {
     sys {
       id
@@ -52,5 +54,7 @@ export const BLOG_GRAPHQL_FIELDS = `
     __typename
     url
   }
-  metaText
+  authorText
+  seoDescription
+  seoKeywords
 `;
