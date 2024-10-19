@@ -101,7 +101,7 @@ export const Blog = ({ blog }: { blog: BlogProps }) => {
             <div
               className='text-zinc-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed'
             >
-              By  <Link href={`/about`}>{"cr0ss"}</Link>
+              By  <Link href={`/page/about`}>{"cr0ss"}</Link>
             </div>
           </div>
           <div className='space-y-8 lg:space-y-10'>
