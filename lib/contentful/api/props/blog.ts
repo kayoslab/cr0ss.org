@@ -5,6 +5,7 @@ export interface BlogProps {
   slug: string;
   title: string;
   author: string;
+  categories: [string];
   summary: string;
   heroImage?: {
     sys: {
@@ -18,7 +19,7 @@ export interface BlogProps {
   };
   authorText: string;
   seoDescription: string;
-  seoKeywords: string;
+  seoKeywords: [string];
 }
 
 // Set a variable that contains all the fields needed for blogs when a fetch for content is performed
@@ -30,7 +31,15 @@ export const BLOG_GRAPHQL_FIELDS = `
   title
   slug
   author
+  categories
   summary
+  heroImage {
+    sys {
+      id
+    }
+    __typename
+    url
+  }
   details {
     json
     links {
@@ -46,13 +55,6 @@ export const BLOG_GRAPHQL_FIELDS = `
           }
       }
     }
-  }
-  heroImage {
-    sys {
-      id
-    }
-    __typename
-    url
   }
   authorText
   seoDescription
