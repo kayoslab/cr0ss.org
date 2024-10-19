@@ -35,13 +35,13 @@ function renderOptions(links: any) {
         return <h6 className="font-bold text-lg mb-4 dark:text-white">{children}</h6>;
       },
       [BLOCKS.UL_LIST]: (node: any, children: any) => {
-        return <ul className="list-disc dark:text-slate-200">{children}</ul>;
+        return <ul className="list-disc dark:text-slate-200 list-style-position:outside ms-4">{children}</ul>;
       },
       [BLOCKS.LIST_ITEM]: (node: any, children: any) => {
-        return <li className="my-4">{children}</li>;
+        return <li className="my-4 list-style-position:outside ms-4">{children}</li>;
       },
       [BLOCKS.OL_LIST]: (node: any, children: any) => {
-        return <li className="my-4">{children}</li>;
+        return <li className="my-4 list-style-position:outside ms-4">{children}</li>;
       },
       [BLOCKS.PARAGRAPH]: (node: any, children: any) => {
         return <p className="mb-2 text-slate-700 dark:text-slate-200">{children}</p>;
