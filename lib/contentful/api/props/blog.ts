@@ -1,3 +1,5 @@
+import { CategoryProps } from "./category";
+
 export interface BlogProps {
   sys: {
     id: string;
@@ -5,7 +7,7 @@ export interface BlogProps {
   slug: string;
   title: string;
   author: string;
-  // categories: [string];
+  categories: [CategoryProps];
   summary: string;
   heroImage?: {
     sys: {
@@ -19,7 +21,7 @@ export interface BlogProps {
   };
   authorText: string;
   seoDescription: string;
-  // seoKeywords: [string];
+  seoKeywords: [string];
 }
 
 // Set a variable that contains all the fields needed for blogs when a fetch for content is performed
@@ -33,7 +35,12 @@ export const BLOG_GRAPHQL_FIELDS = `
   author
   categoriesCollection(limit: 50){
     items{
+      sys {
+        id
+      }
+      __typename
       title
+      slug
     }
   }
   summary
