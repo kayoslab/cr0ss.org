@@ -3,7 +3,7 @@ import { BlogProps } from '@/lib/contentful/api/props/blog';
 import Image from 'next/image';
 import Link from 'next/link';
 
-export default async function Home() {
+export default async function BlogsContent() {
   const blogs = await getAllBlogs(10);
 
   return (
