@@ -11,7 +11,7 @@ export default async function BlogCategoriesContent({
   const blogs = await getBlogsForCategory(params.slug)
 
   return (
-    <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800'>
+    <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800 pb-24'>
       <section className='w-full pt-12 max-w-screen-lg'>
         <div className='container mx-auto space-y-12 px-4 md:px-6'>
           <div className='flex flex-col items-center justify-center space-y-4 text-center'>
