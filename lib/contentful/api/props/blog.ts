@@ -31,7 +31,11 @@ export const BLOG_GRAPHQL_FIELDS = `
   title
   slug
   author
-  categories
+  categoriesCollection(limit: 50){
+    items{
+      title
+    }
+  }
   summary
   heroImage {
     sys {
