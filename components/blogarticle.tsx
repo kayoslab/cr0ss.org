@@ -88,10 +88,6 @@ function renderOptions(links: any) {
 }
 
 export const Blog = ({ blog }: { blog: BlogProps }) => {
-  const categoriesText = blog.categoriesCollection.items.length > 0 ?
-  " in " + blog.categoriesCollection.items.map((category: CategoryProps) => (<Link href={`/blog/category/` + category.slug}>{category.title}</Link>)).join(',') :
-  ""
-
   return (
     <section className='w-full max-w-screen-lg'>
         <div className='container space-y-12 px-4 md:px-6'>
