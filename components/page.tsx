@@ -88,7 +88,7 @@ function renderOptions(links: any) {
 
 export const Page = ({ page }: { page: PageProps }) => {
   return (
-    <div className='flex min-h-screen flex-col items-center justify-between bg-white p-24'>
+    <div className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800 p-24'>
       <section className='w-full'>
         <div className='container space-y-12 px-4 md:px-6'>
           <div className='space-y-4'>
