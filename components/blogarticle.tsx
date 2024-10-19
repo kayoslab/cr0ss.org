@@ -36,13 +36,13 @@ function renderOptions(links: any) {
         return <h6 className="font-bold text-lg mb-4 dark:text-white">{children}</h6>;
       },
       [BLOCKS.UL_LIST]: (node: any, children: any) => {
-        return <ul className="list-disc dark:text-slate-200 list-style-position:outside ms-4">{children}</ul>;
+        return <ul className="list-disc dark:text-slate-200 list-style-position:outside ms-4" key={children}>{children}</ul>;
       },
       [BLOCKS.LIST_ITEM]: (node: any, children: any) => {
-        return <li className="my-4 list-style-position:outside ms-4">{children}</li>;
+        return <li className="my-4 list-style-position:outside ms-4" key={children}>{children}</li>;
       },
       [BLOCKS.OL_LIST]: (node: any, children: any) => {
-        return <li className="my-4 list-style-position:outside ms-4">{children}</li>;
+        return <li className="my-4 list-style-position:outside ms-4" key={children}>{children}</li>;
       },
       [BLOCKS.PARAGRAPH]: (node: any, children: any) => {
         return <p className="mb-2 text-slate-700 dark:text-slate-200">{children}</p>;
@@ -102,7 +102,7 @@ export const Blog = ({ blog }: { blog: BlogProps }) => {
             >
               By  <Link href={`/page/about`}><u>{"cr0ss"}</u></Link>{blog.categoriesCollection.items.length > 0 ? " in " : ""}{
                 blog.categoriesCollection.items.map((category: CategoryProps) => (
-                  <u><Link href={`/blog/category/` + category.slug} key={category.slug}>{category.title}</Link></u>
+                  <u key={category.slug}><Link href={`/blog/category/` + category.slug} key={category.slug+"-link"}>{category.title}</Link></u>
                 ))
               }
             </div>
