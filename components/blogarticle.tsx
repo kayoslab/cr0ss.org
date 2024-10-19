@@ -5,6 +5,7 @@ import { BLOCKS, INLINES } from '@contentful/rich-text-types';
 import Link from 'next/link';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { CategoryProps } from '@/lib/contentful/api/props/category';
 
 function renderOptions(links: any) {
   // create an asset map

@@ -19,7 +19,7 @@ export default async function BlogsContent() {
           </div>
           <div className='space-y-12'>
             <div className='grid gap-8 md:grid-cols-2 lg:grid-cols-3'>
-              {blogs.map((blog: BlogProps) => (
+              {blogs?.map((blog: BlogProps) => (
                 <article
                   key={blog.sys.id}
                   className='flex h-full flex-col overflow-hidden rounded-lg shadow-lg'
