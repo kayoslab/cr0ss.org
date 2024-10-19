@@ -45,28 +45,38 @@ export default async function Map(location: { lat: number; lon: number }) {
   )
 }
 
-function calculatePixels(mapWidth: number, mapHeight: number, lat: number, lon: number) {
-  let totalLon = 360
-  let totalLat = 180
+function calculatePixels(
+  mapWidth: number,
+  mapHeight: number, 
+  lat: number, 
+  lon: number
+) {
   let mapLeftLon = -169.110266 
   let mapRightLon = 190.486279
-  let mapTotalLon = mapRightLon - mapLeftLon
-  let lonFactor = mapTotalLon / totalLon
-  let mapShiftLon = ((totalLon / 2) + mapLeftLon)
-  let newLon = (lon - mapShiftLon) * lonFactor
-
   let mapTopLat = 83.600842 
   let mapBottomLat= -58.508473
-  let mapTotalLat = mapTopLat - mapBottomLat
-  let relativeLat = lat * (mapTotalLat / totalLat)
-  let latFactor = mapTotalLat / totalLat
+  return convertGeoToPixel(lat, lon, mapWidth, mapHeight, mapLeftLon, mapRightLon, mapBottomLat);
+}
 
+// https://stackoverflow.com/questions/2103924/mercator-longitude-and-latitude-calculations-to-x-and-y-on-a-cropped-map-of-the
+function convertGeoToPixel(
+  latitude: number, 
+  longitude: number,
+  mapWidth: number,
+  mapHeight: number,
+  mapLngLeft: number,
+  mapLngRight: number,
+  mapLatBottom: number
+) {
+  const mapLatBottomRad = mapLatBottom * Math.PI / 180
+  const latitudeRad = latitude * Math.PI / 180
+  const mapLngDelta = (mapLngRight - mapLngLeft)
 
-  let latitudeToRadians = ((relativeLat * Math.PI * latFactor) / mapTotalLat);
-  let mercN = Math.log(Math.tan((Math.PI * latFactor / 4 ) + (latitudeToRadians / 2 * latFactor )));
-  
-  let y = ((mapHeight * lonFactor / 2) - ((mapWidth * lonFactor * mercN) / (2 * Math.PI)))
- 
-  let x = ((newLon + mapTotalLon / 2) * (mapWidth / mapTotalLon));
-  return { x, y };
+  const worldMapWidth = ((mapWidth / mapLngDelta) * 360) / (2 * Math.PI)
+  const mapOffsetY = (worldMapWidth / 2 * Math.log((1 + Math.sin(mapLatBottomRad)) / (1 - Math.sin(mapLatBottomRad))))
+
+  const x = (longitude - mapLngLeft) * (mapWidth / mapLngDelta)
+  const y = mapHeight - ((worldMapWidth / 2 * Math.log((1 + Math.sin(latitudeRad)) / (1 - Math.sin(latitudeRad)))) - mapOffsetY)
+
+  return {x, y}
 }
