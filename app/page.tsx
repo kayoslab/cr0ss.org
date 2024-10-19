@@ -1,7 +1,9 @@
 import Map from '@/components/map';
 import { kv } from "@vercel/kv";
 
-export default async function Home() {
+export const fetchCache = 'force-no-store';
+
+export default async function HomeContent() {
   const locationKey = 'GEOLOCATION';
   const storedLocation = await kv.get<{ lat: number; lon: number }>(locationKey);
   
