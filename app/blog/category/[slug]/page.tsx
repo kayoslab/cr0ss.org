@@ -1,10 +1,14 @@
-import { getAllBlogs } from '@/lib/contentful/api/blog';
+import { getBlogsForCategory } from '@/lib/contentful/api/blog';
 import { BlogProps } from '@/lib/contentful/api/props/blog';
 import Image from 'next/image';
 import Link from 'next/link';
 
-export default async function CategoriesContent() {
-  const blogs = await getAllBlogs(10);
+export default async function BlogCategoriesContent({
+    params,
+}: {
+    params: { slug: string };
+}) {
+  const blogs = await getBlogsForCategory(params.slug)
 
   return (
     <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800'>
@@ -19,7 +23,7 @@ export default async function CategoriesContent() {
           </div>
           <div className='space-y-12'>
             <div className='grid gap-8 md:grid-cols-2 lg:grid-cols-3'>
-              {blogs.map((blog: BlogProps) => (
+              {blogs?.map((blog: BlogProps) => (
                 <article
                   key={blog.sys.id}
                   className='flex h-full flex-col overflow-hidden rounded-lg shadow-lg'
