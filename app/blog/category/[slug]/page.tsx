@@ -1,4 +1,5 @@
-import { getBlogsForCategory } from '@/lib/contentful/api/blog';
+import { notFound } from 'next/navigation';
+import { getBlogsForCategory, getCategory } from '@/lib/contentful/api/category';
 import { BlogProps } from '@/lib/contentful/api/props/blog';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -8,7 +9,12 @@ export default async function BlogCategoriesContent({
 }: {
     params: { slug: string };
 }) {
+  const category = await getCategory(params.slug);
   const blogs = await getBlogsForCategory(params.slug)
+  
+  if (!category || !blogs) {
+    notFound();
+  }
 
   return (
     <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800 pb-24'>
@@ -17,7 +23,7 @@ export default async function BlogCategoriesContent({
           <div className='flex flex-col items-center justify-center space-y-4 text-center'>
             <div className='space-y-2'>
               <h1 className='text-3xl font-bold tracking-tighter sm:text-5xl'>
-                Blog
+                {category.title}
               </h1>
             </div>
           </div>
