@@ -38,31 +38,3 @@ export async function getBlog(slug: string) {
   
   return extractAllBlogEntries(blog)[0];
 }
-
-function extractAllBlogEntriesForCategory(fetchResponse: {
-  data: { blogCategoryCollection: { items: [ {linkedFrom: { blogPostCollection: { items: any } } } ] } };
-}) {
-  return fetchResponse?.data?.blogCategoryCollection?.items[0]?.linkedFrom.blogPostCollection.items;
-}
-
-export async function getBlogsForCategory(slug: string, limit: number = 10) {
-  const blogs = await fetchGraphQL(
-    `query {
-      blogCategoryCollection(where: { slug: "${slug}" }, limit: 1) {
-        items {
-          linkedFrom {
-            blogPostCollection(order: sys_firstPublishedAt_DESC, limit: ${limit}, preview: false) {
-              total
-              items {
-                ${BLOG_GRAPHQL_FIELDS}
-              }
-            }
-          }
-        }
-      }
-    }`,
-    ['blogPosts']
-  );
-
-  return extractAllBlogEntriesForCategory(blogs);
-}
