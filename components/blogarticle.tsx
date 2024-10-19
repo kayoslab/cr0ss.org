@@ -88,6 +88,9 @@ function renderOptions(links: any) {
 }
 
 export const Blog = ({ blog }: { blog: BlogProps }) => {
+  const categoriesText = blog.categoriesCollection.items.length > 0 ?
+  " in " + blog.categoriesCollection.items.map((category: CategoryProps) => (<Link href={`/blog/category/` + category.slug}>{category.title}</Link>)).join(',') :
+  ""
 
   return (
     <section className='w-full max-w-screen-lg'>
@@ -101,7 +104,11 @@ export const Blog = ({ blog }: { blog: BlogProps }) => {
             <div
               className='text-zinc-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed'
             >
-              By  <Link href={`/page/about`}>{"cr0ss"}</Link>
+              By  <Link href={`/page/about`}>{"cr0ss"}</Link>{blog.categoriesCollection.items.length > 0 ? " in " : ""}{
+                blog.categoriesCollection.items.map((category: CategoryProps) => (
+                  <Link href={`/blog/category/` + category.slug}>{category.title}</Link>
+                ))
+              }
             </div>
           </div>
           <div className='space-y-8 lg:space-y-10'>
@@ -114,7 +121,6 @@ export const Blog = ({ blog }: { blog: BlogProps }) => {
               sizes="100vw"
               style={{ width: '100%', height: 'auto' }} // optional
             />
-            {/* <div className="space-y-8 lg:space-y-10"> */}
             <div className='flex flex-col justify-between md:flex-row'>
               <p
                 className='max-w-[900px] text-zinc-500 md:text-2xl lg:text-3xl xl:text-4xl dark:text-zinc-400'
