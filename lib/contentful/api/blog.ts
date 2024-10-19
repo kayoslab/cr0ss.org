@@ -8,10 +8,9 @@ function extractBlogEntries(fetchResponse: {
 }
 
 export async function getAllBlogs(limit = 10) {
-  // order: date_DESC
   const blogs = await fetchGraphQL(
     `query {
-      blogPostCollection(where:{slug_exists: true}, limit: ${limit}, preview: false) {
+      blogPostCollection(where:{slug_exists: true}, order: sys_firstPublishedAt_DESC, limit: ${limit}, preview: false) {
           items {
             ${BLOG_GRAPHQL_FIELDS}
           }
