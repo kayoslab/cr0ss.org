@@ -7,7 +7,7 @@ export interface BlogProps {
   slug: string;
   title: string;
   author: string;
-  categories: [CategoryProps];
+  categoriesCollection: { items: [CategoryProps] }
   summary: string;
   heroImage?: {
     sys: {

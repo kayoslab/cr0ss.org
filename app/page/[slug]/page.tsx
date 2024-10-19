@@ -5,12 +5,12 @@ import { PageProps } from '@/lib/contentful/api/props/page';
 import { Page } from '@/components/page';
 
 // At build time, fetch all slugs to build the pages so they are static and cached
-// export async function generateStaticParams() {
-//   const allPages = await getAllPages();
-//   return allPages.map((page: PageProps) => ({
-//     slug: page.slug,
-//   }));
-// }
+export async function generateStaticParams() {
+  const allPages = await getAllPages();
+  return allPages?.map((page: PageProps) => ({
+    slug: page.slug,
+  }));
+}
 
 export default async function PageContent({
   params,
@@ -24,12 +24,8 @@ export default async function PageContent({
   }
 
   return (
-    <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800 p-24'>
-      <section className='w-full'>
-        <div className='container space-y-12 px-4 md:px-6'>
-          <Page page={page} />
-        </div>
-      </section>
+    <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800'>
+      <Page page={page} />
     </main>
   );
 }
