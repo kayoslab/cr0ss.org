@@ -67,7 +67,7 @@ export default async function BlogContent({
   }
 
   return (
-    <main className='flex min-h-screen flex-col items-center justify-between bg-white'>
+    <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800'>
       <Blog blog={blog} />
     </main>
   );

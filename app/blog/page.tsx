@@ -7,7 +7,7 @@ export default async function BlogsContent() {
   const blogs = await getAllBlogs(10);
 
   return (
-    <main className='flex min-h-screen flex-col items-center justify-between bg-white'>
+    <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800'>
       <section className='w-full pt-12 max-w-screen-lg'>
         <div className='container mx-auto space-y-12 px-4 md:px-6'>
           <div className='flex flex-col items-center justify-center space-y-4 text-center'>
@@ -15,9 +15,6 @@ export default async function BlogsContent() {
               <h1 className='text-3xl font-bold tracking-tighter sm:text-5xl'>
                 Blog
               </h1>
-              {/* <p className='max-w-[900px] text-zinc-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-zinc-400'>
-                Discover the latest travel stories from around the world.
-              </p> */}
             </div>
           </div>
           <div className='space-y-12'>
@@ -38,7 +35,7 @@ export default async function BlogsContent() {
                   </Link>
                   <div className='flex-1 p-6'>
                     <Link href={`/blog/${blog.slug}`}>
-                      <h3 className='py-4 text-2xl font-bold leading-tight text-zinc-900  dark:text-zinc-50'>
+                      <h3 className='py-4 text-2xl font-bold leading-tight text-zinc-900 dark:text-zinc-50'>
                         {blog.title}
                       </h3>
                     </Link>
