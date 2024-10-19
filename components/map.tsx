@@ -9,6 +9,11 @@ export default async function Map(location: { lat: number; lon: number }) {
 
   const { x, y } = calculatePixels(mapWidth, mapHeight, location.lat, location.lon);
   const r = + 3.75;
+
+  if (!countries) {
+    return <svg></svg>
+  }
+
   return (
     <svg
           xmlns="http://www.w3.org/2000/svg"
