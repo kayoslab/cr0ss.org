@@ -5,41 +5,6 @@ import { BLOCKS, INLINES } from '@contentful/rich-text-types';
 import Link from 'next/link';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import type { Metadata, ResolvingMetadata } from 'next'
-
-export async function generateMetadata(
-  blog: BlogProps,
-  parent: ResolvingMetadata
-): Promise<Metadata> {
- 
-  // optionally access and extend (rather than replace) parent metadata
-  const previousImages = (await parent).openGraph?.images || []
- 
-  return {
-    title: blog.title,
-    description: blog.seoDescription,
-    openGraph: {
-      title: blog.title,
-      description: blog.seoDescription,
-      images: [blog.heroImage?.url as string, ...previousImages],
-      url: 'https://cr0ss.org/blog/' + blog.slug,
-    },
-    creator: blog.author,
-    robots: {
-      index: true,
-      follow: true,
-      nocache: true,
-      googleBot: {
-        index: true,
-        follow: true,
-        noimageindex: true,
-        'max-video-preview': -1,
-        'max-image-preview': 'large',
-        'max-snippet': -1,
-      },
-    },
-  }
-}
 
 function renderOptions(links: any) {
   // create an asset map
