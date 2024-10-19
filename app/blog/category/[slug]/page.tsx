@@ -7,8 +7,8 @@ export default async function BlogsContent() {
   const blogs = await getAllBlogs(10);
 
   return (
-    <main className='flex min-h-screen flex-col items-center justify-between bg-white'>
-      <section className='w-full pt-12 max-w-screen-lg'>
+    <main className='flex min-h-screen flex-col items-center justify-between bg-white p-24'>
+      <section className='w-full pt-12'>
         <div className='container mx-auto space-y-12 px-4 md:px-6'>
           <div className='flex flex-col items-center justify-center space-y-4 text-center'>
             <div className='space-y-2'>

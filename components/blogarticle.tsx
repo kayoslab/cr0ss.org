@@ -89,8 +89,7 @@ function renderOptions(links: any) {
 export const Blog = ({ blog }: { blog: BlogProps }) => {
 
   return (
-    <div className='flex min-h-screen flex-col items-center justify-between bg-white p-24'>
-      <section className='w-full'>
+    <section className='w-full max-w-screen-lg'>
         <div className='container space-y-12 px-4 md:px-6'>
           <div className='space-y-4'>
             <h1
@@ -145,6 +144,5 @@ export const Blog = ({ blog }: { blog: BlogProps }) => {
           </div>
         </div>
       </section>
-    </div>
   );
 };
