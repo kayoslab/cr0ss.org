@@ -21,6 +21,20 @@ export async function getAllBlogs(limit = 10) {
   return extractBlogEntries(blogs);
 }
 
+export async function getBlogsForCategory(category: string, limit = 10) {
+  const blogs = await fetchGraphQL(
+    `query {
+      blogPostCollection(where:{slug_exists: true}, order: sys_firstPublishedAt_DESC, limit: ${limit}, preview: false) {
+          items {
+            ${BLOG_GRAPHQL_FIELDS}
+          }
+        }
+      }`,
+    ['blogPosts']
+  );
+  return extractBlogEntries(blogs);
+}
+
 export async function getBlog(slug: string) {
   const blog = await fetchGraphQL(
     `query {
