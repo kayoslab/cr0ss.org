@@ -16,12 +16,14 @@ export default async function Map(location: { lat: number; lon: number }) {
 
   return (
     <svg
+          className="max-w-full"
           xmlns="http://www.w3.org/2000/svg"
           id="world"
           viewBox={ "0 0 " +  mapWidth + " " + mapHeight }
+          preserveAspectRatio="xMidYMid meet"
           width={ mapWidth }
           height={ mapHeight }
-          style={{ width: "100%", height: "auto" }}
+          style={{ width:  mapWidth * 1.25 + "px", height: "auto" }}
           fill="#ececec"
           stroke="#666666" 
           strokeLinecap="round"
