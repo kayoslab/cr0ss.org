@@ -87,7 +87,12 @@ function renderOptions(links: any) {
   };
 }
 
-export const Blog = ({ blog }: { blog: BlogProps }) => {
+export const Blog = ({ blog, recommendations }: { blog: BlogProps, recommendations: BlogProps[] }) => {
+  var recommendationsJSX = <div className='flex flex-col space-y-4 font-bold tracking-tighter sm:text-xl'></div>
+  if (recommendations.length > 0) {
+    recommendationsJSX = <div className='flex flex-col space-y-4 font-bold tracking-tighter sm:text-xl'>Continue reading:</div>
+  }
+
   return (
     <section className='w-full max-w-screen-lg'>
         <div className='container space-y-12 px-4 md:px-6'>
@@ -143,6 +148,43 @@ export const Blog = ({ blog }: { blog: BlogProps }) => {
                 </svg>
                 <p>{ blog.authorText }</p>
             </blockquote>
+            </div>
+          </div>
+        </div>
+        <div className='container mx-auto space-y-12 px-4 md:py-24'>
+          { recommendationsJSX }
+          <div className='space-y-12'>
+            <div className='grid gap-8 md:grid-cols-2 lg:grid-cols-3'>
+              {recommendations.map((recommendation: BlogProps) => (
+                <article
+                  className='flex h-full flex-col overflow-hidden rounded-lg shadow-lg'
+                >
+                  <Link href={`/blog/${recommendation.slug}`}>
+                    <Image
+                      alt='placeholder'
+                      className='aspect-[4/3] w-full object-cover'
+                      height='263'
+                      src={recommendation?.heroImage?.url ?? ''}
+                      width='350'
+                    />
+                  </Link>
+                  <div className='flex-1 p-6'>
+                    <Link href={`/blog/${recommendation.slug}`}>
+                      <h3 className='py-4 text-2xl font-bold leading-tight text-zinc-900 dark:text-zinc-50'>
+                        {recommendation.title}
+                      </h3>
+                    </Link>
+                    <div className='flex justify-end'>
+                      <Link
+                        className='inline-flex h-10 items-center justify-center text-sm font-medium'
+                        href={`/blog/${recommendation.slug}`}
+                      >
+                        Read More →
+                      </Link>
+                    </div>
+                  </div>
+                </article>
+              ))}
             </div>
           </div>
         </div>

@@ -10,8 +10,6 @@ export function polygons(element: string, svgDocument: Document): SVGPoint[] {
   var len = path?.getTotalLength();
   var points: SVGPoint[] = [];
 
-  console.log(path);
-
   if (world) {
     for (var i=0; i < NUM_POINTS; i++) {
         var point = world.createSVGPoint();
@@ -21,8 +19,7 @@ export function polygons(element: string, svgDocument: Document): SVGPoint[] {
         points.push(point);
     }
   }
-  
-  console.log(points);
+
   return points;
 }
 

@@ -32,9 +32,6 @@ export async function getBlog(slug: string) {
       }
     }`,
     [slug]
-  );
-
-  console.log(extractAllBlogEntries(blog)[0].categoriesCollection.items.map((category:CategoryProps)=>(category.title)).join(','));
-  
+  );  
   return extractAllBlogEntries(blog)[0];
 }

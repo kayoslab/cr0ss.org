@@ -36,10 +36,10 @@ export async function getBlogsForCategory(slug: string, limit: number = 10) {
             items {
             linkedFrom {
                 blogPostCollection(order: sys_firstPublishedAt_DESC, limit: ${limit}, preview: false) {
-                total
-                items {
-                    ${BLOG_GRAPHQL_FIELDS}
-                }
+                  total
+                  items {
+                      ${BLOG_GRAPHQL_FIELDS}
+                  }
                 }
             }
             }
