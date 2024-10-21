@@ -103,7 +103,7 @@ export const Blog = ({ blog }: { blog: BlogProps }) => {
               By  <Link href={`/page/about`}><u>{"cr0ss"}</u></Link>{blog.categoriesCollection.items.length > 0 ? " in " : ""}{
                 blog.categoriesCollection.items.map((category: CategoryProps) => (
                   <u key={category.slug}><Link href={`/blog/category/` + category.slug}>{category.title}</Link></u>
-                ))
+                )).join(', ')
               }
             </div>
           </div>
