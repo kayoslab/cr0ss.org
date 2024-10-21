@@ -157,6 +157,7 @@ export const Blog = ({ blog, recommendations }: { blog: BlogProps, recommendatio
             <div className='grid gap-8 md:grid-cols-2 lg:grid-cols-3'>
               {recommendations.map((recommendation: BlogProps) => (
                 <article
+                  key={recommendation.title}
                   className='flex h-full flex-col overflow-hidden rounded-lg shadow-lg'
                 >
                   <Link href={`/blog/${recommendation.slug}`}>
