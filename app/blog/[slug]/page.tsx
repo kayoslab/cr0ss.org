@@ -1,9 +1,11 @@
 
 import { notFound } from 'next/navigation';
 import { getAllBlogs, getBlog } from '@/lib/contentful/api/blog';
+import { getBlogsForCategory } from '@/lib/contentful/api/category';
 import { BlogProps } from '@/lib/contentful/api/props/blog';
 import { Blog } from '@/components/blogarticle';
 import type { Metadata, ResolvingMetadata } from 'next'
+import { CategoryProps } from '@/lib/contentful/api/props/category';
 
 type Props = {
   params: { slug: string }
@@ -55,20 +57,72 @@ export async function generateStaticParams() {
   }));
 }
 
+function getRandom(arr: any[], amount: number = 3) {
+  if (amount > arr.length) amount = arr.length;
+  
+  const result = new Array(amount);
+  let len = arr.length,
+      taken = new Array(len);
+
+  while (amount--) {
+    const x = Math.floor(Math.random() * len);
+    result[amount] = arr[x in taken ? taken[x] : x];
+    taken[x] = --len in taken ? taken[len] : len;
+  }
+  return result;
+}
+
+async function getRecommendations(blog: BlogProps) {
+  const categorySlugs = blog.categoriesCollection.items.map((category: CategoryProps) => category.slug);
+  
+  const relatedPostsPromise = categorySlugs.map(
+    async (slug: string): Promise<BlogProps[]> => {
+      const blogs = await getBlogsForCategory(slug);
+      const filteredBlogs = blogs.reduce((acc: BlogProps[], post: BlogProps) => {
+        if (post.slug !== blog.slug) {
+          acc.push(post);
+        }
+        return acc;
+      }, []);
+      return filteredBlogs;
+    }
+  );
+  
+  // Resolve all promises and flatten the result to avoid nested arrays
+  const relatedPosts = (await Promise.all(relatedPostsPromise)).flat();
+
+  // Safeguard against empty or undefined related posts
+  if (!relatedPosts || relatedPosts.length === 0) {
+    return [];
+  }
+
+  // Pass resolved posts to getRandom
+  const random = getRandom(relatedPosts);
+
+  return random;
+}
+
 export default async function BlogContent({
   params,
 }: {
   params: { slug: string };
 }) {
-  const blog = await getBlog(params.slug);
+  const blog: BlogProps = await getBlog(params.slug);
+  const recommendations: BlogProps[] = await getRecommendations(blog);
 
-  if (!blog) {
+  if (!blog || !recommendations) {
     notFound();
   }
 
+  // load the scripts asynchronously and wait for the promises to resolve/reject
+  await Promise.allSettled([
+    getBlog(params.slug),
+    await getRecommendations(blog)
+  ]).catch(error => console.error(error));
+
   return (
     <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800 pb-24'>
-      <Blog blog={blog} />
+      <Blog blog={ blog } recommendations={ recommendations } />
     </main>
   );
 }

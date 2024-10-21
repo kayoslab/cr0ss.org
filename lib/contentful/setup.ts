@@ -39,15 +39,12 @@ client.getSpace(CONTENTFUL_SPACE_ID).then((space: any) => {
       var entryIds = entries.items.map((entry: any) => entry.fields.id['en-US']);
       var localCountries = countries.filter((country: any) => !entryIds.includes(country.id));
 
-      console.log('Countries to create', localCountries.length);
       localCountries.forEach(async (country: any) => {
         if (!country.id || !country.title || !country.d) {
-          console.error('Invalid country data', country);
           return;
         }
   
         if (entryIds.includes(country.id)) {
-          console.log('Country already exists', country.title);
           return
         }
 
