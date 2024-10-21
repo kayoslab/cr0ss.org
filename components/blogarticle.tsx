@@ -100,10 +100,10 @@ export const Blog = ({ blog }: { blog: BlogProps }) => {
             <div
               className='text-zinc-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed'
             >
-              By  <Link href={`/page/about`}><u>{"cr0ss"}</u></Link>{blog.categoriesCollection.items.length > 0 ? " in " : ""}{
+              By  <Link href={`/page/about`}><u>{"cr0ss"}</u></Link>{blog.categoriesCollection.items.length > 0 ? " in |" : ""}{
                 blog.categoriesCollection.items.map((category: CategoryProps) => (
-                  <u key={category.slug}><Link href={`/blog/category/` + category.slug}>{category.title}</Link></u>
-                )).join(', ')
+                  <u key={category.slug}><Link href={`/blog/category/` + category.slug}>{category.title}</Link>|</u>
+                ))
               }
             </div>
           </div>
