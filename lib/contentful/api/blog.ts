@@ -1,6 +1,5 @@
 import { fetchGraphQL } from './api';
 import { BLOG_GRAPHQL_FIELDS } from './props/blog';
-import { CategoryProps } from './props/category';
 
 function extractAllBlogEntries(fetchResponse: {
   data: { blogPostCollection: { items: any } };
