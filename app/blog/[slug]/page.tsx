@@ -72,19 +72,23 @@ function getRandom(arr: any[], amount: number = 3) {
   return result;
 }
 
+function filterCurrent(arr: BlogProps[], slug: string) {
+  const filteredBlogs = arr.reduce((acc: BlogProps[], post: BlogProps) => {
+    if (post.slug !== slug) {
+      acc.push(post);
+    }
+    return acc;
+  }, []);
+  return filteredBlogs;
+}
+
 async function getRecommendations(blog: BlogProps) {
   const categorySlugs = blog.categoriesCollection.items.map((category: CategoryProps) => category.slug);
   
   const relatedPostsPromise = categorySlugs.map(
     async (slug: string): Promise<BlogProps[]> => {
       const blogs = await getBlogsForCategory(slug);
-      const filteredBlogs = blogs.reduce((acc: BlogProps[], post: BlogProps) => {
-        if (post.slug !== blog.slug) {
-          acc.push(post);
-        }
-        return acc;
-      }, []);
-      return filteredBlogs;
+      return filterCurrent(blogs, blog.slug);
     }
   );
   
@@ -93,6 +97,15 @@ async function getRecommendations(blog: BlogProps) {
 
   // Safeguard against empty or undefined related posts
   if (!relatedPosts || relatedPosts.length === 0) {
+    const allBlogs = await getAllBlogs();
+    const filteredBlogs = filterCurrent(allBlogs, blog.slug);
+
+    if (allBlogs.count > 0) {
+      // Show the newest blogs if no related posts exist.
+      return allBlogs.slice(1, allBlogs.count > 3 ? 4 : allBlogs.count)
+    }
+    
+    // No blogs exist, so nothing to recommend.
     return [];
   }
 
