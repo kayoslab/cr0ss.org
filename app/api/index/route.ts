@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { env } from '@/env';
-import { getBlog } from '@/lib/contentful/api/blog';
+import { getBlog, getAllBlogs } from '@/lib/contentful/api/blog';
 import { BlogProps } from '@/lib/contentful/api/props/blog';
 import { CategoryProps } from '@/lib/contentful/api/props/category';
 // import { documentToPlainTextString } from "@contentful/rich-text-plain-text-renderer";
@@ -27,6 +27,7 @@ export async function POST(request: Request) {
     }
   
     updateAlgoliaIndex(request);
+    updateRSSFeed(request);
 
     return NextResponse.json({ revalidated: true, now: Date.now() }, {status: 200 });
 }
@@ -77,4 +78,9 @@ async function updateAlgoliaIndex(request: Request) {
             }
         );
     }
+}
+
+async function updateRSSFeed(request: Request) {
+    const allPosts = await getAllBlogs();
+    generateRssFeed(allPosts);
 }

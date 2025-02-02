@@ -6,11 +6,11 @@ export default async function generateRssFeed(allPosts: [BlogProps]) {
   const site_url = "https://cr0ss.org";
 
   const feedOptions = {
-    title: "Blog posts | RSS Feed",
-    description: "Welcome to this blog posts!",
+    title: "cr0ss.org",
+    description: "Personal and professional website on cr0ss.org!",
     site_url: site_url,
     feed_url: `${site_url}/rss.xml`,
-    image_url: `${site_url}/logo.jpeg`,
+    // image_url: `${site_url}/logo.jpeg`,
     pubDate: new Date(),
     copyright: `All rights reserved ${new Date().getFullYear()}`,
   };
