@@ -1,10 +1,20 @@
 import { getAllBlogs } from '@/lib/contentful/api/blog';
 import { BlogProps } from '@/lib/contentful/api/props/blog';
+import generateRssFeed from '@/utils/rss';
 import Image from 'next/image';
 import Link from 'next/link';
 
+export const getStaticProps = async () => {
+  const allPosts = await getAllBlogs();
+  generateRssFeed(allPosts);
+  
+  return {
+    props: { allPosts },
+  };
+};
+
 export default async function BlogsContent() {
-  const blogs = await getAllBlogs(10);
+  const blogs = await getAllBlogs();
 
   return (
     <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800 pb-24'>

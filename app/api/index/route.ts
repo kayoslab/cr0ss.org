@@ -3,8 +3,9 @@ import { env } from '@/env';
 import { getBlog } from '@/lib/contentful/api/blog';
 import { BlogProps } from '@/lib/contentful/api/props/blog';
 import { CategoryProps } from '@/lib/contentful/api/props/category';
-import { documentToPlainTextString } from "@contentful/rich-text-plain-text-renderer";
+// import { documentToPlainTextString } from "@contentful/rich-text-plain-text-renderer";
 import { algoliasearch } from "algoliasearch";
+import generateRssFeed from '@/utils/rss';
 
 function getErrorMessage(error: unknown) {
 	if (error instanceof Error) return error.message
@@ -25,6 +26,12 @@ export async function POST(request: Request) {
     );
     }
   
+    updateAlgoliaIndex(request);
+
+    return NextResponse.json({ revalidated: true, now: Date.now() }, {status: 200 });
+}
+
+async function updateAlgoliaIndex(request: Request) {
     const body = await request.json();
     const slug = body.slug;
     if (!slug) {
@@ -59,6 +66,8 @@ export async function POST(request: Request) {
                 }
             }
         )
+
+
     } catch(err) {
         return NextResponse.json(
             { 
@@ -68,6 +77,4 @@ export async function POST(request: Request) {
             }
         );
     }
-
-    return NextResponse.json({ revalidated: true, now: Date.now() }, {status: 200 });
-  }
+}

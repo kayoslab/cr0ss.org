@@ -3,6 +3,7 @@ import { CategoryProps } from "./category";
 export interface BlogProps {
   sys: {
     id: string;
+    createdAt: string;
   };
   slug: string;
   title: string;
