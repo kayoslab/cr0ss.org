@@ -4,15 +4,6 @@ import generateRssFeed from '@/utils/rss';
 import Image from 'next/image';
 import Link from 'next/link';
 
-export const getStaticProps = async () => {
-  const allPosts = await getAllBlogs();
-  generateRssFeed(allPosts);
-  
-  return {
-    props: { allPosts },
-  };
-};
-
 export default async function BlogsContent() {
   const blogs = await getAllBlogs();
 
