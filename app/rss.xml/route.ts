@@ -4,7 +4,8 @@ import { BlogProps } from '@/lib/contentful/api/props/blog';
 var RSS = require('rss');
 
 export async function GET() {
-    const blogCollection = await getAllBlogs(1, 100);
+    const blogCollection = await getAllBlogs(1, 10);
+    
     const site_url = "https://cr0ss.org";
 
     const feedOptions = {
@@ -19,14 +20,15 @@ export async function GET() {
     const feed = new RSS(feedOptions);
 
     blogCollection.items.map((post: BlogProps) => {
-        feed.item({
+        const feedItem = {
             title: post.title,
             description: post.summary,
             url: `${site_url}/blog/${post.slug}`,
-            date: post.sys.createdAt,
-        });
+            date: post.sys.publishedAt,
+        };
+        feed.item(feedItem);
     });
-
+    
     return new NextResponse(feed.xml({ indent: true }), {
         headers: {
             'Content-Type': 'application/xml',
