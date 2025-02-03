@@ -12,13 +12,12 @@ export default async function BlogsContent({
   searchParams: { page?: string };
 }) {
   const currentPage = Number(searchParams.page) || 1;
-  const blogs = await getAllBlogs();
+  const blogCollection = await getAllBlogs(currentPage, POSTS_PER_PAGE);
   
-  // Calculate pagination values
-  const totalPosts = blogs.length;
+  // Calculate pagination values using Contentful's response
+  const totalPosts = blogCollection.total;
   const totalPages = Math.ceil(totalPosts / POSTS_PER_PAGE);
-  const offset = (currentPage - 1) * POSTS_PER_PAGE;
-  const currentPosts = blogs.slice(offset, offset + POSTS_PER_PAGE);
+  const currentPosts = blogCollection.items;
 
   return (
     <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800 pb-24'>
