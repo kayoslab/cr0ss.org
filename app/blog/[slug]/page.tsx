@@ -52,7 +52,7 @@ export async function generateMetadata(
 // At build time, fetch all slugs to build the blog pages so they are static and cached
 export async function generateStaticParams() {
   const allBlogs = await getAllBlogs();
-  return allBlogs.map((blog: BlogProps) => ({
+  return allBlogs.items.map((blog: BlogProps) => ({
     slug: blog.slug,
   }));
 }
@@ -98,11 +98,11 @@ async function getRecommendations(blog: BlogProps) {
   // Safeguard against empty or undefined related posts
   if (!relatedPosts || relatedPosts.length === 0) {
     const allBlogs = await getAllBlogs();
-    const filteredBlogs = filterCurrent(allBlogs, blog.slug);
+    const filteredBlogs = filterCurrent(allBlogs.items, blog.slug);
 
-    if (allBlogs.count > 0) {
+    if (allBlogs.items.length > 0) {
       // Show the newest blogs if no related posts exist.
-      return allBlogs.slice(1, allBlogs.count > 3 ? 4 : allBlogs.count)
+      return allBlogs.items.slice(1, allBlogs.items.length > 3 ? 4 : allBlogs.items.length)
     }
     
     // No blogs exist, so nothing to recommend.
