@@ -1,24 +1,58 @@
 import { fetchGraphQL } from './api';
 import { BLOG_GRAPHQL_FIELDS } from './props/blog';
 
-function extractAllBlogEntries(fetchResponse: {
-  data: { blogPostCollection: { items: any } };
-}) {
-  return fetchResponse?.data?.blogPostCollection?.items;
+interface BlogCollection {
+  items: any[];
+  total: number;
+  skip: number;
+  limit: number;
 }
 
-export async function getAllBlogs(limit = 10) {
-  const blogs = await fetchGraphQL(
-    `query {
-      blogPostCollection(order: sys_firstPublishedAt_DESC, limit: ${limit}, preview: false) {
-        items {
-          ${BLOG_GRAPHQL_FIELDS}
+function extractBlogCollection(fetchResponse: any): BlogCollection {
+  if (!fetchResponse?.data?.blogPostCollection) {
+    // Return empty collection if no data
+    return {
+      items: [],
+      total: 0,
+      skip: 0,
+      limit: 0
+    };
+  }
+  return fetchResponse.data.blogPostCollection;
+}
+
+export async function getAllBlogs(page = 1, limit = 9) {
+  try {
+    const blogs = await fetchGraphQL(
+      `query {
+        blogPostCollection(
+          order: sys_firstPublishedAt_DESC, 
+          limit: ${limit}, 
+          skip: ${(page - 1) * limit}, 
+          preview: false
+        ) {
+          total
+          skip
+          limit
+          items {
+            ${BLOG_GRAPHQL_FIELDS}
+          }
         }
-      }
-    }`,
-    ['blogPosts']
-  );
-  return extractAllBlogEntries(blogs);
+      }`,
+      ['blogPosts']
+    );
+    
+    return extractBlogCollection(blogs);
+  } catch (error) {
+    console.error('Error fetching blogs:', error);
+    // Return empty collection on error
+    return {
+      items: [],
+      total: 0,
+      skip: 0,
+      limit: limit
+    };
+  }
 }
 
 export async function getBlog(slug: string) {
@@ -32,5 +66,5 @@ export async function getBlog(slug: string) {
     }`,
     [slug]
   );  
-  return extractAllBlogEntries(blog)[0];
+  return extractBlogCollection(blog).items[0];
 }
