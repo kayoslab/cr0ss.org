@@ -4,8 +4,21 @@ import generateRssFeed from '@/utils/rss';
 import Image from 'next/image';
 import Link from 'next/link';
 
-export default async function BlogsContent() {
+const POSTS_PER_PAGE = 9;
+
+export default async function BlogsContent({
+  searchParams,
+}: {
+  searchParams: { page?: string };
+}) {
+  const currentPage = Number(searchParams.page) || 1;
   const blogs = await getAllBlogs();
+  
+  // Calculate pagination values
+  const totalPosts = blogs.length;
+  const totalPages = Math.ceil(totalPosts / POSTS_PER_PAGE);
+  const offset = (currentPage - 1) * POSTS_PER_PAGE;
+  const currentPosts = blogs.slice(offset, offset + POSTS_PER_PAGE);
 
   return (
     <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800 pb-24'>
@@ -20,7 +33,7 @@ export default async function BlogsContent() {
           </div>
           <div className='space-y-12'>
             <div className='grid gap-8 md:grid-cols-2 lg:grid-cols-3'>
-              {blogs?.map((blog: BlogProps) => (
+              {currentPosts?.map((blog: BlogProps) => (
                 <article
                   key={blog.sys.id}
                   className='flex h-full flex-col overflow-hidden rounded-lg shadow-lg'
@@ -54,6 +67,31 @@ export default async function BlogsContent() {
                   </div>
                 </article>
               ))}
+            </div>
+
+            {/* Pagination Controls */}
+            <div className="flex justify-center gap-2 pt-8">
+              {currentPage > 1 && (
+                <Link
+                  href={`/blog?page=${currentPage - 1}`}
+                  className="px-4 py-2 text-sm font-medium text-zinc-900 dark:text-zinc-50 bg-zinc-100 dark:bg-zinc-800 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                >
+                  Previous
+                </Link>
+              )}
+              
+              <span className="px-4 py-2 text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                Page {currentPage} of {totalPages}
+              </span>
+
+              {currentPage < totalPages && (
+                <Link
+                  href={`/blog?page=${currentPage + 1}`}
+                  className="px-4 py-2 text-sm font-medium text-zinc-900 dark:text-zinc-50 bg-zinc-100 dark:bg-zinc-800 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                >
+                  Next
+                </Link>
+              )}
             </div>
           </div>
         </div>
