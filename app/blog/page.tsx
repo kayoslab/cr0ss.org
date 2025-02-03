@@ -1,6 +1,5 @@
 import { getAllBlogs } from '@/lib/contentful/api/blog';
 import { BlogProps } from '@/lib/contentful/api/props/blog';
-import generateRssFeed from '@/utils/rss';
 import Image from 'next/image';
 import Link from 'next/link';
 
