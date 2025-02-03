@@ -23,28 +23,34 @@ function extractBlogCollection(fetchResponse: any): BlogCollection {
 
 export async function getAllBlogs(page = 1, limit = 9) {
   try {
-    const blogs = await fetchGraphQL(
-      `query {
-        blogPostCollection(
-          order: sys_firstPublishedAt_DESC, 
-          limit: ${limit}, 
-          skip: ${(page - 1) * limit}, 
-          preview: false
-        ) {
-          total
-          skip
-          limit
-          items {
-            ${BLOG_GRAPHQL_FIELDS}
-          }
+    const query = `query {
+      blogPostCollection(
+        order: sys_firstPublishedAt_DESC, 
+        limit: ${limit}, 
+        skip: ${(page - 1) * limit}, 
+        preview: false
+      ) {
+        total
+        skip
+        limit
+        items {
+          ${BLOG_GRAPHQL_FIELDS}
         }
-      }`,
-      ['blogPosts']
-    );
+      }
+    }`;
     
-    return extractBlogCollection(blogs);
+    const blogs = await fetchGraphQL(query, ['blogPosts']);
+    const collection = extractBlogCollection(blogs);
+    
+    return collection;
   } catch (error) {
     console.error('Error fetching blogs:', error);
+    if (error instanceof Error) {
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack
+      });
+    }
     // Return empty collection on error
     return {
       items: [],
