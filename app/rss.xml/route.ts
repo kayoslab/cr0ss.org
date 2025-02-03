@@ -4,7 +4,7 @@ import { BlogProps } from '@/lib/contentful/api/props/blog';
 var RSS = require('rss');
 
 export async function GET() {
-    const blogCollection = await getAllBlogs(1, 100);
+    const blogCollection = await getAllBlogs(0, 100);
     const site_url = "https://cr0ss.org";
 
     const feedOptions = {
