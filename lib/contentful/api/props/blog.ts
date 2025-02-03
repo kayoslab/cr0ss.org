@@ -3,7 +3,7 @@ import { CategoryProps } from "./category";
 export interface BlogProps {
   sys: {
     id: string;
-    publishedAt: string;
+    firstPublishedAt: string;
   };
   slug: string;
   title: string;
@@ -29,7 +29,7 @@ export interface BlogProps {
 export const BLOG_GRAPHQL_FIELDS = `
   sys {
     id
-    publishedAt
+    firstPublishedAt
   }
   __typename
   title

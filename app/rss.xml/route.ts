@@ -43,7 +43,7 @@ export async function GET() {
             title: post.title,
             description: post.summary,
             url: `${site_url}/blog/${post.slug}`,
-            date: post.sys.publishedAt,
+            date: post.sys.firstPublishedAt,
         };
         feed.item(feedItem);
     });
