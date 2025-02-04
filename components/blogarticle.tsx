@@ -88,6 +88,13 @@ function renderOptions(links: any) {
 }
 
 export const Blog = ({ blog, recommendations }: { blog: BlogProps, recommendations: BlogProps[] }) => {
+  // Format the date
+  const publishDate = new Date(blog.sys.firstPublishedAt).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
   var recommendationsJSX = <div className='flex flex-col space-y-4 font-bold tracking-tighter sm:text-xl'></div>
   if (recommendations.length > 0) {
     recommendationsJSX = <div className='flex flex-col space-y-4 font-bold tracking-tighter sm:text-xl'>Continue reading:</div>
@@ -105,11 +112,11 @@ export const Blog = ({ blog, recommendations }: { blog: BlogProps, recommendatio
             <div
               className='text-zinc-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed'
             >
-              By  <Link href={`/page/about`}><u>{"cr0ss"}</u></Link>{blog.categoriesCollection.items.length > 0 ? " in |" : ""}{
-                blog.categoriesCollection.items.map((category: CategoryProps) => (
-                  <u key={category.slug}><Link href={`/blog/category/` + category.slug}>{category.title}</Link>|</u>
-                ))
-              }
+              By  <Link href={`/page/about`}><u>{"cr0ss"}</u></Link>{" published on "}{publishDate}{" in "}
+              {blog.categoriesCollection.items.length > 0 ? "|" : ""}
+              {blog.categoriesCollection.items.map((category: CategoryProps) => (
+                <u key={category.slug}><Link href={`/blog/category/` + category.slug}>{category.title}</Link>|</u>
+              ))}
             </div>
           </div>
           <div className='space-y-8 lg:space-y-10'>
