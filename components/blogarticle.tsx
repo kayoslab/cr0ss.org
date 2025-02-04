@@ -82,7 +82,14 @@ function renderOptions(links: any) {
           return (
             <SyntaxHighlighter
               style={vscDarkPlus}
-              language={language}>
+              language={language?.toLowerCase() || 'text'}
+              showLineNumbers={true}
+              wrapLines={true}
+              customStyle={{
+                margin: '2em 0',
+                padding: '1em',
+                borderRadius: '0.5em',
+              }}>
               {codeSnippet}
             </SyntaxHighlighter>
           );
