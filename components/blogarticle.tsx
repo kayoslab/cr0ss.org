@@ -73,13 +73,12 @@ function renderOptions(links: any) {
         </Link>
       );
     },
-    [BLOCKS.EMBEDDED_ENTRY]: (node: any, children: any) => {
-      // node.data.fields holds description, language, code
+    [BLOCKS.EMBEDDED_ENTRY]: (node: any) => {
       const { codeSnippet, language } = node.data.target.fields;
       return (
         <SyntaxHighlighter
-         style={vscDarkPlus}
-         language={language}>
+          style={vscDarkPlus}
+          language={language}>
           {codeSnippet}
         </SyntaxHighlighter>
       );
