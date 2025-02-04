@@ -65,22 +65,33 @@ function renderOptions(links: any) {
           </Link>
         );
       },
+      [BLOCKS.EMBEDDED_ENTRY]: (node: any) => {
+        // Get the entry from the links
+        const entry = links.entries.block.find((entry: any) => 
+          entry.sys.id === node.data.target.sys.id
+        );
+        
+        if (!entry) return null;
+
+        // Check if it's a code snippet content type
+        if (entry.sys.contentType.sys.id === 'codeSnippet') { // make sure this matches your Contentful content type ID
+          const { codeSnippet, language } = entry.fields;
+          return (
+            <SyntaxHighlighter
+              style={vscDarkPlus}
+              language={language}>
+              {codeSnippet}
+            </SyntaxHighlighter>
+          );
+        }
+        return null;
+      },
     },
     [INLINES.HYPERLINK]: (node: any, children: any) => {
       return (
         <Link href={node.data.uri} className="text-blue-600 hover:underline" style={{ wordWrap: "break-word" }}>
           {children}
         </Link>
-      );
-    },
-    [BLOCKS.EMBEDDED_ENTRY]: (node: any) => {
-      const { codeSnippet, language } = node.data.target.fields;
-      return (
-        <SyntaxHighlighter
-          style={vscDarkPlus}
-          language={language}>
-          {codeSnippet}
-        </SyntaxHighlighter>
       );
     },
   };
