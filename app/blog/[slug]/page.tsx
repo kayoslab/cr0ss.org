@@ -1,4 +1,3 @@
-
 import { notFound } from 'next/navigation';
 import { getAllBlogs, getBlog } from '@/lib/contentful/api/blog';
 import { getBlogsForCategory } from '@/lib/contentful/api/category';
@@ -16,36 +15,50 @@ export async function generateMetadata(
   { params, searchParams }: Props,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
-  const blog = await getBlog(params.slug);
+  try {
+    const blog = await getBlog(params.slug);
+    if (!blog) {
+      return {
+        title: 'Blog Not Found',
+        description: 'The requested blog post could not be found'
+      }
+    }
 
-  // optionally access and extend (rather than replace) parent metadata
-  const previousImages = (await parent).openGraph?.images || []
- 
-  return {
-    title: blog.title,
-    description: blog.seoDescription,
-    keywords: blog.seoKeywords,
-    openGraph: {
+    // optionally access and extend (rather than replace) parent metadata
+    const previousImages = (await parent).openGraph?.images || []
+   
+    return {
       title: blog.title,
       description: blog.seoDescription,
-      images: [blog.heroImage?.url as string, ...previousImages],
-      url: 'https://cr0ss.org/blog/' + blog.slug,
-    },
-    creator: blog.author,
-    publisher: 'Simon Krüger',
-    robots: {
-      index: true,
-      follow: true,
-      nocache: true,
-      googleBot: {
+      keywords: blog.seoKeywords,
+      openGraph: {
+        title: blog.title,
+        description: blog.seoDescription,
+        images: [blog.heroImage?.url as string, ...previousImages],
+        url: 'https://cr0ss.org/blog/' + blog.slug,
+      },
+      creator: blog.author,
+      publisher: 'Simon Krüger',
+      robots: {
         index: true,
         follow: true,
-        noimageindex: true,
-        'max-video-preview': -1,
-        'max-image-preview': 'large',
-        'max-snippet': -1,
+        nocache: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          noimageindex: true,
+          'max-video-preview': -1,
+          'max-image-preview': 'large',
+          'max-snippet': -1,
+        },
       },
-    },
+    }
+  } catch (error) {
+    console.error('Error generating metadata:', error);
+    return {
+      title: 'Blog Error',
+      description: 'Error loading blog post'
+    }
   }
 }
 
@@ -120,22 +133,21 @@ export default async function BlogContent({
 }: {
   params: { slug: string };
 }) {
-  const blog: BlogProps = await getBlog(params.slug);
-  const recommendations: BlogProps[] = await getRecommendations(blog);
+  try {
+    const blog = await getBlog(params.slug);
+    if (!blog) {
+      notFound();
+    }
 
-  if (!blog || !recommendations) {
+    const recommendations = await getRecommendations(blog);
+
+    return (
+      <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800 pb-24'>
+        <Blog blog={blog} recommendations={recommendations} />
+      </main>
+    );
+  } catch (error) {
+    console.error('Error loading blog content:', error);
     notFound();
   }
-
-  // load the scripts asynchronously and wait for the promises to resolve/reject
-  await Promise.allSettled([
-    getBlog(params.slug),
-    await getRecommendations(blog)
-  ]).catch(error => console.error(error));
-
-  return (
-    <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800 pb-24'>
-      <Blog blog={ blog } recommendations={ recommendations } />
-    </main>
-  );
 }

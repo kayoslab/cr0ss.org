@@ -42,7 +42,7 @@ function renderOptions(links: any) {
         return <li className="my-4 list-style-position:outside ms-4" key={children}>{children}</li>;
       },
       [BLOCKS.OL_LIST]: (node: any, children: any) => {
-        return <li className="my-4 list-style-position:outside ms-4" key={children}>{children}</li>;
+        return <ol className="list-decimal dark:text-slate-200 list-style-position:outside ms-4" key={children}>{children}</ol>;
       },
       [BLOCKS.PARAGRAPH]: (node: any, children: any) => {
         return <p className="mb-2 text-slate-700 dark:text-slate-200">{children}</p>;
@@ -67,15 +67,18 @@ function renderOptions(links: any) {
       },
       [BLOCKS.EMBEDDED_ENTRY]: (node: any) => {
         // Get the entry from the links
-        const entry = links.entries.block.find((entry: any) => 
-          entry.sys.id === node.data.target.sys.id
+        const entry = links?.entries?.block?.find((entry: any) => 
+          entry?.sys?.id === node?.data?.target?.sys?.id
         );
         
-        if (!entry) return null;
+        if (!entry) {
+          console.warn('Entry not found:', node?.data?.target?.sys?.id);
+          return null;
+        }
 
-        // Check if it's a code snippet content type
-        if (entry.sys.contentType.sys.id === 'codeSnippet') { // make sure this matches your Contentful content type ID
-          const { codeSnippet, language } = entry.fields;
+        // Check if it's a code snippet content type using __typename
+        if (entry.__typename === 'CodeSnippet') {
+          const { codeSnippet, language } = entry;
           return (
             <SyntaxHighlighter
               style={vscDarkPlus}

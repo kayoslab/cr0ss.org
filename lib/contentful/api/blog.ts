@@ -62,15 +62,39 @@ export async function getAllBlogs(page = 1, limit = 9) {
 }
 
 export async function getBlog(slug: string) {
-  const blog = await fetchGraphQL(
-    `query {
-      blogPostCollection(where:{slug: "${slug}"}, limit: 1, preview: false) {
+  try {
+    // Escape any special characters in the slug
+    const escapedSlug = slug.replace(/"/g, '\\"');
+    
+    const query = `query {
+      blogPostCollection(where: { slug: "${escapedSlug}" }, limit: 1, preview: false) {
+        total
         items {
           ${BLOG_GRAPHQL_FIELDS}
         }
       }
-    }`,
-    [slug]
-  );  
-  return extractBlogCollection(blog).items[0];
+    }`;
+
+    const response = await fetchGraphQL(query, [slug]);
+    if (!response?.data?.blogPostCollection) {
+      throw new Error('Invalid response structure');
+    }
+
+    const collection = extractBlogCollection(response);
+    const blogPost = collection.items[0];
+    if (!blogPost) {
+      throw new Error(`Blog post with slug ${slug} not found`);
+    }
+    
+    return blogPost;
+  } catch (error) {
+    console.error('Error fetching blog:', error);
+    if (error instanceof Error) {
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack
+      });
+    }
+    throw error;
+  }
 }

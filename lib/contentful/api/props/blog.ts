@@ -31,16 +31,14 @@ export const BLOG_GRAPHQL_FIELDS = `
     id
     firstPublishedAt
   }
-  __typename
   title
   slug
   author
-  categoriesCollection(limit: 50){
-    items{
+  categoriesCollection(limit: 50) {
+    items {
       sys {
         id
       }
-      __typename
       title
       slug
     }
@@ -50,26 +48,36 @@ export const BLOG_GRAPHQL_FIELDS = `
     sys {
       id
     }
-    __typename
     url
   }
   details {
     json
     links {
-      assets {
-          block {
-              fileName
-              title
-              description
-              url
-              sys {
-                  id
-              }
+      entries {
+        block {
+          sys {
+            id
           }
+          __typename
+          ... on CodeSnippet {
+            codeSnippet
+            language
+          }
+        }
+      }
+      assets {
+        block {
+          sys {
+            id
+          }
+          url
+          title
+          description
+          fileName
+        }
       }
     }
   }
-  authorText
   seoDescription
   seoKeywords
 `;
