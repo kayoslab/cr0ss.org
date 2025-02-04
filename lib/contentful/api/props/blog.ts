@@ -34,6 +34,7 @@ export const BLOG_GRAPHQL_FIELDS = `
   title
   slug
   author
+  authorText
   categoriesCollection(limit: 50) {
     items {
       sys {
