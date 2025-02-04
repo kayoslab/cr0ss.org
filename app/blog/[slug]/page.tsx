@@ -88,7 +88,7 @@ async function getRecommendations(blog: BlogProps) {
   const relatedPostsPromise = categorySlugs.map(
     async (slug: string): Promise<BlogProps[]> => {
       const blogs = await getBlogsForCategory(slug);
-      return filterCurrent(blogs, blog.slug);
+      return filterCurrent(blogs.items, blog.slug);
     }
   );
   

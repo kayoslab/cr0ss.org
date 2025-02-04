@@ -24,18 +24,23 @@ export async function getCategory(slug: string) {
 }
 
 function extractAllBlogEntriesForCategory(fetchResponse: {
-    data: { blogCategoryCollection: { items: [ {linkedFrom: { blogPostCollection: { items: any } } } ] } };
+    data: { blogCategoryCollection: { items: [ {linkedFrom: { blogPostCollection: { items: any, total: number } } } ] } };
 }) {
-    return fetchResponse?.data?.blogCategoryCollection?.items[0]?.linkedFrom.blogPostCollection.items;
+    const collection = fetchResponse?.data?.blogCategoryCollection?.items[0]?.linkedFrom.blogPostCollection;
+    return {
+        items: collection.items,
+        total: collection.total
+    };
 }
   
-export async function getBlogsForCategory(slug: string, limit: number = 10) {
+export async function getBlogsForCategory(slug: string, page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
     const blogs = await fetchGraphQL(
         `query {
         blogCategoryCollection(where: { slug: "${slug}" }, limit: 1) {
             items {
             linkedFrom {
-                blogPostCollection(order: sys_firstPublishedAt_DESC, limit: ${limit}, preview: false) {
+                blogPostCollection(order: sys_firstPublishedAt_DESC, limit: ${limit}, skip: ${skip}, preview: false) {
                   total
                   items {
                       ${BLOG_GRAPHQL_FIELDS}
