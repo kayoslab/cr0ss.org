@@ -25,6 +25,8 @@ export default function Navigation() {
   const [suggestions, setSuggestions] = useState<AlgoliaHit[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [queryID, setQueryID] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const router = useRouter();
 
   useEffect(() => {
@@ -35,6 +37,7 @@ export default function Navigation() {
       }
 
       try {
+        setIsLoading(true);
         const response = await fetch(`/api/algolia/search?q=${encodeURIComponent(searchQuery)}`);
         if (!response.ok) throw new Error('Search failed');
         const data: SearchResponse = await response.json();
@@ -43,12 +46,27 @@ export default function Navigation() {
       } catch (error) {
         console.error('Error fetching suggestions:', error);
         setSuggestions([]);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     const debounceTimer = setTimeout(fetchSuggestions, 300);
     return () => clearTimeout(debounceTimer);
   }, [searchQuery]);
+
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === '/' && e.target === document.body) {
+        e.preventDefault();
+        const searchInput = document.getElementById('search-input');
+        searchInput?.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,6 +90,33 @@ export default function Navigation() {
     setSearchQuery('');
     setShowSuggestions(false);
     setMobileMenuOpen(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!showSuggestions) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedIndex(i => 
+          i < suggestions.length - 1 ? i + 1 : i
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedIndex(i => i > -1 ? i - 1 : i);
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedIndex >= 0) {
+          handleSuggestionClick(suggestions[selectedIndex]);
+        }
+        break;
+      case 'Escape':
+        setShowSuggestions(false);
+        setSelectedIndex(-1);
+        break;
+    }
   };
 
   return (
@@ -102,11 +147,13 @@ export default function Navigation() {
             <form onSubmit={handleSearch} className="flex items-center">
               <div className="relative">
                 <input
+                  id="search-input"
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setShowSuggestions(true)}
                   onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                  onKeyDown={handleKeyDown}
                   placeholder="Search..."
                   className="pl-3 pr-10 py-1.5 rounded-md text-sm dark:bg-slate-700 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
@@ -116,17 +163,28 @@ export default function Navigation() {
               </div>
             </form>
             
-            {showSuggestions && suggestions.length > 0 && (
+            {showSuggestions && (
               <div className="absolute mt-1 w-full bg-white dark:bg-slate-700 rounded-md shadow-lg border border-gray-200 dark:border-gray-600 z-50">
-                {suggestions.map((hit) => (
-                  <button
-                    key={hit.objectID}
-                    onClick={() => handleSuggestionClick(hit)}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-slate-600"
-                  >
-                    {hit.title}
-                  </button>
-                ))}
+                {isLoading ? (
+                  <div className="px-4 py-2 text-sm text-gray-500">Loading...</div>
+                ) : suggestions.length > 0 ? (
+                  suggestions.map((hit, index) => (
+                    <button
+                      key={hit.objectID}
+                      onClick={() => handleSuggestionClick(hit)}
+                      className={`block w-full text-left px-4 py-2 text-sm 
+                        ${index === selectedIndex 
+                          ? 'bg-gray-100 dark:bg-slate-600' 
+                          : 'hover:bg-gray-100 dark:hover:bg-slate-600'
+                        } 
+                        text-gray-700 dark:text-white`}
+                    >
+                      {hit.title}
+                    </button>
+                  ))
+                ) : (
+                  <div className="px-4 py-2 text-sm text-gray-500">No results found</div>
+                )}
               </div>
             )}
           </div>
@@ -170,6 +228,7 @@ export default function Navigation() {
                 <form onSubmit={handleSearch} className="mb-4">
                   <div className="relative">
                     <input
+                      id="search-input"
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
