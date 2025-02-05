@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { AlgoliaHit } from '@/lib/algolia/types';
+import type { AlgoliaHit } from '@/lib/algolia/client';
 
 export function useKeyboardNavigation(suggestions: AlgoliaHit[], onSelect: (hit: AlgoliaHit) => void) {
   const [selectedIndex, setSelectedIndex] = useState(-1);

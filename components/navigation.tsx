@@ -7,7 +7,7 @@ import {
   MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
-import type { AlgoliaHit, SearchResponse } from '@/lib/algolia/types';
+import type { AlgoliaHit, SearchAPIResponse } from '@/lib/algolia/client';
 
 export default function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -31,7 +31,7 @@ export default function Navigation() {
         setIsLoading(true);
         const response = await fetch(`/api/algolia/search?q=${encodeURIComponent(searchQuery)}`);
         if (!response.ok) throw new Error('Search failed');
-        const data: SearchResponse = await response.json();
+        const data: SearchAPIResponse = await response.json();
         setSuggestions(data.hits);
         setQueryID(data.queryID);
       } catch (error) {
