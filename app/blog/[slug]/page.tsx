@@ -2,11 +2,11 @@ import { notFound } from 'next/navigation';
 import { getAllBlogs, getBlog } from '@/lib/contentful/api/blog';
 import { getBlogsForCategory } from '@/lib/contentful/api/category';
 import { BlogProps } from '@/lib/contentful/api/props/blog';
-import { Blog } from '@/components/blogarticle';
+import { Blog } from '@/components/blog/blogarticle';
 import type { Metadata, ResolvingMetadata } from 'next'
 import { CategoryProps } from '@/lib/contentful/api/props/category';
 import { useEffect, useState } from 'react';
-import { BlogViewTracker } from '@/components/blog-view-tracker';
+import { BlogViewTracker } from '@/components/blog/blog-view-tracker';
 
 type Props = {
   params: { slug: string }

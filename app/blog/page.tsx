@@ -1,5 +1,5 @@
 import { getAllBlogs } from '@/lib/contentful/api/blog';
-import BlogGrid from '@/components/blog-grid';
+import BlogGrid from '@/components/blog/blog-grid';
 
 const POSTS_PER_PAGE = 9;
 
