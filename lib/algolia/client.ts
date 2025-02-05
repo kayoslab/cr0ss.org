@@ -72,4 +72,10 @@ export function trackClick(objectID: string) {
 }
 
 // Export analytics for use in other files
-export { aa }; 
+export { aa };
+
+// Add this type to the exports
+export interface SearchAPIResponse {
+  hits: AlgoliaHit[];
+  queryID: string | null;
+} 

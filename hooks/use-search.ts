@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { AlgoliaHit, SearchResponse } from '@/lib/algolia/types';
+import type { AlgoliaHit, SearchAPIResponse } from '@/lib/algolia/client';
 
 export function useSearch() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -18,7 +18,7 @@ export function useSearch() {
         setIsLoading(true);
         const response = await fetch(`/api/algolia/search?q=${encodeURIComponent(searchQuery)}`);
         if (!response.ok) throw new Error('Search failed');
-        const data: SearchResponse = await response.json();
+        const data: SearchAPIResponse = await response.json();
         setSuggestions(data.hits);
         setQueryID(data.queryID);
       } catch (error) {

@@ -1,5 +1,5 @@
 'use client';
-import { AlgoliaHit } from '@/lib/algolia/types';
+import { AlgoliaHit } from '@/lib/algolia/client';
 
 interface Props {
   hit: AlgoliaHit;
