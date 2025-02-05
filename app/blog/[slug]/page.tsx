@@ -1,3 +1,4 @@
+'use client';
 import { notFound } from 'next/navigation';
 import { getAllBlogs, getBlog } from '@/lib/contentful/api/blog';
 import { getBlogsForCategory } from '@/lib/contentful/api/category';
@@ -5,6 +6,7 @@ import { BlogProps } from '@/lib/contentful/api/props/blog';
 import { Blog } from '@/components/blogarticle';
 import type { Metadata, ResolvingMetadata } from 'next'
 import { CategoryProps } from '@/lib/contentful/api/props/category';
+import { useEffect, useState } from 'react';
 
 type Props = {
   params: { slug: string }
@@ -128,26 +130,64 @@ async function getRecommendations(blog: BlogProps) {
   return random;
 }
 
-export default async function BlogContent({
+export default function BlogContent({
   params,
 }: {
   params: { slug: string };
 }) {
-  try {
-    const blog = await getBlog(params.slug);
-    if (!blog) {
-      notFound();
-    }
+  const [blog, setBlog] = useState<BlogProps | null>(null);
+  const [recommendations, setRecommendations] = useState<BlogProps[]>([]);
 
-    const recommendations = await getRecommendations(blog);
+  useEffect(() => {
+    const fetchBlog = async () => {
+      try {
+        const blog = await getBlog(params.slug);
+        if (blog) {
+          setBlog(blog);
+          const recommendations = await getRecommendations(blog);
+          setRecommendations(recommendations);
+        } else {
+          notFound();
+        }
+      } catch (error) {
+        console.error('Error loading blog content:', error);
+        notFound();
+      }
+    };
 
-    return (
-      <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800 pb-24'>
-        <Blog blog={blog} recommendations={recommendations} />
-      </main>
-    );
-  } catch (error) {
-    console.error('Error loading blog content:', error);
-    notFound();
+    fetchBlog();
+  }, [params.slug]);
+
+  useEffect(() => {
+    // Send view event to Algolia
+    const trackView = async () => {
+      try {
+        if (blog) {
+          await fetch('/api/analytics/view', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              objectID: blog.sys.id
+            })
+          });
+        }
+      } catch (error) {
+        console.error('Error tracking view:', error);
+      }
+    };
+
+    trackView();
+  }, [blog]);
+
+  if (!blog) {
+    return <div>Loading...</div>;
   }
+
+  return (
+    <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800 pb-24'>
+      <Blog blog={blog} recommendations={recommendations} />
+    </main>
+  );
 }
