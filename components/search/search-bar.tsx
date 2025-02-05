@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
-import type { AlgoliaHit } from '@/lib/algolia/types';
+import type { AlgoliaHit } from '@/lib/algolia/client';
 import { SearchResult } from './search-result';
 import { SearchErrorBoundary } from './search-error-boundary';
 import { useSearch } from '@/hooks/use-search';
