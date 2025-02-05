@@ -1,4 +1,4 @@
-import algoliasearch, { SearchClient } from 'algoliasearch';
+import { algoliasearch, SearchClient } from 'algoliasearch';
 import { env } from '@/env';
 import type { SearchResponse } from '@algolia/client-search';
 import aa from 'search-insights';

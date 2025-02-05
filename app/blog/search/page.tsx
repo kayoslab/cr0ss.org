@@ -79,7 +79,7 @@ export default async function SearchResults({
         currentPage={currentPage}
         totalPages={totalPages}
         basePath={`/blog/search?q=${encodeURIComponent(query)}`}
-        title={`Search Results for &ldquo;${query}&rdquo;`}
+        title={`Search Results for \"${query}\"`}
       />
     </main>
   );
