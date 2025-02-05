@@ -20,9 +20,23 @@ export function SearchBar() {
   const router = useRouter();
   const [selectedIndex, setSelectedIndex] = useState(-1);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
+      try {
+        await fetch('/api/algolia/analytics', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'search',
+            query: searchQuery.trim(),
+            success: suggestions.length > 0
+          })
+        });
+      } catch (error) {
+        // Fail silently - analytics shouldn't break the app
+        console.error('Failed to track search:', error);
+      }
       router.push(`/blog/search?q=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery('');
       setShowSuggestions(false);
@@ -175,6 +189,10 @@ export function SearchBar() {
               )}
             </div>
           </div>
+        </div>
+        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-3">
+          Press <kbd className="px-1 py-0.5 bg-gray-100 dark:bg-slate-600 rounded">ESC</kbd> to close, 
+          <kbd className="px-1 py-0.5 bg-gray-100 dark:bg-slate-600 rounded ml-1">/</kbd> to search
         </div>
       </div>
     </SearchErrorBoundary>
