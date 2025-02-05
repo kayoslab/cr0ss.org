@@ -4,6 +4,7 @@ import { env } from '@/env';
 import { algoliasearch } from "algoliasearch";
 import type { SearchResponse } from '@algolia/client-search';
 import { getBlog } from '@/lib/contentful/api/blog';
+import { Suspense } from 'react';
 
 interface AlgoliaHit {
   objectID: string;
@@ -74,13 +75,19 @@ export default async function SearchResults({
 
   return (
     <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800 pb-24'>
-      <BlogGrid
-        posts={posts}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        basePath={`/blog/search?q=${encodeURIComponent(query)}`}
-        title={`Search Results for \"${query}\"`}
-      />
+      <Suspense fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-gray-900 dark:border-white"></div>
+        </div>
+      }>
+        <BlogGrid
+          posts={posts}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          basePath={`/blog/search?q=${encodeURIComponent(query)}`}
+          title={`Search Results for \"${query}\"`}
+        />
+      </Suspense>
     </main>
   );
 } 
