@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { SearchResponse } from '@algolia/client-search';
-import { searchClient, aa, type AlgoliaHit } from '@/lib/algolia/search/client';
+import { searchClient, aa, type AlgoliaHit } from '@/lib/algolia/client';
 import { RateLimit } from '@/lib/utils/rate-limit';
 
 const limiter = new RateLimit(60 * 1000, 10); // 10 requests per minute

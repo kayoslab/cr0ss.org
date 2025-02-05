@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { aa } from '@/lib/algolia/search/client';
+import { aa } from '@/lib/algolia/client';
 
 export async function POST(request: Request) {
   try {
