@@ -7,17 +7,7 @@ import {
   MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
-
-interface AlgoliaHit {
-  objectID: string;
-  title: string;
-  url: string;
-}
-
-interface SearchResponse {
-  hits: AlgoliaHit[];
-  queryID: string;
-}
+import type { AlgoliaHit, SearchResponse } from '@/lib/algolia/types';
 
 export default function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -27,6 +17,7 @@ export default function Navigation() {
   const [queryID, setQueryID] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [showSearchBar, setShowSearchBar] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -119,6 +110,15 @@ export default function Navigation() {
     }
   };
 
+  const toggleSearch = () => {
+    setShowSearchBar(!showSearchBar);
+    if (!showSearchBar) {
+      setTimeout(() => {
+        document.getElementById('search-input')?.focus();
+      }, 100);
+    }
+  };
+
   return (
     <header className='bg-white dark:bg-slate-800'>
       <nav
@@ -143,51 +143,6 @@ export default function Navigation() {
         </div>
 
         <Popover.Group className='hidden lg:flex lg:gap-x-12 items-center'>
-          <div className="relative">
-            <form onSubmit={handleSearch} className="flex items-center">
-              <div className="relative">
-                <input
-                  id="search-input"
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onFocus={() => setShowSuggestions(true)}
-                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Search..."
-                  className="pl-3 pr-10 py-1.5 rounded-md text-sm dark:bg-slate-700 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2">
-                  <MagnifyingGlassIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                </button>
-              </div>
-            </form>
-            
-            {showSuggestions && (
-              <div className="absolute mt-1 w-full bg-white dark:bg-slate-700 rounded-md shadow-lg border border-gray-200 dark:border-gray-600 z-50">
-                {isLoading ? (
-                  <div className="px-4 py-2 text-sm text-gray-500">Loading...</div>
-                ) : suggestions.length > 0 ? (
-                  suggestions.map((hit, index) => (
-                    <button
-                      key={hit.objectID}
-                      onClick={() => handleSuggestionClick(hit)}
-                      className={`block w-full text-left px-4 py-2 text-sm 
-                        ${index === selectedIndex 
-                          ? 'bg-gray-100 dark:bg-slate-600' 
-                          : 'hover:bg-gray-100 dark:hover:bg-slate-600'
-                        } 
-                        text-gray-700 dark:text-white`}
-                    >
-                      {hit.title}
-                    </button>
-                  ))
-                ) : (
-                  <div className="px-4 py-2 text-sm text-gray-500">No results found</div>
-                )}
-              </div>
-            )}
-          </div>
           <a href='/blog' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
             Blog
           </a>
@@ -198,7 +153,72 @@ export default function Navigation() {
             Imprint
           </a>
         </Popover.Group>
-        <div className='hidden lg:flex lg:flex-1 lg:justify-end'></div>
+        <div className='hidden lg:flex lg:flex-1 lg:justify-end'>
+          <div className="relative w-64 h-full flex items-center">
+            <div className="absolute right-0 h-full flex items-center">
+              <button
+                onClick={toggleSearch}
+                className={`p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-opacity duration-200
+                  ${showSearchBar ? 'opacity-0 absolute right-2 pointer-events-none' : 'opacity-100'}`}
+              >
+                <MagnifyingGlassIcon className="h-5 w-5" />
+              </button>
+
+              <div className={`relative transition-all duration-200 ${showSearchBar ? 'w-64' : 'w-0'}`}>
+                <div className={`relative w-full ${!showSearchBar ? 'invisible' : ''}`}>
+                  <form onSubmit={handleSearch} className="flex items-center">
+                    <div className="relative w-full">
+                      <input
+                        id="search-input"
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onFocus={() => setShowSuggestions(true)}
+                        onBlur={() => {
+                          setTimeout(() => {
+                            setShowSuggestions(false);
+                            if (!searchQuery) setShowSearchBar(false);
+                          }, 200);
+                        }}
+                        onKeyDown={handleKeyDown}
+                        placeholder="Search..."
+                        className="w-full pl-3 pr-10 py-1.5 rounded-md text-sm dark:bg-slate-700 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2">
+                        <MagnifyingGlassIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                      </button>
+                    </div>
+                  </form>
+
+                  {showSuggestions && (
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-700 rounded-md shadow-lg border border-gray-200 dark:border-gray-600 z-[100]">
+                      {isLoading ? (
+                        <div className="px-4 py-2 text-sm text-gray-500">Loading...</div>
+                      ) : suggestions.length > 0 ? (
+                        suggestions.map((hit, index) => (
+                          <button
+                            key={hit.objectID}
+                            onClick={() => handleSuggestionClick(hit)}
+                            className={`block w-full text-left px-4 py-2 text-sm 
+                              ${index === selectedIndex 
+                                ? 'bg-gray-100 dark:bg-slate-600' 
+                                : 'hover:bg-gray-100 dark:hover:bg-slate-600'
+                              } 
+                              text-gray-700 dark:text-white`}
+                          >
+                            {hit.title}
+                          </button>
+                        ))
+                      ) : (
+                        <div className="px-4 py-2 text-sm text-gray-500">No results found</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </nav>
       <Dialog
         as='div'
