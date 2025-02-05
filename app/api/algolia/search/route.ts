@@ -1,8 +1,17 @@
 import { NextResponse } from 'next/server';
 import type { SearchResponse } from '@algolia/client-search';
 import { searchClient, aa, type AlgoliaHit } from '@/lib/algolia/search/client';
+import { RateLimit } from '@/lib/utils/rate-limit';
+
+const limiter = new RateLimit(60 * 1000, 10); // 10 requests per minute
 
 export async function GET(request: Request) {
+  if (!limiter.check()) {
+    return NextResponse.json(
+      { error: 'Too many requests' }, 
+      { status: 429 }
+    );
+  }
   const { searchParams } = new URL(request.url);
   const query = searchParams.get('q') || '';
   const objectID = searchParams.get('objectID');
