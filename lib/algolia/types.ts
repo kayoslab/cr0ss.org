@@ -3,7 +3,7 @@ export interface AlgoliaHit {
   title: string;
   summary?: string;
   author?: string;
-  categories?: string[];
+  categories: string[];
   url: string;
   image?: string;
 }
