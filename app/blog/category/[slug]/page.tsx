@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getBlogsForCategory, getCategory } from '@/lib/contentful/api/category';
-import BlogGrid from '@/components/blog-grid';
+import BlogGrid from '@/components/blog/blog-grid';
 
 const POSTS_PER_PAGE = 9;
 

@@ -2,7 +2,7 @@
 import { notFound } from 'next/navigation';
 import { getAllPages, getPage } from '@/lib/contentful/api/page';
 import { PageProps } from '@/lib/contentful/api/props/page';
-import { Page } from '@/components/page';
+import { Page } from '@/components/page/page';
 
 // At build time, fetch all slugs to build the blog pages so they are static and cached
 export async function generateStaticParams() {

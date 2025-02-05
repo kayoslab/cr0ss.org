@@ -1,5 +1,5 @@
 import { BlogProps } from '@/lib/contentful/api/props/blog';
-import BlogGrid from '@/components/blog-grid';
+import BlogGrid from '@/components/blog/blog-grid';
 import { env } from '@/env';
 import { algoliasearch } from "algoliasearch";
 import type { SearchResponse } from '@algolia/client-search';
