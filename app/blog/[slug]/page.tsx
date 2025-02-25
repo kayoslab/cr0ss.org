@@ -73,28 +73,30 @@ export async function generateStaticParams() {
 
 async function getRecommendations(currentBlog: BlogProps, maxRecommendations: number = 3): Promise<BlogProps[]> {
   try {
-    // Get all categories of the current blog
     const categories = currentBlog.categoriesCollection?.items || [];
     
-    // If no categories or empty collection, return empty array
     if (!categories || categories.length <= 0) {
       return [];
     }
 
-    // Get posts from all categories
     const categoryPromises = categories.map((category: CategoryProps) => 
       getBlogsForCategory(category.slug)
     );
     const categoryResults = await Promise.all(categoryPromises);
     
-    // Flatten all blog posts and remove duplicates and current blog
-    const allRelatedBlogs = Array.from(new Set(
-      categoryResults.flatMap(result => result.items)
-        .filter(blog => blog.slug !== currentBlog.slug)
-    ));
+    // Use a Map to deduplicate by slug
+    const blogMap = new Map<string, BlogProps>();
+    
+    categoryResults.flatMap(result => result.items)
+      .forEach(blog => {
+        if (blog.slug !== currentBlog.slug && !blogMap.has(blog.slug)) {
+          blogMap.set(blog.slug, blog);
+        }
+      });
 
-    // Randomly select up to maxRecommendations posts
-    const shuffled = allRelatedBlogs.sort(() => 0.5 - Math.random());
+    // Convert Map values to array and shuffle
+    const uniqueBlogs = Array.from(blogMap.values());
+    const shuffled = uniqueBlogs.sort(() => 0.5 - Math.random());
     return shuffled.slice(0, maxRecommendations);
   } catch (error) {
     console.error('Error getting recommendations:', error);
