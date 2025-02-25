@@ -75,29 +75,35 @@ async function getRecommendations(currentBlog: BlogProps, maxRecommendations: nu
   try {
     const categories = currentBlog.categoriesCollection?.items || [];
     
-    if (!categories || categories.length <= 0) {
-      return [];
+    // Try to get category-based recommendations first
+    if (categories && categories.length > 0) {
+      const categoryPromises = categories.map((category: CategoryProps) => 
+        getBlogsForCategory(category.slug)
+      );
+      const categoryResults = await Promise.all(categoryPromises);
+      
+      const blogMap = new Map<string, BlogProps>();
+      
+      categoryResults.flatMap(result => result.items)
+        .forEach(blog => {
+          if (blog.slug !== currentBlog.slug && !blogMap.has(blog.slug)) {
+            blogMap.set(blog.slug, blog);
+          }
+        });
+
+      const uniqueBlogs = Array.from(blogMap.values());
+      if (uniqueBlogs.length > 0) {
+        const shuffled = uniqueBlogs.sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, maxRecommendations);
+      }
     }
 
-    const categoryPromises = categories.map((category: CategoryProps) => 
-      getBlogsForCategory(category.slug)
-    );
-    const categoryResults = await Promise.all(categoryPromises);
-    
-    // Use a Map to deduplicate by slug
-    const blogMap = new Map<string, BlogProps>();
-    
-    categoryResults.flatMap(result => result.items)
-      .forEach(blog => {
-        if (blog.slug !== currentBlog.slug && !blogMap.has(blog.slug)) {
-          blogMap.set(blog.slug, blog);
-        }
-      });
+    // Fall back to recent posts if no category recommendations
+    const recentPosts = await getAllBlogs(1, maxRecommendations + 1);
+    return recentPosts.items
+      .filter(post => post.slug !== currentBlog.slug)
+      .slice(0, maxRecommendations);
 
-    // Convert Map values to array and shuffle
-    const uniqueBlogs = Array.from(blogMap.values());
-    const shuffled = uniqueBlogs.sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, maxRecommendations);
   } catch (error) {
     console.error('Error getting recommendations:', error);
     return [];
