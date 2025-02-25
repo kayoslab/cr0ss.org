@@ -5,7 +5,6 @@ import { BlogProps } from '@/lib/contentful/api/props/blog';
 import { Blog } from '@/components/blog/blogarticle';
 import type { Metadata, ResolvingMetadata } from 'next'
 import { CategoryProps } from '@/lib/contentful/api/props/category';
-import { useEffect, useState } from 'react';
 import { BlogViewTracker } from '@/components/blog/blog-view-tracker';
 
 type Props = {
@@ -72,63 +71,35 @@ export async function generateStaticParams() {
   }));
 }
 
-function getRandom(arr: any[], amount: number = 3) {
-  if (amount > arr.length) amount = arr.length;
-  
-  // Create a copy of the array to avoid modifying the original
-  const available = [...arr];
-  const result = [];
-
-  while (result.length < amount && available.length > 0) {
-    const randomIndex = Math.floor(Math.random() * available.length);
-    // Remove and get the item at randomIndex
-    const [item] = available.splice(randomIndex, 1);
-    result.push(item);
-  }
-
-  return result;
-}
-
-function filterCurrent(arr: BlogProps[], slug: string) {
-  const filteredBlogs = arr.reduce((acc: BlogProps[], post: BlogProps) => {
-    if (post.slug !== slug) {
-      acc.push(post);
+async function getRecommendations(currentBlog: BlogProps, maxRecommendations: number = 3): Promise<BlogProps[]> {
+  try {
+    // Get all categories of the current blog
+    const categories = currentBlog.categoriesCollection?.items || [];
+    
+    // If no categories or empty collection, return empty array
+    if (!categories || categories.length <= 0) {
+      return [];
     }
-    return acc;
-  }, []);
-  return filteredBlogs;
-}
 
-async function getRecommendations(blog: BlogProps) {
-  const categorySlugs = blog.categoriesCollection.items.map((category: CategoryProps) => category.slug);
-  
-  const relatedPostsPromise = categorySlugs.map(
-    async (slug: string): Promise<BlogProps[]> => {
-      const blogs = await getBlogsForCategory(slug);
-      return filterCurrent(blogs.items, blog.slug);
-    }
-  );
-  
-  // Resolve all promises and flatten the result to avoid nested arrays
-  const relatedPosts = (await Promise.all(relatedPostsPromise)).flat();
+    // Get posts from all categories
+    const categoryPromises = categories.map((category: CategoryProps) => 
+      getBlogsForCategory(category.slug)
+    );
+    const categoryResults = await Promise.all(categoryPromises);
+    
+    // Flatten all blog posts and remove duplicates and current blog
+    const allRelatedBlogs = Array.from(new Set(
+      categoryResults.flatMap(result => result.items)
+        .filter(blog => blog.slug !== currentBlog.slug)
+    ));
 
-  // Safeguard against empty or undefined related posts
-  if (!relatedPosts || relatedPosts.length === 0) {
-    const allBlogs = await getAllBlogs();
-    const filteredBlogs = filterCurrent(allBlogs.items, blog.slug);
-
-    if (filteredBlogs.length > 0) {
-      // Show the newest blogs if no related posts exist.
-      return filteredBlogs.slice(1, filteredBlogs.length > 3 ? 4 : filteredBlogs.length)
-    }
-    // No blogs exist, so nothing to recommend.
+    // Randomly select up to maxRecommendations posts
+    const shuffled = allRelatedBlogs.sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, maxRecommendations);
+  } catch (error) {
+    console.error('Error getting recommendations:', error);
     return [];
   }
-
-  // Pass resolved posts to getRandom
-  const random = getRandom(relatedPosts);
-
-  return random;
 }
 
 export default async function BlogContent({
