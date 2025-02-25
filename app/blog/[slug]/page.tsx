@@ -75,15 +75,17 @@ export async function generateStaticParams() {
 function getRandom(arr: any[], amount: number = 3) {
   if (amount > arr.length) amount = arr.length;
   
-  const result = new Array(amount);
-  let len = arr.length,
-      taken = new Array(len);
+  // Create a copy of the array to avoid modifying the original
+  const available = [...arr];
+  const result = [];
 
-  while (amount--) {
-    const x = Math.floor(Math.random() * len);
-    result[amount] = arr[x in taken ? taken[x] : x];
-    taken[x] = --len in taken ? taken[len] : len;
+  while (result.length < amount && available.length > 0) {
+    const randomIndex = Math.floor(Math.random() * available.length);
+    // Remove and get the item at randomIndex
+    const [item] = available.splice(randomIndex, 1);
+    result.push(item);
   }
+
   return result;
 }
 
@@ -115,11 +117,10 @@ async function getRecommendations(blog: BlogProps) {
     const allBlogs = await getAllBlogs();
     const filteredBlogs = filterCurrent(allBlogs.items, blog.slug);
 
-    if (allBlogs.items.length > 0) {
+    if (filteredBlogs.length > 0) {
       // Show the newest blogs if no related posts exist.
-      return allBlogs.items.slice(1, allBlogs.items.length > 3 ? 4 : allBlogs.items.length)
+      return filteredBlogs.slice(1, filteredBlogs.length > 3 ? 4 : filteredBlogs.length)
     }
-    
     // No blogs exist, so nothing to recommend.
     return [];
   }
