@@ -103,17 +103,19 @@ function renderOptions(links: any) {
         }
         return null;
       },
-    },
-    [INLINES.HYPERLINK]: (node: any, children: any) => {
-      return (
-        <Link 
-          href={node.data.uri} 
-          className="text-blue-600 dark:text-blue-400 hover:underline decoration-2 underline-offset-2" 
-          style={{ wordWrap: "break-word" }}
-        >
-          {children}
-        </Link>
-      );
+      [INLINES.HYPERLINK]: (node: any, children: any) => {
+        return (
+          <Link 
+            href={node.data.uri} 
+            className="text-blue-600 dark:text-blue-400 underline decoration-blue-600/30 dark:decoration-blue-400/30 hover:decoration-blue-600 dark:hover:decoration-blue-400 transition-all duration-200" 
+            target={node.data.uri.startsWith('http') ? '_blank' : '_self'}
+            rel={node.data.uri.startsWith('http') ? 'noopener noreferrer' : ''}
+            style={{ wordWrap: "break-word" }}
+          >
+            {children}
+          </Link>
+        );
+      },
     },
   };
 }
