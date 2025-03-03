@@ -107,7 +107,7 @@ function renderOptions(links: any) {
         return (
           <Link 
             href={node.data.uri} 
-            className="text-blue-600 dark:text-blue-400 underline decoration-blue-600/30 dark:decoration-blue-400/30 hover:decoration-blue-600 dark:hover:decoration-blue-400 transition-all duration-200" 
+            className="text-gray-700 dark:text-gray-300 underline decoration-gray-700/30 dark:decoration-gray-300/30 hover:decoration-gray-700 dark:hover:decoration-gray-300 transition-all duration-200" 
             target={node.data.uri.startsWith('http') ? '_blank' : '_self'}
             rel={node.data.uri.startsWith('http') ? 'noopener noreferrer' : ''}
             style={{ wordWrap: "break-word" }}
