@@ -18,22 +18,32 @@ function renderOptions(links: any) {
   return {
     renderNode: {
       [BLOCKS.HEADING_1]: (node: any, children: any) => {
-        return <h1 className="font-bold text-5xl mb-4 dark:text-white">{children}</h1>;
+        return <h1 className="font-bold text-5xl mt-12 mb-6 dark:text-white">{children}</h1>;
       },
       [BLOCKS.HEADING_2]: (node: any, children: any) => {
-        return <h2 className="font-bold text-2xl mb-4 dark:text-white">{children}</h2>;
+        return <h2 className="font-bold text-3xl mt-10 mb-5 dark:text-white">{children}</h2>;
       },
       [BLOCKS.HEADING_3]: (node: any, children: any) => {
-        return <h3 className="font-bold text-xl mb-4 dark:text-white">{children}</h3>;
+        return <h3 className="font-bold text-2xl mt-8 mb-4 dark:text-white">{children}</h3>;
       },
       [BLOCKS.HEADING_4]: (node: any, children: any) => {
-        return <h4 className="font-bold text-lg mb-4 dark:text-white">{children}</h4>;
+        return <h4 className="font-bold text-xl mt-6 mb-3 dark:text-white">{children}</h4>;
       },
       [BLOCKS.HEADING_5]: (node: any, children: any) => {
-        return <h5 className="font-bold text-lg mb-4 dark:text-white">{children}</h5>;
+        return <h5 className="font-bold text-lg mt-6 mb-3 dark:text-white">{children}</h5>;
       },
       [BLOCKS.HEADING_6]: (node: any, children: any) => {
-        return <h6 className="font-bold text-lg mb-4 dark:text-white">{children}</h6>;
+        return <h6 className="font-bold text-base mt-6 mb-3 dark:text-white">{children}</h6>;
+      },
+      [BLOCKS.PARAGRAPH]: (node: any, children: any) => {
+        return <p className="mb-6 leading-relaxed text-slate-700 dark:text-slate-200">{children}</p>;
+      },
+      [BLOCKS.QUOTE]: (node: any, children: any) => {
+        return (
+          <blockquote className="border-l-4 border-gray-300 dark:border-gray-700 pl-4 my-6 italic text-gray-700 dark:text-gray-300">
+            {children}
+          </blockquote>
+        );
       },
       [BLOCKS.UL_LIST]: (node: any, children: any) => {
         return <ul className="list-disc dark:text-slate-200 list-style-position:outside ms-4" key={children}>{children}</ul>;
@@ -43,9 +53,6 @@ function renderOptions(links: any) {
       },
       [BLOCKS.OL_LIST]: (node: any, children: any) => {
         return <ol className="list-decimal dark:text-slate-200 list-style-position:outside ms-4" key={children}>{children}</ol>;
-      },
-      [BLOCKS.PARAGRAPH]: (node: any, children: any) => {
-        return <p className="mb-2 text-slate-700 dark:text-slate-200">{children}</p>;
       },
       [BLOCKS.TABLE]: (node: any, children: any) => {
         return (
@@ -99,7 +106,11 @@ function renderOptions(links: any) {
     },
     [INLINES.HYPERLINK]: (node: any, children: any) => {
       return (
-        <Link href={node.data.uri} className="text-blue-600 hover:underline" style={{ wordWrap: "break-word" }}>
+        <Link 
+          href={node.data.uri} 
+          className="text-blue-600 dark:text-blue-400 hover:underline decoration-2 underline-offset-2" 
+          style={{ wordWrap: "break-word" }}
+        >
           {children}
         </Link>
       );
