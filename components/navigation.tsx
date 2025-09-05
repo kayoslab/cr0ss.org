@@ -150,7 +150,7 @@ export default function Navigation() {
             About
           </a>
           <a href='/page/imprint' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
-            Imprint
+            Contact
           </a>
         </Popover.Group>
         <div className='hidden lg:flex lg:flex-1 lg:justify-end'>
