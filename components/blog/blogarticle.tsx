@@ -134,7 +134,7 @@ export const Blog = ({ blog, recommendations }: { blog: BlogProps, recommendatio
   }
 
   return (
-    <section className='w-full max-w-screen-lg'>
+    <section className='w-full max-w-(--breakpoint-lg)'>
         <div className='container space-y-12 px-4 md:px-6'>
           <div className='space-y-4'>
             <h1
@@ -203,7 +203,7 @@ export const Blog = ({ blog, recommendations }: { blog: BlogProps, recommendatio
                   <Link href={`/blog/${recommendation.slug}`}>
                     <Image
                       alt='placeholder'
-                      className='aspect-[4/3] w-full object-cover'
+                      className='aspect-4/3 w-full object-cover'
                       height='263'
                       src={recommendation?.heroImage?.url ?? ''}
                       width='350'
