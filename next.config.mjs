@@ -5,6 +5,9 @@ const jiti = createJiti(fileURLToPath(import.meta.url));
 jiti('./env');
 
 const nextConfig = {
+  experimental: {
+    serverActions: { bodySizeLimit: '2mb' },
+  },
   reactStrictMode: true,
   images: {
     remotePatterns: [
