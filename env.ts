@@ -12,6 +12,7 @@ export const env = createEnv({
     CONTENTFUL_REVALIDATE_SECRET: z.string().min(20),
     CONTENTFUL_INDEX_SECRET: z.string().min(20),
     LOCATION_API_SECRET: z.string().min(20),
+    DASHBOARD_API_SECRET: z.string().min(20),
   },
   client: {},
   // If you're using Next.js < 13.4.4, you'll need to specify the runtimeEnv manually
@@ -31,5 +32,6 @@ export const env = createEnv({
     CONTENTFUL_REVALIDATE_SECRET: process.env.CONTENTFUL_REVALIDATE_SECRET,
     CONTENTFUL_INDEX_SECRET: process.env.CONTENTFUL_INDEX_SECRET,
     LOCATION_API_SECRET: process.env.LOCATION_API_SECRET,
+    DASHBOARD_API_SECRET: process.env.DASHBOARD_API_SECRET,
   }
 });

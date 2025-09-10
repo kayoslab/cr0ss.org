@@ -7,12 +7,6 @@ export const fetchCache = 'force-no-store';
 export default async function HomeContent() {
   const locationKey = 'GEOLOCATION';
   const storedLocation = await kv.get<{ lat: number; lon: number }>(locationKey);
-  
-  if (!storedLocation) {
-    return {
-      notFound: true,
-    }
-  }
 
   return (
     <main className="flex flex-col items-center justify-between min-h-screen">
