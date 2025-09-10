@@ -88,7 +88,7 @@ function renderOptions(links: any) {
 
 export const Page = ({ page }: { page: PageProps }) => {
   return (
-    <section className='w-full max-w-screen-lg'>
+    <section className='w-full max-w-(--breakpoint-lg)'>
       <div className='container space-y-12 px-4 md:px-6'>
         <div className='space-y-4'>
           <h1

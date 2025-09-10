@@ -24,7 +24,7 @@ export function SearchResult({ hit, onClick, isSelected }: Props) {
       {hit.categories && hit.categories.length > 0 && (
         <div className="flex gap-1 mt-1">
           {hit.categories.map(category => (
-            <span key={category} className="text-xs bg-gray-200 dark:bg-slate-700 px-1.5 py-0.5 rounded">
+            <span key={category} className="text-xs bg-gray-200 dark:bg-slate-700 px-1.5 py-0.5 rounded-sm">
               {category}
             </span>
           ))}

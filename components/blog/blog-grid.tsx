@@ -12,7 +12,7 @@ interface BlogGridProps {
 
 export default function BlogGrid({ posts, currentPage, totalPages, basePath, title }: BlogGridProps) {
   return (
-    <section className='w-full pt-12 max-w-screen-lg'>
+    <section className='w-full pt-12 max-w-(--breakpoint-lg)'>
       <div className='container mx-auto space-y-12 px-4 md:px-6'>
         <div className='flex flex-col items-center justify-center space-y-4 text-center'>
           <div className='space-y-2'>
@@ -38,7 +38,7 @@ export default function BlogGrid({ posts, currentPage, totalPages, basePath, tit
                   <Link href={`/blog/${blog.slug}`}>
                     <Image
                       alt='placeholder'
-                      className='aspect-[4/3] w-full object-cover'
+                      className='aspect-4/3 w-full object-cover'
                       height='263'
                       src={blog?.heroImage?.url ?? ''}
                       width='350'

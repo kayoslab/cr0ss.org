@@ -182,7 +182,7 @@ export default function Navigation() {
                         }}
                         onKeyDown={handleKeyDown}
                         placeholder="Search..."
-                        className="w-full pl-3 pr-10 py-1.5 rounded-md text-sm dark:bg-slate-700 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full pl-3 pr-10 py-1.5 rounded-md text-sm dark:bg-slate-700 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                       />
                       <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2">
                         <MagnifyingGlassIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
@@ -191,7 +191,7 @@ export default function Navigation() {
                   </form>
 
                   {showSuggestions && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-700 rounded-md shadow-lg border border-gray-200 dark:border-gray-600 z-[100]">
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-700 rounded-md shadow-lg border border-gray-200 dark:border-gray-600 z-100">
                       {isLoading ? (
                         <div className="px-4 py-2 text-sm text-gray-500">Loading...</div>
                       ) : suggestions.length > 0 ? (
@@ -253,7 +253,7 @@ export default function Navigation() {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search..."
-                      className="w-full pl-3 pr-10 py-2 rounded-md text-sm dark:bg-slate-700 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full pl-3 pr-10 py-2 rounded-md text-sm dark:bg-slate-700 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                     />
                     <button
                       type="submit"
