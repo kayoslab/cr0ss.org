@@ -12,8 +12,8 @@ export async function POST(req: Request) {
 
     for (const i of parsed) {
       await sql/*sql*/`
-        insert into coffee_log (date, type, amount_ml, caffeine_mg, notes)
-        values (${i.date}, ${i.type}, ${i.amount_ml ?? null}, ${i.caffeine_mg ?? null}, ${i.notes ?? null});
+        insert into coffee_log (date, type, amount_ml, caffeine_mg, tasting, notes)
+        values (${i.date}, ${i.type}, ${i.amount_ml ?? null}, ${i.caffeine_mg ?? null}, ${i.tasting ?? null}, ${i.notes ?? null});
       `;
       // optional: count cups per day in KV for a fast KPI
       if (process.env.KV_REST_API_URL) {

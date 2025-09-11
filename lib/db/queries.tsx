@@ -1,0 +1,235 @@
+import { neon } from "@neondatabase/serverless";
+import {
+  ZBrewMethodsToday, ZTastingThisWeek, ZCaffeineCurve, ZRitualsToday, ZConsistency,
+  ZTrend, ZScatter, ZBlocks, ZStreak, ZMonthlyProgress, ZPaceSeries, ZHeat,
+} from "./models";
+import { GOALS } from "./constants";
+
+const sql = neon(process.env.DATABASE_URL!);
+
+// ---- Morning Brew
+export async function qBrewMethodsToday() {
+  const rows = await sql/*sql*/`
+    select type::text, count(*)::int as count
+    from coffee_log
+    where date = current_date
+    group by type
+    order by count desc
+  `;
+  return ZBrewMethodsToday.parse(rows.map(r => ({ type: r.type, count: Number(r.count) })));
+}
+
+export async function qCupsToday() {
+  const [{ cups }] = await sql/*sql*/`select count(*)::int as cups from coffee_log where date = current_date`;
+  return Number(cups) || 0;
+}
+
+export async function qTastingThisWeek() {
+  const rows = await sql/*sql*/`
+    select tasting, count(*)::int as count
+    from coffee_log
+    where date >= current_date - interval '6 days' and tasting is not null
+    group by tasting
+    order by count desc
+  `;
+  return ZTastingThisWeek.parse(rows.map(r => ({ tasting: r.tasting as string, count: Number(r.count) })));
+}
+
+export async function qCaffeineCurveToday() {
+  const rows = await sql/*sql*/`
+    select
+      extract(hour from timezone('Europe/Rome', time))::int as hour,
+      sum(coalesce(caffeine_mg,
+        case type
+          when 'espresso' then 80 when 'v60' then 120 when 'moka' then 100
+          when 'aero' then 110 when 'cold_brew' then 150 else 90
+        end
+      ))::int as mg
+    from coffee_log
+    where date = current_date
+    group by 1
+    order by 1 asc
+  `;
+  // Fill missing hours (08..20) so charts don't break
+  const hours = new Set(rows.map((r:any)=> Number(r.hour)));
+  const filled = Array.from({length: 13}, (_,i)=>i+8).map(h => {
+    const found = rows.find((r:any)=> Number(r.hour)===h);
+    return { hour: h, mg: found ? Number(found.mg) : 0 };
+  });
+  return ZCaffeineCurve.parse(filled);
+}
+
+// ---- Daily Rituals
+export async function qRitualsToday() {
+  const rows = await sql/*sql*/`
+    select to_char(r.date, 'YYYY-MM-DD') as date, steps, reading_minutes, outdoor_minutes, writing_minutes, journaled
+    from rituals r
+    where r.date = current_date
+    limit 1
+  `;
+  const row = rows[0] ?? { date: new Date().toISOString().slice(0,10), steps: 0, reading_minutes: 0, outdoor_minutes: 0, writing_minutes: 0, journaled: false };
+  return ZRitualsToday.parse({
+    date: row.date,
+    steps: Number(row.steps||0),
+    reading_minutes: Number(row.minutes_read||0),
+    outdoor_minutes: Number(row.minutes_outdoors||0),
+    writing_minutes: Number(row.writing_minutes||0),
+    journaled: !!row.journaled,
+  });
+}
+
+export async function qRitualConsistencyThisWeek() {
+  const rows = await sql/*sql*/`
+    select
+      to_char(date, 'YYYY-MM-DD') as date,
+      steps, reading_minutes, outdoor_minutes, journaled
+    from rituals
+    where date >= current_date - interval '6 days'
+    order by date asc
+  `;
+  const days = rows.map((r:any)=> ({
+    steps: Number(r.steps||0),
+    read: Number(r.reading_minutes||0),
+    out: Number(r.outdoor_minutes||0),
+    journ: !!r.journaled,
+  }));
+  const total = Math.max(1, days.length);
+  const kept = {
+    Steps: days.filter(d=> d.steps >= GOALS.steps).length,
+    Reading: days.filter(d=> d.read >= GOALS.readingMinutes).length,
+    Outdoors: days.filter(d=> d.out >= GOALS.outdoorMinutes).length,
+    Journaling: days.filter(d=> d.journ).length,
+  };
+  const arr = [
+    { name: "Steps", kept: kept.Steps, total },
+    { name: "Reading", kept: kept.Reading, total },
+    { name: "Outdoors", kept: kept.Outdoors, total },
+    { name: "Journaling", kept: kept.Journaling, total },
+  ];
+  return ZConsistency.parse(arr);
+}
+
+export async function qWritingVsFocusTrend(days = 14) {
+  const start = new Date();
+  start.setUTCHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - (days - 1));
+  const startStr = start.toISOString().slice(0, 10); // "YYYY-MM-DD"
+
+  const rows = await sql/*sql*/`
+    select to_char(d.date,'YYYY-MM-DD') as date,
+           coalesce(r.writing_minutes,0)::int as writing_minutes,
+           coalesce(d.focus_minutes,0)::int as focus_minutes
+    from days d
+    left join rituals r on r.date = d.date
+    where d.date >= ${startStr}::date
+    order by d.date asc
+  `;
+  return ZTrend.parse(rows.map((r:any) => ({
+    date: r.date,
+    writing_minutes: Number(r.writing_minutes),
+    focus_minutes: Number(r.focus_minutes),
+  })));
+}
+
+// ---- Focus & Flow
+export async function qSleepVsFocusScatter(days = 30) {
+  const start = new Date();
+  start.setUTCHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - (days - 1));
+  const startStr = start.toISOString().slice(0, 10);
+
+  const rows = await sql/*sql*/`
+    select to_char(date,'YYYY-MM-DD') as date,
+           coalesce(sleep_score,0)::int as sleep_score,
+           coalesce(focus_minutes,0)::int as focus_minutes
+    from days
+    where date >= ${startStr}::date
+    order by date asc
+  `;
+  return ZScatter.parse(rows.map((r:any) => ({
+    date: r.date,
+    sleep_score: Number(r.sleep_score),
+    focus_minutes: Number(r.focus_minutes),
+  })));
+}
+
+export async function qDeepWorkBlocksThisWeek() {
+  const rows = await sql/*sql*/`
+    select to_char(date,'YYYY-MM-DD') as date, coalesce(focus_minutes,0)::int as focus
+    from days
+    where date >= current_date - interval '6 days'
+    order by date asc
+  `;
+  const data = rows.map((r:any)=> ({ date: r.date, blocks: Math.round(Number(r.focus)/50) })); // ~50-min block
+  return ZBlocks.parse(data);
+}
+
+export async function qFocusStreak(target = GOALS.focusMinutes) {
+  const rows = await sql/*sql*/`
+    select date, coalesce(focus_minutes,0)::int as focus
+    from days
+    where date <= current_date
+    order by date desc
+    limit 60
+  `;
+  let streak = 0;
+  for (const r of rows) {
+    if (Number(r.focus) >= target) streak++; else break;
+  }
+  return ZStreak.parse({ days: streak });
+}
+
+// ---- Running & Movement
+export async function qRunningMonthlyProgress() {
+  const [progress] = await sql/*sql*/`
+    with m as (select date_trunc('month', current_date)::date as month_start)
+    select
+      to_char(m.month_start,'YYYY-MM-01') as month,
+      coalesce((select target from monthly_goals where month = m.month_start and kind='running_distance_km'), ${GOALS.runningMonthlyKm})::numeric as target_km,
+      coalesce((select sum(distance_km) from runs where date >= m.month_start and date < (m.month_start + interval '1 month')),0)::numeric as total_km
+    from m
+  `;
+  const target = Number(progress.target_km);
+  const total = Number(progress.total_km);
+  const pct = target > 0 ? Math.min(1, total/target) : 0;
+  return ZMonthlyProgress.parse({
+    month: progress.month, target_km: target, total_km: total, delta_km: total - target, pct
+  });
+}
+
+export async function qPaceLastRuns(limit=10) {
+  const rows = await sql/*sql*/`
+    select to_char(date,'YYYY-MM-DD') as date, coalesce(avg_pace_sec_per_km,0)::int as pace_sec_per_km
+    from runs
+    order by date desc
+    limit ${limit}
+  `;
+  const data = rows.map((r:any)=> ({ date: r.date, pace_sec_per_km: Number(r.pace_sec_per_km) })).reverse();
+  return ZPaceSeries.parse(data);
+}
+
+export async function qRunningHeatmap(days = 42) {
+  const start = new Date();
+  start.setUTCHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - (days - 1));
+  const startStr = start.toISOString().slice(0, 10);
+
+  const rows = await sql/*sql*/`
+    select to_char(date,'YYYY-MM-DD') as date,
+           coalesce(sum(distance_km),0)::numeric as km
+    from runs
+    where date >= ${startStr}::date
+    group by date
+  `;
+  const byDate = new Map(rows.map((r:any) => [r.date, Number(r.km)]));
+
+  const today = new Date();
+  const out = Array.from({ length: days }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(d.getDate() - (days - 1 - i));
+    const key = d.toISOString().slice(0, 10);
+    return { date: key, km: byDate.get(key) ?? 0 };
+  });
+
+  return ZHeat.parse(out);
+}

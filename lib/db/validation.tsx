@@ -28,6 +28,7 @@ export const ZCoffee = z.object({
   type: z.enum(["espresso","v60","chemex","moka","aero","cold_brew","other"]),
   amount_ml: z.coerce.number().int().min(0).optional(),
   caffeine_mg: z.coerce.number().int().min(0).optional(),
+  tasting: z.string().max(50).optional(),
   notes: z.string().max(300).optional(),
 });
 
