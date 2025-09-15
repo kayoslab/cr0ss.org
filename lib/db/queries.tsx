@@ -36,9 +36,13 @@ export async function qTastingThisWeek() {
 }
 
 export async function qCaffeineCurveToday() {
+  // last 24h window
+  const start = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const startIso = start.toISOString();
+
   const rows = await sql/*sql*/`
     select
-      extract(hour from timezone('Europe/Rome', time))::int as hour,
+      extract(hour from timezone('Europe/Berlin', time))::int as hour,
       sum(coalesce(caffeine_mg,
         case type
           when 'espresso' then 80 when 'v60' then 120 when 'moka' then 100
@@ -46,18 +50,18 @@ export async function qCaffeineCurveToday() {
         end
       ))::int as mg
     from coffee_log
-    where date = current_date
+    where time >= ${startIso}::timestamptz
     group by 1
-    order by 1 asc
+    order by 1
   `;
-  // Fill missing hours (08..20) so charts don't break
-  const hours = new Set(rows.map((r:any)=> Number(r.hour)));
-  const filled = Array.from({length: 13}, (_,i)=>i+8).map(h => {
-    const found = rows.find((r:any)=> Number(r.hour)===h);
-    return { hour: h, mg: found ? Number(found.mg) : 0 };
-  });
-  return ZCaffeineCurve.parse(filled);
+
+  // Fill 0..23 with 0s so chart always has a full day
+  const byHour = new Map(rows.map((r: any) => [Number(r.hour), Number(r.mg)]));
+  const out = Array.from({ length: 24 }, (_, h) => ({ hour: h, mg: byHour.get(h) ?? 0 }));
+
+  return ZCaffeineCurve.parse(out); // <- hour is number here
 }
+
 
 // ---- Daily Rituals
 export async function qRitualsToday() {
