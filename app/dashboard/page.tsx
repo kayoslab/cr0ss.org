@@ -104,11 +104,11 @@ export default async function DashboardPage() {
       <Section title="1. Morning Brew ☕">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <Kpi label="Cups Today" value={cupsToday} />
-          <Bars items={methodsBar} />
-          <Donut data={tastingDonut} />
+          <Bars title="Brew methods today" items={methodsBar} />
+          <Donut title="Tasting notes (7d)" data={tastingDonut} />
         </div>
         <div className="mt-4">
-          <Line data={caffeineLine} index="hour" categories={["mg"]} />
+          <Line title="Caffeine curve (today)" data={caffeineLine} index="hour" categories={["mg"]} />
         </div>
       </Section>
 
@@ -116,13 +116,13 @@ export default async function DashboardPage() {
       <Section title="2. Daily Rituals ⏰">
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {progressToday.map((p) => (
-            <Progress key={p.name} value={p.value} target={p.target} />
+            <Progress title="Rituals Progress" key={p.name} value={p.value} target={p.target} />
           ))}
         </div>
         <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-          <Bars items={consistencyBars} />
+          <Bars title="Rituals consistency" items={consistencyBars} />
           <div className="md:col-span-2">
-            <Area data={rhythmTrend} index="date" categories={["Writing","Focus (min)"]} />
+            <Area title="Writing vs Focus" data={rhythmTrend} index="date" categories={["Writing","Focus (min)"]} />
           </div>
         </div>
       </Section>
@@ -131,12 +131,12 @@ export default async function DashboardPage() {
       <Section title="3. Focus & Flow 💻">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div className="md:col-span-2">
-            <Scatter data={scatter} x="Sleep" y="Focus" category="date" />
+            <Scatter title="Sleep vs Focus" data={scatter} x="Sleep" y="Focus" category="date" />
           </div>
           <Kpi label="Focus Streak (≥ target)" value={`${focusStreak.days} days`} />
         </div>
         <div className="mt-4">
-          <Area data={blocksArea} index="date" categories={["Blocks"]} />
+          <Area title="Deep Work Blocks" data={blocksArea} index="date" categories={["Blocks"]} />
         </div>
       </Section>
 
@@ -148,9 +148,9 @@ export default async function DashboardPage() {
           <Kpi label="Delta (km)" value={runningProgress.delta_km.toFixed(1)} />
         </div>
         <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-          <Progress value={runningProgress.total_km} target={runningProgress.target_km} />
+          <Progress title="Running Progress" value={runningProgress.total_km} target={runningProgress.target_km} />
           <div className="md:col-span-2">
-            <Line data={pace} index="date" categories={["Pace (min/km)"]} />
+            <Line title="Pace (min/km)" data={pace} index="date" categories={["Pace (min/km)"]} />
           </div>
         </div>
         <div className="mt-4">
