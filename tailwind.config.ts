@@ -1,3 +1,4 @@
+// tailwind.config.ts
 import type { Config } from "tailwindcss";
 
 export default {
@@ -5,7 +6,7 @@ export default {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./lib/**/*.{js,ts,jsx,tsx,mdx}",
-    // Let Tailwind see Tremor classes in node_modules:
+    // Important: let Tailwind see Tremor's classes
     "./node_modules/@tremor/**/*.{js,ts,jsx,tsx,mjs}",
   ],
   theme: { extend: {} },

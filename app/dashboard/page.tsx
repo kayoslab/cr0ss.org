@@ -72,7 +72,7 @@ export default async function DashboardPage() {
   // ---------- Morning Brew
   const methodsBar = brewMethodsToday.map(b => ({ name: b.type, value: b.count }));
   const tastingDonut = tastingThisWeek.map(t => ({ name: t.tasting, value: t.count }));
-  const caffeineLine = caffeineCurve.map(p => ({ hour: `${p.hour}:00`, mg: p.mg }));
+  const caffeineLine = caffeineCurve.map(p => ({hour: `${String(p.hour).padStart(2, "0")}:00`, mg: p.mg}));
 
   // ---------- Daily Rituals
   const progressToday = [
@@ -97,7 +97,7 @@ export default async function DashboardPage() {
   }));
 
   return (
-    <main className="mx-auto max-w-7xl px-6 py-10 space-y-10">
+    <main className="mx-auto max-w-7xl px-6 py-10 space-y-10 bg-white dark:bg-slate-800">
       <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
 
       {/* 1) Morning Brew */}
@@ -131,7 +131,7 @@ export default async function DashboardPage() {
       <Section title="3. Focus & Flow 💻">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div className="md:col-span-2">
-            <Scatter title="Sleep vs Focus" data={scatter} x="Sleep" y="Focus" category="date" />
+            <Scatter title="Sleep vs Focus" data={scatter} x="Sleep" y="Focus" />
           </div>
           <Kpi label="Focus Streak (≥ target)" value={`${focusStreak.days} days`} />
         </div>

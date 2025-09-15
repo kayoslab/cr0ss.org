@@ -1,7 +1,5 @@
 @import 'tailwindcss';
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "./tremor-utilities.css";
 
 @theme {
   --background-image-gradient-radial: radial-gradient(var(--tw-gradient-stops));
