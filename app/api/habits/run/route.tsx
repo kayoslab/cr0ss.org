@@ -2,6 +2,7 @@ export const runtime = "edge";
 
 import { sql } from "@/lib/db/client";
 import { HeadersSecret, ZRun } from "@/lib/db/validation";
+import { revalidateDashboard } from "@/lib/cache/revalidate";
 
 export async function POST(req: Request) {
   try {
@@ -16,6 +17,9 @@ export async function POST(req: Request) {
         values (${i.date}, ${i.distance_km}, ${i.duration_min}, ${i.avg_pace_sec_per_km ?? null});
       `;
     }
+
+    revalidateDashboard();
+    
     return new Response(JSON.stringify({ ok: true, inserted: parsed.length }), { status: 200 });
   } catch (err: any) {
     return new Response(err?.message ?? "Bad Request", { status: err?.status ?? 400 });
