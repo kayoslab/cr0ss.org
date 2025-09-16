@@ -3,6 +3,7 @@ export const runtime = "edge";
 
 import { sql } from "@/lib/db/client";
 import { HeadersSecret, ZDay } from "@/lib/db/validation";
+import { revalidateDashboard } from "@/lib/cache/revalidate";
 
 export async function POST(req: Request) {
   try {
@@ -36,6 +37,9 @@ export async function POST(req: Request) {
           updated_at      = now();
       `;
     }
+
+    revalidateDashboard();
+
     return new Response(JSON.stringify({ ok: true, upserted: parsed.length }), { status: 200 });
   } catch (err: any) {
     return new Response(err?.message ?? "Bad Request", { status: err?.status ?? 400 });

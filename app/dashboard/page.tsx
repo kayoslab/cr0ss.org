@@ -1,3 +1,7 @@
+// Page stays dynamic, but reads are cached via tag
+export const dynamic = "force-dynamic";
+
+import { getDashboardData } from "@/lib/cache/dashboard";
 import Section from "@/components/dashboard/Section";
 import { Kpi } from "@/components/dashboard/Kpi";
 import { Donut, Line, Area, Scatter, Bars, Progress } from "@/components/dashboard/charts/TremorCharts";
@@ -32,6 +36,7 @@ export const metadata = {
 };
 
 export default async function DashboardPage() {
+  const data = await getDashboardData();
   // Parallelize all reads
   const [
     cupsToday,
@@ -70,30 +75,55 @@ export default async function DashboardPage() {
   ]);
 
   // ---------- Morning Brew
-  const methodsBar = brewMethodsToday.map(b => ({ name: b.type, value: b.count }));
-  const tastingDonut = tastingThisWeek.map(t => ({ name: t.tasting, value: t.count }));
-  const caffeineLine = caffeineCurve.map(p => ({hour: `${String(p.hour).padStart(2, "0")}:00`, mg: p.mg}));
+  const methodsBar = data.brewMethodsToday.map(b => ({ name: b.type, value: b.count }));
+  const tastingDonut = data.tastingThisWeek.map(t => ({ name: t.tasting, value: t.count }));
+  const caffeineLine = data.caffeineCurve.map(p => ({hour: `${String(p.hour).padStart(2, "0")}:00`, mg: p.mg}));
 
   // ---------- Daily Rituals
   const progressToday = [
-  { name: "Steps",     value: habitsToday.steps,            target: GOALS.steps },
-  { name: "Reading",   value: habitsToday.reading_minutes,  target: GOALS.minutesRead },
-  { name: "Outdoor",  value: habitsToday.outdoor_minutes,  target: GOALS.minutesOutdoors },
-  { name: "Writing",   value: habitsToday.writing_minutes,  target: GOALS.writingMinutes },
-  { name: "Coding",    value: habitsToday.coding_minutes,   target: GOALS.codingMinutes },
-  { name: "Journaling",value: habitsToday.journaled ? 1 : 0, target: 1 },
-];
-  const consistencyBars = habitsConsistency.map(r => ({
+    {
+      name: "Steps",
+      value: data.habitsToday.steps,
+      target: GOALS.steps 
+    },
+    {
+      name: "Reading",
+      value: data.habitsToday.reading_minutes,
+      target: GOALS.minutesRead
+    },
+    {
+      name: "Outdoor",
+      value: data.habitsToday.outdoor_minutes,
+      target: GOALS.minutesOutdoors
+    },
+    {
+      name: "Writing",
+      value: data.habitsToday.writing_minutes,
+      target: GOALS.writingMinutes
+    },
+    {
+      name: "Coding",
+      value: data.habitsToday.coding_minutes,
+      target: GOALS.codingMinutes
+    },
+    {
+      name: "Journaling",
+      value: data.habitsToday.journaled ? 1 : 0,
+      target: 1
+    },
+  ];
+  
+  const consistencyBars = data.habitsConsistency.map(r => ({
     name: r.name, value: Math.round((r.kept / Math.max(1, r.total)) * 100)
   })); // show % kept
-  const rhythmTrend = writingVsFocus.map(d => ({ date: d.date, Writing: d.writing_minutes, "Focus (min)": d.focus_minutes }));
+  const rhythmTrend = data.writingVsFocus.map(d => ({ date: d.date, Writing: d.writing_minutes, "Focus (min)": d.focus_minutes }));
 
   // ---------- Focus & Flow
-  const scatter = sleepVsFocus.map(d => ({ date: d.date, Sleep: d.sleep_score, Focus: d.focus_minutes }));
-  const blocksArea = deepWorkBlocks.map(d => ({ date: d.date, Blocks: d.blocks }));
+  const scatter = data.sleepVsFocus.map(d => ({ date: d.date, Sleep: d.sleep_score, Focus: d.focus_minutes }));
+  const blocksArea = data.deepWorkBlocks.map(d => ({ date: d.date, Blocks: d.blocks }));
 
   // ---------- Running & Movement
-  const pace = paceSeries.map(p => ({
+  const pace = data.paceSeries.map(p => ({
     date: p.date,
     "Pace (min/km)": +(p.pace_sec_per_km/60).toFixed(2),
   }));
