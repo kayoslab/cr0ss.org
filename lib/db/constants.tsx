@@ -1,7 +1,9 @@
 export const GOALS = {
   steps: 8000,
-  readingMinutes: 30,
-  outdoorMinutes: 30,
+  minutesRead: 30,
+  minutesOutdoors: 30,
+  writingMinutes: 20,
+  codingMinutes: 60,
   focusMinutes: 90,
   runningMonthlyKm: 100,
 } as const;

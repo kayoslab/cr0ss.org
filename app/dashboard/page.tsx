@@ -3,9 +3,9 @@ import { Kpi } from "@/components/dashboard/Kpi";
 import { Donut, Line, Area, Scatter, Bars, Progress } from "@/components/dashboard/charts/TremorCharts";
 import {
   qBrewMethodsToday, qCupsToday, qTastingThisWeek, qCaffeineCurveToday,
-  qRitualsToday, qRitualConsistencyThisWeek, qWritingVsFocusTrend,
+  qWritingVsFocusTrend, qHabitsToday, qHabitConsistencyThisWeek,
   qSleepVsFocusScatter, qDeepWorkBlocksThisWeek, qFocusStreak,
-  qRunningMonthlyProgress, qPaceLastRuns, qRunningHeatmap
+  qRunningMonthlyProgress, qPaceLastRuns, qRunningHeatmap,
 } from "@/lib/db/queries";
 import { GOALS } from "@/lib/db/constants";
 
@@ -39,8 +39,8 @@ export default async function DashboardPage() {
     tastingThisWeek,
     caffeineCurve,
 
-    ritualsToday,
-    ritualsConsistency,
+    habitsToday,
+    habitsConsistency,
     writingVsFocus,
 
     sleepVsFocus,
@@ -56,8 +56,8 @@ export default async function DashboardPage() {
     qTastingThisWeek(),
     qCaffeineCurveToday(),
 
-    qRitualsToday(),
-    qRitualConsistencyThisWeek(),
+    qHabitsToday(),
+    qHabitConsistencyThisWeek(),
     qWritingVsFocusTrend(14),
 
     qSleepVsFocusScatter(30),
@@ -76,12 +76,14 @@ export default async function DashboardPage() {
 
   // ---------- Daily Rituals
   const progressToday = [
-    { name: "Steps", value: ritualsToday.steps, target: GOALS.steps },
-    { name: "Reading", value: ritualsToday.reading_minutes, target: GOALS.readingMinutes },
-    { name: "Outdoors", value: ritualsToday.outdoor_minutes, target: GOALS.outdoorMinutes },
-    { name: "Journaling", value: ritualsToday.journaled ? 1 : 0, target: 1 },
-  ];
-  const consistencyBars = ritualsConsistency.map(r => ({
+  { name: "Steps",     value: habitsToday.steps,            target: GOALS.steps },
+  { name: "Reading",   value: habitsToday.reading_minutes,  target: GOALS.minutesRead },
+  { name: "Outdoor",  value: habitsToday.outdoor_minutes,  target: GOALS.minutesOutdoors },
+  { name: "Writing",   value: habitsToday.writing_minutes,  target: GOALS.writingMinutes },
+  { name: "Coding",    value: habitsToday.coding_minutes,   target: GOALS.codingMinutes },
+  { name: "Journaling",value: habitsToday.journaled ? 1 : 0, target: 1 },
+];
+  const consistencyBars = habitsConsistency.map(r => ({
     name: r.name, value: Math.round((r.kept / Math.max(1, r.total)) * 100)
   })); // show % kept
   const rhythmTrend = writingVsFocus.map(d => ({ date: d.date, Writing: d.writing_minutes, "Focus (min)": d.focus_minutes }));
@@ -101,7 +103,7 @@ export default async function DashboardPage() {
       <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
 
       {/* 1) Morning Brew */}
-      <Section title="1. Morning Brew ☕">
+      <Section title="1. Morning Brew">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <Kpi label="Cups Today" value={cupsToday} />
           <Bars title="Brew methods today" items={methodsBar} />
@@ -113,10 +115,10 @@ export default async function DashboardPage() {
       </Section>
 
       {/* 2) Daily Rituals */}
-      <Section title="2. Daily Rituals ⏰">
+      <Section title="2. Daily Rituals">
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {progressToday.map((p) => (
-            <Progress title="Rituals Progress" key={p.name} value={p.value} target={p.target} />
+            <Progress title={`${p.name} Goal Progress`} key={p.name} value={p.value} target={p.target} />
           ))}
         </div>
         <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -128,7 +130,7 @@ export default async function DashboardPage() {
       </Section>
 
       {/* 3) Focus & Flow */}
-      <Section title="3. Focus & Flow 💻">
+      <Section title="3. Focus & Flow">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div className="md:col-span-2">
             <Scatter title="Sleep vs Focus" data={scatter} x="Sleep" y="Focus" />
@@ -141,7 +143,7 @@ export default async function DashboardPage() {
       </Section>
 
       {/* 4) Running & Movement */}
-      <Section title="4. Running & Movement 🏃‍♂️">
+      <Section title="4. Running & Movement">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <Kpi label="This Month (km)" value={runningProgress.total_km.toFixed(1)} />
           <Kpi label="Goal (km)" value={runningProgress.target_km.toFixed(1)} />

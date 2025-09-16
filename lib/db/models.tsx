@@ -1,7 +1,24 @@
 import { z } from "zod";
 
-export const ZBrewMethod = z.enum(["espresso","v60","chemex","moka","aero","cold_brew","other"]);
+export const ZBrewMethod = z.enum([
+  "espresso",
+  "v60",
+  "chemex",
+  "moka",
+  "aero",
+  "cold_brew",
+  "other"
+]);
 export type BrewMethod = z.infer<typeof ZBrewMethod>;
+export const ZGoalKind = z.enum([
+  "running_distance_km",
+  "steps",
+  "reading_minutes",
+  "outdoor_minutes",
+  "writing_minutes",
+  "focus_minutes",
+  "coding_minutes",
+]);
 
 // Morning Brew
 export const ZBrewMethodsToday = z.array(z.object({ type: ZBrewMethod, count: z.number().int() }));
@@ -9,23 +26,19 @@ export const ZTastingThisWeek = z.array(z.object({ tasting: z.string(), count: z
 export const ZCaffeineCurvePoint = z.object({ hour: z.number().int().min(0).max(23), mg: z.number().int().min(0) });
 export const ZCaffeineCurve = z.array(ZCaffeineCurvePoint);
 
-// Rituals
-export const ZRitualsToday = z.object({
+export const ZDayHabits = z.object({
   date: z.string(), // YYYY-MM-DD
   steps: z.number().int().min(0),
   reading_minutes: z.number().int().min(0),
   outdoor_minutes: z.number().int().min(0),
   writing_minutes: z.number().int().min(0),
+  coding_minutes: z.number().int().min(0),
   journaled: z.boolean(),
+  focus_minutes: z.number().int().min(0).optional(), // may be joined or selected
 });
 
 export const ZConsistency = z.array(z.object({ name: z.string(), kept: z.number().int().min(0), total: z.number().int().min(0) }));
-
-export const ZTrendPoint = z.object({
-  date: z.string(), // YYYY-MM-DD
-  writing_minutes: z.number().int().min(0),
-  focus_minutes: z.number().int().min(0),
-});
+export const ZTrendPoint = z.object({ date: z.string(), writing_minutes: z.number().int().min(0), focus_minutes: z.number().int().min(0) });
 export const ZTrend = z.array(ZTrendPoint);
 
 // Focus & Flow
