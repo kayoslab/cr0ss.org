@@ -152,7 +152,7 @@ export default function Navigation() {
           <a href='/page/imprint' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
             Contact
           </a>
-          <a href='/page/dashboard' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
+          <a href='/dashboard' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
             Dashboard
           </a>
         </Popover.Group>
