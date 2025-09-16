@@ -1,7 +1,8 @@
 import { neon } from "@neondatabase/serverless";
 import {
-  ZBrewMethodsToday, ZTastingThisWeek, ZCaffeineCurve, ZRitualsToday, ZConsistency,
+  ZBrewMethodsToday, ZTastingThisWeek, ZCaffeineCurve, ZConsistency,
   ZTrend, ZScatter, ZBlocks, ZStreak, ZMonthlyProgress, ZPaceSeries, ZHeat,
+  ZDayHabits,
 } from "./models";
 import { GOALS } from "./constants";
 
@@ -63,31 +64,30 @@ export async function qCaffeineCurveToday() {
 }
 
 
-// ---- Daily Rituals
-export async function qRitualsToday() {
-  const rows = await sql/*sql*/`
-    select to_char(r.date, 'YYYY-MM-DD') as date, steps, reading_minutes, outdoor_minutes, writing_minutes, journaled
-    from rituals r
-    where r.date = current_date
-    limit 1
-  `;
-  const row = rows[0] ?? { date: new Date().toISOString().slice(0,10), steps: 0, reading_minutes: 0, outdoor_minutes: 0, writing_minutes: 0, journaled: false };
-  return ZRitualsToday.parse({
-    date: row.date,
-    steps: Number(row.steps||0),
-    reading_minutes: Number(row.minutes_read||0),
-    outdoor_minutes: Number(row.minutes_outdoors||0),
-    writing_minutes: Number(row.writing_minutes||0),
-    journaled: !!row.journaled,
-  });
-}
-
-export async function qRitualConsistencyThisWeek() {
+// ---- Daily Habits
+export async function qHabitsToday() {
   const rows = await sql/*sql*/`
     select
-      to_char(date, 'YYYY-MM-DD') as date,
+      to_char(date,'YYYY-MM-DD') as date,
+      steps, reading_minutes, outdoor_minutes, writing_minutes, coding_minutes, journaled,
+      coalesce(focus_minutes,0)::int as focus_minutes
+    from days
+    where date = current_date
+    limit 1
+  `;
+  const r = rows[0] ?? {
+    date: new Date().toISOString().slice(0,10),
+    steps: 0, reading_minutes: 0, outdoor_minutes: 0, writing_minutes: 0, coding_minutes: 0, journaled: false, focus_minutes: 0,
+  };
+  return ZDayHabits.parse(r);
+}
+
+export async function qHabitConsistencyThisWeek() {
+  const rows = await sql/*sql*/`
+    select
+      to_char(date,'YYYY-MM-DD') as date,
       steps, reading_minutes, outdoor_minutes, journaled
-    from rituals
+    from days
     where date >= current_date - interval '6 days'
     order by date asc
   `;
@@ -99,9 +99,9 @@ export async function qRitualConsistencyThisWeek() {
   }));
   const total = Math.max(1, days.length);
   const kept = {
-    Steps: days.filter(d=> d.steps >= GOALS.steps).length,
-    Reading: days.filter(d=> d.read >= GOALS.readingMinutes).length,
-    Outdoors: days.filter(d=> d.out >= GOALS.outdoorMinutes).length,
+    Steps: days.filter(d=> d.steps >= 8000).length,
+    Reading: days.filter(d=> d.read >= 30).length,
+    Outdoors: days.filter(d=> d.out >= 30).length,
     Journaling: days.filter(d=> d.journ).length,
   };
   const arr = [
@@ -113,25 +113,22 @@ export async function qRitualConsistencyThisWeek() {
   return ZConsistency.parse(arr);
 }
 
-export async function qWritingVsFocusTrend(days = 14) {
+export async function qWritingVsFocusTrend(days=14) {
   const start = new Date();
-  start.setUTCHours(0, 0, 0, 0);
-  start.setDate(start.getDate() - (days - 1));
-  const startStr = start.toISOString().slice(0, 10); // "YYYY-MM-DD"
+  start.setUTCHours(0,0,0,0);
+  start.setDate(start.getDate() - (days-1));
+  const startStr = start.toISOString().slice(0,10);
 
   const rows = await sql/*sql*/`
-    select to_char(d.date,'YYYY-MM-DD') as date,
-           coalesce(r.writing_minutes,0)::int as writing_minutes,
-           coalesce(d.focus_minutes,0)::int as focus_minutes
-    from days d
-    left join rituals r on r.date = d.date
-    where d.date >= ${startStr}::date
-    order by d.date asc
+    select to_char(date,'YYYY-MM-DD') as date,
+           coalesce(writing_minutes,0)::int as writing_minutes,
+           coalesce(focus_minutes,0)::int as focus_minutes
+    from days
+    where date >= ${startStr}::date
+    order by date asc
   `;
-  return ZTrend.parse(rows.map((r:any) => ({
-    date: r.date,
-    writing_minutes: Number(r.writing_minutes),
-    focus_minutes: Number(r.focus_minutes),
+  return ZTrend.parse(rows.map((r:any)=> ({
+    date: r.date, writing_minutes: Number(r.writing_minutes), focus_minutes: Number(r.focus_minutes)
   })));
 }
 

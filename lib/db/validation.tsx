@@ -11,8 +11,15 @@ export const HeadersSecret = (req: Request) => {
 
 export const ZDay = z.object({
   date: z.coerce.date(),
-  sleep_score: z.coerce.number().int().min(0).max(100),
-  focus_minutes: z.coerce.number().int().min(0),
+  sleep_score: z.coerce.number().int().min(0).max(100).optional(),
+  focus_minutes: z.coerce.number().int().min(0).optional(),
+  steps: z.coerce.number().int().min(0).optional(),
+  reading_minutes: z.coerce.number().int().min(0).optional(),
+  outdoor_minutes: z.coerce.number().int().min(0).optional(),
+  writing_minutes: z.coerce.number().int().min(0).optional(),
+  coding_minutes: z.coerce.number().int().min(0).optional(),
+  journaled: z.coerce.boolean().optional(),
+  extras: z.record(z.string(), z.number()).optional(),
 });
 
 export const ZRituals = z.object({
@@ -20,6 +27,8 @@ export const ZRituals = z.object({
   reading_minutes: z.coerce.number().int().min(0).optional(),
   outdoor_minutes: z.coerce.number().int().min(0).optional(),
   writing_minutes: z.coerce.number().int().min(0).optional(),
+  steps: z.coerce.number().int().min(0).optional(),
+  journaled: z.coerce.boolean().optional(),
   extras: z.record(z.string(), z.number()).optional(),
 });
 
@@ -41,6 +50,14 @@ export const ZRun = z.object({
 
 export const ZGoal = z.object({
   month: z.coerce.date(),
-  kind: z.enum(["running_distance_km"]),
+  kind: z.enum([
+    "running_distance_km",
+    "steps",
+    "reading_minutes",
+    "outdoor_minutes",
+    "writing_minutes",
+    "focus_minutes",
+    "coding_minutes",
+  ]),
   target: z.coerce.number().min(0),
 });
