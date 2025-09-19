@@ -143,17 +143,20 @@ export default function Navigation() {
         </div>
 
         <Popover.Group className='hidden lg:flex lg:gap-x-12 items-center'>
+          <a href='/' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
+            Home
+          </a>
           <a href='/blog' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
             Blog
+          </a>
+          <a href='/dashboard' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
+            Dashboard
           </a>
           <a href='/page/about' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
             About
           </a>
           <a href='/page/imprint' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
             Contact
-          </a>
-          <a href='/dashboard' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
-            Dashboard
           </a>
         </Popover.Group>
         <div className='hidden lg:flex lg:flex-1 lg:justify-end'>
@@ -266,12 +269,23 @@ export default function Navigation() {
                     </button>
                   </div>
                 </form>
-                
+                <a
+                  href='/'
+                  className='-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 dark:text-white hover:bg-gray-50'
+                >
+                  Home
+                </a>
                 <a
                   href='/blog'
                   className='-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 dark:text-white hover:bg-gray-50'
                 >
                   Blog
+                </a>
+                <a
+                  href='/dashboard'
+                  className='-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 dark:text-white hover:bg-gray-50'
+                >
+                  Dashboard
                 </a>
                 <a
                   href='/page/about'
@@ -283,7 +297,7 @@ export default function Navigation() {
                   href='/page/imprint'
                   className='-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 dark:text-white hover:bg-gray-50'
                 >
-                  Imprint
+                  Contact
                 </a>
               </div>
               <div className='py-6'>
