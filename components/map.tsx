@@ -1,6 +1,5 @@
 import { CountryProps } from '@/lib/contentful/api/props/country';
 import { getAllCountries } from '@/lib/contentful/api/country';
-import { map } from 'zod';
 
 export default async function Map(location: { lat: number; lon: number }) {
   const countries = await getAllCountries();

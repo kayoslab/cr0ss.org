@@ -1,5 +1,6 @@
 'use client';
 
+import { CurveType } from "@tremor/react";
 import dynamic from "next/dynamic";
 import React from "react";
 
@@ -13,7 +14,7 @@ const ProgressBar  = dynamic(() => import("@tremor/react").then(m => m.ProgressB
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-lg border border-neutral-800 p-4">
-      <div className="text-sm mb-3 text-neutral-400">{title}</div>
+      <div className="uppercase text-sm mb-3 text-neutral-400">{title}</div>
       {children}
     </div>
   );
@@ -43,8 +44,8 @@ export function Donut({
 }
 
 export function Line({
-  title, data, index, categories, colors = ["emerald"],
-}: { title:string; data:any[]; index:string; categories:string[]; colors?: string[] }) {
+  title, data, index, categories, colors = ["emerald"], type = "linear",
+}: { title:string; data:any[]; index:string; categories:string[]; colors?: string[], type?: CurveType}) {
   return (
     <Panel title={title}>
       {data.length ? (
@@ -56,6 +57,7 @@ export function Line({
             categories={categories}
             colors={colors}
             yAxisWidth={42}
+            curveType={type}
           />
         </div>
       ) : <Empty/>}
