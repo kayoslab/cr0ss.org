@@ -26,7 +26,7 @@ export async function getAllCountries() {
 export async function getVisitedCountries(visited = true) {  
   const countries = await fetchGraphQL(
     `query {
-      countryCollection(where:{visited: ${visited}}, order: id_ASC, preview: false, limit: 1000) {
+      countryCollection(where:{visited: ${visited}}, order: sys_publishedAt_DESC, preview: false, limit: 1000) {
           items {
             ${COUNTRY_GRAPHQL_FIELDS}
           }

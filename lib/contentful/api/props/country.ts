@@ -13,6 +13,7 @@ export interface CountryProps {
 export const COUNTRY_GRAPHQL_FIELDS = `
   sys {
     id
+    publishedAt
   }
   __typename
   id

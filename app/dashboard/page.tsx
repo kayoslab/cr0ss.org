@@ -4,13 +4,9 @@ import { getDashboardData } from "@/lib/cache/dashboard";
 import Section from "@/components/dashboard/Section";
 import { Kpi } from "@/components/dashboard/Kpi";
 import { Donut, Line, Area, Scatter, Bars, Progress } from "@/components/dashboard/charts/TremorCharts";
-import {
-  qBrewMethodsToday, qCupsToday, qTastingThisWeek, qCaffeineCurveToday,
-  qWritingVsFocusTrend, qHabitsToday, qHabitConsistencyThisWeek,
-  qSleepVsFocusScatter, qDeepWorkBlocksThisWeek, qFocusStreak,
-  qRunningMonthlyProgress, qPaceLastRuns, qRunningHeatmap,
-} from "@/lib/db/queries";
 import { GOALS } from "@/lib/db/constants";
+import { getAllCountries, getVisitedCountries } from '@/lib/contentful/api/country';
+import { CountryProps } from '@/lib/contentful/api/props/country';
 
 export const dynamic = "force-dynamic";
 export const fetchCache = 'force-no-store';
@@ -40,6 +36,10 @@ export default async function HomeContent() {
     const locationKey = 'GEOLOCATION';
     const storedLocation = await kv.get<{ lat: number; lon: number }>(locationKey);
     const data = await getDashboardData();
+
+    // ---------- Country Data ----------
+    const countries = await getAllCountries();
+    const visitedCountries = await getVisitedCountries(true);
 
     // ---------- Morning Brew ----------
     const methodsBar = data.brewMethodsToday.map(b => ({ name: b.type, value: b.count }));
@@ -103,19 +103,28 @@ export default async function HomeContent() {
             </div>
             <div className="mx-auto max-w-7xl px-6 py-10 space-y-10">
                 {/* 1) Morning Brew */}
-                <Section title="1. Morning Brew">
+                <Section title="1. Travel">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <Kpi label="Visited Countries" value={visitedCountries?.length ?? 0} />
+                    {/* <Bars title="Last Visited" items={(visitedCountries?.map((country: CountryProps) => ({ name: country.name, value: 1 })) ?? []).slice(0, 5)} /> */}
+                    <Donut title="Countries" data={[{ name: 'Visited', value: visitedCountries?.length ?? 0 }, { name: 'Not Visited', value: (countries?.length ?? 0) - (visitedCountries?.length ?? 0) }]} />
+                </div>
+                </Section>
+                
+                {/* 2) Morning Brew */}
+                <Section title="2. Morning Brew">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                     <Kpi label="Cups Today" value={data.cupsToday} />
                     <Bars title="Brew methods today" items={methodsBar} />
                     <Donut title="Tasting notes (7d)" data={tastingDonut} />
                 </div>
                 <div className="mt-4">
-                    <Line title="Caffeine curve (today)" data={caffeineLine} index="hour" categories={["mg"]} />
+                    <Line title="Caffeine curve (today)" data={caffeineLine} index="hour" categories={["mg"]} type="monotone" />
                 </div>
                 </Section>
         
-                {/* 2) Daily Rituals */}
-                <Section title="2. Daily Rituals">
+                {/* 3) Daily Rituals */}
+                <Section title="3. Daily Rituals">
                 <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                     {progressToday.map((p) => (
                     <Progress title={`${p.name} Goal Progress`} key={p.name} value={p.value} target={p.target} />
@@ -129,8 +138,8 @@ export default async function HomeContent() {
                 </div>
                 </Section>
         
-                {/* 3) Focus & Flow */}
-                <Section title="3. Focus & Flow">
+                {/* 4) Focus & Flow */}
+                {/* <Section title="4. Focus & Flow">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                     <div className="md:col-span-2">
                     <Scatter title="Sleep vs Focus" data={scatter} x="Sleep" y="Focus" />
@@ -140,7 +149,7 @@ export default async function HomeContent() {
                 <div className="mt-4">
                     <Area title="Deep Work Blocks" data={blocksArea} index="date" categories={["Blocks"]} />
                 </div>
-                </Section>
+                </Section> */}
         
                 {/* 4) Running & Movement */}
                 <Section title="4. Running & Movement">
