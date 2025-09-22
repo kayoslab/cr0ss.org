@@ -34,12 +34,12 @@ export const ZRituals = z.object({
 
 export const ZCoffee = z.object({
   date: z.coerce.date(),
-  type: z.enum(["espresso","v60","chemex","moka","aero","cold_brew","other"]),
+  time: z.string().optional(),
+  type: z.enum(["espresso", "v60", "moka", "aero", "cold_brew", "other"]),
   amount_ml: z.coerce.number().int().min(0).optional(),
-  caffeine_mg: z.coerce.number().int().min(0).optional(),
-  tasting: z.string().max(50).optional(),
-  notes: z.string().max(300).optional(),
+  coffee_cf_id: z.string().min(1).optional(),    // Contentful Entry ID (if known)
 });
+
 
 export const ZRun = z.object({
   date: z.coerce.date(),

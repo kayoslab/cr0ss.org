@@ -11,10 +11,6 @@ import { Panel } from '@/components/dashboard/charts/TremorCharts';
 
 export const dynamic = "force-dynamic";
 export const fetchCache = 'force-no-store';
-// export const metadata = {
-//   title: "Dashboard • cr0ss.org",
-//   description: "Coffee, rituals, sleep vs focus, running.",
-// };
 
 function Heatmap({ days }:{ days: { date: string; km: number }[] }) {
     const max = Math.max(1, ...days.map(d=> d.km));
@@ -44,8 +40,6 @@ export default async function HomeContent() {
 
     // ---------- Morning Brew ----------
     const methodsBar = data.brewMethodsToday.map(b => ({ name: b.type, value: b.count }));
-    const tastingDonut = data.tastingThisWeek.map(t => ({ name: t.tasting, value: t.count }));
-    const caffeineLine = data.caffeineCurve.map(p => ({hour: `${String(p.hour).padStart(2, "0")}:00`, mg: p.mg}));
 
     // ---------- Daily Rituals ----------
     const progressToday = [
@@ -96,7 +90,6 @@ export default async function HomeContent() {
         "Pace (min/km)": +(p.pace_sec_per_km/60).toFixed(2),
     }));
 
-
     return (
         <main className="items-center justify-between min-h-screen">
             <div className="relative z-[-1] flex justify-center place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] dark:before:bg-linear-to-br dark:before:from-transparent dark:before:to-blue-700 dark:before:opacity-10 dark:after:from-sky-900 dark:after:via-[#0141ff] dark:after:opacity-40 sm:before:w-[480px] sm:after:w-[240px] lg:before:h-[360px] pb-24 py-24">
@@ -122,10 +115,7 @@ export default async function HomeContent() {
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                     <Kpi label="Cups Today" value={data.cupsToday} />
                     <Bars title="Brew methods today" items={methodsBar} />
-                    <Donut title="Tasting notes (7d)" data={tastingDonut} />
-                </div>
-                <div className="mt-4">
-                    <Line title="Caffeine curve (today)" data={caffeineLine} index="hour" categories={["mg"]} type="monotone" />
+                    <Donut title="Coffee origins (7d)" data={data.coffeeOriginThisWeek} />
                 </div>
                 </Section>
         
@@ -143,19 +133,6 @@ export default async function HomeContent() {
                     </div>
                 </div>
                 </Section>
-        
-                {/* 4) Focus & Flow */}
-                {/* <Section title="4. Focus & Flow">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <div className="md:col-span-2">
-                    <Scatter title="Sleep vs Focus" data={scatter} x="Sleep" y="Focus" />
-                    </div>
-                    <Kpi label="Focus Streak (≥ target)" value={`${data.focusStreak.days} days`} />
-                </div>
-                <div className="mt-4">
-                    <Area title="Deep Work Blocks" data={blocksArea} index="date" categories={["Blocks"]} />
-                </div>
-                </Section> */}
         
                 {/* 4) Running & Movement */}
                 <Section title="4. Running & Movement">

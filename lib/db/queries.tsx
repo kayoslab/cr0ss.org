@@ -5,6 +5,8 @@ import {
   ZDayHabits,
 } from "./models";
 import { GOALS } from "./constants";
+import { getAllCoffee, getCoffees } from "../contentful/api/coffee";
+
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -12,7 +14,7 @@ const sql = neon(process.env.DATABASE_URL!);
 export async function qBrewMethodsToday() {
   const rows = await sql/*sql*/`
     select type::text, count(*)::int as count
-    from coffee_log_legacy
+    from coffee_log
     where date = current_date
     group by type
     order by count desc
@@ -21,47 +23,66 @@ export async function qBrewMethodsToday() {
 }
 
 export async function qCupsToday() {
-  const [{ cups }] = await sql/*sql*/`select count(*)::int as cups from coffee_log_legacy where date = current_date`;
+  const [{ cups }] = await sql/*sql*/`select count(*)::int as cups from coffee_log where date = current_date`;
   return Number(cups) || 0;
 }
 
-export async function qTastingThisWeek() {
+// Weekly origins via Contentful IDs on brews
+export async function qCoffeeOriginThisWeek() {
   const rows = await sql/*sql*/`
-    select tasting, count(*)::int as count
-    from coffee_log_legacy
-    where date >= current_date - interval '6 days' and tasting is not null
-    group by tasting
-    order by count desc
-  `;
-  return ZTastingThisWeek.parse(rows.map(r => ({ tasting: r.tasting as string, count: Number(r.count) })));
-}
-
-export async function qCaffeineCurveToday() {
-  // last 24h window
-  const start = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  const startIso = start.toISOString();
-
-  const rows = await sql/*sql*/`
-    select
-      extract(hour from timezone('Europe/Berlin', time))::int as hour,
-      sum(coalesce(caffeine_mg,
-        case type
-          when 'espresso' then 80 when 'v60' then 120 when 'moka' then 100
-          when 'aero' then 110 when 'cold_brew' then 150 else 90
-        end
-      ))::int as mg
-    from coffee_log_legacy
-    where time >= ${startIso}::timestamptz
-    group by 1
-    order by 1
+    select coffee_cf_id, count(*)::int as count
+    from coffee_log
+    where date >= current_date - interval '6 days'
+      and coffee_cf_id is not null
+    group by coffee_cf_id
   `;
 
-  // Fill 0..23 with 0s so chart always has a full day
-  const byHour = new Map(rows.map((r: any) => [Number(r.hour), Number(r.mg)]));
-  const out = Array.from({ length: 24 }, (_, h) => ({ hour: h, mg: byHour.get(h) ?? 0 }));
+  const idCounts = new Map<string, number>(rows.map((r:any) => [String(r.coffee_cf_id), Number(r.count)]));
+  if (idCounts.size === 0) return [] as { name: string; value: number }[];
 
-  return ZCaffeineCurve.parse(out); // <- hour is number here
+  const coffees = await getCoffees(Array.from(idCounts.keys()) as [string]);
+
+  // aggregate by country ID (we can resolve to names later)
+  const byCountry = new Map<string, number>();
+
+  for (const [cid, n] of Array.from(idCounts.entries())) {
+    const coffee = coffees.items.find(c => c.sys?.id === cid);
+    const countryName = coffee?.country?.name ?? "Unknown";
+    byCountry.set(countryName, (byCountry.get(countryName) ?? 0) + n);
+  }
+
+  const out = Array.from(byCountry.entries()).map(([name, value]) => ({ name, value }));
+  out.sort((a,b)=> b.value - a.value);
+  return out;
 }
+
+
+// export async function qCaffeineCurveToday() {
+//   // last 24h window
+//   const start = new Date(Date.now() - 24 * 60 * 60 * 1000);
+//   const startIso = start.toISOString();
+
+//   const rows = await sql/*sql*/`
+//     select
+//       extract(hour from timezone('Europe/Berlin', time))::int as hour,
+//       sum(coalesce(caffeine_mg,
+//         case type
+//           when 'espresso' then 80 when 'v60' then 120 when 'moka' then 100
+//           when 'aero' then 110 when 'cold_brew' then 150 else 90
+//         end
+//       ))::int as mg
+//     from coffee_log
+//     where time >= ${startIso}::timestamptz
+//     group by 1
+//     order by 1
+//   `;
+
+//   // Fill 0..23 with 0s so chart always has a full day
+//   const byHour = new Map(rows.map((r: any) => [Number(r.hour), Number(r.mg)]));
+//   const out = Array.from({ length: 24 }, (_, h) => ({ hour: h, mg: byHour.get(h) ?? 0 }));
+
+//   return ZCaffeineCurve.parse(out); // <- hour is number here
+// }
 
 
 // ---- Daily Habits
