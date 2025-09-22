@@ -145,7 +145,7 @@ export default async function HomeContent() {
                 </Section>
         
                 {/* 4) Focus & Flow */}
-                <Section title="4. Focus & Flow">
+                {/* <Section title="4. Focus & Flow">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                     <div className="md:col-span-2">
                     <Scatter title="Sleep vs Focus" data={scatter} x="Sleep" y="Focus" />
@@ -155,7 +155,7 @@ export default async function HomeContent() {
                 <div className="mt-4">
                     <Area title="Deep Work Blocks" data={blocksArea} index="date" categories={["Blocks"]} />
                 </div>
-                </Section>
+                </Section> */}
         
                 {/* 4) Running & Movement */}
                 <Section title="4. Running & Movement">
