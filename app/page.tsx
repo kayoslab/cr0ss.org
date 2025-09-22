@@ -2,9 +2,8 @@ export default async function HomeContent() {
   return (
     <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800 pb-24'>
         <div>
-            <h1 className='pt-24 text-4xl font-bold text-center'>cr0ss.org</h1>
             <img src="./home-image.jpeg" alt="Avatar" className="mx-auto mt-6" />
-            <blockquote className="border-l-4 border-gray-300 dark:border-gray-700 pl-4 my-6 italic text-gray-700 dark:text-gray-300 text-center max-w-2xl mx-auto">
+            <blockquote className="border-l-4 border-gray-300 dark:border-gray-700 pl-4 my-6 italic text-gray-700 dark:text-gray-300">
                 Not everything that you can see is real, not everything that is real can be seen.
             </blockquote>
         </div>
