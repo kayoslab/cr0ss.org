@@ -108,11 +108,10 @@ export default async function HomeContent() {
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                     <Kpi label="Visited Countries" value={visitedCountries?.length ?? 0} />
                     {/* <Bars title="" items={(visitedCountries?.map((country: CountryProps) => ({ name: country.name, value: 1 })) ?? []).slice(0, 5)} /> */}
-                    <Panel title={'Last Visited'} children={
-                        (visitedCountries ?? []).slice(0, 5).map((country: CountryProps) => (
+                    <Panel title={'Last Visited'}>
+                        {(visitedCountries ?? []).slice(0, 5).map((country: CountryProps) => (
                             <div key={country.id} className="text-m">{country.name} ({country.id})</div>
-                        ))
-                    }> 
+                        ))}
                     </Panel>
                     <Donut title="Countries" data={[{ name: 'Visited', value: visitedCountries?.length ?? 0 }, { name: 'Not Visited', value: (countries?.length ?? 0) - (visitedCountries?.length ?? 0) }]} />
                 </div>
