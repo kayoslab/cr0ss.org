@@ -36,7 +36,7 @@ export default async function Map(location: { lat: number; lon: number }) {
                   id={country.id}
                   key={country.id}
                   d={ country.data.path }
-                  fill={ country.visited ? "gray" : "#ececec" }
+                  fill={ country.lastVisited != null ? "gray" : "#ececec" }
                 />
               )
             ) 

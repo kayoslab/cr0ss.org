@@ -11,7 +11,7 @@ const ScatterChart = dynamic(() => import("@tremor/react").then(m => m.ScatterCh
 const BarList      = dynamic(() => import("@tremor/react").then(m => m.BarList),      { ssr: false });
 const ProgressBar  = dynamic(() => import("@tremor/react").then(m => m.ProgressBar),  { ssr: false });
 
-function Panel({ title, children }: { title: string; children: React.ReactNode }) {
+export function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-lg border border-neutral-800 p-4">
       <div className="uppercase text-sm mb-3 text-neutral-400">{title}</div>
@@ -19,7 +19,8 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
     </div>
   );
 }
-function Empty({ hint }: { hint?: string }) {
+
+export function Empty({ hint }: { hint?: string }) {
   return <div className="text-neutral-500 text-sm">No data yet{hint ? ` — ${hint}` : ""}.</div>;
 }
 

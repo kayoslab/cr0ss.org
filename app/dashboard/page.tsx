@@ -7,6 +7,7 @@ import { Donut, Line, Area, Scatter, Bars, Progress } from "@/components/dashboa
 import { GOALS } from "@/lib/db/constants";
 import { getAllCountries, getVisitedCountries } from '@/lib/contentful/api/country';
 import { CountryProps } from '@/lib/contentful/api/props/country';
+import { Panel } from '@/components/dashboard/charts/TremorCharts';
 
 export const dynamic = "force-dynamic";
 export const fetchCache = 'force-no-store';
@@ -106,7 +107,13 @@ export default async function HomeContent() {
                 <Section title="1. Travel">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                     <Kpi label="Visited Countries" value={visitedCountries?.length ?? 0} />
-                    {/* <Bars title="Last Visited" items={(visitedCountries?.map((country: CountryProps) => ({ name: country.name, value: 1 })) ?? []).slice(0, 5)} /> */}
+                    {/* <Bars title="" items={(visitedCountries?.map((country: CountryProps) => ({ name: country.name, value: 1 })) ?? []).slice(0, 5)} /> */}
+                    <Panel title={'Last Visited'} children={
+                        (visitedCountries ?? []).slice(0, 5).map((country: CountryProps) => (
+                            <div key={country.id} className="text-m">{country.name} ({country.id})</div>
+                        ))
+                    }> 
+                    </Panel>
                     <Donut title="Countries" data={[{ name: 'Visited', value: visitedCountries?.length ?? 0 }, { name: 'Not Visited', value: (countries?.length ?? 0) - (visitedCountries?.length ?? 0) }]} />
                 </div>
                 </Section>
@@ -139,7 +146,7 @@ export default async function HomeContent() {
                 </Section>
         
                 {/* 4) Focus & Flow */}
-                {/* <Section title="4. Focus & Flow">
+                <Section title="4. Focus & Flow">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                     <div className="md:col-span-2">
                     <Scatter title="Sleep vs Focus" data={scatter} x="Sleep" y="Focus" />
@@ -149,7 +156,7 @@ export default async function HomeContent() {
                 <div className="mt-4">
                     <Area title="Deep Work Blocks" data={blocksArea} index="date" categories={["Blocks"]} />
                 </div>
-                </Section> */}
+                </Section>
         
                 {/* 4) Running & Movement */}
                 <Section title="4. Running & Movement">

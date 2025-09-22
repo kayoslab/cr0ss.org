@@ -4,7 +4,7 @@ export interface CountryProps {
   };
   id: string;
   name: string;
-  visited: boolean;
+  lastVisited: Date | null;
   data: {
     path: string;
   }
@@ -18,6 +18,6 @@ export const COUNTRY_GRAPHQL_FIELDS = `
   __typename
   id
   name
-  visited
+  lastVisited
   data
 `;
