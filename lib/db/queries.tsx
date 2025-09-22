@@ -12,7 +12,7 @@ const sql = neon(process.env.DATABASE_URL!);
 export async function qBrewMethodsToday() {
   const rows = await sql/*sql*/`
     select type::text, count(*)::int as count
-    from coffee_log
+    from coffee_log_legacy
     where date = current_date
     group by type
     order by count desc
@@ -21,14 +21,14 @@ export async function qBrewMethodsToday() {
 }
 
 export async function qCupsToday() {
-  const [{ cups }] = await sql/*sql*/`select count(*)::int as cups from coffee_log where date = current_date`;
+  const [{ cups }] = await sql/*sql*/`select count(*)::int as cups from coffee_log_legacy where date = current_date`;
   return Number(cups) || 0;
 }
 
 export async function qTastingThisWeek() {
   const rows = await sql/*sql*/`
     select tasting, count(*)::int as count
-    from coffee_log
+    from coffee_log_legacy
     where date >= current_date - interval '6 days' and tasting is not null
     group by tasting
     order by count desc
@@ -50,7 +50,7 @@ export async function qCaffeineCurveToday() {
           when 'aero' then 110 when 'cold_brew' then 150 else 90
         end
       ))::int as mg
-    from coffee_log
+    from coffee_log_legacy
     where time >= ${startIso}::timestamptz
     group by 1
     order by 1
