@@ -1,6 +1,6 @@
 import { unstable_cache } from "next/cache";
 import {
-  qCupsToday, qBrewMethodsToday, qTastingThisWeek, qCaffeineCurveToday,
+  qCupsToday, qBrewMethodsToday, qCoffeeOriginThisWeek,
   qHabitsToday, qHabitConsistencyThisWeek, qWritingVsFocusTrend,
   qSleepVsFocusScatter, qDeepWorkBlocksThisWeek, qFocusStreak,
   qRunningMonthlyProgress, qPaceLastRuns, qRunningHeatmap,
@@ -11,8 +11,7 @@ export const getDashboardData = unstable_cache(async () => {
     const [
         cupsToday,
         brewMethodsToday,
-        tastingThisWeek,
-        caffeineCurve,
+        coffeeOriginThisWeek,
 
         habitsToday,
         habitsConsistency,
@@ -28,8 +27,7 @@ export const getDashboardData = unstable_cache(async () => {
     ] = await Promise.all([
         qCupsToday(),
         qBrewMethodsToday(),
-        qTastingThisWeek(),
-        qCaffeineCurveToday(),
+        qCoffeeOriginThisWeek(),
 
         qHabitsToday(),
         qHabitConsistencyThisWeek(),
@@ -47,8 +45,7 @@ export const getDashboardData = unstable_cache(async () => {
     return {
         cupsToday,
         brewMethodsToday,
-        tastingThisWeek,
-        caffeineCurve,
+        coffeeOriginThisWeek,
         habitsToday,
         habitsConsistency,
         writingVsFocus,

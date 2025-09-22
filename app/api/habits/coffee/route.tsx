@@ -1,7 +1,8 @@
 export const runtime = "edge";
 
-import { sql, kv } from "@/lib/db/client";
-import { HeadersSecret, ZCoffee } from "@/lib/db/validation";
+import { sql } from "@/lib/db/client";
+import { HeadersSecret } from "@/lib/db/validation"; // your secret check
+import { ZCoffee } from "@/lib/db/validation";
 import { revalidateDashboard } from "@/lib/cache/revalidate";
 
 export async function POST(req: Request) {
@@ -12,19 +13,20 @@ export async function POST(req: Request) {
     const parsed = items.map((i) => ZCoffee.parse(i));
 
     for (const i of parsed) {
-      await sql/*sql*/`
-        insert into coffee_log (date, type, amount_ml, caffeine_mg, tasting, notes)
-        values (${i.date}, ${i.type}, ${i.amount_ml ?? null}, ${i.caffeine_mg ?? null}, ${i.tasting ?? null}, ${i.notes ?? null});
-      `;
-      // optional: count cups per day in KV for a fast KPI
-      if (process.env.KV_REST_API_URL) {
-        const dayKey = `coffee:cups:${i.date.toISOString().slice(0,10)}`;
-        await kv.incr(dayKey);
-      }
-    }
-    
-    revalidateDashboard();
+      // decide a timestamptz for "time"
+      // if client sends only HH:mm, combine with date; if none, default now()
+      const ts =
+        i.time && /^\d{2}:\d{2}$/.test(i.time)
+          ? `${i.date.toISOString().slice(0,10)}T${i.time}:00.000Z`
+          : (i.time ?? new Date().toISOString());
 
+      await sql/*sql*/`
+        INSERT INTO coffee_log (date, time, type, coffee_cf_id)
+        VALUES (${i.date}, ${ts}::timestamptz, ${i.type}, ${i.coffee_cf_id ?? null})
+      `;
+    }
+
+    revalidateDashboard();
     return new Response(JSON.stringify({ ok: true, inserted: parsed.length }), { status: 200 });
   } catch (err: any) {
     return new Response(err?.message ?? "Bad Request", { status: err?.status ?? 400 });
