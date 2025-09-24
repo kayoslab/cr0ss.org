@@ -21,8 +21,8 @@ export async function POST(req: Request) {
           : (i.time ?? new Date().toISOString());
 
       await sql/*sql*/`
-        INSERT INTO coffee_log (date, time, type, coffee_cf_id)
-        VALUES (${i.date}, ${ts}::timestamptz, ${i.type}, ${i.coffee_cf_id ?? null})
+        INSERT INTO coffee_log (date, time, type, amount_ml, coffee_cf_id)
+        VALUES (${i.date}, ${ts}::timestamptz, ${i.type}, ${i.amount_ml ?? null}, ${i.coffee_cf_id ?? null})
       `;
     }
 
