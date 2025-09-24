@@ -23,7 +23,7 @@ export const getDashboardData = unstable_cache(async () => {
 
         runningProgress,
         paceSeries,
-        movementHeat,
+        runningHeatmap,
     ] = await Promise.all([
         qCupsToday(),
         qBrewMethodsToday(),
@@ -54,7 +54,7 @@ export const getDashboardData = unstable_cache(async () => {
         focusStreak,
         runningProgress,
         paceSeries,
-        movementHeat,
+        runningHeatmap,
     };
     },
     ["dashboard"],
