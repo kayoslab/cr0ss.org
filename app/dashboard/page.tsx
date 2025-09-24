@@ -76,7 +76,7 @@ export default async function HomeContent() {
     })); // show % kept
     const rhythmTrend = data.writingVsFocus.map(d => ({ 
         date: d.date, 
-        writing: d.writing_minutes, 
+        "Writing (min)": d.writing_minutes, 
         "Focus (min)": d.focus_minutes 
     }));
 
@@ -129,7 +129,7 @@ export default async function HomeContent() {
                 <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
                     <Bars title="Rituals consistency" items={consistencyBars} />
                     <div className="md:col-span-2">
-                    <Area title="Writing vs Focus" data={rhythmTrend} index="date" categories={["Writing","Focus (min)"]} />
+                    <Area title="Writing vs Focus" data={rhythmTrend} index="date" categories={["Writing (min)","Focus (min)"]} showLegend={false} />
                     </div>
                 </div>
                 </Section>
