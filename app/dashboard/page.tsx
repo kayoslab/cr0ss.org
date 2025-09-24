@@ -148,8 +148,8 @@ export default async function HomeContent() {
                     </div>
                 </div>
                 <div className="mt-4">
-                    <h3 className="mb-2 text-sm font-medium text-neutral-400">Activity Heatmap (last 6 weeks)</h3>
-                    <Heatmap days={data.movementHeat} />
+                    <h3 className="mb-2 text-sm font-medium text-neutral-400">Running Heatmap (last 6 weeks)</h3>
+                    <Heatmap days={data.runningHeatmap} />
                 </div>
                 </Section>
             </div>
