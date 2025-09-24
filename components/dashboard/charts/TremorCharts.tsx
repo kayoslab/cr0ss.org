@@ -67,8 +67,8 @@ export function Line({
 }
 
 export function Area({
-  title, data, index, categories, colors = ["sky"],
-}: { title:string; data:any[]; index:string; categories:string[]; colors?: string[] }) {
+  title, data, index, categories, colors = ["sky"], showLegend = true,
+}: { title:string; data:any[]; index:string; categories:string[]; colors?: string[], showLegend?: boolean }) {
   return (
     <Panel title={title}>
       {data.length ? (
@@ -80,6 +80,7 @@ export function Area({
             categories={categories}
             colors={colors}
             yAxisWidth={42}
+            showLegend={showLegend}
           />
         </div>
       ) : <Empty/>}
