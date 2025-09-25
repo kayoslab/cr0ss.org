@@ -41,8 +41,6 @@ export async function getAllCoffee(page = 1, limit = 9) {
     }`;
     
     const coffees = await fetchGraphQL(query, ['coffee']);
-
-    console.log('Coffees fetched:', coffees);
     if (!coffees?.data?.coffeeCollection) {
       throw new Error('Invalid response structure');
     }

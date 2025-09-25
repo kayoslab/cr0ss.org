@@ -36,6 +36,22 @@ function Spinner({ className }: { className?: string }) {
   );
 }
 
+async function flushActiveEdits() {
+  // Force the currently focused input to blur so onBlur commits run.
+  if (typeof document !== "undefined" && document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur();
+  }
+  // Let React process onBlur state updates before we read the state.
+  await new Promise<void>((r) => setTimeout(r, 0));
+}
+
+function preCommitPointerDown() {
+  // Run before the button’s click handler so inputs lose focus immediately.
+  if (typeof document !== "undefined" && document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur();
+  }
+}
+
 // ---------- types (aligned with your APIs)
 
 type BodyProfile = {
@@ -239,6 +255,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
 
   async function submitBody() {
     if (!secretOK) return setMsg("Enter a valid secret first.");
+    await flushActiveEdits(); 
     setSavingBody(true);
     try {
       const payload: any = {
@@ -273,6 +290,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
 
   async function submitGoals() {
     if (!secretOK) return setMsg("Enter a valid secret first.");
+    await flushActiveEdits();
     setSavingGoals(true);
     try {
       const payload = goals;
@@ -285,6 +303,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
 
   async function submitDay() {
     if (!secretOK) return setMsg("Enter a valid secret first.");
+    await flushActiveEdits();
     setSavingDay(true);
     try {
       const numericKeys: (keyof DayPayload)[] = [
@@ -304,7 +323,6 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
       const res = await jfetch("/api/habits/day", { method: "POST", body: JSON.stringify(day) }, secret);
       if (res.ok) {
         setMsg("Day logged.");
-        setDay(emptyDay(todayStr)); // reset this section
       } else {
         setMsg(res.error || "Failed to log day.");
       }
@@ -315,6 +333,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
 
   async function submitCoffee() {
     if (!secretOK) return setMsg("Enter a valid secret first.");
+    await flushActiveEdits();
     setSavingCoffee(true);
     try {
       const payload: CoffeeLogPayload = {
@@ -343,6 +362,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
 
   async function submitRun() {
     if (!secretOK) return setMsg("Enter a valid secret first.");
+    await flushActiveEdits();
     setSavingRun(true);
     try {
       const payload: RunPayload = {
@@ -393,6 +413,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         footer={
           <button
             type="button"
+            onMouseDown={preCommitPointerDown}
             onClick={handleSaveSecret}
             disabled={checking || !secret}
             className={cls(
@@ -428,6 +449,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         footer={
           <button
             type="button"
+            onMouseDown={preCommitPointerDown}
             onClick={submitBody}
             className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50 flex items-center gap-2"
             disabled={!secretOK || savingBody}
@@ -481,6 +503,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         footer={
           <button
             type="button"
+            onMouseDown={preCommitPointerDown}
             onClick={submitGoals}
             className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50 flex items-center gap-2"
             disabled={!secretOK || savingGoals}
@@ -533,6 +556,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         footer={
           <button
             type="button"
+            onMouseDown={preCommitPointerDown}
             onClick={submitDay}
             className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50 flex items-center gap-2"
             disabled={!secretOK || savingDay}
@@ -561,6 +585,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         footer={
           <button
             type="button"
+            onMouseDown={preCommitPointerDown}
             onClick={submitCoffee}
             className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50 flex items-center gap-2"
             disabled={!secretOK || savingCoffee}
@@ -599,6 +624,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         footer={
           <button
             type="button"
+            onMouseDown={preCommitPointerDown}
             onClick={submitRun}
             className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50 flex items-center gap-2"
             disabled={!secretOK || savingRun}
@@ -770,6 +796,7 @@ function TimeField({
         />
         <button
           type="button"
+          onMouseDown={preCommitPointerDown}
           onClick={() => {
             const now = new Date();
             const hh = String(now.getHours()).padStart(2, "0");
