@@ -236,6 +236,28 @@ export async function qSleepVsFocusScatter(days = 30) {
   })));
 }
 
+// Fetch coffee events in an arbitrary time range (UTC iso strings)
+export async function qCoffeeInRange(startISO: string, endISO: string) {
+  const rows = await sql/*sql*/`
+    select
+      date::date as date,
+      time       as time,
+      type::text as type,
+      coalesce(amount_ml, 0)::int as amount_ml
+    from coffee_log
+    where time >= ${startISO}::timestamptz
+      and time <  ${endISO}::timestamptz
+    order by time asc
+  `;
+  return rows.map((r: any) => ({
+    date: r.date as string,
+    time: (r.time as Date).toISOString(),
+    type: r.type as string,
+    amount_ml: Number(r.amount_ml) || 0,
+  }));
+}
+
+
 export async function qDeepWorkBlocksThisWeek() {
   const rows = await sql/*sql*/`
     select to_char(date,'YYYY-MM-DD') as date, coalesce(focus_minutes,0)::int as focus

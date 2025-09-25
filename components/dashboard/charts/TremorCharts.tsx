@@ -90,22 +90,53 @@ export function Area({
 }
 
 export function Scatter({
-  title, data, x, y, colors = ["violet"],
-}: { title:string; data:{[k:string]:any}[]; x:string; y:string; colors?: string[] }) {
+  title,
+  data,
+  x,
+  y,
+  colors = ["violet"],
+  groupField, // optional grouping field; omit for single-series
+}: {
+  title: string;
+  data: { [k: string]: any }[];
+  x: string;
+  y: string;
+  colors?: string[];
+  groupField?: string;
+}) {
+  // Coerce to numeric and drop invalid points
+  const prepared = (Array.isArray(data) ? data : [])
+    .map((d) => {
+      const xv = Number(d[x]);
+      const yv = Number(d[y]);
+      if (!Number.isFinite(xv) || !Number.isFinite(yv)) return null;
+      return d;
+    })
+    .filter(Boolean) as { [k: string]: any }[];
+
+  // Ensure ScatterChart always receives a category string
+  const category = groupField ?? "__group";
+  const safe =
+    groupField
+      ? prepared
+      : prepared.map((d) => ({ ...d, [category]: "all" })); // single-series fallback
+
   return (
     <Panel title={title}>
-      {data.length ? (
+      {safe.length ? (
         <div className="h-64">
-          <ScatterChart 
-          className="h-full" 
-          data={data} 
-          x={x} 
-          y={y} 
-          colors={colors} 
-          category=""
+          <ScatterChart
+            className="h-full"
+            data={safe}
+            x={x}
+            y={y}
+            category={category}    // <- always a string
+            colors={colors}
           />
         </div>
-      ) : <Empty/>}
+      ) : (
+        <Empty />
+      )}
     </Panel>
   );
 }
