@@ -5,23 +5,26 @@ import { neon } from "@neondatabase/serverless";
 
 const sql = neon(process.env.DATABASE_URL!);
 
+// Accept either DASHBOARD_API_SECRET or CONTENTFUL_REVALIDATE_SECRET for compatibility
 function assertSecret(req: Request) {
-  const secret = new Headers(req.headers).get("x-vercel-revalidation-key");
-  if (secret !== process.env.DASHBOARD_API_SECRET) {
+  const header = new Headers(req.headers);
+  const secret = header.get("x-vercel-revalidation-key");
+  const A = process.env.DASHBOARD_API_SECRET;
+  const B = process.env.CONTENTFUL_REVALIDATE_SECRET;
+  const valid = (A && secret === A) || (B && secret === B);
+  if (!valid) {
     throw new Response(JSON.stringify({ message: "Invalid secret" }), { status: 401 });
   }
 }
 
-// GET current-month goals (Berlin month)
+// GET current-month goals
 export async function GET(req: Request) {
   try {
     assertSecret(req);
 
-    // Compute the first day of the current month in Europe/Berlin
     const [{ month_start }] = await sql/*sql*/`
       SELECT (date_trunc('month', timezone('Europe/Berlin', now()))::date) AS month_start
     `;
-
     const rows = await sql/*sql*/`
       SELECT kind::text, target::numeric
       FROM monthly_goals
@@ -37,14 +40,49 @@ export async function GET(req: Request) {
       coding_minutes: 0,
       focus_minutes: 0,
     };
-
     for (const r of rows as any[]) {
       const k = String(r.kind);
       const v = Number(r.target);
       if (k in out) out[k] = v;
     }
-
     return NextResponse.json(out, { status: 200 });
+  } catch (e: any) {
+    const status = e?.status ?? 500;
+    return NextResponse.json({ message: e?.message ?? "Failed" }, { status });
+  }
+}
+
+// keep your existing POST; if you don’t have one, this is a minimal example:
+export async function POST(req: Request) {
+  try {
+    assertSecret(req);
+    const body = await req.json();
+
+    // upsert all known keys for the current Berlin month
+    const [{ month_start }] = await sql/*sql*/`
+      SELECT (date_trunc('month', timezone('Europe/Berlin', now()))::date) AS month_start
+    `;
+
+    const known = [
+      "running_distance_km",
+      "steps",
+      "reading_minutes",
+      "outdoor_minutes",
+      "writing_minutes",
+      "coding_minutes",
+      "focus_minutes",
+    ] as const;
+
+    for (const k of known) {
+      const v = Number(body?.[k] ?? 0);
+      await sql/*sql*/`
+        INSERT INTO monthly_goals (month, kind, target)
+        VALUES (${month_start}::date, ${k}::goal_kind, ${v}::numeric)
+        ON CONFLICT (month, kind) DO UPDATE SET target = EXCLUDED.target
+      `;
+    }
+
+    return NextResponse.json({ ok: true }, { status: 200 });
   } catch (e: any) {
     const status = e?.status ?? 500;
     return NextResponse.json({ message: e?.message ?? "Failed" }, { status });
