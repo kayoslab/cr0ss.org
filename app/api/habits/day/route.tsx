@@ -1,47 +1,66 @@
-// app/api/day/route.ts
 export const runtime = "edge";
 
-import { sql } from "@/lib/db/client";
-import { HeadersSecret, ZDay } from "@/lib/db/validation";
-import { revalidateDashboard } from "@/lib/cache/revalidate";
+import { NextResponse } from "next/server";
+import { neon } from "@neondatabase/serverless";
 
-export async function POST(req: Request) {
+const sql = neon(process.env.DATABASE_URL!);
+
+function assertSecret(req: Request) {
+  const secret = new Headers(req.headers).get("x-vercel-revalidation-key");
+  if (secret !== process.env.DASHBOARD_API_SECRET) {
+    throw new Response(JSON.stringify({ message: "Invalid secret" }), { status: 401 });
+  }
+}
+
+// GET /api/habits/day?date=YYYY-MM-DD
+export async function GET(req: Request) {
   try {
-    HeadersSecret(req);
-    const body = await req.json();
-    const items = Array.isArray(body) ? body : [body];
-    const parsed = items.map((i) => ZDay.parse(i));
+    assertSecret(req);
 
-    for (const i of parsed) {
-      await sql/*sql*/`
-        insert into days (
-          date, sleep_score, focus_minutes, steps,
-          reading_minutes, outdoor_minutes, writing_minutes, coding_minutes,
-          journaled, extras
-        )
-        values (
-          ${i.date}, ${i.sleep_score ?? null}, ${i.focus_minutes ?? 0}, ${i.steps ?? 0},
-          ${i.reading_minutes ?? 0}, ${i.outdoor_minutes ?? 0}, ${i.writing_minutes ?? 0}, ${i.coding_minutes ?? 0},
-          ${i.journaled ?? false}, ${JSON.stringify(i.extras ?? {})}::jsonb
-        )
-        on conflict (date) do update set
-          sleep_score     = COALESCE(excluded.sleep_score, days.sleep_score),
-          focus_minutes   = COALESCE(excluded.focus_minutes, days.focus_minutes),
-          steps           = GREATEST(excluded.steps, days.steps),
-          reading_minutes = GREATEST(excluded.reading_minutes, days.reading_minutes),
-          outdoor_minutes = GREATEST(excluded.outdoor_minutes, days.outdoor_minutes),
-          writing_minutes = GREATEST(excluded.writing_minutes, days.writing_minutes),
-          coding_minutes  = GREATEST(excluded.coding_minutes, days.coding_minutes),
-          journaled       = excluded.journaled OR days.journaled,
-          extras          = days.extras || excluded.extras,
-          updated_at      = now();
+    const { searchParams } = new URL(req.url);
+    let date = searchParams.get("date");
+
+    // Default to "today" in Berlin if date not provided
+    if (!date) {
+      const [{ d }] = await sql/*sql*/`
+        SELECT (date_trunc('day', timezone('Europe/Berlin', now()))::date) AS d
       `;
+      date = new Date(d as string).toISOString().slice(0, 10);
     }
 
-    revalidateDashboard();
+    const rows = await sql/*sql*/`
+      SELECT
+        to_char(date, 'YYYY-MM-DD') as date,
+        COALESCE(sleep_score,0)::int           as sleep_score,
+        COALESCE(focus_minutes,0)::int         as focus_minutes,
+        COALESCE(steps,0)::int                 as steps,
+        COALESCE(reading_minutes,0)::int       as reading_minutes,
+        COALESCE(outdoor_minutes,0)::int       as outdoor_minutes,
+        COALESCE(writing_minutes,0)::int       as writing_minutes,
+        COALESCE(coding_minutes,0)::int        as coding_minutes,
+        COALESCE(journaled,false)::bool        as journaled
+      FROM days
+      WHERE date = ${date}::date
+      LIMIT 1
+    `;
 
-    return new Response(JSON.stringify({ ok: true, upserted: parsed.length }), { status: 200 });
-  } catch (err: any) {
-    return new Response(err?.message ?? "Bad Request", { status: err?.status ?? 400 });
+    if (!rows[0]) {
+      return NextResponse.json({
+        date,
+        sleep_score: 0,
+        focus_minutes: 0,
+        steps: 0,
+        reading_minutes: 0,
+        outdoor_minutes: 0,
+        writing_minutes: 0,
+        coding_minutes: 0,
+        journaled: false,
+      }, { status: 200 });
+    }
+
+    return NextResponse.json(rows[0], { status: 200 });
+  } catch (e: any) {
+    const status = e?.status ?? 500;
+    return NextResponse.json({ message: e?.message ?? "Failed" }, { status });
   }
 }

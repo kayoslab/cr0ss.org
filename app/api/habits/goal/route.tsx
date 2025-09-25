@@ -1,31 +1,52 @@
 export const runtime = "edge";
 
-import { sql } from "@/lib/db/client";
-import { HeadersSecret, ZGoal } from "@/lib/db/validation";
-import { revalidateDashboard } from "@/lib/cache/revalidate";
+import { NextResponse } from "next/server";
+import { neon } from "@neondatabase/serverless";
 
-export async function POST(req: Request) {
+const sql = neon(process.env.DATABASE_URL!);
+
+function assertSecret(req: Request) {
+  const secret = new Headers(req.headers).get("x-vercel-revalidation-key");
+  if (secret !== process.env.DASHBOARD_API_SECRET) {
+    throw new Response(JSON.stringify({ message: "Invalid secret" }), { status: 401 });
+  }
+}
+
+// GET current-month goals (Berlin month)
+export async function GET(req: Request) {
   try {
-    HeadersSecret(req);
-    const body = await req.json();
-    const items = Array.isArray(body) ? body : [body];
-    const parsed = items.map((i) => ZGoal.parse(i));
+    assertSecret(req);
 
-    for (const i of parsed) {
-      // normalize month to first of month
-      const m = new Date(i.month); m.setDate(1); m.setHours(0,0,0,0);
-      await sql/*sql*/`
-        insert into monthly_goals (month, kind, target)
-        values (${m}, ${i.kind}, ${i.target})
-        on conflict (month, kind) do update
-        set target = excluded.target;
-      `;
+    // Compute the first day of the current month in Europe/Berlin
+    const [{ month_start }] = await sql/*sql*/`
+      SELECT (date_trunc('month', timezone('Europe/Berlin', now()))::date) AS month_start
+    `;
+
+    const rows = await sql/*sql*/`
+      SELECT kind::text, target::numeric
+      FROM monthly_goals
+      WHERE month = ${month_start}::date
+    `;
+
+    const out: Record<string, number> = {
+      running_distance_km: 0,
+      steps: 0,
+      reading_minutes: 0,
+      outdoor_minutes: 0,
+      writing_minutes: 0,
+      coding_minutes: 0,
+      focus_minutes: 0,
+    };
+
+    for (const r of rows as any[]) {
+      const k = String(r.kind);
+      const v = Number(r.target);
+      if (k in out) out[k] = v;
     }
 
-    revalidateDashboard();
-    
-    return new Response(JSON.stringify({ ok: true, upserted: parsed.length }), { status: 200 });
-  } catch (err: any) {
-    return new Response(err?.message ?? "Bad Request", { status: err?.status ?? 400 });
+    return NextResponse.json(out, { status: 200 });
+  } catch (e: any) {
+    const status = e?.status ?? 500;
+    return NextResponse.json({ message: e?.message ?? "Failed" }, { status });
   }
 }
