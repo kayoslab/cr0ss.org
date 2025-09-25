@@ -8,9 +8,9 @@ import { GOALS } from "@/lib/db/constants";
 import { getAllCountries, getVisitedCountries } from '@/lib/contentful/api/country';
 import { CountryProps } from '@/lib/contentful/api/props/country';
 import { Panel } from '@/components/dashboard/charts/TremorCharts';
-import { qCoffeeEventsLast24h } from "@/lib/db/queries";
-import { modelCaffeine } from "@/lib/phys/caffeine";
+import { qBerlinTodayBounds, qCoffeeEventsBetween } from "@/lib/db/queries";
 import { getBodyProfile } from "@/lib/user/profile";
+import { modelCaffeine } from "@/lib/phys/caffeine";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = 'force-no-store';
@@ -44,21 +44,25 @@ export default async function HomeContent() {
     // ---------- Morning Brew ----------
     const methodsBar = data.brewMethodsToday.map(b => ({ name: b.type, value: b.count }));
 
-    const [coffeeEvents, body] = await Promise.all([
-        qCoffeeEventsLast24h(),
+    const [{ startISO, endISO }, body] = await Promise.all([
+        qBerlinTodayBounds(),
         getBodyProfile(),
     ]);
 
+    const coffeeEvents = await qCoffeeEventsBetween(startISO, endISO);
+
     const kinetics = modelCaffeine(coffeeEvents, body, {
-        halfLifeHours: body.half_life_hours ?? undefined, // optional override
-        gridMinutes: 15,
+        startMs: Date.parse(startISO),
+        endMs:   Date.parse(endISO),  // exclusive
+        alignToHour: true,
+        gridMinutes: 60,
+        halfLifeHours: body.half_life_hours ?? undefined,
     });
 
     const caffeineDual = kinetics.map(p => ({
         time: new Date(p.timeISO).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }),
         intake_mg: p.intake_mg,
         body_mg: p.body_mg,
-        // conc_mg_per_l: Number(p.blood_mg_per_l.toFixed(2)), // if you want a KPI
     }));
 
 
