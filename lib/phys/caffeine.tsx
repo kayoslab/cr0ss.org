@@ -129,3 +129,24 @@ export function modelCaffeine(
 
   return out;
 }
+
+// Simple, consistent intake estimate from brew type + volume (ml).
+// Uses the same defaults you've been using elsewhere (e.g. espresso≈80 mg @38 ml, etc.).
+export function estimateIntakeMgFor(type: string, amount_ml: number): number {
+  const defaults = {
+    espresso:   { ml: 38,  mg: 80 },
+    v60:        { ml: 250, mg: 120 },
+    chemex:     { ml: 300, mg: 200 },
+    moka:       { ml: 60,  mg: 100 },
+    aero:       { ml: 200, mg: 110 },
+    cold_brew:  { ml: 250, mg: 150 },
+    other:      { ml: 200, mg: 90 },
+  } as const;
+
+  const key = (type || "other") as keyof typeof defaults;
+  const base = defaults[key] ?? defaults.other;
+
+  const ml = Math.max(0, Number(amount_ml) || base.ml);
+  const mgPerMl = base.mg / base.ml;
+  return +(mgPerMl * ml).toFixed(1);
+}

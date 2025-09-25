@@ -10,6 +10,9 @@ import { qBerlinTodayBounds, qCoffeeEventsForDayWithLookback } from "@/lib/db/qu
 import { getBodyProfile } from "@/lib/user/profile";
 import { modelCaffeine } from "@/lib/phys/caffeine";
 import { GOALS } from "@/lib/db/constants";
+import { qCoffeeInRange, qSleepVsFocusScatter } from "@/lib/db/queries";
+import { estimateIntakeMgFor } from "@/lib/phys/caffeine";
+
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
@@ -92,6 +95,41 @@ export default async function DashboardPage() {
     })),
   };
 
+    // ---- Sleep vs previous-day caffeine (last 60 days)
+  // Reuse sleep rows from the existing scatter helper (we only need the date + sleep_score)
+  const sleepRows = await qSleepVsFocusScatter(60); // [{date, sleep_score, focus_minutes}]
+  // Build the range we need: from min(sleep date) - 1 day to max(sleep date)
+  const minDate = sleepRows.length ? new Date(sleepRows[0].date) : new Date();
+  const maxDate = sleepRows.length ? new Date(sleepRows[sleepRows.length - 1].date) : new Date();
+  const startRange = new Date(minDate);
+  startRange.setDate(startRange.getDate() - 1); // need the *previous* day too
+  const startISOAll = startRange.toISOString().slice(0, 10) + "T00:00:00.000Z";
+  const endISOAll   = new Date(maxDate.getTime() + 24*3600*1000).toISOString(); // exclusive
+
+  // Get all coffee events in the range once
+  const rangeEvents = await qCoffeeInRange(startISOAll, endISOAll);
+
+  // Sum caffeine per *calendar date* of consumption
+  const mgByDate = new Map<string, number>();
+  for (const ev of rangeEvents) {
+    const d = ev.time.slice(0, 10); // YYYY-MM-DD of the event
+    const mg = estimateIntakeMgFor(ev.type, ev.amount_ml);
+    mgByDate.set(d, (mgByDate.get(d) ?? 0) + mg);
+  }
+
+  // For each sleep date, look up previous day's mg
+  const sleepPrevCaff = sleepRows.map((r) => {
+    const d = new Date(r.date);
+    d.setDate(d.getDate() - 1);
+    const prevKey = d.toISOString().slice(0, 10);
+    return {
+      date: r.date,
+      sleep_score: r.sleep_score,
+      prev_caffeine_mg: Math.round(mgByDate.get(prevKey) ?? 0),
+    };
+  });
+
+
   const running = {
     progress: {
       target_km: data.runningProgress.target_km,
@@ -113,6 +151,7 @@ export default async function DashboardPage() {
           morning={morning}
           rituals={rituals}
           running={running}
+          sleepPrevCaff={sleepPrevCaff}
         />
       </section>
     </main>

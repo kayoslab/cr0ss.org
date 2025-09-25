@@ -4,7 +4,7 @@
 import React from "react";
 import Section from "@/components/dashboard/Section";
 import { Kpi } from "@/components/dashboard/Kpi";
-import { Donut, Line, Area, Bars, Progress, Panel } from "@/components/dashboard/charts/TremorCharts";
+import { Donut, Line, Area, Bars, Progress, Panel, Scatter } from "@/components/dashboard/charts/TremorCharts";
 import MapClient, { TravelCountry } from "@/components/map.client";
 
 type TravelProps = {
@@ -35,16 +35,20 @@ type RunningProps = {
   heatmap: { date: string; km: number }[];
 };
 
+type SleepPrevCaffPoint = { date: string; sleep_score: number; prev_caffeine_mg: number };
+
 export default function DashboardClient({
   travel,
   morning,
   rituals,
   running,
+  sleepPrevCaff,
 }: {
   travel: TravelProps;
   morning: MorningProps;
   rituals: RitualsProps;
   running: RunningProps;
+  sleepPrevCaff: SleepPrevCaffPoint[];
 }) {
   return (
     <div className="space-y-10">
@@ -52,7 +56,7 @@ export default function DashboardClient({
       <Section title="1. Travel">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {/* Map card — full-width on mobile, spans 2 cols on md for balance */}
-          <div className="md:col-span-3">
+          <div className="md:col-span-3 xl:col-span-3">
             <div className="relative w-full overflow-hidden rounded-xl border border-neutral-200/60 dark:border-neutral-700 shadow-sm">
               {/* Responsive SVG inside; no fixed width → no iOS overflow */}
               <MapClient
@@ -125,8 +129,20 @@ export default function DashboardClient({
               categories={["Writing (min)", "Focus (min)"]}
             />
           </div>
+          <div className="md:col-span-3">
+            <Scatter
+              title="Sleep score vs yesterday’s caffeine"
+              data={sleepPrevCaff}
+              x="prev_caffeine_mg"
+              y="sleep_score"
+            />
+            <p className="mt-2 text-xs text-neutral-500">
+              Each dot is a day. Hover for date; use this to eyeball correlation between rest and caffeine consumption.
+            </p>
+          </div>
         </div>
       </Section>
+
 
       {/* 4) Running & Movement */}
       <Section title="4. Running & Movement">
