@@ -26,8 +26,6 @@ export default async function SettingsPage() {
 
     const items = Array.isArray(collection?.items) ? collection.items : [];
 
-    console.log("SettingsPage: fetched coffees", collection);
-
     const coffees: CoffeeRow[] = items.map((c) => ({
         id: String(c?.sys?.id ?? c?.id ?? ""),
         name: String(c?.name ?? ""),
