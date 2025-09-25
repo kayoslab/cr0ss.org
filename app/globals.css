@@ -55,4 +55,62 @@
       )
       rgb(var(--background-start-rgb));
   }
+
+  /* --- Fix Tremor legend markers inflating in Chrome --- */
+  .tremor-Legend-legendItem svg {
+    width: 0.5rem !important;    /* 8px = Tailwind h-2/w-2 */
+    height: 0.5rem !important;
+    min-width: 0.5rem !important;
+    min-height: 0.5rem !important;
+    flex: 0 0 auto !important;   /* don't stretch in flex rows */
+    display: inline-block !important;
+  }
+
+  /* If Tremor renders a <span> wrapper for the icon, normalize it too */
+  .tremor-Legend-legendItem .flex-none {
+    flex: 0 0 auto !important;
+  }
+
+  /* -------- Tremor legend layout & sizing -------- */
+
+  /* Allow wrapping + spacing between items */
+  [data-testid="tremor-legend"],
+  [data-testid="tremor-legend"] ul {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center;
+    gap: 0.375rem 0.75rem; /* row-gap, column-gap */
+    /* prevent full-width stretch inside grids */
+    max-width: 100%;
+  }
+
+  /* Each legend pill */
+  .tremor-Legend-legendItem {
+    /* Tremor uses whitespace-nowrap; relax it so long names can wrap */
+    white-space: normal !important;
+    /* keep the inline-flex look but add a touch of breathing room */
+    padding: 0.125rem 0.375rem;   /* ~py-0.5 px-1.5 */
+    border-radius: 0.375rem;      /* rounded-md feel */
+  }
+
+  /* Icon size (defensive against any fluid-svg rules) */
+  .tremor-Legend-legendItem svg {
+    width: 0.5rem !important;   /* 8px (matches h-2 w-2) */
+    height: 0.5rem !important;
+    min-width: 0.5rem !important;
+    min-height: 0.5rem !important;
+    display: inline-block !important;
+    flex: 0 0 auto !important;
+    /* keep the original spacing roughly like mr-1.5 */
+    margin-right: 0.375rem !important;
+  }
+
+  /* Optional: slightly smaller text so multi-line legends feel lighter */
+  [data-testid="tremor-legend"] {
+    font-size: 0.875rem;  /* text-sm */
+    line-height: 1.25rem; /* leading-5 */
+  }
+
+
 }
+
