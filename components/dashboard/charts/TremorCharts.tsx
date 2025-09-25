@@ -13,7 +13,7 @@ const ProgressBar  = dynamic(() => import("@tremor/react").then(m => m.ProgressB
 
 export function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-lg border border-neutral-800 p-4">
+    <div className="rounded-lg border border-neutral-200/60 dark:border-neutral-700 shadow-sm p-4">
       <div className="uppercase text-sm mb-3 text-neutral-400">{title}</div>
       {children}
     </div>
