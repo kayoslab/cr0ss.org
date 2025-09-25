@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 
-// ---------- helpers
+// ---------- small helpers
 
 const cls = (...a: (string | false | null | undefined)[]) => a.filter(Boolean).join(" ");
 
@@ -11,7 +11,7 @@ async function jfetch<T>(
   opts: RequestInit,
   secret?: string
 ): Promise<{ ok: boolean; status: number; json: T | null; error?: string }> {
-  const headers = new Headers(opts.headers as HeadersInit);
+  const headers = new Headers(opts.headers as HeadersInit | undefined);
   if (!headers.has("content-type")) headers.set("content-type", "application/json");
   if (secret) headers.set("x-vercel-revalidation-key", secret);
   const res = await fetch(url, { ...opts, headers, cache: "no-store" });
@@ -24,7 +24,19 @@ async function jfetch<T>(
   return { ok: res.ok, status: res.status, json, error: (!res.ok && (json?.message || res.statusText)) || undefined };
 }
 
-// ---------- types (loose, aligned to your APIs)
+function Spinner({ className }: { className?: string }) {
+  return (
+    <span
+      className={cls(
+        "inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent align-[-0.125em]",
+        className
+      )}
+      aria-label="loading"
+    />
+  );
+}
+
+// ---------- types (aligned with your APIs)
 
 type BodyProfile = {
   weight_kg: number;
@@ -64,14 +76,14 @@ type CoffeeLogPayload = {
   time?: string; // HH:mm
   type: CoffeeBrewingMethod;
   amount_ml?: number;
-  coffee_cf_id?: string | null; // "0" for None as requested
+  coffee_cf_id?: string | null; // "0" for None (treated as no link)
 };
 
 type RunPayload = {
   date: string; // YYYY-MM-DD
   distance_km: number;
   duration_min: number;
-  pace_sec_per_km?: number; // optional; backend can compute from distance+duration if you do that
+  pace_sec_per_km?: number;
 };
 
 type CoffeeRow = { id: string; name: string; roaster: string };
@@ -110,25 +122,38 @@ const emptyDay = (dateStr: string): DayPayload => ({
   journaled: false,
 });
 
-// ---------- UI
+// ---------- main component
 
 export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
   // secret gate
   const [secret, setSecret] = useState<string>("");
   const [secretOK, setSecretOK] = useState<boolean>(false);
   const [checking, setChecking] = useState(false);
+
+  // feedback
   const [msg, setMsg] = useState<string | null>(null);
+
+  // per-section saving flags
+  const [savingBody, setSavingBody] = useState(false);
+  const [savingGoals, setSavingGoals] = useState(false);
+  const [savingDay, setSavingDay] = useState(false);
+  const [savingCoffee, setSavingCoffee] = useState(false);
+  const [savingRun, setSavingRun] = useState(false);
 
   // data models
   const [body, setBody] = useState<BodyProfile | null>(null);
   const [goals, setGoals] = useState<Goals>(emptyGoals);
-  const today = useMemo(() => new Date(), []);
   const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const [day, setDay] = useState<DayPayload>(emptyDay(todayStr));
 
   // coffee form
   const [coffeeDate, setCoffeeDate] = useState<string>(todayStr);
-  const [coffeeTime, setCoffeeTime] = useState<string>(new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", hour12: false }));
+  const [coffeeTime, setCoffeeTime] = useState<string>(() => {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, "0");
+    const mm = String(now.getMinutes()).padStart(2, "0");
+    return `${hh}:${mm}`;
+  });
   const [method, setMethod] = useState<CoffeeBrewingMethod>("espresso");
   const [amount, setAmount] = useState<number>(methodDefaults.espresso);
   const [coffeeId, setCoffeeId] = useState<string>(""); // Contentful ID; "0" when None
@@ -148,12 +173,13 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
   // when method changes, prefill amount
   useEffect(() => setAmount(methodDefaults[method]), [method]);
 
-  // validate secret & hydrate forms
+  // ---- secret validation & hydration
+
   async function handleSaveSecret() {
     setMsg(null);
     setChecking(true);
     try {
-      // ping a protected endpoint (POST /api/habits/body with no changes) just to validate
+      // Validate by calling a protected route; POST /api/habits/body with {} (no-op)
       const check = await jfetch<{ ok: boolean }>(
         "/api/habits/body",
         { method: "POST", body: JSON.stringify({}) },
@@ -161,19 +187,19 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
       );
       if (!check.ok && check.status !== 200) throw new Error(check.error || "Secret invalid");
 
-      // If we got here, treat secret as valid and cache it
+      // Cache & mark valid
       localStorage.setItem("dashboard_secret", secret);
       setSecretOK(true);
 
-      // Fetch current DB data for forms
+      // Hydrate data models
       const [bodyRes, goalsRes, dayRes] = await Promise.all([
         jfetch<BodyProfile>("/api/habits/body", { method: "GET" }, secret),
-        jfetch<Goals>("/api/habits/goal", { method: "GET" }, secret), // expects current month goals
+        jfetch<Goals>("/api/habits/goal", { method: "GET" }, secret),
         jfetch<DayPayload>(`/api/habits/day?date=${todayStr}`, { method: "GET" }, secret),
       ]);
 
       if (bodyRes.ok && bodyRes.json) setBody(bodyRes.json);
-      if (goalsRes.ok && goalsRes.json) setGoals({ ...emptyGoals, ...goalsRes.json as any });
+      if (goalsRes.ok && goalsRes.json) setGoals({ ...emptyGoals, ...(goalsRes.json as any) });
       if (dayRes.ok && dayRes.json) setDay({ ...(dayRes.json as any) });
       else setDay(emptyDay(todayStr));
 
@@ -186,85 +212,130 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
     }
   }
 
-  // ----- submitters
+  // ---- submitters
 
   async function submitBody() {
     if (!secretOK) return setMsg("Enter a valid secret first.");
-    const payload: any = {
-      weight_kg: (document.getElementById("weight_kg") as HTMLInputElement)?.value,
-      height_cm: (document.getElementById("height_cm") as HTMLInputElement)?.value,
-      vd_l_per_kg: (document.getElementById("vd_l_per_kg") as HTMLInputElement)?.value,
-      half_life_hours: (document.getElementById("half_life_hours") as HTMLInputElement)?.value,
-      caffeine_sensitivity: (document.getElementById("caffeine_sensitivity") as HTMLInputElement)?.value,
-      bioavailability: (document.getElementById("bioavailability") as HTMLInputElement)?.value,
-    };
-    const res = await jfetch("/api/habits/body", { method: "POST", body: JSON.stringify(payload) }, secret);
-    setMsg(res.ok ? "Body profile saved." : res.error || "Failed to save body profile.");
+    setSavingBody(true);
+    try {
+      const payload: any = {
+        weight_kg: (document.getElementById("weight_kg") as HTMLInputElement)?.value,
+        height_cm: (document.getElementById("height_cm") as HTMLInputElement)?.value,
+        vd_l_per_kg: (document.getElementById("vd_l_per_kg") as HTMLInputElement)?.value,
+        half_life_hours: (document.getElementById("half_life_hours") as HTMLInputElement)?.value,
+        caffeine_sensitivity: (document.getElementById("caffeine_sensitivity") as HTMLInputElement)?.value,
+        bioavailability: (document.getElementById("bioavailability") as HTMLInputElement)?.value,
+      };
+      const res = await jfetch("/api/habits/body", { method: "POST", body: JSON.stringify(payload) }, secret);
+      setMsg(res.ok ? "Body profile saved." : res.error || "Failed to save body profile.");
+    } finally {
+      setSavingBody(false);
+    }
   }
 
   async function submitGoals() {
     if (!secretOK) return setMsg("Enter a valid secret first.");
-    // Send all numeric fields; backend upserts current-month goals
-    const payload = goals;
-    const res = await jfetch("/api/habits/goal", { method: "POST", body: JSON.stringify(payload) }, secret);
-    setMsg(res.ok ? "Goals saved." : res.error || "Failed to save goals.");
+    setSavingGoals(true);
+    try {
+      const payload = goals;
+      const res = await jfetch("/api/habits/goal", { method: "POST", body: JSON.stringify(payload) }, secret);
+      setMsg(res.ok ? "Goals saved." : res.error || "Failed to save goals.");
+    } finally {
+      setSavingGoals(false);
+    }
   }
 
   async function submitDay() {
     if (!secretOK) return setMsg("Enter a valid secret first.");
-    // Basic numeric validation (UI-level)
-    const valid = [
-      "sleep_score", "focus_minutes", "steps", "reading_minutes",
-      "outdoor_minutes", "writing_minutes", "coding_minutes"
-    ].every((k) => Number.isFinite(Number((day as any)[k])));
-    if (!valid) return setMsg("Day: please enter only numbers for numeric fields.");
-
-    const res = await jfetch("/api/habits/day", { method: "POST", body: JSON.stringify(day) }, secret);
-    if (res.ok) {
-      setMsg("Day logged.");
-      setDay(emptyDay(todayStr)); // reset just this section
-    } else {
-      setMsg(res.error || "Failed to log day.");
+    setSavingDay(true);
+    try {
+      const numericKeys: (keyof DayPayload)[] = [
+        "sleep_score",
+        "focus_minutes",
+        "steps",
+        "reading_minutes",
+        "outdoor_minutes",
+        "writing_minutes",
+        "coding_minutes",
+      ];
+      const valid = numericKeys.every((k) => Number.isFinite(Number((day as any)[k])));
+      if (!valid) {
+        setMsg("Day: please enter only numbers for numeric fields.");
+        return;
+      }
+      const res = await jfetch("/api/habits/day", { method: "POST", body: JSON.stringify(day) }, secret);
+      if (res.ok) {
+        setMsg("Day logged.");
+        setDay(emptyDay(todayStr)); // reset this section
+      } else {
+        setMsg(res.error || "Failed to log day.");
+      }
+    } finally {
+      setSavingDay(false);
     }
   }
 
   async function submitCoffee() {
     if (!secretOK) return setMsg("Enter a valid secret first.");
-    const payload: CoffeeLogPayload = {
-      date: coffeeDate,
-      time: coffeeTime,
-      type: method,
-      amount_ml: Number(amount) || 0,
-      coffee_cf_id: coffeeId ? coffeeId : "0", // as requested: store "0" when None
-    };
-    const res = await jfetch("/api/habits/coffee", { method: "POST", body: JSON.stringify(payload) }, secret);
-    if (res.ok) {
-      setMsg("Coffee logged.");
-      setCoffeeTime(new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", hour12: false }));
-      setMethod("espresso");
-      setAmount(methodDefaults.espresso);
-      setCoffeeId("");
-    } else setMsg(res.error || "Failed to log coffee.");
+    setSavingCoffee(true);
+    try {
+      const payload: CoffeeLogPayload = {
+        date: coffeeDate,
+        time: coffeeTime,
+        type: method,
+        amount_ml: Number(amount) || 0,
+        coffee_cf_id: coffeeId ? coffeeId : "0", // "None" → "0"
+      };
+      const res = await jfetch("/api/habits/coffee", { method: "POST", body: JSON.stringify(payload) }, secret);
+      if (res.ok) {
+        setMsg("Coffee logged.");
+        // reset this section (keep date)
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, "0");
+        const mm = String(now.getMinutes()).padStart(2, "0");
+        setCoffeeTime(`${hh}:${mm}`);
+        setMethod("espresso");
+        setAmount(methodDefaults.espresso);
+        setCoffeeId("");
+      } else setMsg(res.error || "Failed to log coffee.");
+    } finally {
+      setSavingCoffee(false);
+    }
   }
 
   async function submitRun() {
     if (!secretOK) return setMsg("Enter a valid secret first.");
-    const payload: RunPayload = {
-      date: runDate,
-      distance_km: Number(distanceKm) || 0,
-      duration_min: Number(durationMin) || 0,
-      pace_sec_per_km: Number(paceSec) || undefined,
-    };
-    const res = await jfetch("/api/habits/run", { method: "POST", body: JSON.stringify(payload) }, secret);
-    if (res.ok) {
-      setMsg("Run logged.");
-      setDistanceKm(0); setDurationMin(0); setPaceSec(0);
-    } else setMsg(res.error || "Failed to log run.");
+    setSavingRun(true);
+    try {
+      const payload: RunPayload = {
+        date: runDate,
+        distance_km: Number(distanceKm) || 0,
+        duration_min: Number(durationMin) || 0,
+        pace_sec_per_km: Number(paceSec) || undefined,
+      };
+      const res = await jfetch("/api/habits/run", { method: "POST", body: JSON.stringify(payload) }, secret);
+      if (res.ok) {
+        setMsg("Run logged.");
+        setDistanceKm(0);
+        setDurationMin(0);
+        setPaceSec(0);
+      } else setMsg(res.error || "Failed to log run.");
+    } finally {
+      setSavingRun(false);
+    }
   }
 
-  // ---------- UI elements
+  // ---------- UI bits
 
-  function Card({ title, children, footer }: { title: string; children: React.ReactNode; footer?: React.ReactNode }) {
+  function Card({
+    title,
+    children,
+    footer,
+  }: {
+    title: string;
+    children: React.ReactNode;
+    footer?: React.ReactNode;
+  }) {
     return (
       <section className="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-slate-900 p-4">
         <div className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">{title}</div>
@@ -283,20 +354,22 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         title="API Secret"
         footer={
           <button
+            type="button"
             onClick={handleSaveSecret}
             disabled={checking || !secret}
             className={cls(
               "px-4 py-2 rounded-md",
-              "bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50"
+              "bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50 flex items-center gap-2"
             )}
           >
+            {checking && <Spinner className="text-black/80" />}
             {checking ? "Checking…" : "Save & Load"}
           </button>
         }
       >
         <div className="flex gap-3 items-end">
           <div className="flex-1">
-            <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">Secret</label>
+            <Label>Secret</Label>
             <input
               type="password"
               value={secret}
@@ -316,21 +389,23 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         title="Body Data"
         footer={
           <button
+            type="button"
             onClick={submitBody}
-            className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50"
-            disabled={!secretOK}
+            className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50 flex items-center gap-2"
+            disabled={!secretOK || savingBody}
           >
-            Save Body
+            {savingBody && <Spinner className="text-black/80" />}
+            {savingBody ? "Saving…" : "Save Body"}
           </button>
         }
       >
         <div className="grid grid-cols-2 gap-4">
-          <Field id="weight_kg" label="Weight (kg)" type="number" defaultValue={body?.weight_kg ?? ""} />
-          <Field id="height_cm" label="Height (cm)" type="number" defaultValue={body?.height_cm ?? ""} />
-          <Field id="vd_l_per_kg" label="Vd (L/kg)" type="number" step="0.01" defaultValue={body?.vd_l_per_kg ?? ""} />
-          <Field id="half_life_hours" label="Half-life (h)" type="number" step="0.1" defaultValue={body?.half_life_hours ?? ""} />
-          <Field id="caffeine_sensitivity" label="Sensitivity (×)" type="number" step="0.05" defaultValue={body?.caffeine_sensitivity ?? ""} />
-          <Field id="bioavailability" label="Bioavailability (0–1)" type="number" step="0.01" defaultValue={body?.bioavailability ?? ""} />
+          <Field id="weight_kg" label="Weight (kg)" type="text" inputMode="decimal" defaultValue={body?.weight_kg ?? ""} />
+          <Field id="height_cm" label="Height (cm)" type="text" inputMode="numeric" defaultValue={body?.height_cm ?? ""} />
+          <Field id="vd_l_per_kg" label="Vd (L/kg)" type="text" inputMode="decimal" defaultValue={body?.vd_l_per_kg ?? ""} />
+          <Field id="half_life_hours" label="Half-life (h)" type="text" inputMode="decimal" defaultValue={body?.half_life_hours ?? ""} />
+          <Field id="caffeine_sensitivity" label="Sensitivity (×)" type="text" inputMode="decimal" defaultValue={body?.caffeine_sensitivity ?? ""} />
+          <Field id="bioavailability" label="Bioavailability (0–1)" type="text" inputMode="decimal" defaultValue={body?.bioavailability ?? ""} />
         </div>
         <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-2">
           Forms unlock only after a valid secret. Numbers are validated client-side; server enforces types again.
@@ -342,11 +417,13 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         title="Goal Data (this month)"
         footer={
           <button
+            type="button"
             onClick={submitGoals}
-            className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50"
-            disabled={!secretOK}
+            className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50 flex items-center gap-2"
+            disabled={!secretOK || savingGoals}
           >
-            Save Goals
+            {savingGoals && <Spinner className="text-black/80" />}
+            {savingGoals ? "Saving…" : "Save Goals"}
           </button>
         }
       >
@@ -392,11 +469,13 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         title="Log Day"
         footer={
           <button
+            type="button"
             onClick={submitDay}
-            className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50"
-            disabled={!secretOK}
+            className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50 flex items-center gap-2"
+            disabled={!secretOK || savingDay}
           >
-            Save Day
+            {savingDay && <Spinner className="text-black/80" />}
+            {savingDay ? "Saving…" : "Save Day"}
           </button>
         }
       >
@@ -418,23 +497,20 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         title="Log Coffee"
         footer={
           <button
+            type="button"
             onClick={submitCoffee}
-            className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50"
-            disabled={!secretOK}
+            className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50 flex items-center gap-2"
+            disabled={!secretOK || savingCoffee}
           >
-            Save Coffee
+            {savingCoffee && <Spinner className="text-black/80" />}
+            {savingCoffee ? "Saving…" : "Save Coffee"}
           </button>
         }
       >
         <div className="grid grid-cols-2 gap-4">
           <Field label="Date" type="date" value={coffeeDate} onChange={(e)=>setCoffeeDate((e.target as HTMLInputElement).value)} />
-          <Field label="Time" type="time" value={coffeeTime} onChange={(e)=>setCoffeeTime((e.target as HTMLInputElement).value)} />
-          <Label>Method</Label>
-          <select
-            value={method}
-            onChange={(e)=>setMethod(e.target.value as any)}
-            className="rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-slate-950 px-3 py-2"
-          >
+          <TimeField label="Time" value={coffeeTime} onChange={setCoffeeTime} />
+          <SelectField label="Method" value={method} onChange={(v)=>setMethod(v as CoffeeBrewingMethod)}>
             <option value="espresso">espresso</option>
             <option value="v60">v60</option>
             <option value="chemex">chemex</option>
@@ -442,20 +518,15 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
             <option value="aero">aero</option>
             <option value="cold_brew">cold_brew</option>
             <option value="other">other</option>
-          </select>
-          <Num label="Amount (mL)" value={amount} onChange={(v)=>setAmount(v)} />
-          <Label>Coffee (Contentful)</Label>
-          <select
-            value={coffeeId}
-            onChange={(e)=>setCoffeeId(e.target.value)}
-            className="rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-slate-950 px-3 py-2"
-          >
+          </SelectField>
+          <Num label="Amount (mL)" value={amount} onChange={setAmount} />
+          <SelectField label="Coffee (Contentful)" value={coffeeId} onChange={setCoffeeId}>
             <option value="">— select —</option>
             {coffees.map(c => (
               <option key={c.id} value={c.id}>{c.name} — {c.roaster}</option>
             ))}
             <option value="0">None</option>
-          </select>
+          </SelectField>
         </div>
       </Card>
 
@@ -464,11 +535,13 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         title="Log Run"
         footer={
           <button
+            type="button"
             onClick={submitRun}
-            className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50"
-            disabled={!secretOK}
+            className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50 flex items-center gap-2"
+            disabled={!secretOK || savingRun}
           >
-            Save Run
+            {savingRun && <Spinner className="text-black/80" />}
+            {savingRun ? "Saving…" : "Save Run"}
           </button>
         }
       >
@@ -480,60 +553,163 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         </div>
       </Card>
 
-      {msg && <div className="text-sm text-neutral-500">{msg}</div>}
+      {msg && <div className="text-sm text-neutral-600 dark:text-neutral-400">{msg}</div>}
     </div>
   );
 }
 
-// ---- small inputs
+// ---------- tiny inputs
 
 function Label({ children }: { children: React.ReactNode }) {
   return <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">{children}</label>;
 }
 
+/** Generic text input (also used for date fields). */
 function Field(props: React.InputHTMLAttributes<HTMLInputElement> & { label?: string }) {
-  const { label, ...rest } = props;
+  const { label, className, ...rest } = props;
   return (
     <div className="flex flex-col">
       {label && <Label>{label}</Label>}
       <input
         {...rest}
         className={cls(
-          "rounded-md border border-neutral-300 dark:border-neutral-700",
-          "bg-white dark:bg-slate-950 px-3 py-2"
+          "w-full rounded-md border border-neutral-300 dark:border-neutral-700",
+          "bg-white dark:bg-slate-950 px-3 py-2",
+          className
         )}
       />
     </div>
   );
 }
 
-function Num({ label, value, onChange, step }: { label: string; value: number; onChange: (v:number)=>void; step?: string }) {
+/** Numeric text input without Safari's number spinner/scroll issues. */
+function Num({
+  label,
+  value,
+  onChange,
+  step,
+  min,
+  max,
+  placeholder,
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+  step?: string;
+  min?: number;
+  max?: number;
+  placeholder?: string;
+}) {
   return (
     <div className="flex flex-col">
       <Label>{label}</Label>
       <input
-        type="number"
+        type="text"
         inputMode="decimal"
-        step={step ?? "1"}
-        value={Number.isFinite(value) ? value : 0}
-        onChange={(e)=>onChange(Number(e.target.value))}
-        className="rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-slate-950 px-3 py-2"
+        pattern="^-?[0-9]*([.,][0-9]+)?$"
+        placeholder={placeholder}
+        value={Number.isFinite(value) ? String(value) : ""}
+        onChange={(e) => {
+          const raw = e.target.value.replace(",", "."); // allow comma typing
+          if (raw === "" || raw === "-") {
+            onChange(NaN as unknown as number);
+            return;
+          }
+          const num = Number(raw);
+          if (Number.isNaN(num)) {
+            // allow intermediate invalid state; do not force-change
+            e.currentTarget.value = raw;
+            return;
+          }
+          if (typeof min === "number" && num < min) return;
+          if (typeof max === "number" && num > max) return;
+          onChange(num);
+        }}
+        className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-slate-950 px-3 py-2"
       />
     </div>
   );
 }
 
-function Bool({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v:boolean)=>void }) {
+/** Checkbox */
+function Bool({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
+  const id = React.useId();
   return (
     <div className="flex items-center gap-2">
       <input
-        id={`bool-${label}`}
+        id={id}
         type="checkbox"
         checked={checked}
-        onChange={(e)=>onChange(e.target.checked)}
+        onChange={(e) => onChange(e.target.checked)}
         className="h-4 w-4 accent-emerald-600"
       />
-      <label htmlFor={`bool-${label}`} className="text-sm text-neutral-700 dark:text-neutral-300">{label}</label>
+      <label htmlFor={id} className="text-sm text-neutral-700 dark:text-neutral-300">
+        {label}
+      </label>
+    </div>
+  );
+}
+
+/** Labeled select that stays under its label with full width. */
+function SelectField({
+  label,
+  value,
+  onChange,
+  children,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col">
+      <Label>{label}</Label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-slate-950 px-3 py-2"
+      >
+        {children}
+      </select>
+    </div>
+  );
+}
+
+/** Safari-friendly time field; stores HH:mm; includes a "Now" helper. */
+function TimeField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div className="flex flex-col">
+      <Label>{label}</Label>
+      <div className="flex gap-2">
+        <input
+          type="time"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          step={60}
+          className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-slate-950 px-3 py-2"
+        />
+        <button
+          type="button"
+          onClick={() => {
+            const now = new Date();
+            const hh = String(now.getHours()).padStart(2, "0");
+            const mm = String(now.getMinutes()).padStart(2, "0");
+            onChange(`${hh}:${mm}`);
+          }}
+          className="whitespace-nowrap rounded-md border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-50 dark:hover:bg-slate-800"
+        >
+          Now
+        </button>
+      </div>
     </div>
   );
 }

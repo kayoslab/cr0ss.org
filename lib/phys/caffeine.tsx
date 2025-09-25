@@ -33,11 +33,11 @@ export const DEFAULT_MG_PER_ML: Record<string, number> = {
 };
 
 export const DEFAULT_SHOT_ML: Record<string, number> = {
-  espresso: 30,
+  espresso: 38,
   v60: 250,
   chemex: 300,
   moka: 60,
-  aero: 220,
+  aero: 200,
   cold_brew: 250,
   other: 200,
 };
