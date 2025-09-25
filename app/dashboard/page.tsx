@@ -19,15 +19,10 @@ export const fetchCache = "force-no-store";
 const DashboardClient = NextDynamic(() => import("./Dashboard.client"), { ssr: false });
 
 function MapHero({ lat, lon }: { lat: number; lon: number }) {
-  // Transparent wrapper; clipped and responsive. No bg-* here.
+  // Transparent wrapper; clipped & responsive (no w-screen/neg margins)
   return (
     <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-12">
-      <div
-        className="
-          relative w-full overflow-hidden rounded-xl
-          border border-neutral-200/60 dark:border-neutral-700 shadow-sm
-        "
-      >
+      <div className="relative w-full overflow-hidden rounded-xl border border-neutral-200/60 dark:border-neutral-700 shadow-sm">
         <div className="w-full">
           <Map lat={lat} lon={lon} className="block w-full h-auto" />
         </div>
@@ -37,22 +32,21 @@ function MapHero({ lat, lon }: { lat: number; lon: number }) {
 }
 
 export default async function DashboardPage() {
-  // ---- live location from KV
+  // Live location (KV)
   const storedLocation = await kv.get<{ lat: number; lon: number }>("GEOLOCATION");
 
-  // ---- cached server data for dashboard
+  // Dashboard aggregates (Neon, KV, etc.)
   const data = await getDashboardData();
 
-  // ---- countries (server-only)
+  // Countries (Contentful)
   const countries = (await getAllCountries()) ?? [];
   const visited = (await getVisitedCountries(true)) ?? [];
 
-  // ---- caffeine modeling (server)
+  // Caffeine model for today (00:00–24:00) incl. carryover
   const { startISO, endISO } = await qBerlinTodayBounds();
   const body = await getBodyProfile();
   const half = body.half_life_hours ?? 5;
-  const lookbackH = Math.max(24, Math.ceil(half * 4)); // capture carry-over
-
+  const lookbackH = Math.max(24, Math.ceil(half * 4)); // capture late-night cups
   const events = await qCoffeeEventsForDayWithLookback(startISO, endISO, lookbackH);
 
   const series = modelCaffeine(events, body, {
@@ -63,7 +57,7 @@ export default async function DashboardPage() {
     halfLifeHours: body.half_life_hours ?? undefined,
   });
 
-  // ---- shape props for client
+  // ---- Props for client
 
   const travel = {
     totalCountries: countries.length,
@@ -84,12 +78,36 @@ export default async function DashboardPage() {
 
   const rituals = {
     progressToday: [
-      { name: "Steps", value: data.habitsToday.steps, target: GOALS.steps },
-      { name: "Reading", value: data.habitsToday.reading_minutes, target: GOALS.minutesRead },
-      { name: "Outdoor", value: data.habitsToday.outdoor_minutes, target: GOALS.minutesOutdoors },
-      { name: "Writing", value: data.habitsToday.writing_minutes, target: GOALS.writingMinutes },
-      { name: "Coding", value: data.habitsToday.coding_minutes, target: GOALS.codingMinutes },
-      { name: "Journaling", value: data.habitsToday.journaled ? 1 : 0, target: 1 },
+      { 
+        name: "Steps", 
+        value: data.habitsToday.steps, 
+        target: GOALS.steps
+      },
+      { 
+        name: "Reading", 
+        value: data.habitsToday.reading_minutes, 
+        target: GOALS.minutesRead 
+      },
+      { 
+        name: "Outdoor", 
+        value: data.habitsToday.outdoor_minutes, 
+        target: GOALS.minutesOutdoors 
+      },
+      { 
+        name: "Writing", 
+        value: data.habitsToday.writing_minutes, 
+        target: GOALS.writingMinutes 
+      },
+      {
+        name: "Coding", 
+        value: data.habitsToday.coding_minutes,   
+        target: GOALS.codingMinutes
+      },
+      { 
+        name: "Journaling", 
+        value: data.habitsToday.journaled ? 1 : 0, 
+        target: 1 
+      },
     ],
     consistencyBars: data.habitsConsistency.map((r) => ({
       name: r.name,
@@ -118,14 +136,8 @@ export default async function DashboardPage() {
   return (
     <main className="min-h-screen overflow-x-hidden bg-white dark:bg-slate-800">
       <MapHero lat={storedLocation?.lat ?? 0} lon={storedLocation?.lon ?? 0} />
-
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
-        <DashboardClient
-          travel={travel}
-          morning={morning}
-          rituals={rituals}
-          running={running}
-        />
+        <DashboardClient travel={travel} morning={morning} rituals={rituals} running={running} />
       </section>
     </main>
   );

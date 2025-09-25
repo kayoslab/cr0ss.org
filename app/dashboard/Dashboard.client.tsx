@@ -6,7 +6,6 @@ import Section from "@/components/dashboard/Section";
 import { Kpi } from "@/components/dashboard/Kpi";
 import { Donut, Line, Area, Bars, Progress, Panel } from "@/components/dashboard/charts/TremorCharts";
 
-/** Props coming from the server page */
 type TravelProps = {
   totalCountries: number;
   visitedCount: number;
@@ -127,14 +126,13 @@ export default function DashboardClient({
           </div>
         </div>
 
-        {/* Minimal heat "grid" using your pre-shaped data (kept client-side) */}
+        {/* Heat grid */}
         <div className="mt-4">
           <h3 className="mb-2 text-sm font-medium text-neutral-400">Running Heat (last 6 weeks)</h3>
           <div className="grid grid-cols-7 gap-1">
             {running.heatmap.map(({ date, km }, i) => {
               const bg = km === 0 ? "bg-neutral-800" : "bg-emerald-500";
-              const max = 1; // optional: precompute max on server if you want opacity scaling
-              const opacity = km === 0 ? 1 : Math.max(0.2, Math.min(1, km / (max || 1)));
+              const opacity = km === 0 ? 1 : 0.2 + Math.min(0.8, km / 10); // simple scaling
               return (
                 <div
                   key={`${date}-${i}`}
