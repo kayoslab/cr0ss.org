@@ -1,9 +1,8 @@
 // app/dashboard/page.tsx
 import React from "react";
 import NextDynamic from "next/dynamic";
-import Map from "@/components/map";
-
 import { kv } from "@vercel/kv";
+
 import { getDashboardData } from "@/lib/cache/dashboard";
 import { getAllCountries, getVisitedCountries } from "@/lib/contentful/api/country";
 import { CountryProps } from "@/lib/contentful/api/props/country";
@@ -15,38 +14,33 @@ import { GOALS } from "@/lib/db/constants";
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
-// Client-only widgets/charts
 const DashboardClient = NextDynamic(() => import("./Dashboard.client"), { ssr: false });
 
-function MapHero({ lat, lon }: { lat: number; lon: number }) {
-  // Transparent wrapper; clipped & responsive (no w-screen/neg margins)
-  return (
-    <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-12">
-      <div className="relative w-full overflow-hidden rounded-xl border border-neutral-200/60 dark:border-neutral-700 shadow-sm">
-        <div className="w-full">
-          <Map lat={lat} lon={lon} className="block w-full h-auto" />
-        </div>
-      </div>
-    </section>
-  );
-}
-
 export default async function DashboardPage() {
-  // Live location (KV)
+  // live location (KV)
   const storedLocation = await kv.get<{ lat: number; lon: number }>("GEOLOCATION");
+  const lat = storedLocation?.lat ?? 0;
+  const lon = storedLocation?.lon ?? 0;
 
-  // Dashboard aggregates (Neon, KV, etc.)
+  // cached server data
   const data = await getDashboardData();
 
-  // Countries (Contentful)
+  // countries (Contentful)
   const countries = (await getAllCountries()) ?? [];
   const visited = (await getVisitedCountries(true)) ?? [];
 
-  // Caffeine model for today (00:00–24:00) incl. carryover
+  // slim countries for client map
+  const countriesSlim = countries.map((c: CountryProps) => ({
+    id: c.id,
+    path: c.data.path,
+    visited: c.lastVisited != null,
+  }));
+
+  // caffeine model for today incl. carryover
   const { startISO, endISO } = await qBerlinTodayBounds();
   const body = await getBodyProfile();
   const half = body.half_life_hours ?? 5;
-  const lookbackH = Math.max(24, Math.ceil(half * 4)); // capture late-night cups
+  const lookbackH = Math.max(24, Math.ceil(half * 4));
   const events = await qCoffeeEventsForDayWithLookback(startISO, endISO, lookbackH);
 
   const series = modelCaffeine(events, body, {
@@ -57,12 +51,14 @@ export default async function DashboardPage() {
     halfLifeHours: body.half_life_hours ?? undefined,
   });
 
-  // ---- Props for client
-
+  // props for client
   const travel = {
     totalCountries: countries.length,
     visitedCount: visited.length,
     recentVisited: (visited as CountryProps[]).slice(0, 5).map((c) => ({ id: c.id, name: c.name })),
+    countries: countriesSlim,
+    lat,
+    lon,
   };
 
   const morning = {
@@ -78,36 +74,12 @@ export default async function DashboardPage() {
 
   const rituals = {
     progressToday: [
-      { 
-        name: "Steps", 
-        value: data.habitsToday.steps, 
-        target: GOALS.steps
-      },
-      { 
-        name: "Reading", 
-        value: data.habitsToday.reading_minutes, 
-        target: GOALS.minutesRead 
-      },
-      { 
-        name: "Outdoor", 
-        value: data.habitsToday.outdoor_minutes, 
-        target: GOALS.minutesOutdoors 
-      },
-      { 
-        name: "Writing", 
-        value: data.habitsToday.writing_minutes, 
-        target: GOALS.writingMinutes 
-      },
-      {
-        name: "Coding", 
-        value: data.habitsToday.coding_minutes,   
-        target: GOALS.codingMinutes
-      },
-      { 
-        name: "Journaling", 
-        value: data.habitsToday.journaled ? 1 : 0, 
-        target: 1 
-      },
+      { name: "Steps", value: data.habitsToday.steps,            target: GOALS.steps },
+      { name: "Reading", value: data.habitsToday.reading_minutes, target: GOALS.minutesRead },
+      { name: "Outdoor", value: data.habitsToday.outdoor_minutes, target: GOALS.minutesOutdoors },
+      { name: "Writing", value: data.habitsToday.writing_minutes, target: GOALS.writingMinutes },
+      { name: "Coding", value: data.habitsToday.coding_minutes,   target: GOALS.codingMinutes },
+      { name: "Journaling", value: data.habitsToday.journaled ? 1 : 0, target: 1 },
     ],
     consistencyBars: data.habitsConsistency.map((r) => ({
       name: r.name,
@@ -130,14 +102,18 @@ export default async function DashboardPage() {
       date: p.date,
       paceMinPerKm: +(p.pace_sec_per_km / 60).toFixed(2),
     })),
-    heatmap: data.runningHeatmap, // [{ date, km }]
+    heatmap: data.runningHeatmap,
   };
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-white dark:bg-slate-800">
-      <MapHero lat={storedLocation?.lat ?? 0} lon={storedLocation?.lon ?? 0} />
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
-        <DashboardClient travel={travel} morning={morning} rituals={rituals} running={running} />
+        <DashboardClient
+          travel={travel}
+          morning={morning}
+          rituals={rituals}
+          running={running}
+        />
       </section>
     </main>
   );
