@@ -35,7 +35,7 @@ export const ZRituals = z.object({
 export const ZCoffee = z.object({
   date: z.coerce.date(),
   time: z.string().optional(),
-  type: z.enum(["espresso", "v60", "moka", "aero", "cold_brew", "other"]),
+  type: z.enum(["espresso", "v60", "chemex", "moka", "aero", "cold_brew", "other"]),
   amount_ml: z.coerce.number().int().min(0).optional(),
   coffee_cf_id: z.string().min(1).optional(),    // Contentful Entry ID (if known)
 });
@@ -60,4 +60,24 @@ export const ZGoal = z.object({
     "coding_minutes",
   ]),
   target: z.coerce.number().min(0),
+});
+
+export const ZBodyProfileRow = z.object({
+  id: z.number().int(),
+  weight_kg: z.number().positive(),
+  height_cm: z.number().int().positive().nullable().optional(),
+  vd_l_per_kg: z.number().positive().nullable().optional(),
+  half_life_hours: z.number().positive().nullable().optional(),
+  caffeine_sensitivity: z.number().positive().nullable().optional(),
+  bioavailability: z.number().positive().max(1).nullable().optional(),
+  updated_at: z.string(),
+});
+
+export const ZBodyProfileUpsert = z.object({
+  weight_kg: z.coerce.number().positive().optional(),
+  height_cm: z.coerce.number().int().positive().optional(),
+  vd_l_per_kg: z.coerce.number().positive().optional(),
+  half_life_hours: z.coerce.number().positive().optional(),
+  caffeine_sensitivity: z.coerce.number().positive().optional(),
+  bioavailability: z.coerce.number().positive().max(1).optional(),
 });

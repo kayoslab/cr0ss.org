@@ -22,7 +22,6 @@ export const ZGoalKind = z.enum([
 
 // Morning Brew
 export const ZBrewMethodsToday = z.array(z.object({ type: ZBrewMethod, count: z.number().int() }));
-export const ZTastingThisWeek = z.array(z.object({ tasting: z.string(), count: z.number().int() }));
 export const ZCaffeineCurvePoint = z.object({ hour: z.number().int().min(0).max(23), mg: z.number().int().min(0) });
 export const ZCaffeineCurve = z.array(ZCaffeineCurvePoint);
 

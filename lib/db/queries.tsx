@@ -1,12 +1,12 @@
 import { neon } from "@neondatabase/serverless";
+import { z } from "zod";
 import {
-  ZBrewMethodsToday, ZTastingThisWeek, ZCaffeineCurve, ZConsistency,
+  ZBrewMethodsToday, ZCaffeineCurve, ZConsistency,
   ZTrend, ZScatter, ZBlocks, ZStreak, ZMonthlyProgress, ZPaceSeries, ZHeat,
   ZDayHabits,
 } from "./models";
 import { GOALS } from "./constants";
-import { getAllCoffee, getCoffees } from "../contentful/api/coffee";
-
+import { getCoffees } from "../contentful/api/coffee";
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -56,34 +56,59 @@ export async function qCoffeeOriginThisWeek() {
   return out;
 }
 
+export const ZCoffeeEvent = z.object({
+  timeISO: z.string(),
+  type: z.string(),
+  amount_ml: z.number().int().min(0).nullable().optional(),
+});
 
-// export async function qCaffeineCurveToday() {
-//   // last 24h window
-//   const start = new Date(Date.now() - 24 * 60 * 60 * 1000);
-//   const startIso = start.toISOString();
+export async function qCoffeeEventsLast24h() {
+  const startIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const rows = await sql/*sql*/`
+    select timezone('Europe/Berlin', time) as t_local, type, amount_ml
+    from coffee_log
+    where time >= ${startIso}::timestamptz
+    order by time asc
+  `;
+  const out = rows.map((r:any) => ({
+    timeISO: new Date(r.t_local).toISOString(),
+    type: String(r.type),
+    amount_ml: r.amount_ml === null ? null : Number(r.amount_ml),
+  }));
+  return z.array(ZCoffeeEvent).parse(out);
+}
 
-//   const rows = await sql/*sql*/`
-//     select
-//       extract(hour from timezone('Europe/Berlin', time))::int as hour,
-//       sum(coalesce(caffeine_mg,
-//         case type
-//           when 'espresso' then 80 when 'v60' then 120 when 'moka' then 100
-//           when 'aero' then 110 when 'cold_brew' then 150 else 90
-//         end
-//       ))::int as mg
-//     from coffee_log
-//     where time >= ${startIso}::timestamptz
-//     group by 1
-//     order by 1
-//   `;
 
-//   // Fill 0..23 with 0s so chart always has a full day
-//   const byHour = new Map(rows.map((r: any) => [Number(r.hour), Number(r.mg)]));
-//   const out = Array.from({ length: 24 }, (_, h) => ({ hour: h, mg: byHour.get(h) ?? 0 }));
+export async function qCaffeineCurveToday() {
+  // last 24h window
+  const startIso = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-//   return ZCaffeineCurve.parse(out); // <- hour is number here
-// }
+  const rows = await sql/*sql*/`
+    select
+      extract(hour from timezone('Europe/Berlin', time))::int as hour,
+      sum(
+        case type
+          when 'espresso'   then 80
+          when 'v60'        then 120
+          when 'chemex'     then 120
+          when 'moka'       then 100
+          when 'aero'       then 110
+          when 'cold_brew'  then 150
+          else 90
+        end
+      )::int as mg
+    from coffee_log
+    where time >= ${startIso}::timestamptz
+    group by 1
+    order by 1
+  `;
 
+  // Fill 0..23 with zeros so the chart always has a full day
+  const byHour = new Map(rows.map((r: any) => [Number(r.hour), Number(r.mg)]));
+  const out = Array.from({ length: 24 }, (_, h) => ({ hour: h, mg: byHour.get(h) ?? 0 }));
+
+  return ZCaffeineCurve.parse(out);
+}
 
 // ---- Daily Habits
 export async function qHabitsToday() {

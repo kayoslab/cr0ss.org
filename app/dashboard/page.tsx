@@ -8,6 +8,9 @@ import { GOALS } from "@/lib/db/constants";
 import { getAllCountries, getVisitedCountries } from '@/lib/contentful/api/country';
 import { CountryProps } from '@/lib/contentful/api/props/country';
 import { Panel } from '@/components/dashboard/charts/TremorCharts';
+import { qCoffeeEventsLast24h } from "@/lib/db/queries";
+import { modelCaffeine } from "@/lib/phys/caffeine";
+import { getBodyProfile } from "@/lib/user/profile";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = 'force-no-store';
@@ -40,6 +43,27 @@ export default async function HomeContent() {
 
     // ---------- Morning Brew ----------
     const methodsBar = data.brewMethodsToday.map(b => ({ name: b.type, value: b.count }));
+
+    const coffeeEvents = await qCoffeeEventsLast24h();
+    
+    const body = await getBodyProfile();
+    const kinetics = modelCaffeine(
+        coffeeEvents,
+        body,
+        {
+            halfLifeHours: body.half_life_hours ?? undefined,
+            gridMinutes: 15,
+        }
+    );
+
+    // Tremor prefers string x-axis labels; keep local wall-time
+    const caffeineDual = kinetics.map(p => ({
+        time: new Date(p.timeISO).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }),
+        intake_mg: p.intake_mg,
+        body_mg: p.body_mg,
+        // conc_mg_per_l: Number(p.blood_mg_per_l.toFixed(2)),
+    }));
+
 
     // ---------- Daily Rituals ----------
     const progressToday = [
@@ -117,6 +141,18 @@ export default async function HomeContent() {
                     <Bars title="Brew methods today" items={methodsBar} />
                     <Donut title="Coffee origins (7d)" data={data.coffeeOriginThisWeek} />
                 </div>
+                <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <div className="md:col-span-2">
+                        <Line
+                            title="Caffeine: intake vs body load (24h)"
+                            data={caffeineDual}
+                            index="time"
+                            categories={["intake_mg", "body_mg",]}
+                            colors={["emerald", "violet"]}
+                            showLegend={false}
+                        />
+                    </div>
+                </div>
                 </Section>
         
                 {/* 3) Daily Rituals */}
@@ -129,7 +165,7 @@ export default async function HomeContent() {
                 <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
                     <Bars title="Rituals consistency" items={consistencyBars} />
                     <div className="md:col-span-2">
-                    <Area title="Writing vs Focus" data={rhythmTrend} index="date" categories={["Writing (min)","Focus (min)"]} showLegend={false} />
+                        <Area title="Writing vs Focus" data={rhythmTrend} index="date" categories={["Writing (min)","Focus (min)"]} showLegend={false} />
                     </div>
                 </div>
                 </Section>
