@@ -45,8 +45,8 @@ export function Donut({
 }
 
 export function Line({
-  title, data, index, categories, colors = ["emerald"], type = "linear",
-}: { title:string; data:any[]; index:string; categories:string[]; colors?: string[], type?: CurveType}) {
+  title, data, index, categories, colors = ["emerald"], type = "linear", showLegend = true,
+}: { title:string; data:any[]; index:string; categories:string[]; colors?: string[], type?: CurveType, showLegend?: boolean }) {
   return (
     <Panel title={title}>
       {data.length ? (
@@ -59,6 +59,7 @@ export function Line({
             colors={colors}
             yAxisWidth={42}
             curveType={type}
+            showLegend={showLegend}
           />
         </div>
       ) : <Empty/>}
