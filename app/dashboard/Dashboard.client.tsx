@@ -5,11 +5,15 @@ import React from "react";
 import Section from "@/components/dashboard/Section";
 import { Kpi } from "@/components/dashboard/Kpi";
 import { Donut, Line, Area, Bars, Progress, Panel } from "@/components/dashboard/charts/TremorCharts";
+import MapClient, { TravelCountry } from "@/components/map.client";
 
 type TravelProps = {
   totalCountries: number;
   visitedCount: number;
   recentVisited: { id: string; name: string }[];
+  countries: TravelCountry[];
+  lat: number;
+  lon: number;
 };
 
 type MorningProps = {
@@ -47,6 +51,19 @@ export default function DashboardClient({
       {/* 1) Travel */}
       <Section title="1. Travel">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {/* Map card — full-width on mobile, spans 2 cols on md for balance */}
+          <div className="md:col-span-3">
+            <div className="relative w-full overflow-hidden rounded-xl border border-neutral-200/60 dark:border-neutral-700 shadow-sm">
+              {/* Responsive SVG inside; no fixed width → no iOS overflow */}
+              <MapClient
+                lat={travel.lat}
+                lon={travel.lon}
+                countries={travel.countries}
+                className="block w-full h-auto"
+              />
+            </div>
+          </div>
+
           <Kpi label="Visited Countries" value={travel.visitedCount} />
           <Panel title="Last Visited">
             {travel.recentVisited.length ? (
@@ -132,7 +149,7 @@ export default function DashboardClient({
           <div className="grid grid-cols-7 gap-1">
             {running.heatmap.map(({ date, km }, i) => {
               const bg = km === 0 ? "bg-neutral-800" : "bg-emerald-500";
-              const opacity = km === 0 ? 1 : 0.2 + Math.min(0.8, km / 10); // simple scaling
+              const opacity = km === 0 ? 1 : 0.2 + Math.min(0.8, km / 10);
               return (
                 <div
                   key={`${date}-${i}`}
