@@ -146,6 +146,16 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
   const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const [day, setDay] = useState<DayPayload>(emptyDay(todayStr));
 
+  // body form (controlled, stringy to preserve cursor)
+  const [bodyForm, setBodyForm] = useState({
+    weight_kg: "",
+    height_cm: "",
+    vd_l_per_kg: "",
+    half_life_hours: "",
+    caffeine_sensitivity: "",
+    bioavailability: "",
+  });
+
   // coffee form
   const [coffeeDate, setCoffeeDate] = useState<string>(todayStr);
   const [coffeeTime, setCoffeeTime] = useState<string>(() => {
@@ -172,6 +182,19 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
 
   // when method changes, prefill amount
   useEffect(() => setAmount(methodDefaults[method]), [method]);
+
+  // sync body -> bodyForm when loaded or updated
+  useEffect(() => {
+    if (!body) return;
+    setBodyForm({
+      weight_kg: body.weight_kg?.toString() ?? "",
+      height_cm: body.height_cm?.toString() ?? "",
+      vd_l_per_kg: body.vd_l_per_kg?.toString() ?? "",
+      half_life_hours: body.half_life_hours?.toString() ?? "",
+      caffeine_sensitivity: body.caffeine_sensitivity?.toString() ?? "",
+      bioavailability: body.bioavailability?.toString() ?? "",
+    });
+  }, [body]);
 
   // ---- secret validation & hydration
 
@@ -219,15 +242,30 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
     setSavingBody(true);
     try {
       const payload: any = {
-        weight_kg: (document.getElementById("weight_kg") as HTMLInputElement)?.value,
-        height_cm: (document.getElementById("height_cm") as HTMLInputElement)?.value,
-        vd_l_per_kg: (document.getElementById("vd_l_per_kg") as HTMLInputElement)?.value,
-        half_life_hours: (document.getElementById("half_life_hours") as HTMLInputElement)?.value,
-        caffeine_sensitivity: (document.getElementById("caffeine_sensitivity") as HTMLInputElement)?.value,
-        bioavailability: (document.getElementById("bioavailability") as HTMLInputElement)?.value,
+        weight_kg: bodyForm.weight_kg,
+        height_cm: bodyForm.height_cm,
+        vd_l_per_kg: bodyForm.vd_l_per_kg,
+        half_life_hours: bodyForm.half_life_hours,
+        caffeine_sensitivity: bodyForm.caffeine_sensitivity,
+        bioavailability: bodyForm.bioavailability,
       };
-      const res = await jfetch("/api/habits/body", { method: "POST", body: JSON.stringify(payload) }, secret);
-      setMsg(res.ok ? "Body profile saved." : res.error || "Failed to save body profile.");
+      const res = await jfetch<{ ok: boolean; profile?: BodyProfile }>(
+        "/api/habits/body",
+        { method: "POST", body: JSON.stringify(payload) },
+        secret
+      );
+      if (res.ok && res.json && (res.json as any).profile) {
+        const profile = (res.json as any).profile as BodyProfile;
+        setBody(profile); // triggers bodyForm sync via useEffect
+        setMsg("Body profile saved.");
+      } else if (res.ok) {
+        // Fall back: re-fetch to ensure UI sync
+        const ref = await jfetch<BodyProfile>("/api/habits/body", { method: "GET" }, secret);
+        if (ref.ok && ref.json) setBody(ref.json);
+        setMsg("Body profile saved.");
+      } else {
+        setMsg(res.error || "Failed to save body profile.");
+      }
     } finally {
       setSavingBody(false);
     }
@@ -400,13 +438,38 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         }
       >
         <div className="grid grid-cols-2 gap-4">
-          <Field id="weight_kg" label="Weight (kg)" type="text" inputMode="decimal" defaultValue={body?.weight_kg ?? ""} />
-          <Field id="height_cm" label="Height (cm)" type="text" inputMode="numeric" defaultValue={body?.height_cm ?? ""} />
-          <Field id="vd_l_per_kg" label="Vd (L/kg)" type="text" inputMode="decimal" defaultValue={body?.vd_l_per_kg ?? ""} />
-          <Field id="half_life_hours" label="Half-life (h)" type="text" inputMode="decimal" defaultValue={body?.half_life_hours ?? ""} />
-          <Field id="caffeine_sensitivity" label="Sensitivity (×)" type="text" inputMode="decimal" defaultValue={body?.caffeine_sensitivity ?? ""} />
-          <Field id="bioavailability" label="Bioavailability (0–1)" type="text" inputMode="decimal" defaultValue={body?.bioavailability ?? ""} />
-        </div>
+          <NumField
+            label="Weight (kg)"
+            value={Number(bodyForm.weight_kg) || 0}
+            onCommit={(v) => setBodyForm((f) => ({ ...f, weight_kg: String(v) }))}
+          />
+          <NumField
+            label="Height (cm)"
+            value={Number(bodyForm.height_cm) || 0}
+            onCommit={(v) => setBodyForm((f) => ({ ...f, height_cm: String(v) }))}
+          />
+          <NumField
+            label="Vd (L/kg)"
+            value={Number(bodyForm.vd_l_per_kg) || 0}
+            onCommit={(v) => setBodyForm((f) => ({ ...f, vd_l_per_kg: String(v) }))}
+          />
+          <NumField
+            label="Half-life (h)"
+            value={Number(bodyForm.half_life_hours) || 0}
+            onCommit={(v) => setBodyForm((f) => ({ ...f, half_life_hours: String(v) }))}
+          />
+          <NumField
+            label="Sensitivity (×)"
+            value={Number(bodyForm.caffeine_sensitivity) || 0}
+            onCommit={(v) => setBodyForm((f) => ({ ...f, caffeine_sensitivity: String(v) }))}
+          />
+          <NumField
+            label="Bioavailability (0–1)"
+            value={Number(bodyForm.bioavailability) || 0}
+            onCommit={(v) => setBodyForm((f) => ({ ...f, bioavailability: String(v) }))}
+          />
+      </div>
+
         <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-2">
           Forms unlock only after a valid secret. Numbers are validated client-side; server enforces types again.
         </p>
@@ -428,13 +491,13 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         }
       >
         <div className="grid grid-cols-2 gap-4">
-          <Num label="Running Distance (km)" value={goals.running_distance_km} onChange={(v)=>setGoals(g=>({...g, running_distance_km:v}))}/>
-          <Num label="Steps" value={goals.steps} onChange={(v)=>setGoals(g=>({...g, steps:v}))}/>
-          <Num label="Reading (min)" value={goals.reading_minutes} onChange={(v)=>setGoals(g=>({...g, reading_minutes:v}))}/>
-          <Num label="Outdoors (min)" value={goals.outdoor_minutes} onChange={(v)=>setGoals(g=>({...g, outdoor_minutes:v}))}/>
-          <Num label="Writing (min)" value={goals.writing_minutes} onChange={(v)=>setGoals(g=>({...g, writing_minutes:v}))}/>
-          <Num label="Coding (min)" value={goals.coding_minutes} onChange={(v)=>setGoals(g=>({...g, coding_minutes:v}))}/>
-          <Num label="Focus (min)" value={goals.focus_minutes} onChange={(v)=>setGoals(g=>({...g, focus_minutes:v}))}/>
+          <NumField label="Running Distance (km)" value={goals.running_distance_km} onCommit={(v)=>setGoals(g=>({...g, running_distance_km:v}))}/>
+          <NumField label="Steps" value={goals.steps} onCommit={(v)=>setGoals(g=>({...g, steps:v}))}/>
+          <NumField label="Reading (min)" value={goals.reading_minutes} onCommit={(v)=>setGoals(g=>({...g, reading_minutes:v}))}/>
+          <NumField label="Outdoors (min)" value={goals.outdoor_minutes} onCommit={(v)=>setGoals(g=>({...g, outdoor_minutes:v}))}/>
+          <NumField label="Writing (min)" value={goals.writing_minutes} onCommit={(v)=>setGoals(g=>({...g, writing_minutes:v}))}/>
+          <NumField label="Coding (min)" value={goals.coding_minutes} onCommit={(v)=>setGoals(g=>({...g, coding_minutes:v}))}/>
+          <NumField label="Focus (min)" value={goals.focus_minutes} onCommit={(v)=>setGoals(g=>({...g, focus_minutes:v}))}/>
         </div>
       </Card>
 
@@ -481,13 +544,13 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
       >
         <div className="grid grid-cols-2 gap-4">
           <Field label="Date" type="date" value={day.date} onChange={(e)=>setDay(d=>({...d, date:(e.target as HTMLInputElement).value}))}/>
-          <Num label="Sleep score" value={day.sleep_score} onChange={(v)=>setDay(d=>({...d, sleep_score:v}))}/>
-          <Num label="Focus (min)" value={day.focus_minutes} onChange={(v)=>setDay(d=>({...d, focus_minutes:v}))}/>
-          <Num label="Steps" value={day.steps} onChange={(v)=>setDay(d=>({...d, steps:v}))}/>
-          <Num label="Reading (min)" value={day.reading_minutes} onChange={(v)=>setDay(d=>({...d, reading_minutes:v}))}/>
-          <Num label="Outdoors (min)" value={day.outdoor_minutes} onChange={(v)=>setDay(d=>({...d, outdoor_minutes:v}))}/>
-          <Num label="Writing (min)" value={day.writing_minutes} onChange={(v)=>setDay(d=>({...d, writing_minutes:v}))}/>
-          <Num label="Coding (min)" value={day.coding_minutes} onChange={(v)=>setDay(d=>({...d, coding_minutes:v}))}/>
+          <NumField label="Sleep score" value={day.sleep_score} onCommit={(v)=>setDay(d=>({...d, sleep_score:v}))}/>
+          <NumField label="Focus (min)" value={day.focus_minutes} onCommit={(v)=>setDay(d=>({...d, focus_minutes:v}))}/>
+          <NumField label="Steps" value={day.steps} onCommit={(v)=>setDay(d=>({...d, steps:v}))}/>
+          <NumField label="Reading (min)" value={day.reading_minutes} onCommit={(v)=>setDay(d=>({...d, reading_minutes:v}))}/>
+          <NumField label="Outdoors (min)" value={day.outdoor_minutes} onCommit={(v)=>setDay(d=>({...d, outdoor_minutes:v}))}/>
+          <NumField label="Writing (min)" value={day.writing_minutes} onCommit={(v)=>setDay(d=>({...d, writing_minutes:v}))}/>
+          <NumField label="Coding (min)" value={day.coding_minutes} onCommit={(v)=>setDay(d=>({...d, coding_minutes:v}))}/>
           <Bool label="Journaled" checked={day.journaled} onChange={(v)=>setDay(d=>({...d, journaled:v}))}/>
         </div>
       </Card>
@@ -519,7 +582,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
             <option value="cold_brew">cold_brew</option>
             <option value="other">other</option>
           </SelectField>
-          <Num label="Amount (mL)" value={amount} onChange={setAmount} />
+          <NumField label="Amount (mL)" value={amount} onCommit={setAmount} />
           <SelectField label="Coffee (Contentful)" value={coffeeId} onChange={setCoffeeId}>
             <option value="">— select —</option>
             {coffees.map(c => (
@@ -547,9 +610,9 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
       >
         <div className="grid grid-cols-2 gap-4">
           <Field label="Date" type="date" value={runDate} onChange={(e)=>setRunDate((e.target as HTMLInputElement).value)} />
-          <Num label="Distance (km)" value={distanceKm} onChange={setDistanceKm}/>
-          <Num label="Duration (min)" value={durationMin} onChange={setDurationMin}/>
-          <Num label="Pace (sec/km)" value={paceSec} onChange={setPaceSec}/>
+          <NumField label="Distance (km)" value={distanceKm} onCommit={setDistanceKm}/>
+          <NumField label="Duration (min)" value={durationMin} onCommit={setDurationMin}/>
+          <NumField label="Pace (sec/km)" value={paceSec} onCommit={setPaceSec}/>
         </div>
       </Card>
 
@@ -582,24 +645,41 @@ function Field(props: React.InputHTMLAttributes<HTMLInputElement> & { label?: st
   );
 }
 
-/** Numeric text input without Safari's number spinner/scroll issues. */
-function Num({
+/**
+ * Numeric text field with internal string state to avoid focus loss and Safari scroll jumps.
+ * Commits numeric value on blur or Enter.
+ */
+function NumField({
   label,
   value,
-  onChange,
-  step,
-  min,
-  max,
+  onCommit,
   placeholder,
 }: {
   label: string;
   value: number;
-  onChange: (v: number) => void;
-  step?: string;
-  min?: number;
-  max?: number;
+  onCommit: (v: number) => void;
   placeholder?: string;
 }) {
+  const [text, setText] = useState<string>(() =>
+    Number.isFinite(value) ? String(value) : ""
+  );
+
+  // keep local text in sync when parent value changes externally
+  useEffect(() => {
+    const next = Number.isFinite(value) ? String(value) : "";
+    setText(next);
+  }, [value]);
+
+  const commit = () => {
+    const raw = text.replace(",", ".").trim();
+    if (raw === "" || raw === "-") {
+      onCommit(0);
+      return;
+    }
+    const num = Number(raw);
+    onCommit(Number.isFinite(num) ? num : 0);
+  };
+
   return (
     <div className="flex flex-col">
       <Label>{label}</Label>
@@ -608,22 +688,13 @@ function Num({
         inputMode="decimal"
         pattern="^-?[0-9]*([.,][0-9]+)?$"
         placeholder={placeholder}
-        value={Number.isFinite(value) ? String(value) : ""}
-        onChange={(e) => {
-          const raw = e.target.value.replace(",", "."); // allow comma typing
-          if (raw === "" || raw === "-") {
-            onChange(NaN as unknown as number);
-            return;
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.currentTarget.blur(); // triggers onBlur -> commit
           }
-          const num = Number(raw);
-          if (Number.isNaN(num)) {
-            // allow intermediate invalid state; do not force-change
-            e.currentTarget.value = raw;
-            return;
-          }
-          if (typeof min === "number" && num < min) return;
-          if (typeof max === "number" && num > max) return;
-          onChange(num);
         }}
         className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-slate-950 px-3 py-2"
       />
