@@ -8,7 +8,7 @@ import { GOALS } from "@/lib/db/constants";
 import { getAllCountries, getVisitedCountries } from '@/lib/contentful/api/country';
 import { CountryProps } from '@/lib/contentful/api/props/country';
 import { Panel } from '@/components/dashboard/charts/TremorCharts';
-import { qBerlinTodayBounds, qCoffeeEventsBetween } from "@/lib/db/queries";
+import { qBerlinTodayBounds, qCoffeeEventsForDayWithLookback } from "@/lib/db/queries";
 import { getBodyProfile } from "@/lib/user/profile";
 import { modelCaffeine } from "@/lib/phys/caffeine";
 
@@ -44,28 +44,28 @@ export default async function HomeContent() {
     // ---------- Morning Brew ----------
     const methodsBar = data.brewMethodsToday.map(b => ({ name: b.type, value: b.count }));
 
-    const [{ startISO, endISO }, body] = await Promise.all([
-        qBerlinTodayBounds(),
-        getBodyProfile(),
-    ]);
+    const { startISO, endISO } = await qBerlinTodayBounds();
+    // Rule of thumb: ~4 half-lives covers >93% decay. Ensure at least 24h to catch late-night cups.
+    const body = await getBodyProfile();
+    const half = body.half_life_hours ?? 5;
+    const lookbackH = Math.max(24, Math.ceil(half * 4));
+    const events = await qCoffeeEventsForDayWithLookback(startISO, endISO, lookbackH);
 
-    const coffeeEvents = await qCoffeeEventsBetween(startISO, endISO);
-
-    const kinetics = modelCaffeine(coffeeEvents, body, {
+    // Model on an *hourly* grid across exactly today (00:00..24:00), including carryover
+    const series = modelCaffeine(events, body, {
         startMs: Date.parse(startISO),
-        endMs:   Date.parse(endISO),  // exclusive
+        endMs:   Date.parse(endISO),   // exclusive
         alignToHour: true,
         gridMinutes: 60,
         halfLifeHours: body.half_life_hours ?? undefined,
     });
 
-    const caffeineDual = kinetics.map(p => ({
+    // Chart data
+    const caffeineDual = series.map(p => ({
         time: new Date(p.timeISO).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }),
         intake_mg: p.intake_mg,
         body_mg: p.body_mg,
     }));
-
-
 
     // ---------- Daily Rituals ----------
     const progressToday = [

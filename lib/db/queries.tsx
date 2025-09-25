@@ -58,7 +58,6 @@ export async function qCoffeeOriginThisWeek() {
 
 // ---- Caffeine Kinetics ----
 
-/** Returns UTC ISO for Berlin’s 00:00 today and 00:00 tomorrow (exclusive end). */
 export async function qBerlinTodayBounds() {
   const rows = await sql/*sql*/`
     select
@@ -79,16 +78,20 @@ export const ZCoffeeEvent = z.object({
   amount_ml: z.number().int().min(0).nullable().optional(),
 });
 
-export async function qCoffeeEventsBetween(startISO: string, endISO: string) {
+export async function qCoffeeEventsForDayWithLookback(dayStartISO: string, dayEndISO: string, lookbackHours: number) {
+  const startMs = Date.parse(dayStartISO) - Math.max(0, lookbackHours) * 60 * 60 * 1000;
+  const lookbackStartISO = new Date(startMs).toISOString();
+
   const rows = await sql/*sql*/`
     select timezone('Europe/Berlin', time) as t_local, type, amount_ml
     from coffee_log
-    where time >= ${startISO}::timestamptz
-      and time <  ${endISO}::timestamptz
+    where time >= ${lookbackStartISO}::timestamptz
+      and time <  ${dayEndISO}::timestamptz
     order by time asc
   `;
+
   const out = rows.map((r:any) => ({
-    timeISO: new Date(r.t_local).toISOString(),      // normalize to ISO UTC
+    timeISO: new Date(r.t_local).toISOString(),               // normalize to ISO UTC
     type: String(r.type),
     amount_ml: r.amount_ml === null ? null : Number(r.amount_ml),
   }));
