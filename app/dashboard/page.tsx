@@ -44,25 +44,23 @@ export default async function HomeContent() {
     // ---------- Morning Brew ----------
     const methodsBar = data.brewMethodsToday.map(b => ({ name: b.type, value: b.count }));
 
-    const coffeeEvents = await qCoffeeEventsLast24h();
-    
-    const body = await getBodyProfile();
-    const kinetics = modelCaffeine(
-        coffeeEvents,
-        body,
-        {
-            halfLifeHours: body.half_life_hours ?? undefined,
-            gridMinutes: 15,
-        }
-    );
+    const [coffeeEvents, body] = await Promise.all([
+        qCoffeeEventsLast24h(),
+        getBodyProfile(),
+    ]);
 
-    // Tremor prefers string x-axis labels; keep local wall-time
+    const kinetics = modelCaffeine(coffeeEvents, body, {
+        halfLifeHours: body.half_life_hours ?? undefined, // optional override
+        gridMinutes: 15,
+    });
+
     const caffeineDual = kinetics.map(p => ({
         time: new Date(p.timeISO).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }),
         intake_mg: p.intake_mg,
         body_mg: p.body_mg,
-        // conc_mg_per_l: Number(p.blood_mg_per_l.toFixed(2)),
+        // conc_mg_per_l: Number(p.blood_mg_per_l.toFixed(2)), // if you want a KPI
     }));
+
 
 
     // ---------- Daily Rituals ----------
