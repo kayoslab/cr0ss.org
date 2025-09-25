@@ -36,22 +36,6 @@ function Spinner({ className }: { className?: string }) {
   );
 }
 
-async function flushActiveEdits() {
-  // Force the currently focused input to blur so onBlur commits run.
-  if (typeof document !== "undefined" && document.activeElement instanceof HTMLElement) {
-    document.activeElement.blur();
-  }
-  // Let React process onBlur state updates before we read the state.
-  await new Promise<void>((r) => setTimeout(r, 0));
-}
-
-function preCommitPointerDown() {
-  // Run before the button’s click handler so inputs lose focus immediately.
-  if (typeof document !== "undefined" && document.activeElement instanceof HTMLElement) {
-    document.activeElement.blur();
-  }
-}
-
 // ---------- types (aligned with your APIs)
 
 type BodyProfile = {
@@ -214,7 +198,8 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
 
   // ---- secret validation & hydration
 
-  async function handleSaveSecret() {
+  async function handleSaveSecret(e?: React.FormEvent) {
+    e?.preventDefault();
     setMsg(null);
     setChecking(true);
     try {
@@ -253,9 +238,9 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
 
   // ---- submitters
 
-  async function submitBody() {
+  async function submitBody(e?: React.FormEvent) {
+    e?.preventDefault();
     if (!secretOK) return setMsg("Enter a valid secret first.");
-    await flushActiveEdits(); 
     setSavingBody(true);
     try {
       const payload: any = {
@@ -276,7 +261,6 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         setBody(profile); // triggers bodyForm sync via useEffect
         setMsg("Body profile saved.");
       } else if (res.ok) {
-        // Fall back: re-fetch to ensure UI sync
         const ref = await jfetch<BodyProfile>("/api/habits/body", { method: "GET" }, secret);
         if (ref.ok && ref.json) setBody(ref.json);
         setMsg("Body profile saved.");
@@ -288,9 +272,9 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
     }
   }
 
-  async function submitGoals() {
+  async function submitGoals(e?: React.FormEvent) {
+    e?.preventDefault();
     if (!secretOK) return setMsg("Enter a valid secret first.");
-    await flushActiveEdits();
     setSavingGoals(true);
     try {
       const payload = goals;
@@ -301,9 +285,9 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
     }
   }
 
-  async function submitDay() {
+  async function submitDay(e?: React.FormEvent) {
+    e?.preventDefault();
     if (!secretOK) return setMsg("Enter a valid secret first.");
-    await flushActiveEdits();
     setSavingDay(true);
     try {
       const numericKeys: (keyof DayPayload)[] = [
@@ -323,6 +307,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
       const res = await jfetch("/api/habits/day", { method: "POST", body: JSON.stringify(day) }, secret);
       if (res.ok) {
         setMsg("Day logged.");
+        // Do NOT reset fields; keep them reflecting DB/current state
       } else {
         setMsg(res.error || "Failed to log day.");
       }
@@ -331,9 +316,9 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
     }
   }
 
-  async function submitCoffee() {
+  async function submitCoffee(e?: React.FormEvent) {
+    e?.preventDefault();
     if (!secretOK) return setMsg("Enter a valid secret first.");
-    await flushActiveEdits();
     setSavingCoffee(true);
     try {
       const payload: CoffeeLogPayload = {
@@ -346,7 +331,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
       const res = await jfetch("/api/habits/coffee", { method: "POST", body: JSON.stringify(payload) }, secret);
       if (res.ok) {
         setMsg("Coffee logged.");
-        // reset this section (keep date)
+        // Optional reset (kept as before)
         const now = new Date();
         const hh = String(now.getHours()).padStart(2, "0");
         const mm = String(now.getMinutes()).padStart(2, "0");
@@ -360,9 +345,9 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
     }
   }
 
-  async function submitRun() {
+  async function submitRun(e?: React.FormEvent) {
+    e?.preventDefault();
     if (!secretOK) return setMsg("Enter a valid secret first.");
-    await flushActiveEdits();
     setSavingRun(true);
     try {
       const payload: RunPayload = {
@@ -412,9 +397,8 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         title="API Secret"
         footer={
           <button
-            type="button"
-            onMouseDown={preCommitPointerDown}
-            onClick={handleSaveSecret}
+            type="submit"
+            form="form-secret"
             disabled={checking || !secret}
             className={cls(
               "px-4 py-2 rounded-md",
@@ -426,7 +410,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
           </button>
         }
       >
-        <div className="flex gap-3 items-end">
+        <form id="form-secret" onSubmit={handleSaveSecret} className="flex gap-3 items-end">
           <div className="flex-1">
             <Label>Secret</Label>
             <input
@@ -440,7 +424,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
           <span className={cls("text-sm", secretOK ? "text-emerald-600" : "text-neutral-500")}>
             {secretOK ? "Valid" : "Enter secret to unlock forms"}
           </span>
-        </div>
+        </form>
       </Card>
 
       {/* Body Data */}
@@ -448,9 +432,8 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         title="Body Data"
         footer={
           <button
-            type="button"
-            onMouseDown={preCommitPointerDown}
-            onClick={submitBody}
+            type="submit"
+            form="form-body"
             className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50 flex items-center gap-2"
             disabled={!secretOK || savingBody}
           >
@@ -459,7 +442,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
           </button>
         }
       >
-        <div className="grid grid-cols-2 gap-4">
+        <form id="form-body" onSubmit={submitBody} className="grid grid-cols-2 gap-4">
           <NumField
             label="Weight (kg)"
             value={Number(bodyForm.weight_kg) || 0}
@@ -490,8 +473,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
             value={Number(bodyForm.bioavailability) || 0}
             onCommit={(v) => setBodyForm((f) => ({ ...f, bioavailability: String(v) }))}
           />
-      </div>
-
+        </form>
         <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-2">
           Forms unlock only after a valid secret. Numbers are validated client-side; server enforces types again.
         </p>
@@ -502,9 +484,8 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         title="Goal Data (this month)"
         footer={
           <button
-            type="button"
-            onMouseDown={preCommitPointerDown}
-            onClick={submitGoals}
+            type="submit"
+            form="form-goals"
             className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50 flex items-center gap-2"
             disabled={!secretOK || savingGoals}
           >
@@ -513,7 +494,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
           </button>
         }
       >
-        <div className="grid grid-cols-2 gap-4">
+        <form id="form-goals" onSubmit={submitGoals} className="grid grid-cols-2 gap-4">
           <NumField label="Running Distance (km)" value={goals.running_distance_km} onCommit={(v)=>setGoals(g=>({...g, running_distance_km:v}))}/>
           <NumField label="Steps" value={goals.steps} onCommit={(v)=>setGoals(g=>({...g, steps:v}))}/>
           <NumField label="Reading (min)" value={goals.reading_minutes} onCommit={(v)=>setGoals(g=>({...g, reading_minutes:v}))}/>
@@ -521,7 +502,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
           <NumField label="Writing (min)" value={goals.writing_minutes} onCommit={(v)=>setGoals(g=>({...g, writing_minutes:v}))}/>
           <NumField label="Coding (min)" value={goals.coding_minutes} onCommit={(v)=>setGoals(g=>({...g, coding_minutes:v}))}/>
           <NumField label="Focus (min)" value={goals.focus_minutes} onCommit={(v)=>setGoals(g=>({...g, focus_minutes:v}))}/>
-        </div>
+        </form>
       </Card>
 
       {/* Coffee Data (Contentful) */}
@@ -555,9 +536,8 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         title="Log Day"
         footer={
           <button
-            type="button"
-            onMouseDown={preCommitPointerDown}
-            onClick={submitDay}
+            type="submit"
+            form="form-day"
             className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50 flex items-center gap-2"
             disabled={!secretOK || savingDay}
           >
@@ -566,7 +546,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
           </button>
         }
       >
-        <div className="grid grid-cols-2 gap-4">
+        <form id="form-day" onSubmit={submitDay} className="grid grid-cols-2 gap-4">
           <Field label="Date" type="date" value={day.date} onChange={(e)=>setDay(d=>({...d, date:(e.target as HTMLInputElement).value}))}/>
           <NumField label="Sleep score" value={day.sleep_score} onCommit={(v)=>setDay(d=>({...d, sleep_score:v}))}/>
           <NumField label="Focus (min)" value={day.focus_minutes} onCommit={(v)=>setDay(d=>({...d, focus_minutes:v}))}/>
@@ -576,7 +556,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
           <NumField label="Writing (min)" value={day.writing_minutes} onCommit={(v)=>setDay(d=>({...d, writing_minutes:v}))}/>
           <NumField label="Coding (min)" value={day.coding_minutes} onCommit={(v)=>setDay(d=>({...d, coding_minutes:v}))}/>
           <Bool label="Journaled" checked={day.journaled} onChange={(v)=>setDay(d=>({...d, journaled:v}))}/>
-        </div>
+        </form>
       </Card>
 
       {/* Log Coffee */}
@@ -584,9 +564,8 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         title="Log Coffee"
         footer={
           <button
-            type="button"
-            onMouseDown={preCommitPointerDown}
-            onClick={submitCoffee}
+            type="submit"
+            form="form-coffee"
             className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50 flex items-center gap-2"
             disabled={!secretOK || savingCoffee}
           >
@@ -595,7 +574,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
           </button>
         }
       >
-        <div className="grid grid-cols-2 gap-4">
+        <form id="form-coffee" onSubmit={submitCoffee} className="grid grid-cols-2 gap-4">
           <Field label="Date" type="date" value={coffeeDate} onChange={(e)=>setCoffeeDate((e.target as HTMLInputElement).value)} />
           <TimeField label="Time" value={coffeeTime} onChange={setCoffeeTime} />
           <SelectField label="Method" value={method} onChange={(v)=>setMethod(v as CoffeeBrewingMethod)}>
@@ -615,7 +594,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
             ))}
             <option value="0">None</option>
           </SelectField>
-        </div>
+        </form>
       </Card>
 
       {/* Log Run */}
@@ -623,9 +602,8 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         title="Log Run"
         footer={
           <button
-            type="button"
-            onMouseDown={preCommitPointerDown}
-            onClick={submitRun}
+            type="submit"
+            form="form-run"
             className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50 flex items-center gap-2"
             disabled={!secretOK || savingRun}
           >
@@ -634,12 +612,12 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
           </button>
         }
       >
-        <div className="grid grid-cols-2 gap-4">
+        <form id="form-run" onSubmit={submitRun} className="grid grid-cols-2 gap-4">
           <Field label="Date" type="date" value={runDate} onChange={(e)=>setRunDate((e.target as HTMLInputElement).value)} />
           <NumField label="Distance (km)" value={distanceKm} onCommit={setDistanceKm}/>
           <NumField label="Duration (min)" value={durationMin} onCommit={setDurationMin}/>
           <NumField label="Pace (sec/km)" value={paceSec} onCommit={setPaceSec}/>
-        </div>
+        </form>
       </Card>
 
       {msg && <div className="text-sm text-neutral-600 dark:text-neutral-400">{msg}</div>}
@@ -719,7 +697,8 @@ function NumField({
         onBlur={commit}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
-            e.currentTarget.blur(); // triggers onBlur -> commit
+            e.preventDefault(); // prevent form from submitting before commit
+            commit();
           }
         }}
         className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-slate-950 px-3 py-2"
@@ -796,7 +775,6 @@ function TimeField({
         />
         <button
           type="button"
-          onMouseDown={preCommitPointerDown}
           onClick={() => {
             const now = new Date();
             const hh = String(now.getHours()).padStart(2, "0");
