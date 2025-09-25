@@ -1,5 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import { ZBodyProfileRow } from "@/lib/db/validation";
+import { z } from "zod";
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -22,7 +23,7 @@ export async function getBodyProfileDB() {
   return ZBodyProfileRow.parse(out);
 }
 
-export async function upsertBodyProfileDB(p: Partial<Zod.infer<typeof ZBodyProfileRow>>) {
+export async function upsertBodyProfileDB(p: Partial<z.infer<typeof ZBodyProfileRow>>) {
   const rows = await sql/*sql*/`
     UPDATE body_profile SET
       weight_kg = COALESCE(${p.weight_kg ?? null}, weight_kg),
