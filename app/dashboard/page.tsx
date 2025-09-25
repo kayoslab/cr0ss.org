@@ -1,197 +1,132 @@
-import Map from '@/components/map';
+// app/dashboard/page.tsx
+import React from "react";
+import NextDynamic from "next/dynamic";
+import Map from "@/components/map";
+
 import { kv } from "@vercel/kv";
 import { getDashboardData } from "@/lib/cache/dashboard";
-import Section from "@/components/dashboard/Section";
-import { Kpi } from "@/components/dashboard/Kpi";
-import { Donut, Line, Area, Scatter, Bars, Progress } from "@/components/dashboard/charts/TremorCharts";
-import { GOALS } from "@/lib/db/constants";
-import { getAllCountries, getVisitedCountries } from '@/lib/contentful/api/country';
-import { CountryProps } from '@/lib/contentful/api/props/country';
-import { Panel } from '@/components/dashboard/charts/TremorCharts';
+import { getAllCountries, getVisitedCountries } from "@/lib/contentful/api/country";
+import { CountryProps } from "@/lib/contentful/api/props/country";
 import { qBerlinTodayBounds, qCoffeeEventsForDayWithLookback } from "@/lib/db/queries";
 import { getBodyProfile } from "@/lib/user/profile";
 import { modelCaffeine } from "@/lib/phys/caffeine";
+import { GOALS } from "@/lib/db/constants";
 
 export const dynamic = "force-dynamic";
-export const fetchCache = 'force-no-store';
+export const fetchCache = "force-no-store";
 
-function Heatmap({ days }:{ days: { date: string; km: number }[] }) {
-    const max = Math.max(1, ...days.map(d=> d.km));
-    return (
-        <div className="grid grid-cols-7 gap-1">
-            {days.map(({ date, km }, i) => {
-                const intensity = km === 0 ? 0 : Math.max(0.2, km/max); // 0 -> gray; else scale
-                const bg = km === 0 ? "bg-neutral-800" : "bg-green-500";
-                const style = km === 0 ? {} : { opacity: intensity };
-                return (
-                    <div key={date+"-"+i} className={`h-4 w-4 rounded-sm ${bg}`} title={`${date}: ${km.toFixed(2)} km`} style={style} />
-                );
-            })}
+// Client-only widgets/charts
+const DashboardClient = NextDynamic(() => import("./Dashboard.client"), { ssr: false });
+
+function MapHero({ lat, lon }: { lat: number; lon: number }) {
+  // Transparent wrapper; clipped and responsive. No bg-* here.
+  return (
+    <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-12">
+      <div
+        className="
+          relative w-full overflow-hidden rounded-xl
+          border border-neutral-200/60 dark:border-neutral-700 shadow-sm
+        "
+      >
+        <div className="w-full">
+          <Map lat={lat} lon={lon} className="block w-full h-auto" />
         </div>
-    );
+      </div>
+    </section>
+  );
 }
 
+export default async function DashboardPage() {
+  // ---- live location from KV
+  const storedLocation = await kv.get<{ lat: number; lon: number }>("GEOLOCATION");
 
-export default async function HomeContent() {
-    const locationKey = 'GEOLOCATION';
-    const storedLocation = await kv.get<{ lat: number; lon: number }>(locationKey);
-    const data = await getDashboardData();
+  // ---- cached server data for dashboard
+  const data = await getDashboardData();
 
-    // ---------- Country Data ----------
-    const countries = await getAllCountries();
-    const visitedCountries = await getVisitedCountries(true);
+  // ---- countries (server-only)
+  const countries = (await getAllCountries()) ?? [];
+  const visited = (await getVisitedCountries(true)) ?? [];
 
-    // ---------- Morning Brew ----------
-    const methodsBar = data.brewMethodsToday.map(b => ({ name: b.type, value: b.count }));
+  // ---- caffeine modeling (server)
+  const { startISO, endISO } = await qBerlinTodayBounds();
+  const body = await getBodyProfile();
+  const half = body.half_life_hours ?? 5;
+  const lookbackH = Math.max(24, Math.ceil(half * 4)); // capture carry-over
 
-    const { startISO, endISO } = await qBerlinTodayBounds();
-    // Rule of thumb: ~4 half-lives covers >93% decay. Ensure at least 24h to catch late-night cups.
-    const body = await getBodyProfile();
-    const half = body.half_life_hours ?? 5;
-    const lookbackH = Math.max(24, Math.ceil(half * 4));
-    const events = await qCoffeeEventsForDayWithLookback(startISO, endISO, lookbackH);
+  const events = await qCoffeeEventsForDayWithLookback(startISO, endISO, lookbackH);
 
-    // Model on an *hourly* grid across exactly today (00:00..24:00), including carryover
-    const series = modelCaffeine(events, body, {
-        startMs: Date.parse(startISO),
-        endMs:   Date.parse(endISO),   // exclusive
-        alignToHour: true,
-        gridMinutes: 60,
-        halfLifeHours: body.half_life_hours ?? undefined,
-    });
+  const series = modelCaffeine(events, body, {
+    startMs: Date.parse(startISO),
+    endMs: Date.parse(endISO),
+    alignToHour: true,
+    gridMinutes: 60,
+    halfLifeHours: body.half_life_hours ?? undefined,
+  });
 
-    // Chart data
-    const caffeineDual = series.map(p => ({
-        time: new Date(p.timeISO).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }),
-        intake_mg: p.intake_mg,
-        body_mg: p.body_mg,
-    }));
+  // ---- shape props for client
 
-    // ---------- Daily Rituals ----------
-    const progressToday = [
-        {
-            name: "Steps",
-            value: data.habitsToday.steps,
-            target: GOALS.steps 
-        }, {
-            name: "Reading",
-            value: data.habitsToday.reading_minutes,
-            target: GOALS.minutesRead
-        }, {
-            name: "Outdoor",
-            value: data.habitsToday.outdoor_minutes,
-            target: GOALS.minutesOutdoors
-        }, {
-            name: "Writing",
-            value: data.habitsToday.writing_minutes,
-            target: GOALS.writingMinutes
-        },  {
-            name: "Coding",
-            value: data.habitsToday.coding_minutes,
-            target: GOALS.codingMinutes
-        }, {
-            name: "Journaling",
-            value: data.habitsToday.journaled ? 1 : 0,
-            target: 1
-        },
-    ];
-    
-    const consistencyBars = data.habitsConsistency.map(r => ({
-        name: r.name, 
-        value: Math.round((r.kept / Math.max(1, r.total)) * 100)
-    })); // show % kept
-    const rhythmTrend = data.writingVsFocus.map(d => ({ 
-        date: d.date, 
-        "Writing (min)": d.writing_minutes, 
-        "Focus (min)": d.focus_minutes 
-    }));
+  const travel = {
+    totalCountries: countries.length,
+    visitedCount: visited.length,
+    recentVisited: (visited as CountryProps[]).slice(0, 5).map((c) => ({ id: c.id, name: c.name })),
+  };
 
-    // ---------- Focus & Flow ----------
-    const scatter = data.sleepVsFocus.map(d => ({ date: d.date, sleep: d.sleep_score, focus: d.focus_minutes }));
-    const blocksArea = data.deepWorkBlocks.map(d => ({ date: d.date, blocks: d.blocks }));
+  const morning = {
+    cupsToday: data.cupsToday,
+    methodsBar: data.brewMethodsToday.map((b) => ({ name: b.type, value: b.count })),
+    originsDonut: data.coffeeOriginThisWeek,
+    caffeineDual: series.map((p) => ({
+      time: new Date(p.timeISO).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }),
+      intake_mg: p.intake_mg,
+      body_mg: p.body_mg,
+    })),
+  };
 
-    // ---------- Running & Movement ---------- 
-    const pace = data.paceSeries.map(p => ({
-        date: p.date,
-        "Pace (min/km)": +(p.pace_sec_per_km/60).toFixed(2),
-    }));
+  const rituals = {
+    progressToday: [
+      { name: "Steps", value: data.habitsToday.steps, target: GOALS.steps },
+      { name: "Reading", value: data.habitsToday.reading_minutes, target: GOALS.minutesRead },
+      { name: "Outdoor", value: data.habitsToday.outdoor_minutes, target: GOALS.minutesOutdoors },
+      { name: "Writing", value: data.habitsToday.writing_minutes, target: GOALS.writingMinutes },
+      { name: "Coding", value: data.habitsToday.coding_minutes, target: GOALS.codingMinutes },
+      { name: "Journaling", value: data.habitsToday.journaled ? 1 : 0, target: 1 },
+    ],
+    consistencyBars: data.habitsConsistency.map((r) => ({
+      name: r.name,
+      value: Math.round((r.kept / Math.max(1, r.total)) * 100),
+    })),
+    rhythmTrend: data.writingVsFocus.map((d) => ({
+      date: d.date,
+      "Writing (min)": d.writing_minutes,
+      "Focus (min)": d.focus_minutes,
+    })),
+  };
 
-    return (
-        <main className="items-center justify-between min-h-screen">
-            <div className="relative z-[-1] flex justify-center place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] dark:before:bg-linear-to-br dark:before:from-transparent dark:before:to-blue-700 dark:before:opacity-10 dark:after:from-sky-900 dark:after:via-[#0141ff] dark:after:opacity-40 sm:before:w-[480px] sm:after:w-[240px] lg:before:h-[360px] pb-24 py-24">
-                <Map lat={storedLocation?.lat ?? 0} lon={storedLocation?.lon ?? 0} />
-            </div>
-            <div className="mx-auto max-w-7xl px-6 py-10 space-y-10">
-                {/* 1) Morning Brew */}
-                <Section title="1. Travel">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <Kpi label="Visited Countries" value={visitedCountries?.length ?? 0} />
-                    {/* <Bars title="" items={(visitedCountries?.map((country: CountryProps) => ({ name: country.name, value: 1 })) ?? []).slice(0, 5)} /> */}
-                    <Panel title={'Last Visited'}>
-                        {(visitedCountries ?? []).slice(0, 5).map((country: CountryProps) => (
-                            <div key={country.id} className="text-m">{country.name} ({country.id})</div>
-                        ))}
-                    </Panel>
-                    <Donut title="Countries" data={[{ name: 'Visited', value: visitedCountries?.length ?? 0 }, { name: 'Not Visited', value: (countries?.length ?? 0) - (visitedCountries?.length ?? 0) }]} />
-                </div>
-                </Section>
-                
-                {/* 2) Morning Brew */}
-                <Section title="2. Morning Brew">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <Kpi label="Cups Today" value={data.cupsToday} />
-                    <Bars title="Brew methods today" items={methodsBar} />
-                    <Donut title="Coffee origins (7d)" data={data.coffeeOriginThisWeek} />
-                </div>
-                <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div className="md:col-span-2">
-                        <Line
-                            title="Caffeine: intake vs body load (24h)"
-                            data={caffeineDual}
-                            index="time"
-                            categories={["intake_mg", "body_mg",]}
-                            colors={["emerald", "violet"]}
-                            showLegend={false}
-                        />
-                    </div>
-                </div>
-                </Section>
-        
-                {/* 3) Daily Rituals */}
-                <Section title="3. Daily Rituals">
-                <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                    {progressToday.map((p) => (
-                    <Progress title={`${p.name} Goal Progress`} key={p.name} value={p.value} target={p.target} />
-                    ))}
-                </div>
-                <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <Bars title="Rituals consistency" items={consistencyBars} />
-                    <div className="md:col-span-2">
-                        <Area title="Writing vs Focus" data={rhythmTrend} index="date" categories={["Writing (min)","Focus (min)"]} showLegend={false} />
-                    </div>
-                </div>
-                </Section>
-        
-                {/* 4) Running & Movement */}
-                <Section title="4. Running & Movement">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <Kpi label="This Month (km)" value={data.runningProgress.total_km.toFixed(1)} />
-                    <Kpi label="Goal (km)" value={data.runningProgress.target_km.toFixed(1)} />
-                    <Kpi label="Delta (km)" value={data.runningProgress.delta_km.toFixed(1)} />
-                </div>
-                <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <Progress title="Running Progress" value={data.runningProgress.total_km} target={data.runningProgress.target_km} />
-                    <div className="md:col-span-2">
-                    <Line title="Pace (min/km)" data={pace} index="date" categories={["Pace (min/km)"]} />
-                    </div>
-                </div>
-                <div className="mt-4">
-                    <h3 className="mb-2 text-sm font-medium text-neutral-400">Running Heatmap (last 6 weeks)</h3>
-                    <Heatmap days={data.runningHeatmap} />
-                </div>
-                </Section>
-            </div>
-            <div className="space-y-16"></div>
-        </main>
-    );
+  const running = {
+    progress: {
+      target_km: data.runningProgress.target_km,
+      total_km: data.runningProgress.total_km,
+      delta_km: data.runningProgress.delta_km,
+    },
+    paceSeries: data.paceSeries.map((p) => ({
+      date: p.date,
+      paceMinPerKm: +(p.pace_sec_per_km / 60).toFixed(2),
+    })),
+    heatmap: data.runningHeatmap, // [{ date, km }]
+  };
+
+  return (
+    <main className="min-h-screen overflow-x-hidden bg-white dark:bg-slate-800">
+      <MapHero lat={storedLocation?.lat ?? 0} lon={storedLocation?.lon ?? 0} />
+
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+        <DashboardClient
+          travel={travel}
+          morning={morning}
+          rituals={rituals}
+          running={running}
+        />
+      </section>
+    </main>
+  );
 }
