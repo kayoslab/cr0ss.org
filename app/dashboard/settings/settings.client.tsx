@@ -2,7 +2,9 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 
-// ---------- small helpers
+/* --------------------------------------------------------
+   small helpers
+--------------------------------------------------------- */
 
 const cls = (...a: (string | false | null | undefined)[]) => a.filter(Boolean).join(" ");
 
@@ -36,7 +38,58 @@ function Spinner({ className }: { className?: string }) {
   );
 }
 
-// ---------- types (aligned with your APIs)
+/* --------------------------------------------------------
+   Keyboard helpers (submit with ⌘/Ctrl+Enter, Esc to blur,
+   ↑/↓ to step numbers, ⇧ = ×10)
+--------------------------------------------------------- */
+
+function makeFormHotkeys(onSubmit: () => void) {
+  return (e: React.KeyboardEvent) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+      e.preventDefault();
+      // blur to commit any active field then submit
+      (document.activeElement as HTMLElement | null)?.blur();
+      onSubmit();
+    } else if (e.key === "Escape") {
+      (e.target as HTMLElement).blur();
+    }
+  };
+}
+
+function mkNumberKeydownHandler(opts: { onSubmit?: () => void; step?: number } = {}) {
+  const baseStep = opts.step ?? 1;
+  return (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Submit: Cmd/Ctrl + Enter
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+      e.preventDefault();
+      (document.activeElement as HTMLElement | null)?.blur();
+      opts.onSubmit?.();
+      return;
+    }
+    // Escape: blur
+    if (e.key === "Escape") {
+      (e.currentTarget as HTMLInputElement).blur();
+      return;
+    }
+    // Arrow up/down: increment/decrement value
+    if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+      const dir = e.key === "ArrowUp" ? 1 : -1;
+      const step = e.shiftKey ? baseStep * 10 : baseStep;
+      const current = Number((e.currentTarget.value || "0").replace(",", "."));
+      const next = current + dir * step;
+      e.preventDefault();
+      const t = e.currentTarget;
+      t.value = String(next);
+      // Fire an input event so React updates controlled state
+      const ev = new Event("input", { bubbles: true });
+      t.dispatchEvent(ev as any);
+    }
+  };
+}
+
+/* --------------------------------------------------------
+   types (aligned with your APIs)
+--------------------------------------------------------- */
 
 type BodyProfile = {
   weight_kg: number;
@@ -88,7 +141,9 @@ type RunPayload = {
 
 type CoffeeRow = { id: string; name: string; roaster: string };
 
-// ---------- defaults
+/* --------------------------------------------------------
+   defaults
+--------------------------------------------------------- */
 
 const methodDefaults: Record<CoffeeBrewingMethod, number> = {
   espresso: 38,
@@ -122,7 +177,9 @@ const emptyDay = (dateStr: string): DayPayload => ({
   journaled: false,
 });
 
-// ---------- main component
+/* --------------------------------------------------------
+   main component
+--------------------------------------------------------- */
 
 export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
   // secret gate
@@ -196,7 +253,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
     });
   }, [body]);
 
-  // ---- secret validation & hydration
+  /* ---------------- secret validation & hydration ---------------- */
 
   async function handleSaveSecret(e?: React.FormEvent) {
     e?.preventDefault();
@@ -236,7 +293,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
     }
   }
 
-  // ---- submitters
+  /* ---------------- submitters ---------------- */
 
   async function submitBody(e?: React.FormEvent) {
     e?.preventDefault();
@@ -307,7 +364,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
       const res = await jfetch("/api/habits/day", { method: "POST", body: JSON.stringify(day) }, secret);
       if (res.ok) {
         setMsg("Day logged.");
-        // Do NOT reset fields; keep them reflecting DB/current state
+        // Keep form values so they reflect DB state; no reset here
       } else {
         setMsg(res.error || "Failed to log day.");
       }
@@ -331,7 +388,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
       const res = await jfetch("/api/habits/coffee", { method: "POST", body: JSON.stringify(payload) }, secret);
       if (res.ok) {
         setMsg("Coffee logged.");
-        // Optional reset (kept as before)
+        // Optional reset; keep date and method defaults reasonable
         const now = new Date();
         const hh = String(now.getHours()).padStart(2, "0");
         const mm = String(now.getMinutes()).padStart(2, "0");
@@ -368,7 +425,9 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
     }
   }
 
-  // ---------- UI bits
+  /* --------------------------------------------------------
+     UI bits
+  --------------------------------------------------------- */
 
   function Card({
     title,
@@ -388,9 +447,19 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
     );
   }
 
+  // Button helper: keep buttons clickable even while an input is focused
+  const blurOnMouseDown = {
+    onMouseDown: () => (document.activeElement as HTMLElement | null)?.blur(),
+  };
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 space-y-8">
       <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Dashboard Settings</h1>
+
+      {/* status region for SR announcement */}
+      <div role="status" aria-live="polite" className="sr-only">
+        {msg || ""}
+      </div>
 
       {/* Secret */}
       <Card
@@ -400,6 +469,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
             type="submit"
             form="form-secret"
             disabled={checking || !secret}
+            {...blurOnMouseDown}
             className={cls(
               "px-4 py-2 rounded-md",
               "bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50 flex items-center gap-2"
@@ -410,15 +480,24 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
           </button>
         }
       >
-        <form id="form-secret" onSubmit={handleSaveSecret} className="flex gap-3 items-end">
+        <form
+          id="form-secret"
+          onSubmit={handleSaveSecret}
+          onKeyDown={makeFormHotkeys(() => handleSaveSecret())}
+          className="flex gap-3 items-end"
+        >
           <div className="flex-1">
             <Label>Secret</Label>
             <input
               type="password"
               value={secret}
               onChange={(e) => setSecret(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") (e.currentTarget as HTMLInputElement).blur();
+              }}
               className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-slate-950 px-3 py-2"
               placeholder="x-vercel-revalidation-key"
+              autoComplete="off"
             />
           </div>
           <span className={cls("text-sm", secretOK ? "text-emerald-600" : "text-neutral-500")}>
@@ -434,6 +513,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
           <button
             type="submit"
             form="form-body"
+            {...blurOnMouseDown}
             className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50 flex items-center gap-2"
             disabled={!secretOK || savingBody}
           >
@@ -442,36 +522,47 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
           </button>
         }
       >
-        <form id="form-body" onSubmit={submitBody} className="grid grid-cols-2 gap-4">
+        <form
+          id="form-body"
+          onSubmit={submitBody}
+          onKeyDown={makeFormHotkeys(() => submitBody())}
+          className="grid grid-cols-2 gap-4"
+        >
           <NumField
             label="Weight (kg)"
             value={Number(bodyForm.weight_kg) || 0}
             onCommit={(v) => setBodyForm((f) => ({ ...f, weight_kg: String(v) }))}
+            onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitBody(), step: 0.1 })}
           />
           <NumField
             label="Height (cm)"
             value={Number(bodyForm.height_cm) || 0}
             onCommit={(v) => setBodyForm((f) => ({ ...f, height_cm: String(v) }))}
+            onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitBody(), step: 1 })}
           />
           <NumField
             label="Vd (L/kg)"
             value={Number(bodyForm.vd_l_per_kg) || 0}
             onCommit={(v) => setBodyForm((f) => ({ ...f, vd_l_per_kg: String(v) }))}
+            onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitBody(), step: 0.1 })}
           />
           <NumField
             label="Half-life (h)"
             value={Number(bodyForm.half_life_hours) || 0}
             onCommit={(v) => setBodyForm((f) => ({ ...f, half_life_hours: String(v) }))}
+            onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitBody(), step: 0.1 })}
           />
           <NumField
             label="Sensitivity (×)"
             value={Number(bodyForm.caffeine_sensitivity) || 0}
             onCommit={(v) => setBodyForm((f) => ({ ...f, caffeine_sensitivity: String(v) }))}
+            onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitBody(), step: 0.1 })}
           />
           <NumField
             label="Bioavailability (0–1)"
             value={Number(bodyForm.bioavailability) || 0}
             onCommit={(v) => setBodyForm((f) => ({ ...f, bioavailability: String(v) }))}
+            onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitBody(), step: 0.05 })}
           />
         </form>
         <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-2">
@@ -486,6 +577,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
           <button
             type="submit"
             form="form-goals"
+            {...blurOnMouseDown}
             className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50 flex items-center gap-2"
             disabled={!secretOK || savingGoals}
           >
@@ -494,14 +586,19 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
           </button>
         }
       >
-        <form id="form-goals" onSubmit={submitGoals} className="grid grid-cols-2 gap-4">
-          <NumField label="Running Distance (km)" value={goals.running_distance_km} onCommit={(v)=>setGoals(g=>({...g, running_distance_km:v}))}/>
-          <NumField label="Steps" value={goals.steps} onCommit={(v)=>setGoals(g=>({...g, steps:v}))}/>
-          <NumField label="Reading (min)" value={goals.reading_minutes} onCommit={(v)=>setGoals(g=>({...g, reading_minutes:v}))}/>
-          <NumField label="Outdoors (min)" value={goals.outdoor_minutes} onCommit={(v)=>setGoals(g=>({...g, outdoor_minutes:v}))}/>
-          <NumField label="Writing (min)" value={goals.writing_minutes} onCommit={(v)=>setGoals(g=>({...g, writing_minutes:v}))}/>
-          <NumField label="Coding (min)" value={goals.coding_minutes} onCommit={(v)=>setGoals(g=>({...g, coding_minutes:v}))}/>
-          <NumField label="Focus (min)" value={goals.focus_minutes} onCommit={(v)=>setGoals(g=>({...g, focus_minutes:v}))}/>
+        <form
+          id="form-goals"
+          onSubmit={submitGoals}
+          onKeyDown={makeFormHotkeys(() => submitGoals())}
+          className="grid grid-cols-2 gap-4"
+        >
+          <NumField label="Running Distance (km)" value={goals.running_distance_km} onCommit={(v)=>setGoals(g=>({...g, running_distance_km:v}))} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitGoals(), step: 0.5 })}/>
+          <NumField label="Steps" value={goals.steps} onCommit={(v)=>setGoals(g=>({...g, steps:v}))} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitGoals(), step: 100 })}/>
+          <NumField label="Reading (min)" value={goals.reading_minutes} onCommit={(v)=>setGoals(g=>({...g, reading_minutes:v}))} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitGoals(), step: 5 })}/>
+          <NumField label="Outdoors (min)" value={goals.outdoor_minutes} onCommit={(v)=>setGoals(g=>({...g, outdoor_minutes:v}))} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitGoals(), step: 5 })}/>
+          <NumField label="Writing (min)" value={goals.writing_minutes} onCommit={(v)=>setGoals(g=>({...g, writing_minutes:v}))} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitGoals(), step: 5 })}/>
+          <NumField label="Coding (min)" value={goals.coding_minutes} onCommit={(v)=>setGoals(g=>({...g, coding_minutes:v}))} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitGoals(), step: 5 })}/>
+          <NumField label="Focus (min)" value={goals.focus_minutes} onCommit={(v)=>setGoals(g=>({...g, focus_minutes:v}))} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitGoals(), step: 5 })}/>
         </form>
       </Card>
 
@@ -538,6 +635,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
           <button
             type="submit"
             form="form-day"
+            {...blurOnMouseDown}
             className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50 flex items-center gap-2"
             disabled={!secretOK || savingDay}
           >
@@ -546,15 +644,26 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
           </button>
         }
       >
-        <form id="form-day" onSubmit={submitDay} className="grid grid-cols-2 gap-4">
-          <Field label="Date" type="date" value={day.date} onChange={(e)=>setDay(d=>({...d, date:(e.target as HTMLInputElement).value}))}/>
-          <NumField label="Sleep score" value={day.sleep_score} onCommit={(v)=>setDay(d=>({...d, sleep_score:v}))}/>
-          <NumField label="Focus (min)" value={day.focus_minutes} onCommit={(v)=>setDay(d=>({...d, focus_minutes:v}))}/>
-          <NumField label="Steps" value={day.steps} onCommit={(v)=>setDay(d=>({...d, steps:v}))}/>
-          <NumField label="Reading (min)" value={day.reading_minutes} onCommit={(v)=>setDay(d=>({...d, reading_minutes:v}))}/>
-          <NumField label="Outdoors (min)" value={day.outdoor_minutes} onCommit={(v)=>setDay(d=>({...d, outdoor_minutes:v}))}/>
-          <NumField label="Writing (min)" value={day.writing_minutes} onCommit={(v)=>setDay(d=>({...d, writing_minutes:v}))}/>
-          <NumField label="Coding (min)" value={day.coding_minutes} onCommit={(v)=>setDay(d=>({...d, coding_minutes:v}))}/>
+        <form
+          id="form-day"
+          onSubmit={submitDay}
+          onKeyDown={makeFormHotkeys(() => submitDay())}
+          className="grid grid-cols-2 gap-4"
+        >
+          <Field
+            label="Date"
+            type="date"
+            value={day.date}
+            onChange={(e)=>setDay(d=>({...d, date:(e.target as HTMLInputElement).value}))}
+            onKeyDown={(e)=>{ if (e.key === "Escape") (e.currentTarget as HTMLInputElement).blur(); }}
+          />
+          <NumField label="Sleep score" value={day.sleep_score} onCommit={(v)=>setDay(d=>({...d, sleep_score:v}))} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitDay(), step: 1 })}/>
+          <NumField label="Focus (min)" value={day.focus_minutes} onCommit={(v)=>setDay(d=>({...d, focus_minutes:v}))} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitDay(), step: 5 })}/>
+          <NumField label="Steps" value={day.steps} onCommit={(v)=>setDay(d=>({...d, steps:v}))} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitDay(), step: 100 })}/>
+          <NumField label="Reading (min)" value={day.reading_minutes} onCommit={(v)=>setDay(d=>({...d, reading_minutes:v}))} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitDay(), step: 5 })}/>
+          <NumField label="Outdoors (min)" value={day.outdoor_minutes} onCommit={(v)=>setDay(d=>({...d, outdoor_minutes:v}))} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitDay(), step: 5 })}/>
+          <NumField label="Writing (min)" value={day.writing_minutes} onCommit={(v)=>setDay(d=>({...d, writing_minutes:v}))} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitDay(), step: 5 })}/>
+          <NumField label="Coding (min)" value={day.coding_minutes} onCommit={(v)=>setDay(d=>({...d, coding_minutes:v}))} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitDay(), step: 5 })}/>
           <Bool label="Journaled" checked={day.journaled} onChange={(v)=>setDay(d=>({...d, journaled:v}))}/>
         </form>
       </Card>
@@ -566,6 +675,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
           <button
             type="submit"
             form="form-coffee"
+            {...blurOnMouseDown}
             className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50 flex items-center gap-2"
             disabled={!secretOK || savingCoffee}
           >
@@ -574,8 +684,19 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
           </button>
         }
       >
-        <form id="form-coffee" onSubmit={submitCoffee} className="grid grid-cols-2 gap-4">
-          <Field label="Date" type="date" value={coffeeDate} onChange={(e)=>setCoffeeDate((e.target as HTMLInputElement).value)} />
+        <form
+          id="form-coffee"
+          onSubmit={submitCoffee}
+          onKeyDown={makeFormHotkeys(() => submitCoffee())}
+          className="grid grid-cols-2 gap-4"
+        >
+          <Field
+            label="Date"
+            type="date"
+            value={coffeeDate}
+            onChange={(e)=>setCoffeeDate((e.target as HTMLInputElement).value)}
+            onKeyDown={(e)=>{ if (e.key === "Escape") (e.currentTarget as HTMLInputElement).blur(); }}
+          />
           <TimeField label="Time" value={coffeeTime} onChange={setCoffeeTime} />
           <SelectField label="Method" value={method} onChange={(v)=>setMethod(v as CoffeeBrewingMethod)}>
             <option value="espresso">espresso</option>
@@ -586,7 +707,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
             <option value="cold_brew">cold_brew</option>
             <option value="other">other</option>
           </SelectField>
-          <NumField label="Amount (mL)" value={amount} onCommit={setAmount} />
+          <NumField label="Amount (mL)" value={amount} onCommit={setAmount} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitCoffee(), step: 10 })}/>
           <SelectField label="Coffee (Contentful)" value={coffeeId} onChange={setCoffeeId}>
             <option value="">— select —</option>
             {coffees.map(c => (
@@ -604,6 +725,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
           <button
             type="submit"
             form="form-run"
+            {...blurOnMouseDown}
             className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50 flex items-center gap-2"
             disabled={!secretOK || savingRun}
           >
@@ -612,11 +734,22 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
           </button>
         }
       >
-        <form id="form-run" onSubmit={submitRun} className="grid grid-cols-2 gap-4">
-          <Field label="Date" type="date" value={runDate} onChange={(e)=>setRunDate((e.target as HTMLInputElement).value)} />
-          <NumField label="Distance (km)" value={distanceKm} onCommit={setDistanceKm}/>
-          <NumField label="Duration (min)" value={durationMin} onCommit={setDurationMin}/>
-          <NumField label="Pace (sec/km)" value={paceSec} onCommit={setPaceSec}/>
+        <form
+          id="form-run"
+          onSubmit={submitRun}
+          onKeyDown={makeFormHotkeys(() => submitRun())}
+          className="grid grid-cols-2 gap-4"
+        >
+          <Field
+            label="Date"
+            type="date"
+            value={runDate}
+            onChange={(e)=>setRunDate((e.target as HTMLInputElement).value)}
+            onKeyDown={(e)=>{ if (e.key === "Escape") (e.currentTarget as HTMLInputElement).blur(); }}
+          />
+          <NumField label="Distance (km)" value={distanceKm} onCommit={setDistanceKm} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitRun(), step: 0.5 })}/>
+          <NumField label="Duration (min)" value={durationMin} onCommit={setDurationMin} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitRun(), step: 1 })}/>
+          <NumField label="Pace (sec/km)" value={paceSec} onCommit={setPaceSec} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitRun(), step: 5 })}/>
         </form>
       </Card>
 
@@ -625,7 +758,9 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
   );
 }
 
-// ---------- tiny inputs
+/* --------------------------------------------------------
+   tiny inputs
+--------------------------------------------------------- */
 
 function Label({ children }: { children: React.ReactNode }) {
   return <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">{children}</label>;
@@ -651,22 +786,22 @@ function Field(props: React.InputHTMLAttributes<HTMLInputElement> & { label?: st
 
 /**
  * Numeric text field with internal string state to avoid focus loss and Safari scroll jumps.
- * Commits numeric value on blur or Enter.
+ * Commits numeric value on blur or Enter. Supports ↑/↓ and ⌘/Ctrl+Enter via onKeyDown prop.
  */
 function NumField({
   label,
   value,
   onCommit,
   placeholder,
+  onKeyDown, // optional: allow parent to wire hotkeys/step
 }: {
   label: string;
   value: number;
   onCommit: (v: number) => void;
   placeholder?: string;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
 }) {
-  const [text, setText] = useState<string>(() =>
-    Number.isFinite(value) ? String(value) : ""
-  );
+  const [text, setText] = useState<string>(() => (Number.isFinite(value) ? String(value) : ""));
 
   // keep local text in sync when parent value changes externally
   useEffect(() => {
@@ -696,10 +831,14 @@ function NumField({
         onChange={(e) => setText(e.target.value)}
         onBlur={commit}
         onKeyDown={(e) => {
+          // Enter commits value (don’t submit form yet)
           if (e.key === "Enter") {
-            e.preventDefault(); // prevent form from submitting before commit
+            e.preventDefault();
             commit();
+            return;
           }
+          // Let parent hotkeys handle ↑/↓, Esc, ⌘/Ctrl+Enter etc.
+          onKeyDown?.(e);
         }}
         className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-slate-950 px-3 py-2"
       />
@@ -744,6 +883,7 @@ function SelectField({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e)=>{ if (e.key === "Escape") (e.currentTarget as HTMLSelectElement).blur(); }}
         className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-slate-950 px-3 py-2"
       >
         {children}
@@ -770,6 +910,7 @@ function TimeField({
           type="time"
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onKeyDown={(e)=>{ if (e.key === "Escape") (e.currentTarget as HTMLInputElement).blur(); }}
           step={60}
           className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-slate-950 px-3 py-2"
         />

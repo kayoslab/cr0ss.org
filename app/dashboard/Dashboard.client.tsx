@@ -1,10 +1,17 @@
-// app/dashboard/Dashboard.client.tsx
 "use client";
 
 import React from "react";
 import Section from "@/components/dashboard/Section";
 import { Kpi } from "@/components/dashboard/Kpi";
-import { Donut, Line, Area, Bars, Progress, Panel, Scatter } from "@/components/dashboard/charts/TremorCharts";
+import {
+  Donut,
+  Line,
+  Area,
+  Bars,
+  Progress,
+  Panel,
+  Scatter,
+} from "@/components/dashboard/charts/TremorCharts";
 import MapClient, { TravelCountry } from "@/components/map.client";
 
 type TravelProps = {
@@ -53,18 +60,20 @@ export default function DashboardClient({
   return (
     <div className="space-y-10">
       {/* 1) Travel */}
-      <Section title="1. Travel">
+      <Section id="travel" title="1. Travel" className="scroll-mt-20">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {/* Map card — full-width on mobile, spans 2 cols on md for balance */}
-          <div className="md:col-span-3 xl:col-span-3">
-            <div className="relative w-full overflow-hidden rounded-xl border border-neutral-200/60 dark:border-neutral-700 shadow-sm">
-              {/* Responsive SVG inside; no fixed width → no iOS overflow */}
-              <MapClient
-                lat={travel.lat}
-                lon={travel.lon}
-                countries={travel.countries}
-                className="block w-full h-auto"
-              />
+          {/* Map card */}
+          <div className="md:col-span-3">
+            <div className="rounded-xl border border-neutral-200/60 dark:border-neutral-700 shadow-sm">
+              {/* Padding prevents the SVG stroke from being clipped by rounded corners */}
+              <div className="p-2 sm:p-3 md:p-4">
+                <MapClient
+                  lat={travel.lat}
+                  lon={travel.lon}
+                  countries={travel.countries}
+                  className="block w-full h-auto"
+                />
+              </div>
             </div>
           </div>
 
@@ -93,7 +102,7 @@ export default function DashboardClient({
       </Section>
 
       {/* 2) Morning Brew */}
-      <Section title="2. Morning Brew">
+      <Section id="morning-brew" title="2. Morning Brew" className="scroll-mt-20">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <Kpi label="Cups Today" value={morning.cupsToday} />
           <Bars title="Brew methods today" items={morning.methodsBar} />
@@ -112,7 +121,7 @@ export default function DashboardClient({
       </Section>
 
       {/* 3) Daily Rituals */}
-      <Section title="3. Daily Rituals">
+      <Section id="daily-rituals" title="3. Daily Rituals" className="scroll-mt-20">
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {rituals.progressToday.map((p) => (
             <Progress key={p.name} title={`${p.name} Goal Progress`} value={p.value} target={p.target} />
@@ -129,7 +138,13 @@ export default function DashboardClient({
               categories={["Writing (min)", "Focus (min)"]}
             />
           </div>
-          <div className="md:col-span-3">
+        </div>
+      </Section>
+
+      {/* 4) Focus & Flow — Sleep vs previous-day caffeine */}
+      <Section id="focus-flow" title="4. Focus & Flow" className="scroll-mt-20">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="md:col-span-2">
             <Scatter
               title="Sleep score vs yesterday’s caffeine"
               data={sleepPrevCaff}
@@ -137,15 +152,14 @@ export default function DashboardClient({
               y="sleep_score"
             />
             <p className="mt-2 text-xs text-neutral-500">
-              Each dot is a day. Hover for date; use this to eyeball correlation between rest and caffeine consumption.
+              Each dot is a day (last 60). X: total mg consumed the day before. Y: sleep score for that day.
             </p>
           </div>
         </div>
       </Section>
 
-
-      {/* 4) Running & Movement */}
-      <Section title="4. Running & Movement">
+      {/* 5) Running & Movement */}
+      <Section id="running-movement" title="5. Running & Movement" className="scroll-mt-20">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <Kpi label="This Month (km)" value={running.progress.total_km.toFixed(1)} />
           <Kpi label="Goal (km)" value={running.progress.target_km.toFixed(1)} />
@@ -159,23 +173,27 @@ export default function DashboardClient({
           </div>
         </div>
 
-        {/* Heat grid */}
+        {/* Heat grid wrapped in Panel */}
         <div className="mt-4">
-          <h3 className="mb-2 text-sm font-medium text-neutral-400">Running Heat (last 6 weeks)</h3>
-          <div className="grid grid-cols-7 gap-1">
-            {running.heatmap.map(({ date, km }, i) => {
-              const bg = km === 0 ? "bg-neutral-800" : "bg-emerald-500";
-              const opacity = km === 0 ? 1 : 0.2 + Math.min(0.8, km / 10);
-              return (
-                <div
-                  key={`${date}-${i}`}
-                  className={`h-4 w-4 rounded-sm ${bg}`}
-                  title={`${date}: ${km.toFixed(2)} km`}
-                  style={{ opacity }}
-                />
-              );
-            })}
-          </div>
+          <Panel title="Running Heat (last 6 weeks)">
+            <div className="grid grid-cols-7 gap-1">
+              {(() => {
+                const max = Math.max(1, ...running.heatmap.map((d) => d.km));
+                return running.heatmap.map(({ date, km }, i) => {
+                  const bg = km === 0 ? "bg-neutral-700" : "bg-emerald-500";
+                  const opacity = km === 0 ? 1 : Math.max(0.2, Math.min(1, km / max));
+                  return (
+                    <div
+                      key={`${date}-${i}`}
+                      className={`h-4 w-4 rounded-sm ${bg}`}
+                      title={`${date}: ${km.toFixed(2)} km`}
+                      style={{ opacity }}
+                    />
+                  );
+                });
+              })()}
+            </div>
+          </Panel>
         </div>
       </Section>
     </div>
