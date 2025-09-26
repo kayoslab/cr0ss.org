@@ -12,12 +12,15 @@ import { modelCaffeine } from "@/lib/phys/caffeine";
 import { GOALS } from "@/lib/db/constants";
 import { qCoffeeInRange, qSleepVsFocusScatter } from "@/lib/db/queries";
 import { estimateIntakeMgFor } from "@/lib/phys/caffeine";
-
+import DashboardSkeleton from "./Dashboard.skeleton";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
-const DashboardClient = NextDynamic(() => import("./Dashboard.client"), { ssr: false });
+const DashboardClient = NextDynamic(() => import("./Dashboard.client"), { 
+  ssr: false,
+  loading: () => <DashboardSkeleton />,
+});
 
 export default async function DashboardPage() {
   // live location (KV)

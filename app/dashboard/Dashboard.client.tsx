@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import Section from "@/components/dashboard/Section";
 import { Kpi } from "@/components/dashboard/Kpi";
 import {
@@ -13,6 +13,27 @@ import {
   Scatter,
 } from "@/components/dashboard/charts/TremorCharts";
 import MapClient, { TravelCountry } from "@/components/map.client";
+
+/** Make Tremor legends screen-reader friendly and keyboard sane */
+function LegendA11y() {
+  useEffect(() => {
+    const containers = document.querySelectorAll<HTMLElement>('[data-testid="tremor-legend"]');
+    containers.forEach((c) => {
+      // container should be a list
+      c.setAttribute("role", "list");
+      // each item should be a listitem; its icon is decorative
+      c.querySelectorAll("li").forEach((li) => {
+        li.setAttribute("role", "listitem");
+        const icon = li.querySelector("svg");
+        if (icon) {
+          icon.setAttribute("aria-hidden", "true");
+          icon.setAttribute("focusable", "false");
+        }
+      });
+    });
+  }, []);
+  return null;
+}
 
 type TravelProps = {
   totalCountries: number;
@@ -59,13 +80,15 @@ export default function DashboardClient({
 }) {
   return (
     <div className="space-y-10">
+      {/* run legend a11y upgrade once */}
+      <LegendA11y />
+
       {/* 1) Travel */}
       <Section id="travel" title="1. Travel" className="scroll-mt-20">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {/* Map card */}
           <div className="md:col-span-3">
             <div className="rounded-xl border border-neutral-200/60 dark:border-neutral-700 shadow-sm">
-              {/* Padding prevents the SVG stroke from being clipped by rounded corners */}
               <div className="p-2 sm:p-3 md:p-4">
                 <MapClient
                   lat={travel.lat}
@@ -141,7 +164,7 @@ export default function DashboardClient({
         </div>
       </Section>
 
-      {/* 4) Focus & Flow — Sleep vs previous-day caffeine */}
+      {/* 4) Focus & Flow */}
       <Section id="focus-flow" title="4. Focus & Flow" className="scroll-mt-20">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="md:col-span-2">
@@ -173,7 +196,6 @@ export default function DashboardClient({
           </div>
         </div>
 
-        {/* Heat grid wrapped in Panel */}
         <div className="mt-4">
           <Panel title="Running Heat (last 6 weeks)">
             <div className="grid grid-cols-7 gap-1">

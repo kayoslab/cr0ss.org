@@ -1,12 +1,11 @@
-// components/map.client.tsx
 "use client";
 
 import clsx from "clsx";
 
 export type TravelCountry = {
   id: string;
-  path: string;         // SVG path data
-  visited: boolean;     // lastVisited != null
+  path: string;
+  visited: boolean;
 };
 
 export default function MapClient({
@@ -15,16 +14,25 @@ export default function MapClient({
   countries,
   className,
 }: {
-  lat: number;
-  lon: number;
+  lat: number | string | null | undefined;
+  lon: number | string | null | undefined;
   countries: TravelCountry[];
   className?: string;
 }) {
+  // --- Normalize inputs ------------------------------------------------------
+  const latNumRaw = Number(lat);
+  const lonNumRaw = Number(lon);
+  const latNum = Number.isFinite(latNumRaw) ? latNumRaw : 0;
+  const lonNum = Number.isFinite(lonNumRaw) ? lonNumRaw : 0;
+
   const mapWidth = 1009.6727;
   const mapHeight = 665.96301;
 
-  const { x, y } = calculatePixels(mapWidth, mapHeight, lat, lon);
+  const { x, y } = calculatePixels(mapWidth, mapHeight, latNum, lonNum);
   const r = 3.75;
+
+  const titleId = "worldmap-title";
+  const descId = "worldmap-desc";
 
   return (
     <svg
@@ -37,16 +45,37 @@ export default function MapClient({
       strokeLinecap="round"
       strokeLinejoin="round"
       strokeWidth=".1"
+      role="img"
+      aria-labelledby={`${titleId} ${descId}`}
     >
+      <title id={titleId}>World map with visited countries</title>
+      <desc id={descId}>
+        {`Current location at latitude ${latNum.toFixed(3)}, longitude ${lonNum.toFixed(3)}. Visited countries are shaded darker.`}
+      </desc>
+
       {countries.map((c) => (
         <path
           id={c.id}
           key={c.id}
           d={c.path}
           fill={c.visited ? "gray" : "#ececec"}
+          aria-label={`Country ${c.id}${c.visited ? ", visited" : ""}`}
         />
       ))}
-      <circle cx={x + r / 2} cy={y + r / 2} r={r} fill="blue" id="GEO" />
+
+      {/* Focusable “you are here” marker */}
+      <circle
+        cx={x + r / 2}
+        cy={y + r / 2}
+        r={r}
+        fill="blue"
+        id="GEO"
+        tabIndex={0}
+        role="img"
+        aria-label={`Current location: ${latNum.toFixed(3)}, ${lonNum.toFixed(3)}`}
+      >
+        <title>Current location</title>
+      </circle>
     </svg>
   );
 }
@@ -64,7 +93,6 @@ function calculatePixels(
   return convertGeoToPixel(lat, lon, mapWidth, mapHeight, mapLeftLon, mapRightLon, mapBottomLat);
 }
 
-// Mercator math
 function convertGeoToPixel(
   latitude: number,
   longitude: number,
