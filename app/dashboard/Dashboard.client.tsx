@@ -140,6 +140,7 @@ export default function DashboardClient({
               data={rituals.rhythmTrend}
               index="date"
               categories={["Writing (min)", "Focus (min)"]}
+              colors={["sky", "rose"]}
             />
           </div>
         </div>
