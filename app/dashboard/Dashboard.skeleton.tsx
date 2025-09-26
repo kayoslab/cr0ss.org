@@ -55,36 +55,6 @@ export default function DashboardSkeleton() {
         </div>
       </section>
 
-      {/* 2) Morning Brew */}
-      <section aria-busy="true">
-        <Header>2. Morning Brew</Header>
-        <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-          <SkeletonCard>
-            <Skeleton className="h-6 w-28 mb-3" />
-            <Skeleton className="h-10 w-24" />
-          </SkeletonCard>
-
-          <SkeletonCard>
-            <Skeleton className="h-6 w-40 mb-3" />
-            <Skeleton className="h-40 w-full" />
-          </SkeletonCard>
-
-          <SkeletonCard>
-            <Skeleton className="h-6 w-40 mb-3" />
-            <div className="mx-auto h-40 w-40 rounded-full overflow-hidden">
-              <Skeleton className="h-full w-full" />
-            </div>
-          </SkeletonCard>
-        </div>
-
-        <div className="mt-4">
-          <SkeletonCard>
-            <Skeleton className="h-6 w-64 mb-3" />
-            <Skeleton className="h-48 w-full" />
-          </SkeletonCard>
-        </div>
-      </section>
-
       {/* 3) Daily Rituals */}
       <section aria-busy="true">
         <Header>3. Daily Rituals</Header>
@@ -109,6 +79,36 @@ export default function DashboardSkeleton() {
               <Skeleton className="h-48 w-full" />
             </SkeletonCard>
           </div>
+        </div>
+      </section>
+
+      {/* 3) Morning Brew */}
+      <section aria-busy="true">
+        <Header>3. Morning Brew</Header>
+        <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+          <SkeletonCard>
+            <Skeleton className="h-6 w-28 mb-3" />
+            <Skeleton className="h-10 w-24" />
+          </SkeletonCard>
+
+          <SkeletonCard>
+            <Skeleton className="h-6 w-40 mb-3" />
+            <Skeleton className="h-40 w-full" />
+          </SkeletonCard>
+
+          <SkeletonCard>
+            <Skeleton className="h-6 w-40 mb-3" />
+            <div className="mx-auto h-40 w-40 rounded-full overflow-hidden">
+              <Skeleton className="h-full w-full" />
+            </div>
+          </SkeletonCard>
+        </div>
+
+        <div className="mt-4">
+          <SkeletonCard>
+            <Skeleton className="h-6 w-64 mb-3" />
+            <Skeleton className="h-48 w-full" />
+          </SkeletonCard>
         </div>
       </section>
 

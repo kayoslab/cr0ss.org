@@ -124,27 +124,8 @@ export default function DashboardClient({
         </div>
       </Section>
 
-      {/* 2) Morning Brew */}
-      <Section id="morning-brew" title="2. Morning Brew" className="scroll-mt-20">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <Kpi label="Cups Today" value={morning.cupsToday} />
-          <Bars title="Brew methods today" items={morning.methodsBar} />
-          <Donut title="Coffee origins (7d)" data={morning.originsDonut} />
-        </div>
-
-        <div className="mt-4">
-          <Line
-            title="Caffeine: intake vs body load (00:00–24:00)"
-            data={morning.caffeineDual}
-            index="time"
-            categories={["intake_mg", "body_mg"]}
-            colors={["emerald", "violet"]}
-          />
-        </div>
-      </Section>
-
-      {/* 3) Daily Rituals */}
-      <Section id="daily-rituals" title="3. Daily Rituals" className="scroll-mt-20">
+      {/* 2) Daily Rituals */}
+      <Section id="daily-rituals" title="2. Daily Rituals" className="scroll-mt-20">
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {rituals.progressToday.map((p) => (
             <Progress key={p.name} title={`${p.name} Goal Progress`} value={p.value} target={p.target} />
@@ -161,6 +142,25 @@ export default function DashboardClient({
               categories={["Writing (min)", "Focus (min)"]}
             />
           </div>
+        </div>
+      </Section>
+
+      {/* 3) Morning Brew */}
+      <Section id="morning-brew" title="3. Morning Brew" className="scroll-mt-20">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <Kpi label="Cups Today" value={morning.cupsToday} />
+          <Bars title="Brew methods today" items={morning.methodsBar} />
+          <Donut title="Coffee origins (7d)" data={morning.originsDonut} />
+        </div>
+
+        <div className="mt-4">
+          <Line
+            title="Caffeine: intake vs body load (00:00–24:00)"
+            data={morning.caffeineDual}
+            index="time"
+            categories={["intake_mg", "body_mg"]}
+            colors={["emerald", "violet"]}
+          />
         </div>
       </Section>
 
