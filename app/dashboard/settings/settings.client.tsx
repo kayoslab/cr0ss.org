@@ -892,27 +892,89 @@ function SelectField({
   );
 }
 
-/** Safari-friendly time field; stores HH:mm; includes a "Now" helper. */
+/** 24h time field (HH:mm) without native pickers.
+ * - Always 24h across browsers (Chrome/Safari/iOS)
+ * - No page scroll jumps (no native spinner)
+ * - Validates & normalizes on blur
+ * - ↑/↓ to adjust minutes (⇧ = ±5)
+ */
 function TimeField({
   label,
   value,
   onChange,
 }: {
   label: string;
-  value: string;
+  value: string;          // expected "HH:mm"
   onChange: (v: string) => void;
 }) {
+  const [text, setText] = useState<string>(() => normalize(value));
+
+  // keep local text in sync when parent updates externally
+  useEffect(() => {
+    if (value !== text) setText(normalize(value));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
+  // allow typing partial values like "1", "12:", "12:3"
+  function handleChange(raw: string) {
+    // strip non-digits/colon, limit to 5 chars
+    const cleaned = raw.replace(/[^\d:]/g, "").slice(0, 5);
+    // enforce single colon at pos 2 if present
+    const parts = cleaned.split(":");
+    let next = cleaned;
+    if (parts.length > 2) {
+      next = `${parts[0]}:${parts[1]}`;
+    }
+    setText(next);
+  }
+
+  function commit() {
+    onChange(normalize(text));
+  }
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    // Enter commits but does NOT submit the parent form
+    if (e.key === "Enter") {
+      e.preventDefault();
+      commit();
+      return;
+    }
+    // Escape just blurs (no grey overlay because it's not native)
+    if (e.key === "Escape") {
+      (e.currentTarget as HTMLInputElement).blur();
+      return;
+    }
+    // ↑/↓ adjust minutes; Shift = ±5
+    if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+      e.preventDefault();
+      const step = e.shiftKey ? 5 : 1;
+      const dir = e.key === "ArrowUp" ? 1 : -1;
+      const { hh, mm } = parseHM(text);
+      const total = (hh * 60 + mm + dir * step + 24 * 60) % (24 * 60);
+      const nh = Math.floor(total / 60);
+      const nm = total % 60;
+      const next = `${String(nh).padStart(2, "0")}:${String(nm).padStart(2, "0")}`;
+      setText(next);
+      // also commit to parent so charts/forms see live value
+      onChange(next);
+    }
+  }
+
   return (
     <div className="flex flex-col">
       <Label>{label}</Label>
       <div className="flex gap-2">
         <input
-          type="time"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onKeyDown={(e)=>{ if (e.key === "Escape") (e.currentTarget as HTMLInputElement).blur(); }}
-          step={60}
-          className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-slate-950 px-3 py-2"
+          type="text"
+          inputMode="numeric"
+          pattern="^\d{2}:\d{2}$"
+          placeholder="HH:mm"
+          value={text}
+          onChange={(e) => handleChange(e.target.value)}
+          onBlur={commit}
+          onKeyDown={onKeyDown}
+          className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-slate-950 px-3 py-2 font-mono"
+          aria-label={`${label}, 24-hour time, format HH colon mm`}
         />
         <button
           type="button"
@@ -920,7 +982,9 @@ function TimeField({
             const now = new Date();
             const hh = String(now.getHours()).padStart(2, "0");
             const mm = String(now.getMinutes()).padStart(2, "0");
-            onChange(`${hh}:${mm}`);
+            const curr = `${hh}:${mm}`;
+            setText(curr);
+            onChange(curr);
           }}
           className="whitespace-nowrap rounded-md border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-50 dark:hover:bg-slate-800"
         >
@@ -929,4 +993,24 @@ function TimeField({
       </div>
     </div>
   );
+}
+
+/* ---------- helpers ---------- */
+
+function parseHM(v: string): { hh: number; mm: number } {
+  const m = /^(\d{1,2})(?::?(\d{1,2}))?$/.exec(v.trim());
+  if (!m) return { hh: 0, mm: 0 };
+  const hh = clampInt(parseInt(m[1] || "0", 10), 0, 23);
+  const mm = clampInt(parseInt(m[2] || "0", 10), 0, 59);
+  return { hh, mm };
+}
+
+function normalize(v: string): string {
+  const { hh, mm } = parseHM(v);
+  return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+}
+
+function clampInt(n: number, min: number, max: number) {
+  if (!Number.isFinite(n)) return min;
+  return Math.max(min, Math.min(max, n));
 }
