@@ -119,7 +119,6 @@ type DayPayload = {
   outdoor_minutes: number;
   writing_minutes: number;
   coding_minutes: number;
-  journaled: boolean;
 };
 
 type CoffeeBrewingMethod = "espresso" | "v60" | "chemex" | "moka" | "aero" | "cold_brew" | "other";
@@ -174,7 +173,6 @@ const emptyDay = (dateStr: string): DayPayload => ({
   outdoor_minutes: 0,
   writing_minutes: 0,
   coding_minutes: 0,
-  journaled: false,
 });
 
 /* --------------------------------------------------------
@@ -664,7 +662,6 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
           <NumField label="Outdoors (min)" value={day.outdoor_minutes} onCommit={(v)=>setDay(d=>({...d, outdoor_minutes:v}))} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitDay(), step: 5 })}/>
           <NumField label="Writing (min)" value={day.writing_minutes} onCommit={(v)=>setDay(d=>({...d, writing_minutes:v}))} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitDay(), step: 5 })}/>
           <NumField label="Coding (min)" value={day.coding_minutes} onCommit={(v)=>setDay(d=>({...d, coding_minutes:v}))} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitDay(), step: 5 })}/>
-          <Bool label="Journaled" checked={day.journaled} onChange={(v)=>setDay(d=>({...d, journaled:v}))}/>
         </form>
       </Card>
 

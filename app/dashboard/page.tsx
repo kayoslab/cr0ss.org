@@ -157,10 +157,6 @@ const goals = (await jfetchServer<Goals>("/api/habits/goal")) ?? DEFAULT_GOALS;
         name: "Coding",
         value: data.habitsToday.coding_minutes,
         target: goals.coding_minutes
-      }, {
-        name: "Journaling",
-        value: data.habitsToday.journaled ? 1 : 0,
-        target: 1
       },
     ],
     consistencyBars: data.habitsConsistency.map((r) => ({

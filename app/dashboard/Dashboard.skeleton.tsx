@@ -151,12 +151,7 @@ export default function DashboardSkeleton() {
 
         <div className="mt-4">
           <SkeletonCard>
-            <Skeleton className="h-6 w-56 mb-3" />
-            <div className="grid grid-cols-7 gap-1">
-              {Array.from({ length: 42 }).map((_, i) => (
-                <Skeleton key={i} className="h-4 w-4 rounded-sm" />
-              ))}
-            </div>
+            <Skeleton className="h-4 w-full rounded-sm" />
           </SkeletonCard>
         </div>
       </section>

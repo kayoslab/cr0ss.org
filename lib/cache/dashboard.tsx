@@ -5,7 +5,6 @@ import {
   qSleepVsFocusScatter, qDeepWorkBlocksThisWeek, qFocusStreak,
   qRunningMonthlyProgress, qPaceLastRuns, qRunningHeatmap,
 } from "@/lib/db/queries";
-import { GOALS } from "@/lib/db/constants";
 
 export const getDashboardData = unstable_cache(async () => {
     const [
@@ -35,7 +34,7 @@ export const getDashboardData = unstable_cache(async () => {
 
         qSleepVsFocusScatter(30),
         qDeepWorkBlocksThisWeek(),
-        qFocusStreak(GOALS.focusMinutes),
+        qFocusStreak(),
 
         qRunningMonthlyProgress(),
         qPaceLastRuns(10),

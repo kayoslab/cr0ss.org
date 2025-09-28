@@ -10,6 +10,7 @@ export const ZBrewMethod = z.enum([
   "other"
 ]);
 export type BrewMethod = z.infer<typeof ZBrewMethod>;
+
 export const ZGoalKind = z.enum([
   "running_distance_km",
   "steps",
@@ -32,12 +33,21 @@ export const ZDayHabits = z.object({
   outdoor_minutes: z.number().int().min(0),
   writing_minutes: z.number().int().min(0),
   coding_minutes: z.number().int().min(0),
-  journaled: z.boolean(),
-  focus_minutes: z.number().int().min(0).optional(), // may be joined or selected
+  focus_minutes: z.number().int().min(0).optional(),
 });
 
-export const ZConsistency = z.array(z.object({ name: z.string(), kept: z.number().int().min(0), total: z.number().int().min(0) }));
-export const ZTrendPoint = z.object({ date: z.string(), writing_minutes: z.number().int().min(0), focus_minutes: z.number().int().min(0) });
+export const ZConsistency = z.array(z.object(
+  { 
+    name: z.string(),
+    kept: z.number().int().min(0),
+    total: z.number().int().min(0) 
+  }
+));
+export const ZTrendPoint = z.object({ 
+  date: z.string(),
+  writing_minutes: z.number().int().min(0),
+  focus_minutes: z.number().int().min(0),
+});
 export const ZTrend = z.array(ZTrendPoint);
 
 // Focus & Flow

@@ -40,7 +40,6 @@ export async function GET(req: Request) {
         COALESCE(outdoor_minutes,0)::int       as outdoor_minutes,
         COALESCE(writing_minutes,0)::int       as writing_minutes,
         COALESCE(coding_minutes,0)::int        as coding_minutes,
-        COALESCE(journaled,false)::bool        as journaled
       FROM days
       WHERE date = ${date}::date
       LIMIT 1
@@ -56,7 +55,6 @@ export async function GET(req: Request) {
         outdoor_minutes: 0,
         writing_minutes: 0,
         coding_minutes: 0,
-        journaled: false,
       }, { status: 200 });
     }
 
@@ -80,12 +78,12 @@ export async function POST(req: Request) {
       INSERT INTO days (
         date, sleep_score, focus_minutes, steps,
         reading_minutes, outdoor_minutes, writing_minutes,
-        coding_minutes, journaled
+        coding_minutes,
       )
       VALUES (
         ${date}::date, ${body.sleep_score ?? 0}::int, ${body.focus_minutes ?? 0}::int, ${body.steps ?? 0}::int,
         ${body.reading_minutes ?? 0}::int, ${body.outdoor_minutes ?? 0}::int, ${body.writing_minutes ?? 0}::int,
-        ${body.coding_minutes ?? 0}::int, ${!!body.journaled}::bool
+        ${body.coding_minutes ?? 0}::int
       )
       ON CONFLICT (date) DO UPDATE SET
         sleep_score = EXCLUDED.sleep_score,
@@ -94,8 +92,7 @@ export async function POST(req: Request) {
         reading_minutes = EXCLUDED.reading_minutes,
         outdoor_minutes = EXCLUDED.outdoor_minutes,
         writing_minutes = EXCLUDED.writing_minutes,
-        coding_minutes = EXCLUDED.coding_minutes,
-        journaled = EXCLUDED.journaled
+        coding_minutes = EXCLUDED.coding_minutes
     `;
 
     return NextResponse.json({ ok: true }, { status: 200 });

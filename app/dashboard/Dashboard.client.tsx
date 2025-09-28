@@ -126,7 +126,7 @@ export default function DashboardClient({
 
       {/* 2) Daily Rituals */}
       <Section id="daily-rituals" title="2. Daily Rituals" className="scroll-mt-20">
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
           {rituals.progressToday.map((p) => (
             <Progress key={p.name} title={`${p.name} Goal Progress`} value={p.value} target={p.target} />
           ))}
@@ -190,11 +190,8 @@ export default function DashboardClient({
           <Kpi label="Delta (km)" value={running.progress.delta_km.toFixed(1)} />
         </div>
 
-        <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-          <Progress title="Running Progress" value={running.progress.total_km} target={running.progress.target_km} />
-          <div className="md:col-span-2">
-            <Line title="Pace (min/km)" data={running.paceSeries} index="date" categories={["paceMinPerKm"]} />
-          </div>
+        <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-1">
+          <Line title="Pace (min/km)" data={running.paceSeries} index="date" categories={["paceMinPerKm"]} />
         </div>
 
         <div className="mt-4">
