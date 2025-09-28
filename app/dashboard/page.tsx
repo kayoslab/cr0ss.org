@@ -43,56 +43,52 @@ export default async function DashboardPage() {
     visited: c.lastVisited != null,
   }));
 
-  // Build an absolute URL for server-side fetches.
-function resolveBaseUrl() {
-  // Prefer explicit public site URL (production), then Vercel URL, then localhost (dev)
-  const pub = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
-  if (pub) return pub;
-  const vercel = process.env.VERCEL_URL?.replace(/\/$/, "");
-  if (vercel) return `https://${vercel}`;
-  return "http://localhost:3000";
-}
+  function resolveBaseUrl() {
+    const pub = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+    if (pub) return pub;
 
-// Minimal server-side JSON fetcher that adds the secret header and disables caching.
-async function jfetchServer<T>(path: string, init: RequestInit = {}): Promise<T | null> {
-  const base = resolveBaseUrl();
-  const url = path.startsWith("http") ? path : `${base}${path}`;
-  const secret = process.env.DASHBOARD_API_SECRET || process.env.CONTENTFUL_REVALIDATE_SECRET || "";
+    const vercel = process.env.VERCEL_URL?.replace(/\/$/, "");
+    if (vercel) return `https://${vercel}`;
+    
+    return "http://cr0ss.org";
+  }
 
-  const headers = new Headers(init.headers as HeadersInit | undefined);
-  if (secret) headers.set("x-vercel-revalidation-key", secret);
-  if (!headers.has("content-type")) headers.set("content-type", "application/json");
+  async function jfetchServer<T>(path: string, init: RequestInit = {}): Promise<{ ok: boolean; status: number; data: T | null }> {
+    const base = resolveBaseUrl();
+    const url = path.startsWith("http") ? path : `${base}${path}`;
+    const secret = process.env.DASHBOARD_API_SECRET || process.env.CONTENTFUL_REVALIDATE_SECRET || "";
 
-  const res = await fetch(url, { ...init, headers, cache: "no-store" });
-  if (!res.ok) return null;
-  return (await res.json()) as T;
-}
-// Default goals if none are set
+    const headers = new Headers(init.headers as HeadersInit | undefined);
+    if (secret) headers.set("x-vercel-revalidation-key", secret);
+    if (!headers.has("accept")) headers.set("accept", "application/json");
+
+    const res = await fetch(url, { ...init, headers, cache: "no-store" });
+    if (!res.ok) return { ok: false, status: res.status, data: null };
+    const json = (await res.json()) as T;
+    return { ok: true, status: res.status, data: json };
+  }
 
   type Goals = {
-  running_distance_km: number;
-  steps: number;
-  reading_minutes: number;
-  outdoor_minutes: number;
-  writing_minutes: number;
-  coding_minutes: number;
-  focus_minutes: number;
-};
+    running_distance_km: number;
+    steps: number;
+    reading_minutes: number;
+    outdoor_minutes: number;
+    writing_minutes: number;
+    coding_minutes: number;
+    focus_minutes: number;
+  };
 
-const DEFAULT_GOALS: Goals = {
-  running_distance_km: 0,
-  steps: 0,
-  reading_minutes: 0,
-  outdoor_minutes: 0,
-  writing_minutes: 0,
-  coding_minutes: 0,
-  focus_minutes: 0,
-};
+  const DEFAULT_GOALS: Goals = {
+    running_distance_km: 0,
+    steps: 0,
+    reading_minutes: 0,
+    outdoor_minutes: 0,
+    writing_minutes: 0,
+    coding_minutes: 0,
+    focus_minutes: 0,
+  };
 
-// ...
-// goals (API-first)
-const goals = (await jfetchServer<Goals>("/api/habits/goal")) ?? DEFAULT_GOALS;
-
+  const goals = (await jfetchServer<Goals>("/api/habits/goal")) ?? DEFAULT_GOALS;
 
   // caffeine model for today incl. carryover
   const { startISO, endISO } = await qBerlinTodayBounds();
@@ -140,23 +136,23 @@ const goals = (await jfetchServer<Goals>("/api/habits/goal")) ?? DEFAULT_GOALS;
       { 
         name: "Steps",
         value: data.habitsToday.steps,
-        target: goals.steps
+        target: goals.data?.steps
       }, {
         name: "Reading",
         value: data.habitsToday.reading_minutes,
-        target: goals.reading_minutes
+        target: goals.data?.reading_minutes
       }, {
         name: "Outdoor",
         value: data.habitsToday.outdoor_minutes,
-        target: goals.outdoor_minutes
+        target: goals.data?.outdoor_minutes
       }, { 
         name: "Writing",
         value: data.habitsToday.writing_minutes,
-        target: goals.writing_minutes
+        target: goals.data?.writing_minutes
       }, { 
         name: "Coding",
         value: data.habitsToday.coding_minutes,
-        target: goals.coding_minutes
+        target: goals.data?.coding_minutes
       },
     ],
     consistencyBars: data.habitsConsistency.map((r) => ({

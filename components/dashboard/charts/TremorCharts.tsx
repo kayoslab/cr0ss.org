@@ -315,28 +315,41 @@ export function Bars({ title, items, isLoading }:{
 }
 
 /* ------------------------- Progress ------------------------- */
-export function Progress({ title, value, target, isLoading }:{
-  title:string; value:number; target:number; isLoading?: boolean;
+export function Progress({
+  title,
+  value,
+  target,
+}: {
+  title: string;
+  value: number | string | null | undefined;
+  target: number | string | null | undefined;
 }) {
-  if (isLoading) {
-    return (
-      <Panel title={title}>
-        <Skeleton className="h-7" />
-      </Panel>
-    );
-  }
-  const pct = Math.max(0, Math.min(100, target ? (value/target)*100 : 0));
+  const v = Number(value ?? 0);
+  const t = Number(target ?? 0);
+  const hasTarget = Number.isFinite(t) && t > 0;
+
+  const pct = hasTarget ? Math.max(0, Math.min(100, (v / t) * 100)) : 0;
+
+  // small formatter that doesn't crash on NaN
+  const fmt = (n: number) =>
+    Number.isFinite(n) ? n.toLocaleString(undefined, { maximumFractionDigits: 1 }) : "0";
+
   return (
     <Panel title={title}>
-      {target <= 0 ? <Empty hint="target is 0"/> : (
+      {!hasTarget ? (
+        <Empty hint="target is 0 or missing" />
+      ) : (
         <>
           <div className="flex justify-between text-sm mb-2">
-            <span>{value.toFixed(1)} / {target.toFixed(1)}</span>
-            <span>{pct.toFixed(0)}%</span>
+            <span>
+              {fmt(v)} / {fmt(t)}
+            </span>
+            <span>{Math.round(pct)}%</span>
           </div>
-          <ProgressImpl value={pct}/>
+          <ProgressImpl value={pct} />
         </>
       )}
     </Panel>
   );
 }
+
