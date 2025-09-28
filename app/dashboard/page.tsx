@@ -133,11 +133,11 @@ export default async function DashboardPage() {
 
   const rituals = {
     progressToday: [
-      { name: "Steps",    value: Number(data.habitsToday.steps) ?? 0,            target: Number(goals.steps) ?? 0 },
-      { name: "Reading",  value: Number(data.habitsToday.reading_minutes) ?? 0,  target: Number(goals.reading_minutes) ?? 0 },
-      { name: "Outdoor",  value: Number(data.habitsToday.outdoor_minutes) ?? 0,  target: Number(goals.outdoor_minutes) ?? 0 },
-      { name: "Writing",  value: Number(data.habitsToday.writing_minutes) ?? 0,  target: Number(goals.writing_minutes) ?? 0 },
-      { name: "Coding",   value: Number(data.habitsToday.coding_minutes) ?? 0,   target: Number(goals.coding_minutes) ?? 0 },
+      { name: "Steps",    value: Number(data.habitsToday.steps) ?? 0,            target: Number(goals.data?.steps) ?? 0 },
+      { name: "Reading",  value: Number(data.habitsToday.reading_minutes) ?? 0,  target: Number(goals.data?.reading_minutes) ?? 0 },
+      { name: "Outdoor",  value: Number(data.habitsToday.outdoor_minutes) ?? 0,  target: Number(goals.data?.outdoor_minutes) ?? 0 },
+      { name: "Writing",  value: Number(data.habitsToday.writing_minutes) ?? 0,  target: Number(goals.data?.writing_minutes) ?? 0 },
+      { name: "Coding",   value: Number(data.habitsToday.coding_minutes) ?? 0,   target: Number(goals.data?.coding_minutes) ?? 0 },
     ],
     consistencyBars: data.habitsConsistency.map((r) => ({
       name: r.name,
