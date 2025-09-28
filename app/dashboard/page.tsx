@@ -133,27 +133,11 @@ export default async function DashboardPage() {
 
   const rituals = {
     progressToday: [
-      { 
-        name: "Steps",
-        value: data.habitsToday.steps,
-        target: goals.data?.steps
-      }, {
-        name: "Reading",
-        value: data.habitsToday.reading_minutes,
-        target: goals.data?.reading_minutes
-      }, {
-        name: "Outdoor",
-        value: data.habitsToday.outdoor_minutes,
-        target: goals.data?.outdoor_minutes
-      }, { 
-        name: "Writing",
-        value: data.habitsToday.writing_minutes,
-        target: goals.data?.writing_minutes
-      }, { 
-        name: "Coding",
-        value: data.habitsToday.coding_minutes,
-        target: goals.data?.coding_minutes
-      },
+      { name: "Steps",    value: Number(data.habitsToday.steps) ?? 0,            target: Number(goals.steps) ?? 0 },
+      { name: "Reading",  value: Number(data.habitsToday.reading_minutes) ?? 0,  target: Number(goals.reading_minutes) ?? 0 },
+      { name: "Outdoor",  value: Number(data.habitsToday.outdoor_minutes) ?? 0,  target: Number(goals.outdoor_minutes) ?? 0 },
+      { name: "Writing",  value: Number(data.habitsToday.writing_minutes) ?? 0,  target: Number(goals.writing_minutes) ?? 0 },
+      { name: "Coding",   value: Number(data.habitsToday.coding_minutes) ?? 0,   target: Number(goals.coding_minutes) ?? 0 },
     ],
     consistencyBars: data.habitsConsistency.map((r) => ({
       name: r.name,
