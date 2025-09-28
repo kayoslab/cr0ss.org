@@ -5,7 +5,6 @@ import {
   ZTrend, ZScatter, ZBlocks, ZStreak, ZMonthlyProgress, ZPaceSeries, ZHeat,
   ZDayHabits,
 } from "./models";
-import { GOALS } from "./constants";
 import { getCoffees } from "../contentful/api/coffee";
 
 const sql = neon(process.env.DATABASE_URL!);
@@ -151,7 +150,7 @@ export async function qHabitsToday() {
   const rows = await sql/*sql*/`
     select
       to_char(date,'YYYY-MM-DD') as date,
-      steps, reading_minutes, outdoor_minutes, writing_minutes, coding_minutes, journaled,
+      steps, reading_minutes, outdoor_minutes, writing_minutes, coding_minutes,
       coalesce(focus_minutes,0)::int as focus_minutes
     from days
     where date = current_date
@@ -159,7 +158,12 @@ export async function qHabitsToday() {
   `;
   const r = rows[0] ?? {
     date: new Date().toISOString().slice(0,10),
-    steps: 0, reading_minutes: 0, outdoor_minutes: 0, writing_minutes: 0, coding_minutes: 0, journaled: false, focus_minutes: 0,
+    steps: 0, 
+    reading_minutes: 0,
+    outdoor_minutes: 0,
+    writing_minutes: 0,
+    coding_minutes: 0,
+    focus_minutes: 0,
   };
   return ZDayHabits.parse(r);
 }
@@ -168,7 +172,7 @@ export async function qHabitConsistencyThisWeek() {
   const rows = await sql/*sql*/`
     select
       to_char(date,'YYYY-MM-DD') as date,
-      steps, reading_minutes, outdoor_minutes, journaled
+      steps, reading_minutes, outdoor_minutes, writing_minutes, coding_minutes
     from days
     where date >= current_date - interval '6 days'
     order by date asc
@@ -176,21 +180,25 @@ export async function qHabitConsistencyThisWeek() {
   const days = rows.map((r:any)=> ({
     steps: Number(r.steps||0),
     read: Number(r.reading_minutes||0),
-    out: Number(r.outdoor_minutes||0),
-    journ: !!r.journaled,
+    outdoor: Number(r.outdoor_minutes||0),
+    write: Number(r.writing_minutes||0),
+    code: Number(r.coding_minutes||0),
   }));
+
   const total = Math.max(1, days.length);
   const kept = {
     Steps: days.filter(d=> d.steps >= 8000).length,
     Reading: days.filter(d=> d.read >= 30).length,
-    Outdoors: days.filter(d=> d.out >= 30).length,
-    Journaling: days.filter(d=> d.journ).length,
+    Outdoors: days.filter(d=> d.outdoor >= 30).length,
+    Writing: days.filter(d=> d.write >= 30).length,
+    Coding: days.filter(d=> d.code >= 30).length,
   };
   const arr = [
     { name: "Steps", kept: kept.Steps, total },
     { name: "Reading", kept: kept.Reading, total },
     { name: "Outdoors", kept: kept.Outdoors, total },
-    { name: "Journaling", kept: kept.Journaling, total },
+    { name: "Writing", kept: kept.Writing, total },
+    { name: "Coding", kept: kept.Coding, total },
   ];
   return ZConsistency.parse(arr);
 }
@@ -269,36 +277,79 @@ export async function qDeepWorkBlocksThisWeek() {
   return ZBlocks.parse(data);
 }
 
-export async function qFocusStreak(target = GOALS.focusMinutes) {
+// Start of current month in Europe/Berlin (as DATE)
+async function currentMonthStart(): Promise<string> {
+  const [{ month_start }] = await sql/*sql*/`
+    SELECT (date_trunc('month', timezone('Europe/Berlin', now()))::date) AS month_start
+  `;
+  return month_start as string; // e.g. "2025-09-01"
+}
+
+// Read a monthly goal by kind for the current month; default 0 if missing
+async function currentGoal(kind:
+  | 'focus_minutes'
+  | 'running_distance_km'
+  | 'steps'
+  | 'reading_minutes'
+  | 'outdoor_minutes'
+  | 'writing_minutes'
+  | 'coding_minutes'
+): Promise<number> {
+  const monthStart = await currentMonthStart();
   const rows = await sql/*sql*/`
-    select date, coalesce(focus_minutes,0)::int as focus
-    from days
-    where date <= current_date
-    order by date desc
-    limit 60
+    SELECT target::numeric AS target
+    FROM monthly_goals
+    WHERE month = ${monthStart}::date AND kind = ${kind}::goal_kind
+    LIMIT 1
+  `;
+  return Number(rows[0]?.target ?? 0);
+}
+
+
+export async function qFocusStreak(target?: number) {
+  const threshold = target ?? (await currentGoal('focus_minutes')); // default to DB goal (or 0)
+  const rows = await sql/*sql*/`
+    SELECT date, coalesce(focus_minutes,0)::int AS focus
+    FROM days
+    WHERE date <= current_date
+    ORDER BY date DESC
+    LIMIT 60
   `;
   let streak = 0;
-  for (const r of rows) {
-    if (Number(r.focus) >= target) streak++; else break;
+  for (const r of rows as any[]) {
+    if (Number(r.focus) >= threshold) streak++;
+    else break;
   }
   return ZStreak.parse({ days: streak });
 }
 
-// ---- Running & Movement
 export async function qRunningMonthlyProgress() {
   const [progress] = await sql/*sql*/`
-    with m as (select date_trunc('month', current_date)::date as month_start)
-    select
-      to_char(m.month_start,'YYYY-MM-01') as month,
-      coalesce((select target from monthly_goals where month = m.month_start and kind='running_distance_km'), ${GOALS.runningMonthlyKm})::numeric as target_km,
-      coalesce((select sum(distance_km) from runs where date >= m.month_start and date < (m.month_start + interval '1 month')),0)::numeric as total_km
-    from m
+    WITH m AS (
+      SELECT date_trunc('month', timezone('Europe/Berlin', now()))::date AS month_start
+    )
+    SELECT
+      to_char(m.month_start, 'YYYY-MM-01')                       AS month,
+      coalesce((
+        SELECT target FROM monthly_goals
+        WHERE month = m.month_start AND kind = 'running_distance_km'
+      ), 0)::numeric                                             AS target_km,
+      coalesce((
+        SELECT sum(distance_km) FROM runs
+        WHERE date >= m.month_start AND date < (m.month_start + interval '1 month')
+      ), 0)::numeric                                             AS total_km
+    FROM m
   `;
   const target = Number(progress.target_km);
-  const total = Number(progress.total_km);
-  const pct = target > 0 ? Math.min(1, total/target) : 0;
+  const total  = Number(progress.total_km);
+  const pct    = target > 0 ? Math.min(1, total / target) : 0;
+
   return ZMonthlyProgress.parse({
-    month: progress.month, target_km: target, total_km: total, delta_km: total - target, pct
+    month: progress.month,
+    target_km: target,
+    total_km: total,
+    delta_km: total - target,
+    pct,
   });
 }
 
