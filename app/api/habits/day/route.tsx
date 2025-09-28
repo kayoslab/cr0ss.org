@@ -78,7 +78,7 @@ export async function POST(req: Request) {
       INSERT INTO days (
         date, sleep_score, focus_minutes, steps,
         reading_minutes, outdoor_minutes, writing_minutes,
-        coding_minutes,
+        coding_minutes
       )
       VALUES (
         ${date}::date, ${body.sleep_score ?? 0}::int, ${body.focus_minutes ?? 0}::int, ${body.steps ?? 0}::int,
