@@ -39,7 +39,7 @@ export async function GET(req: Request) {
         COALESCE(reading_minutes,0)::int       as reading_minutes,
         COALESCE(outdoor_minutes,0)::int       as outdoor_minutes,
         COALESCE(writing_minutes,0)::int       as writing_minutes,
-        COALESCE(coding_minutes,0)::int        as coding_minutes,
+        COALESCE(coding_minutes,0)::int        as coding_minutes
       FROM days
       WHERE date = ${date}::date
       LIMIT 1
