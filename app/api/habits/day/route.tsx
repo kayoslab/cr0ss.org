@@ -2,24 +2,13 @@ export const runtime = "edge";
 
 import { NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
+import { assertSecret } from "@/lib/auth/secret";
 
 const sql = neon(process.env.DATABASE_URL!);
 
-function assertSecret(req: Request) {
-  const header = new Headers(req.headers);
-  const secret = header.get("x-vercel-revalidation-key");
-  const A = process.env.DASHBOARD_API_SECRET;
-  const B = process.env.CONTENTFUL_REVALIDATE_SECRET;
-  const valid = (A && secret === A) || (B && secret === B);
-  if (!valid) {
-    throw new Response(JSON.stringify({ message: "Invalid secret" }), { status: 401 });
-  }
-}
-
-// GET /api/habits/day?date=YYYY-MM-DD  (default: today Berlin)
+// GET habit data for a specific day (default: today)
 export async function GET(req: Request) {
   try {
-    assertSecret(req);
     const { searchParams } = new URL(req.url);
     let date = searchParams.get("date");
 
@@ -65,7 +54,7 @@ export async function GET(req: Request) {
   }
 }
 
-// keep your existing POST if you have it; otherwise minimal example:
+// POST update habit data for a specific day (partial or full)
 export async function POST(req: Request) {
   try {
     assertSecret(req);

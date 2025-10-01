@@ -4,14 +4,9 @@ import { NextResponse } from "next/server";
 import { ZBodyProfileUpsert } from "@/lib/db/validation";
 import { getBodyProfileDB, upsertBodyProfileDB } from "@/lib/db/profile";
 import { revalidateDashboard } from "@/lib/cache/revalidate";
+import { assertSecret } from "@/lib/auth/secret";
 
-function assertSecret(req: Request) {
-  const secret = new Headers(req.headers).get("x-vercel-revalidation-key");
-  if (secret !== process.env.DASHBOARD_API_SECRET) {
-    throw new Response(JSON.stringify({ message: "Invalid secret" }), { status: 401 });
-  }
-}
-
+// GET current body profile
 export async function GET() {
   try {
     const p = await getBodyProfileDB();
@@ -21,6 +16,7 @@ export async function GET() {
   }
 }
 
+// POST update body profile (partial or full)
 export async function POST(req: Request) {
   try {
     assertSecret(req);

@@ -1,12 +1,13 @@
 export const runtime = "edge";
 
 import { sql } from "@/lib/db/client";
-import { HeadersSecret, ZRun } from "@/lib/db/validation";
+import { ZRun } from "@/lib/db/validation";
 import { revalidateDashboard } from "@/lib/cache/revalidate";
+import { assertSecret } from "@/lib/auth/secret";
 
 export async function POST(req: Request) {
   try {
-    HeadersSecret(req);
+    assertSecret(req);
     const body = await req.json();
     const items = Array.isArray(body) ? body : [body];
     const parsed = items.map((i) => ZRun.parse(i));

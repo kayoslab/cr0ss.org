@@ -21,18 +21,6 @@ import {
 import { getBodyProfile } from "@/lib/user/profile";
 import { modelCaffeine, estimateIntakeMgFor } from "@/lib/phys/caffeine";
 
-// ---- shared secret check (same policy as other routes)
-function assertSecret(req: Request) {
-  const header = new Headers(req.headers);
-  const secret = header.get("x-vercel-revalidation-key");
-  const A = process.env.DASHBOARD_API_SECRET;
-  const B = process.env.CONTENTFUL_REVALIDATE_SECRET;
-  const valid = (A && secret === A) || (B && secret === B);
-  if (!valid) {
-    throw new Response(JSON.stringify({ message: "Invalid secret" }), { status: 401 });
-  }
-}
-
 const sql = neon(process.env.DATABASE_URL!);
 
 // read current-month goals (same shape as your /api/habits/goal)
@@ -55,8 +43,6 @@ async function getGoals(): Promise<Record<string, number>> {
 
 export async function GET(req: Request) {
   try {
-    assertSecret(req);
-
     // parallelize where safe
     const [
         cupsToday,
@@ -86,7 +72,6 @@ export async function GET(req: Request) {
         getGoals(),
     ]);
 
-    
     // caffeine series (00:00–24:00 Berlin with carry-over)
     const half = body.half_life_hours ?? 5;
     const lookbackH = Math.max(24, Math.ceil(half * 4));
