@@ -1,6 +1,44 @@
 // Single-source Berlin timezone helpers (robust across DST)
 const BERLIN_TZ = "Europe/Berlin";
 
+// --- HH:mm helpers (24h, tolerant input) -----------------------------
+
+/** Parse a loose "HH:mm" (also accepts "H", "H:", "H:m") into clamped {hh,mm}. */
+export function parseHHmm(raw: string): { hh: number; mm: number } {
+  const s = String(raw ?? "").trim();
+  const m = /^(\d{1,2})(?::?(\d{1,2}))?$/.exec(s);
+  if (!m) return { hh: 0, mm: 0 };
+  let hh = Number(m[1] ?? 0);
+  let mm = Number(m[2] ?? 0);
+  if (!Number.isFinite(hh)) hh = 0;
+  if (!Number.isFinite(mm)) mm = 0;
+  hh = Math.max(0, Math.min(23, Math.floor(hh)));
+  mm = Math.max(0, Math.min(59, Math.floor(mm)));
+  return { hh, mm };
+}
+
+/** Return normalized "HH:mm" (24h) string. Tolerates partial or fuzzy input. */
+export function normalizeHHmm(raw: string): string {
+  const { hh, mm } = parseHHmm(raw);
+  return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+}
+
+/**
+ * Combine a Berlin calendar date (YYYY-MM-DD, Berlin) and "HH:mm" into an ISO UTC
+ * timestamp string. Safe across DST because we compute the Berlin offset for that wall-clock.
+ */
+export function berlinDateTimeISO(ymd: string, hhmm: string): string {
+  const { hh, mm } = parseHHmm(hhmm);
+  // Minutes since midnight we want in Berlin wall-clock
+  const minutes = hh * 60 + mm;
+  // How many minutes Berlin is offset from UTC at that local wall-clock time
+  const offset = tzOffsetMinutes(ymd, minutes);
+  // Build the UTC instant that corresponds to the Berlin wall-clock time
+  const utcBaseline = new Date(`${ymd}T${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:00.000Z`);
+  const instant = new Date(utcBaseline.getTime() - offset * 60_000);
+  return instant.toISOString();
+}
+
 /** Returns a Date representing "now" in Berlin (keeps wall-clock semantics). */
 export function berlinNow(): Date {
   // Construct from current UTC components but interpreted in Berlin
