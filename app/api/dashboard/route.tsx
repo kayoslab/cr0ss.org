@@ -1,7 +1,9 @@
 export const runtime = "edge";
 
+import { rateLimit } from "@/lib/rate/limit";
+import { wrapTrace } from "@/lib/obs/trace";
 import { NextResponse } from "next/server";
-import { sql } from "@/lib/db/client";
+import { ZDashboard } from "@/lib/api/dashboard";
 
 import {
   startOfBerlinDayISO,
@@ -27,13 +29,23 @@ import {
 } from "@/lib/db/queries";
 import { getBodyProfile } from "@/lib/user/profile";
 import { modelCaffeine, estimateIntakeMgFor } from "@/lib/phys/caffeine";
+import { assertSecret } from "@/lib/auth/secret";
 
 const startISO = startOfBerlinDayISO();
 const endISO   = endOfBerlinDayISO();
 
-export async function GET(req: Request) {
+export const GET = wrapTrace("GET /api/dashboard", async (req: Request) => {
   try {
-    // parallelize where safe
+    assertSecret(req);
+
+    const rl = await rateLimit(req, "get-dashboard", { windowSec: 60, max: 10 });
+    if (!rl.ok) {
+      return new Response("Too many requests", {
+        status: 429,
+        headers: { "Retry-After": String(rl.retryAfterSec) },
+      });
+    }
+
     const [
         cupsToday,
         brewMethodsToday,
@@ -44,8 +56,7 @@ export async function GET(req: Request) {
         runningProgress,
         paceSeries,
         runningHeatmap,
-        body,
-        monthlyGoals,
+        body,,
     ] = await Promise.all([
         qCupsToday(),
         qBrewMethodsToday(),
@@ -57,7 +68,6 @@ export async function GET(req: Request) {
         qPaceLastRuns(10),
         qRunningHeatmap(42),
         getBodyProfile(),
-        qMonthlyGoalsObject(),
     ]);
 
     // caffeine model:
@@ -102,26 +112,41 @@ export async function GET(req: Request) {
       })
       .filter((p) => !(p.prev_caffeine_mg === 0 && (!p.sleep_score || p.sleep_score === 0)));
 
-    return NextResponse.json(
-      {
-        cupsToday,
-        brewMethodsToday,
-        coffeeOriginThisWeek: origins7d,
-        habitsToday,
-        habitsConsistency: consistency,
-        writingVsFocus,
-        runningProgress,
-        paceSeries,
-        runningHeatmap,
-        caffeineSeries,
-        sleepPrevCaff,
-        monthlyGoals,
-      }, { 
-        status: 200 
-      }
-    );
+    const monthlyGoals = {
+      running_distance_km: 0,
+      steps: 0,
+      reading_minutes: 0,
+      outdoor_minutes: 0,
+      writing_minutes: 0,
+      coding_minutes: 0,
+      focus_minutes: 0,
+      ...(await qMonthlyGoalsObject()),
+    };
+
+    const payload = {
+      cupsToday,
+      brewMethodsToday,
+      coffeeOriginThisWeek: origins7d,
+      habitsToday,
+      habitsConsistency: consistency,
+      writingVsFocus,
+      runningProgress,
+      paceSeries,
+      runningHeatmap,
+      caffeineSeries,
+      sleepPrevCaff,
+      monthlyGoals,
+    };
+
+    const parsed = ZDashboard.safeParse(payload);
+    if (!parsed.success) {
+      console.error("[/api/dashboard] schema validation failed", parsed.error.flatten());
+      return NextResponse.json({ message: "Schema validation failed" }, { status: 500 });
+    }
+
+    return NextResponse.json(parsed.data, { status: 200 });
   } catch (e: any) {
     const status = e?.status ?? 500;
     return NextResponse.json({ message: e?.message ?? "Failed" }, { status });
   }
-}
+});

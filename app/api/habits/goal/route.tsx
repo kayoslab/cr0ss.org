@@ -1,5 +1,7 @@
 export const runtime = "edge";
 
+import { rateLimit } from "@/lib/rate/limit";
+import { wrapTrace } from "@/lib/obs/trace";
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
 import { revalidateDashboard } from "@/lib/cache/revalidate";
@@ -8,6 +10,16 @@ import { assertSecret } from "@/lib/auth/secret";
 // GET current-month goals
 export async function GET(req: Request) {
   try {
+    assertSecret(req);
+
+    const rl = await rateLimit(req, "get-goal", { windowSec: 60, max: 10 });
+    if (!rl.ok) {
+      return new Response("Too many requests", {
+        status: 429,
+        headers: { "Retry-After": String(rl.retryAfterSec) },
+      });
+    }
+  
     const [{ month_start }] = await sql/*sql*/`
       SELECT (date_trunc('month', timezone('Europe/Berlin', now()))::date) AS month_start
     `;
@@ -39,12 +51,19 @@ export async function GET(req: Request) {
 }
 
 // POST update current-month goals (partial or full)
-export async function POST(req: Request) {
+export const POST = wrapTrace("POST /api/habits/goal", async (req: Request) => {
   try {
     assertSecret(req);
-    const body = await req.json();
 
-    // upsert all known keys for the current Berlin month
+    const rl = await rateLimit(req, "post-goal", { windowSec: 60, max: 10 });
+    if (!rl.ok) {
+      return new Response("Too many requests", {
+        status: 429,
+        headers: { "Retry-After": String(rl.retryAfterSec) },
+      });
+    }
+
+    const body = await req.json();
     const [{ month_start }] = await sql/*sql*/`
       SELECT (date_trunc('month', timezone('Europe/Berlin', now()))::date) AS month_start
     `;
@@ -74,4 +93,4 @@ export async function POST(req: Request) {
     const status = e?.status ?? 500;
     return NextResponse.json({ message: e?.message ?? "Failed" }, { status });
   }
-}
+});

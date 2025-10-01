@@ -30,7 +30,7 @@ async function jfetchServer<T>(path: string): Promise<JRes<T>> {
   const base = resolveBaseUrl();
   const url = path.startsWith("http") ? path : `${base}${path}`;
   const headers = new Headers({ accept: "application/json" });
-  const secret = process.env.DASHBOARD_API_SECRET || process.env.CONTENTFUL_REVALIDATE_SECRET || "";
+  const secret = process.env.DASHBOARD_API_SECRET || "";
   if (secret) headers.set(SECRET_HEADER, secret);
   const res = await fetch(url, { headers, cache: "no-store" });
   if (!res.ok) return { ok: false, status: res.status };
@@ -56,7 +56,7 @@ type DashboardApi = {
   habitsConsistency: { name: string; kept: number; total: number }[];
   writingVsFocus: { date: string; writing_minutes: number; focus_minutes: number }[];
   runningProgress: { target_km: number; total_km: number; delta_km: number; pct: number; month: string };
-  paceSeries: { date: string; pace_sec_per_km: number }[];
+  paceSeries: { date: string; avg_pace_sec_per_km: number }[];
   runningHeatmap: { date: string; km: number }[];
   caffeineSeries: { timeISO: string; intake_mg: number; body_mg: number }[];
   sleepPrevCaff: { date: string; sleep_score: number; prev_caffeine_mg: number }[];
@@ -183,7 +183,7 @@ export default async function DashboardPage() {
     },
     paceSeries: api.paceSeries.map((p) => ({
       date: p.date,
-      paceMinPerKm: +(p.pace_sec_per_km / 60).toFixed(2),
+      paceMinPerKm: +(p.avg_pace_sec_per_km / 60).toFixed(2),
     })),
     heatmap: api.runningHeatmap,
   };

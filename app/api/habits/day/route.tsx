@@ -1,5 +1,7 @@
 export const runtime = "edge";
 
+import { rateLimit } from "@/lib/rate/limit";
+import { wrapTrace } from "@/lib/obs/trace";
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
 import { revalidateDashboard } from "@/lib/cache/revalidate";
@@ -8,6 +10,16 @@ import { assertSecret } from "@/lib/auth/secret";
 // GET habit data for a specific day (default: today)
 export async function GET(req: Request) {
   try {
+    assertSecret(req);
+
+    const rl = await rateLimit(req, "get-day", { windowSec: 60, max: 10 });
+    if (!rl.ok) {
+      return new Response("Too many requests", {
+        status: 429,
+        headers: { "Retry-After": String(rl.retryAfterSec) },
+      });
+    }
+
     const { searchParams } = new URL(req.url);
     let date = searchParams.get("date");
 
@@ -54,11 +66,19 @@ export async function GET(req: Request) {
 }
 
 // POST update habit data for a specific day (partial or full)
-export async function POST(req: Request) {
+export const POST = wrapTrace("POST /api/habits/day", async (req: Request) => {
   try {
     assertSecret(req);
-    const body = await req.json();
 
+    const rl = await rateLimit(req, "post-day", { windowSec: 60, max: 10 });
+    if (!rl.ok) {
+      return new Response("Too many requests", {
+        status: 429,
+        headers: { "Retry-After": String(rl.retryAfterSec) },
+      });
+    }
+
+    const body = await req.json();
     const date = String(body?.date);
     if (!date) return NextResponse.json({ message: "date required" }, { status: 400 });
 
@@ -89,4 +109,4 @@ export async function POST(req: Request) {
     const status = e?.status ?? 500;
     return NextResponse.json({ message: e?.message ?? "Failed" }, { status });
   }
-}
+});
