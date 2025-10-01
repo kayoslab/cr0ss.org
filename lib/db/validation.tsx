@@ -1,13 +1,4 @@
 import { z } from "zod";
-import { env } from '@/env';
-
-export const HeadersSecret = (req: Request) => {
-  const h = new Headers(req.headers);
-  const key = h.get("x-vercel-revalidation-key");
-  if (key !== env.DASHBOARD_API_SECRET) {
-    throw new Response(JSON.stringify({ message: "Invalid secret" }), { status: 401 });
-  }
-};
 
 export const ZDay = z.object({
   date: z.coerce.date(),

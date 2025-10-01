@@ -5,6 +5,7 @@ import { kv } from "@vercel/kv";
 import { getAllCountries, getVisitedCountries } from "@/lib/contentful/api/country";
 import { CountryProps } from "@/lib/contentful/api/props/country";
 import DashboardSkeleton from "./Dashboard.skeleton";
+import { SECRET_HEADER } from "@/lib/auth/secret";
 
 // fetch settings
 export const dynamic = "force-dynamic";
@@ -29,9 +30,8 @@ async function jfetchServer<T>(path: string): Promise<T | null> {
   const url = path.startsWith("http") ? path : `${base}${path}`;
   const secret = process.env.DASHBOARD_API_SECRET || process.env.CONTENTFUL_REVALIDATE_SECRET || "";
 
-  const headers = new Headers();
-  if (secret) headers.set("x-vercel-revalidation-key", secret);
-  headers.set("accept", "application/json");
+  const headers = new Headers({ accept: "application/json" });
+  if (secret) headers.set(SECRET_HEADER, secret);
 
   const res = await fetch(url, { headers, cache: "no-store" });
   if (!res.ok) return null;

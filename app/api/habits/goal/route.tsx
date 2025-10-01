@@ -2,26 +2,13 @@ export const runtime = "edge";
 
 import { NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
+import { assertSecret } from "@/lib/auth/secret";
 
 const sql = neon(process.env.DATABASE_URL!);
-
-// Accept either DASHBOARD_API_SECRET or CONTENTFUL_REVALIDATE_SECRET for compatibility
-function assertSecret(req: Request) {
-  const header = new Headers(req.headers);
-  const secret = header.get("x-vercel-revalidation-key");
-  const A = process.env.DASHBOARD_API_SECRET;
-  const B = process.env.CONTENTFUL_REVALIDATE_SECRET;
-  const valid = (A && secret === A) || (B && secret === B);
-  if (!valid) {
-    throw new Response(JSON.stringify({ message: "Invalid secret" }), { status: 401 });
-  }
-}
 
 // GET current-month goals
 export async function GET(req: Request) {
   try {
-    assertSecret(req);
-
     const [{ month_start }] = await sql/*sql*/`
       SELECT (date_trunc('month', timezone('Europe/Berlin', now()))::date) AS month_start
     `;
@@ -52,7 +39,7 @@ export async function GET(req: Request) {
   }
 }
 
-// keep your existing POST; if you don’t have one, this is a minimal example:
+// POST update current-month goals (partial or full)
 export async function POST(req: Request) {
   try {
     assertSecret(req);

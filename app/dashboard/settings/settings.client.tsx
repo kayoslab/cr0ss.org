@@ -1,5 +1,6 @@
 "use client";
 
+import { SECRET_HEADER } from "@/lib/auth/secret";
 import React, { useEffect, useMemo, useState } from "react";
 
 /* --------------------------------------------------------
@@ -15,7 +16,7 @@ async function jfetch<T>(
 ): Promise<{ ok: boolean; status: number; json: T | null; error?: string }> {
   const headers = new Headers(opts.headers as HeadersInit | undefined);
   if (!headers.has("content-type")) headers.set("content-type", "application/json");
-  if (secret) headers.set("x-vercel-revalidation-key", secret);
+  if (secret) headers.set(SECRET_HEADER, secret);
   const res = await fetch(url, { ...opts, headers, cache: "no-store" });
   let json: any = null;
   try {
@@ -23,7 +24,12 @@ async function jfetch<T>(
   } catch {
     // ignore
   }
-  return { ok: res.ok, status: res.status, json, error: (!res.ok && (json?.message || res.statusText)) || undefined };
+  return {
+    ok: res.ok,
+    status: res.status,
+    json,
+    error: (!res.ok && (json?.error || json?.message || res.statusText)) || undefined,
+  };
 }
 
 function Spinner({ className }: { className?: string }) {
@@ -260,11 +266,11 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
     try {
       // Validate by calling a protected route; POST /api/habits/body with {} (no-op)
       const check = await jfetch<{ ok: boolean }>(
-        "/api/habits/body",
-        { method: "POST", body: JSON.stringify({}) },
+        "/api/auth/check",
+        { method: "GET" },
         secret
       );
-      if (!check.ok && check.status !== 200) throw new Error(check.error || "Secret invalid");
+      if (!check.ok) throw new Error(check.error || "Secret invalid");
 
       // Cache & mark valid
       localStorage.setItem("dashboard_secret", secret);
@@ -272,9 +278,9 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
 
       // Hydrate data models
       const [bodyRes, goalsRes, dayRes] = await Promise.all([
-        jfetch<BodyProfile>("/api/habits/body", { method: "GET" }, secret),
-        jfetch<Goals>("/api/habits/goal", { method: "GET" }, secret),
-        jfetch<DayPayload>(`/api/habits/day?date=${todayStr}`, { method: "GET" }, secret),
+        jfetch<BodyProfile>("/api/habits/body", { method: "GET" }),
+        jfetch<Goals>("/api/habits/goal", { method: "GET" }),
+        jfetch<DayPayload>(`/api/habits/day?date=${todayStr}`, { method: "GET" }),
       ]);
 
       if (bodyRes.ok && bodyRes.json) setBody(bodyRes.json);
