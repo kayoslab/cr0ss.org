@@ -1,5 +1,6 @@
 import { fetchGraphQL } from './api';
 import { COFFEE_GRAPHQL_FIELDS } from './props/coffee';
+import type { CoffeeListDTO } from "./coffee-types";
 
 interface CoffeeCollection {
   items: any[];
@@ -7,6 +8,17 @@ interface CoffeeCollection {
   skip: number;
   limit: number;
 }
+
+export async function getAllCoffeeDTO(page = 1, limit = 20): Promise<CoffeeListDTO> {
+  const raw = await getAllCoffee(page, limit); // your existing function
+  const items = (raw?.items ?? []).map((c: any) => ({
+    id: String(c?.sys?.id ?? c?.id ?? ""),
+    name: String(c?.name ?? ""),
+    roaster: String(c?.roaster ?? ""),
+  }));
+  return { items };
+}
+
 
 function extractCoffeeCollection(fetchResponse: any): CoffeeCollection {
 
