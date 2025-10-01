@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const parsed = ZBodyProfileUpsert.parse(body);
     const updated = await upsertBodyProfileDB(parsed);
-    revalidateDashboard(); // caffeine curve depends on body params
+    revalidateDashboard();
     return NextResponse.json({ ok: true, profile: updated }, { status: 200 });
   } catch (e: any) {
     const status = e?.status ?? 400;

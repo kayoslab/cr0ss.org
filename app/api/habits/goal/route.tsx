@@ -2,6 +2,7 @@ export const runtime = "edge";
 
 import { NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
+import { revalidateDashboard } from "@/lib/cache/revalidate";
 import { assertSecret } from "@/lib/auth/secret";
 
 const sql = neon(process.env.DATABASE_URL!);
@@ -69,6 +70,7 @@ export async function POST(req: Request) {
       `;
     }
 
+    revalidateDashboard();
     return NextResponse.json({ ok: true }, { status: 200 });
   } catch (e: any) {
     const status = e?.status ?? 500;

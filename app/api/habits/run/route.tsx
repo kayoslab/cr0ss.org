@@ -20,7 +20,6 @@ export async function POST(req: Request) {
     }
 
     revalidateDashboard();
-    
     return new Response(JSON.stringify({ ok: true, inserted: parsed.length }), { status: 200 });
   } catch (err: any) {
     return new Response(err?.message ?? "Bad Request", { status: err?.status ?? 400 });
