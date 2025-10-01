@@ -265,7 +265,6 @@ export async function qCoffeeInRange(startISO: string, endISO: string) {
   }));
 }
 
-
 export async function qDeepWorkBlocksThisWeek() {
   const rows = await sql/*sql*/`
     select to_char(date,'YYYY-MM-DD') as date, coalesce(focus_minutes,0)::int as focus
@@ -304,7 +303,6 @@ async function currentGoal(kind:
   `;
   return Number(rows[0]?.target ?? 0);
 }
-
 
 export async function qFocusStreak(target?: number) {
   const threshold = target ?? (await currentGoal('focus_minutes')); // default to DB goal (or 0)
@@ -388,4 +386,33 @@ export async function qRunningHeatmap(days = 42) {
   });
 
   return ZHeat.parse(out);
+}
+
+export async function qMonthlyGoalsObject(): Promise<Record<string, number>> {
+  const [{ month_start }] = await sql/*sql*/`
+    SELECT (date_trunc('month', timezone('Europe/Berlin', now()))::date) AS month_start
+  `;
+
+  const rows = await sql/*sql*/`
+    SELECT kind::text, target::numeric
+    FROM monthly_goals
+    WHERE month = ${month_start}::date
+  `;
+
+  const out: Record<string, number> = {
+    running_distance_km: 0,
+    steps: 0,
+    reading_minutes: 0,
+    outdoor_minutes: 0,
+    writing_minutes: 0,
+    coding_minutes: 0,
+    focus_minutes: 0,
+  };
+
+  for (const r of rows as any[]) {
+    const k = String(r.kind);
+    const v = Number(r.target);
+    if (k in out) out[k] = v;
+  }
+  return out;
 }
