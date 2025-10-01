@@ -9,8 +9,7 @@ export function hasValidSecret(req: Request): boolean {
   const hdr = new Headers(req.headers);
   const secret = hdr.get(SECRET_HEADER);
   const primary = process.env.DASHBOARD_API_SECRET || "";
-  const fallback = process.env.CONTENTFUL_REVALIDATE_SECRET || "";
-  return Boolean(secret && (secret === primary || (fallback && secret === fallback)));
+  return Boolean(secret && (secret === primary));
 }
 
 /** Throws a 401 JSON response if secret is missing/invalid. */

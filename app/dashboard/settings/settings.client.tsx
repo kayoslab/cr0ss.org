@@ -141,7 +141,7 @@ type RunPayload = {
   date: string; // YYYY-MM-DD
   distance_km: number;
   duration_min: number;
-  pace_sec_per_km?: number;
+  avg_pace_sec_per_km?: number;
 };
 
 type CoffeeRow = { id: string; name: string; roaster: string };
@@ -278,9 +278,9 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
 
       // Hydrate data models
       const [bodyRes, goalsRes, dayRes] = await Promise.all([
-        jfetch<BodyProfile>("/api/habits/body", { method: "GET" }),
-        jfetch<Goals>("/api/habits/goal", { method: "GET" }),
-        jfetch<DayPayload>(`/api/habits/day?date=${todayStr}`, { method: "GET" }),
+        jfetch<BodyProfile>("/api/habits/body", { method: "GET" }, secret),
+        jfetch<Goals>("/api/habits/goal", { method: "GET" }, secret),
+        jfetch<DayPayload>(`/api/habits/day?date=${todayStr}`, { method: "GET" }, secret),
       ]);
 
       if (bodyRes.ok && bodyRes.json) setBody(bodyRes.json);
@@ -415,7 +415,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         date: runDate,
         distance_km: Number(distanceKm) || 0,
         duration_min: Number(durationMin) || 0,
-        pace_sec_per_km: Number(paceSec) || undefined,
+        avg_pace_sec_per_km: Number(paceSec) || undefined,
       };
       const res = await jfetch("/api/habits/run", { method: "POST", body: JSON.stringify(payload) }, secret);
       if (res.ok) {

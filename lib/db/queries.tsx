@@ -353,12 +353,12 @@ export async function qRunningMonthlyProgress() {
 
 export async function qPaceLastRuns(limit=10) {
   const rows = await sql/*sql*/`
-    select to_char(date,'YYYY-MM-DD') as date, coalesce(avg_pace_sec_per_km,0)::int as pace_sec_per_km
+    select to_char(date,'YYYY-MM-DD') as date, coalesce(avg_pace_sec_per_km,0)::int as avg_pace_sec_per_km
     from runs
     order by date desc
     limit ${limit}
   `;
-  const data = rows.map((r:any)=> ({ date: r.date, pace_sec_per_km: Number(r.pace_sec_per_km) })).reverse();
+  const data = rows.map((r:any)=> ({ date: r.date, avg_pace_sec_per_km: Number(r.avg_pace_sec_per_km) })).reverse();
   return ZPaceSeries.parse(data);
 }
 

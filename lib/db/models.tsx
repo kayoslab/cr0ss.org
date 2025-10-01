@@ -66,7 +66,7 @@ export const ZMonthlyProgress = z.object({
   month: z.string(), target_km: z.number(), total_km: z.number(), delta_km: z.number(),
   pct: z.number().min(0),
 });
-export const ZPacePoint = z.object({ date: z.string(), pace_sec_per_km: z.number().int().min(0) });
+export const ZPacePoint = z.object({ date: z.string(), avg_pace_sec_per_km: z.number().int().min(0) });
 export const ZPaceSeries = z.array(ZPacePoint);
 export const ZHeatDay = z.object({ date: z.string(), km: z.number().min(0) });
 export const ZHeat = z.array(ZHeatDay);
