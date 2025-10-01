@@ -6,7 +6,6 @@ import { neon } from "@neondatabase/serverless";
 import {
   startOfBerlinDayISO,
   endOfBerlinDayISO,
-  formatBerlinHHmm,
   prevBerlinDateKey,
 } from "@/lib/time/berlin";
 
@@ -24,6 +23,7 @@ import {
   qRunningMonthlyProgress,
   qPaceLastRuns,
   qRunningHeatmap,
+  qMonthlyGoalsObject,
 } from "@/lib/db/queries";
 import { getBodyProfile } from "@/lib/user/profile";
 import { modelCaffeine, estimateIntakeMgFor } from "@/lib/phys/caffeine";
@@ -31,24 +31,6 @@ import { modelCaffeine, estimateIntakeMgFor } from "@/lib/phys/caffeine";
 const sql = neon(process.env.DATABASE_URL!);
 const startISO = startOfBerlinDayISO();
 const endISO   = endOfBerlinDayISO();
-
-// read current-month goals (same shape as your /api/habits/goal)
-async function getGoals(): Promise<Record<string, number>> {
-    const [{ month_start }] = await sql/*sql*/`
-        SELECT (date_trunc('month', timezone('Europe/Berlin', now()))::date) AS month_start
-    `;
-    const rows = await sql/*sql*/`
-        SELECT kind::text, target::numeric
-        FROM monthly_goals
-        WHERE month = ${month_start}::date
-    `;
-    const out: Record<string, number> = {
-        running_distance_km: 0, steps: 0, reading_minutes: 0, outdoor_minutes: 0,
-        writing_minutes: 0, coding_minutes: 0, focus_minutes: 0,
-    };
-    for (const r of rows as any[]) out[r.kind] = Number(r.target);
-    return out;
-}
 
 export async function GET(req: Request) {
   try {
@@ -63,7 +45,6 @@ export async function GET(req: Request) {
         runningProgress,
         paceSeries,
         runningHeatmap,
-        berlinBounds,
         body,
         monthlyGoals,
     ] = await Promise.all([
@@ -76,9 +57,8 @@ export async function GET(req: Request) {
         qRunningMonthlyProgress(),
         qPaceLastRuns(10),
         qRunningHeatmap(42),
-        qBerlinTodayBounds(),
         getBodyProfile(),
-        getGoals(),
+        qMonthlyGoalsObject(),
     ]);
 
     // caffeine model:
@@ -108,7 +88,7 @@ export async function GET(req: Request) {
     const mgByDate = new Map<string, number>();
     for (const ev of rangeEvents) {
       // each ev.time is ISO; bucket by Berlin date:
-      const ymd = new Date(ev.time).toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" });
+      const ymd = new Date(ev.time).toLocaleDateString("de-DE", { timeZone: "Europe/Berlin" });
       mgByDate.set(ymd, (mgByDate.get(ymd) ?? 0) + estimateIntakeMgFor(ev.type, ev.amount_ml));
     }
     const sleepPrevCaff = sleepRows
@@ -125,19 +105,20 @@ export async function GET(req: Request) {
     return NextResponse.json(
       {
         cupsToday,
-        brewMethodsToday,          // [{ type, count }]
-        coffeeOriginThisWeek: origins7d, // [{ name, value }]
-        habitsToday,               // { steps, reading_minutes, ... }
-        habitsConsistency: consistency, // [{ name, kept, total }]
-        writingVsFocus,            // [{ date, writing_minutes, focus_minutes }]
-        runningProgress,           // { target_km, total_km, delta_km, pct, month }
-        paceSeries,                // [{ date, pace_sec_per_km }]
-        runningHeatmap,            // [{ date, km }]
-        caffeineSeries,            // [{ timeISO, intake_mg, body_mg }]
-        sleepPrevCaff,             // [{ date, sleep_score, prev_caffeine_mg }]
-        monthlyGoals,              // { steps, running_distance_km, reading_minutes, ... }
-      },
-      { status: 200 }
+        brewMethodsToday,
+        coffeeOriginThisWeek: origins7d,
+        habitsToday,
+        habitsConsistency: consistency,
+        writingVsFocus,
+        runningProgress,
+        paceSeries,
+        runningHeatmap,
+        caffeineSeries,
+        sleepPrevCaff,
+        monthlyGoals,
+      }, { 
+        status: 200 
+      }
     );
   } catch (e: any) {
     const status = e?.status ?? 500;
