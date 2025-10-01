@@ -1,16 +1,16 @@
 export const runtime = "edge";
 
 import { NextResponse } from "next/server";
-import { neon } from "@neondatabase/serverless";
+import { sql } from "@/lib/db/client";
 
 import {
   startOfBerlinDayISO,
   endOfBerlinDayISO,
   prevBerlinDateKey,
+  toBerlinYMD
 } from "@/lib/time/berlin";
 
 import {
-  qBerlinTodayBounds,
   qCoffeeEventsForDayWithLookback,
   qCoffeeInRange,
   qSleepVsFocusScatter,
@@ -28,7 +28,6 @@ import {
 import { getBodyProfile } from "@/lib/user/profile";
 import { modelCaffeine, estimateIntakeMgFor } from "@/lib/phys/caffeine";
 
-const sql = neon(process.env.DATABASE_URL!);
 const startISO = startOfBerlinDayISO();
 const endISO   = endOfBerlinDayISO();
 
@@ -88,7 +87,8 @@ export async function GET(req: Request) {
     const mgByDate = new Map<string, number>();
     for (const ev of rangeEvents) {
       // each ev.time is ISO; bucket by Berlin date:
-      const ymd = new Date(ev.time).toLocaleDateString("de-DE", { timeZone: "Europe/Berlin" });
+      const ymd = toBerlinYMD(new Date(ev.time));
+
       mgByDate.set(ymd, (mgByDate.get(ymd) ?? 0) + estimateIntakeMgFor(ev.type, ev.amount_ml));
     }
     const sleepPrevCaff = sleepRows

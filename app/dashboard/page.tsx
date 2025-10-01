@@ -1,11 +1,10 @@
-// app/dashboard/page.tsx
 import React from "react";
 import NextDynamic from "next/dynamic";
 import { kv } from "@vercel/kv";
 import { getAllCountries, getVisitedCountries } from "@/lib/contentful/api/country";
 import { CountryProps } from "@/lib/contentful/api/props/country";
 import DashboardSkeleton from "./Dashboard.skeleton";
-import { SECRET_HEADER } from "@/lib/auth/secret";
+import { SECRET_HEADER } from "@/lib/auth/constants";
 import { formatBerlinHHmm } from "@/lib/time/berlin";
 
 // fetch settings
@@ -26,17 +25,16 @@ function resolveBaseUrl() {
   return "http://localhost:3000";
 }
 
-async function jfetchServer<T>(path: string): Promise<T | null> {
+type JRes<T> = { ok: true; data: T } | { ok: false; status: number };
+async function jfetchServer<T>(path: string): Promise<JRes<T>> {
   const base = resolveBaseUrl();
   const url = path.startsWith("http") ? path : `${base}${path}`;
-  const secret = process.env.DASHBOARD_API_SECRET || process.env.CONTENTFUL_REVALIDATE_SECRET || "";
-
   const headers = new Headers({ accept: "application/json" });
+  const secret = process.env.DASHBOARD_API_SECRET || process.env.CONTENTFUL_REVALIDATE_SECRET || "";
   if (secret) headers.set(SECRET_HEADER, secret);
-
   const res = await fetch(url, { headers, cache: "no-store" });
-  if (!res.ok) return null;
-  return (await res.json()) as T;
+  if (!res.ok) return { ok: false, status: res.status };
+  return { ok: true, data: (await res.json()) as T };
 }
 
 function hourGridLabels(): string[] {
@@ -87,9 +85,11 @@ export default async function DashboardPage() {
     visited: c.lastVisited != null,
   }));
 
-  // API-first dashboard data
-  const api = (await jfetchServer<DashboardApi>("/api/dashboard"))!;
-  if (!api) throw new Error("Failed to load dashboard data");
+  // usage
+  const apiRes = await jfetchServer<DashboardApi>("/api/dashboard");
+  if (!apiRes.ok) throw new Error(`Failed to load dashboard data (HTTP ${apiRes.status})`);
+  const api = apiRes.data;
+
   const goals = api.monthlyGoals ?? {
     running_distance_km: 0,
     steps: 0,

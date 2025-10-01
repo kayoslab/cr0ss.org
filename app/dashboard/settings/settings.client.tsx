@@ -1,6 +1,6 @@
 "use client";
 
-import { SECRET_HEADER } from "@/lib/auth/secret";
+import { SECRET_HEADER } from "@/lib/auth/constants";
 import React, { useEffect, useMemo, useState } from "react";
 
 /* --------------------------------------------------------

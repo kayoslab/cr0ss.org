@@ -1,4 +1,3 @@
-// app/dashboard/Dashboard.skeleton.tsx
 "use client";
 
 import React from "react";

@@ -1,11 +1,9 @@
 export const runtime = "edge";
 
 import { NextResponse } from "next/server";
-import { neon } from "@neondatabase/serverless";
+import { sql } from "@/lib/db/client";
 import { revalidateDashboard } from "@/lib/cache/revalidate";
 import { assertSecret } from "@/lib/auth/secret";
-
-const sql = neon(process.env.DATABASE_URL!);
 
 // GET current-month goals
 export async function GET(req: Request) {

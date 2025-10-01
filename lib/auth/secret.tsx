@@ -1,4 +1,4 @@
-export const SECRET_HEADER = "x-vercel-revalidation-key";
+import { SECRET_HEADER } from "./constants";
 
 /**
  * Returns true if the provided Request carries a valid secret header.
