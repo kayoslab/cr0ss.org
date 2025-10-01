@@ -6,6 +6,7 @@ import { getAllCountries, getVisitedCountries } from "@/lib/contentful/api/count
 import { CountryProps } from "@/lib/contentful/api/props/country";
 import DashboardSkeleton from "./Dashboard.skeleton";
 import { SECRET_HEADER } from "@/lib/auth/secret";
+import { formatBerlinHHmm } from "@/lib/time/berlin";
 
 // fetch settings
 export const dynamic = "force-dynamic";
@@ -36,6 +37,10 @@ async function jfetchServer<T>(path: string): Promise<T | null> {
   const res = await fetch(url, { headers, cache: "no-store" });
   if (!res.ok) return null;
   return (await res.json()) as T;
+}
+
+function hourGridLabels(): string[] {
+  return Array.from({ length: 25 }, (_, h) => `${String(h).padStart(2, "0")}:00`);
 }
 
 type DashboardApi = {
@@ -95,7 +100,30 @@ export default async function DashboardPage() {
     focus_minutes: 0,
   };
 
-  // Map into client-friendly props
+  // --- Normalize caffeine to strict hour grid (Berlin)
+  // 1) map API points to {label,intake,body} with Berlin HH:mm
+  const points = api.caffeineSeries.map((p) => ({
+    label: formatBerlinHHmm(Date.parse(p.timeISO)), // always "HH:mm" in Europe/Berlin
+    intake_mg: p.intake_mg,
+    body_mg: p.body_mg,
+  }));
+
+  // ensure sorted by label (lexicographic works for "HH:mm")
+  points.sort((a, b) => (a.label < b.label ? -1 : a.label > b.label ? 1 : 0));
+
+  // 2) index by label for O(1) hits
+  const byLabel = new Map(points.map((p) => [p.label, p]));
+
+  // 3) walk a canonical 00:00..24:00 grid; if a slot is missing, carry last known value
+  const grid = hourGridLabels();
+  let last = { intake_mg: 0, body_mg: 0 }; // sensible default before first event
+  const caffeineDual = grid.map((hhmm) => {
+    const hit = byLabel.get(hhmm);
+    if (hit) last = { intake_mg: hit.intake_mg, body_mg: hit.body_mg };
+    return { time: hhmm, intake_mg: last.intake_mg, body_mg: last.body_mg };
+  });
+
+  // --- Map into client-friendly props
   const travel = {
     totalCountries: countries.length,
     visitedCount: visited.length,
@@ -109,16 +137,7 @@ export default async function DashboardPage() {
     cupsToday: api.cupsToday,
     methodsBar: api.brewMethodsToday.map((b) => ({ name: b.type, value: b.count })),
     originsDonut: api.coffeeOriginThisWeek,
-    caffeineDual: api.caffeineSeries.map((p) => ({
-      time: new Date(p.timeISO).toLocaleTimeString("de-DE", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-        hourCycle: "h23",
-      }),
-      intake_mg: p.intake_mg,
-      body_mg: p.body_mg,
-    })),
+    caffeineDual,
   };
 
   const rituals = {

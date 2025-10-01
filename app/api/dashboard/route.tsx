@@ -4,6 +4,13 @@ import { NextResponse } from "next/server";
 import { neon } from "@neondatabase/serverless";
 
 import {
+  startOfBerlinDayISO,
+  endOfBerlinDayISO,
+  formatBerlinHHmm,
+  prevBerlinDateKey,
+} from "@/lib/time/berlin";
+
+import {
   qBerlinTodayBounds,
   qCoffeeEventsForDayWithLookback,
   qCoffeeInRange,
@@ -22,6 +29,8 @@ import { getBodyProfile } from "@/lib/user/profile";
 import { modelCaffeine, estimateIntakeMgFor } from "@/lib/phys/caffeine";
 
 const sql = neon(process.env.DATABASE_URL!);
+const startISO = startOfBerlinDayISO();
+const endISO   = endOfBerlinDayISO();
 
 // read current-month goals (same shape as your /api/habits/goal)
 async function getGoals(): Promise<Record<string, number>> {
@@ -72,42 +81,39 @@ export async function GET(req: Request) {
         getGoals(),
     ]);
 
-    // caffeine series (00:00–24:00 Berlin with carry-over)
+    // caffeine model:
     const half = body.half_life_hours ?? 5;
     const lookbackH = Math.max(24, Math.ceil(half * 4));
-    const events = await qCoffeeEventsForDayWithLookback(
-      berlinBounds.startISO,
-      berlinBounds.endISO,
-      lookbackH
-    );
+    const events = await qCoffeeEventsForDayWithLookback(startISO, endISO, lookbackH);
     const caffeineSeries = modelCaffeine(events, body, {
-      startMs: Date.parse(berlinBounds.startISO),
-      endMs: Date.parse(berlinBounds.endISO),
+      startMs: Date.parse(startISO),
+      endMs: Date.parse(endISO),
       alignToHour: true,
       gridMinutes: 60,
       halfLifeHours: body.half_life_hours ?? undefined,
     });
 
-    // Sleep vs previous-day caffeine (60d)
+    // sleep vs previous day caffeine (60d):
     const sleepRows = await qSleepVsFocusScatter(60);
-    const minDate = sleepRows.length ? new Date(sleepRows[0].date) : new Date();
-    const maxDate = sleepRows.length ? new Date(sleepRows[sleepRows.length - 1].date) : new Date();
-    const startRange = new Date(minDate);
-    startRange.setDate(startRange.getDate() - 1);
-    const startISOAll = startRange.toISOString().slice(0, 10) + "T00:00:00.000Z";
-    const endISOAll = new Date(maxDate.getTime() + 24 * 3600 * 1000).toISOString();
+    // Pull range once using first/last sleep row, but convert prev-day keys via helper:
+    const minYMD = sleepRows.length ? sleepRows[0].date : new Date().toISOString().slice(0,10);
+    const maxYMD = sleepRows.length ? sleepRows[sleepRows.length-1].date : minYMD;
+
+    // Build a single fetch range in ISO:
+    const startISOAll = startOfBerlinDayISO(new Date(`${minYMD}T00:00:00.000Z`)); // includes prev-day overlap via lookback if you want
+    const endISOAll   = endOfBerlinDayISO(new Date(`${maxYMD}T00:00:00.000Z`));
+
     const rangeEvents = await qCoffeeInRange(startISOAll, endISOAll);
+    // sum by Berlin calendar date:
     const mgByDate = new Map<string, number>();
     for (const ev of rangeEvents) {
-      const d = ev.time.slice(0, 10);
-      const mg = estimateIntakeMgFor(ev.type, ev.amount_ml);
-      mgByDate.set(d, (mgByDate.get(d) ?? 0) + mg);
+      // each ev.time is ISO; bucket by Berlin date:
+      const ymd = new Date(ev.time).toLocaleDateString("sv-SE", { timeZone: "Europe/Berlin" });
+      mgByDate.set(ymd, (mgByDate.get(ymd) ?? 0) + estimateIntakeMgFor(ev.type, ev.amount_ml));
     }
     const sleepPrevCaff = sleepRows
       .map((r) => {
-        const d = new Date(r.date);
-        d.setDate(d.getDate() - 1);
-        const prevKey = d.toISOString().slice(0, 10);
+        const prevKey = prevBerlinDateKey(r.date);
         return {
           date: r.date,
           sleep_score: r.sleep_score,
