@@ -2,74 +2,47 @@
 import React from "react";
 import NextDynamic from "next/dynamic";
 import { kv } from "@vercel/kv";
-
-import { getDashboardData } from "@/lib/cache/dashboard";
 import { getAllCountries, getVisitedCountries } from "@/lib/contentful/api/country";
 import { CountryProps } from "@/lib/contentful/api/props/country";
-import { qBerlinTodayBounds, qCoffeeEventsForDayWithLookback } from "@/lib/db/queries";
-import { getBodyProfile } from "@/lib/user/profile";
-import { modelCaffeine } from "@/lib/phys/caffeine";
-import { qCoffeeInRange, qSleepVsFocusScatter } from "@/lib/db/queries";
-import { estimateIntakeMgFor } from "@/lib/phys/caffeine";
 import DashboardSkeleton from "./Dashboard.skeleton";
 
+// fetch settings
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
-const DashboardClient = NextDynamic(() => import("./Dashboard.client"), { 
+const DashboardClient = NextDynamic(() => import("./Dashboard.client"), {
   ssr: false,
   loading: () => <DashboardSkeleton />,
 });
 
-export default async function DashboardPage() {
-  // live location (KV)
-  const storedLocation = await kv.get<{ lat: number; lon: number }>("GEOLOCATION");
-  const lat = storedLocation?.lat ?? 0;
-  const lon = storedLocation?.lon ?? 0;
+// ---- absolute URL builder + server fetcher
+function resolveBaseUrl() {
+  const pub = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+  if (pub) return pub;
+  const vercel = process.env.VERCEL_URL?.replace(/\/$/, "");
+  if (vercel) return `https://${vercel}`;
+  return "http://localhost:3000";
+}
 
-  // cached server data
-  const data = await getDashboardData();
+async function jfetchServer<T>(path: string): Promise<T | null> {
+  const base = resolveBaseUrl();
+  const url = path.startsWith("http") ? path : `${base}${path}`;
+  const secret = process.env.DASHBOARD_API_SECRET || process.env.CONTENTFUL_REVALIDATE_SECRET || "";
 
-  // countries (Contentful) in parallel
-  const [countries = [], visited = []] = await Promise.all([
-    getAllCountries(),
-    getVisitedCountries(true),
-  ]);
+  const headers = new Headers();
+  if (secret) headers.set("x-vercel-revalidation-key", secret);
+  headers.set("accept", "application/json");
 
-  // slim countries for client map (defensive path access)
-  const countriesSlim = countries.map((c: CountryProps) => ({
-    id: c.id,
-    path: c.data?.path ?? "", // empty path safely renders nothing for that country
-    visited: c.lastVisited != null,
-  }));
+  const res = await fetch(url, { headers, cache: "no-store" });
+  if (!res.ok) return null;
+  return (await res.json()) as T;
+}
 
-  function resolveBaseUrl() {
-    const pub = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
-    if (pub) return pub;
-
-    const vercel = process.env.VERCEL_URL?.replace(/\/$/, "");
-    if (vercel) return `https://${vercel}`;
-    
-    return "http://cr0ss.org";
-  }
-
-  async function jfetchServer<T>(path: string, init: RequestInit = {}): Promise<{ ok: boolean; status: number; data: T | null }> {
-    const base = resolveBaseUrl();
-    const url = path.startsWith("http") ? path : `${base}${path}`;
-    const secret = process.env.DASHBOARD_API_SECRET || process.env.CONTENTFUL_REVALIDATE_SECRET || "";
-
-    const headers = new Headers(init.headers as HeadersInit | undefined);
-    if (secret) headers.set("x-vercel-revalidation-key", secret);
-    if (!headers.has("accept")) headers.set("accept", "application/json");
-
-    const res = await fetch(url, { ...init, headers, cache: "no-store" });
-    if (!res.ok) return { ok: false, status: res.status, data: null };
-    const json = (await res.json()) as T;
-    return { ok: true, status: res.status, data: json };
-  }
-
-  type Goals = {
-    running_distance_km: number;
+type DashboardApi = {
+  cupsToday: number;
+  brewMethodsToday: { type: string; count: number }[];
+  coffeeOriginThisWeek: { name: string; value: number }[];
+  habitsToday: {
     steps: number;
     reading_minutes: number;
     outdoor_minutes: number;
@@ -77,8 +50,42 @@ export default async function DashboardPage() {
     coding_minutes: number;
     focus_minutes: number;
   };
+  habitsConsistency: { name: string; kept: number; total: number }[];
+  writingVsFocus: { date: string; writing_minutes: number; focus_minutes: number }[];
+  runningProgress: { target_km: number; total_km: number; delta_km: number; pct: number; month: string };
+  paceSeries: { date: string; pace_sec_per_km: number }[];
+  runningHeatmap: { date: string; km: number }[];
+  caffeineSeries: { timeISO: string; intake_mg: number; body_mg: number }[];
+  sleepPrevCaff: { date: string; sleep_score: number; prev_caffeine_mg: number }[];
+  monthlyGoals: {
+    steps: number;
+    running_distance_km: number;
+    reading_minutes: number;
+    outdoor_minutes: number;
+    writing_minutes: number;
+    coding_minutes: number;
+    focus_minutes: number;
+  };
+};
 
-  const DEFAULT_GOALS: Goals = {
+export default async function DashboardPage() {
+  // live location (KV)
+  const storedLocation = await kv.get<{ lat: number; lon: number }>("GEOLOCATION");
+  const lat = Number(storedLocation?.lat ?? 0);
+  const lon = Number(storedLocation?.lon ?? 0);
+
+  // Contentful
+  const [countries = [], visited = []] = await Promise.all([getAllCountries(), getVisitedCountries(true)]);
+  const countriesSlim = countries.map((c: CountryProps) => ({
+    id: c.id,
+    path: c.data?.path ?? "",
+    visited: c.lastVisited != null,
+  }));
+
+  // API-first dashboard data
+  const api = (await jfetchServer<DashboardApi>("/api/dashboard"))!;
+  if (!api) throw new Error("Failed to load dashboard data");
+  const goals = api.monthlyGoals ?? {
     running_distance_km: 0,
     steps: 0,
     reading_minutes: 0,
@@ -88,24 +95,7 @@ export default async function DashboardPage() {
     focus_minutes: 0,
   };
 
-  const goals = (await jfetchServer<Goals>("/api/habits/goal")) ?? DEFAULT_GOALS;
-
-  // caffeine model for today incl. carryover
-  const { startISO, endISO } = await qBerlinTodayBounds();
-  const body = await getBodyProfile();
-  const half = body.half_life_hours ?? 5;
-  const lookbackH = Math.max(24, Math.ceil(half * 4));
-  const events = await qCoffeeEventsForDayWithLookback(startISO, endISO, lookbackH);
-
-  const series = modelCaffeine(events, body, {
-    startMs: Date.parse(startISO),
-    endMs: Date.parse(endISO),
-    alignToHour: true,
-    gridMinutes: 60,
-    halfLifeHours: body.half_life_hours ?? undefined,
-  });
-
-  // props for client
+  // Map into client-friendly props
   const travel = {
     totalCountries: countries.length,
     visitedCount: visited.length,
@@ -116,88 +106,70 @@ export default async function DashboardPage() {
   };
 
   const morning = {
-    cupsToday: data.cupsToday,
-    methodsBar: data.brewMethodsToday.map((b) => ({ name: b.type, value: b.count })),
-    originsDonut: data.coffeeOriginThisWeek,
-    caffeineDual: series.map((p) => ({
-    time: new Date(p.timeISO).toLocaleTimeString("de-DE", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-      hourCycle: "h23",
-    }),
-    intake_mg: p.intake_mg,
-    body_mg: p.body_mg,
-  })),
-};
+    cupsToday: api.cupsToday,
+    methodsBar: api.brewMethodsToday.map((b) => ({ name: b.type, value: b.count })),
+    originsDonut: api.coffeeOriginThisWeek,
+    caffeineDual: api.caffeineSeries.map((p) => ({
+      time: new Date(p.timeISO).toLocaleTimeString("de-DE", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        hourCycle: "h23",
+      }),
+      intake_mg: p.intake_mg,
+      body_mg: p.body_mg,
+    })),
+  };
 
   const rituals = {
     progressToday: [
-      { name: "Steps",    value: Number(data.habitsToday.steps) ?? 0,            target: Number(goals.data?.steps) ?? 0 },
-      { name: "Reading",  value: Number(data.habitsToday.reading_minutes) ?? 0,  target: Number(goals.data?.reading_minutes) ?? 0 },
-      { name: "Outdoor",  value: Number(data.habitsToday.outdoor_minutes) ?? 0,  target: Number(goals.data?.outdoor_minutes) ?? 0 },
-      { name: "Writing",  value: Number(data.habitsToday.writing_minutes) ?? 0,  target: Number(goals.data?.writing_minutes) ?? 0 },
-      { name: "Coding",   value: Number(data.habitsToday.coding_minutes) ?? 0,   target: Number(goals.data?.coding_minutes) ?? 0 },
+      { 
+        name: "Steps",
+        value: api.habitsToday.steps,
+        target: goals.steps
+      }, {
+        name: "Reading",
+        value: api.habitsToday.reading_minutes,
+        target: goals.reading_minutes
+      }, {
+        name: "Outdoor",
+        value: api.habitsToday.outdoor_minutes,
+        target: goals.outdoor_minutes
+      }, {
+        name: "Writing",
+        value: api.habitsToday.writing_minutes,
+        target: goals.writing_minutes
+      }, {
+        name: "Coding",
+        value: api.habitsToday.coding_minutes,
+        target: goals.coding_minutes
+      },
     ],
-    consistencyBars: data.habitsConsistency.map((r) => ({
+    consistencyBars: api.habitsConsistency.map((r) => ({
       name: r.name,
       value: Math.round((r.kept / Math.max(1, r.total)) * 100),
     })),
-    rhythmTrend: data.writingVsFocus.map((d) => ({
+    rhythmTrend: api.writingVsFocus.map((d) => ({
       date: d.date,
       "Writing (min)": d.writing_minutes,
       "Focus (min)": d.focus_minutes,
     })),
   };
 
-  // ---- Sleep vs previous-day caffeine (last 60 days)
-  // Reuse sleep rows from the existing scatter helper (we only need the date + sleep_score)
-  const sleepRows = await qSleepVsFocusScatter(60); // [{date, sleep_score, focus_minutes}]
-  // Build the range we need: from min(sleep date) - 1 day to max(sleep date)
-  const minDate = sleepRows.length ? new Date(sleepRows[0].date) : new Date();
-  const maxDate = sleepRows.length ? new Date(sleepRows[sleepRows.length - 1].date) : new Date();
-  const startRange = new Date(minDate);
-  startRange.setDate(startRange.getDate() - 1); // need the *previous* day too
-  const startISOAll = startRange.toISOString().slice(0, 10) + "T00:00:00.000Z";
-  const endISOAll   = new Date(maxDate.getTime() + 24*3600*1000).toISOString(); // exclusive
-
-  // Get all coffee events in the range once
-  const rangeEvents = await qCoffeeInRange(startISOAll, endISOAll);
-
-  // Sum caffeine per *calendar date* of consumption
-  const mgByDate = new Map<string, number>();
-  for (const ev of rangeEvents) {
-    const d = ev.time.slice(0, 10); // YYYY-MM-DD of the event
-    const mg = estimateIntakeMgFor(ev.type, ev.amount_ml);
-    mgByDate.set(d, (mgByDate.get(d) ?? 0) + mg);
-  }
-
-  // For each sleep date, look up previous day's mg
-  const sleepPrevCaff = sleepRows
-    .map((r) => {
-      const d = new Date(r.date);
-      d.setDate(d.getDate() - 1);
-      const prevKey = d.toISOString().slice(0, 10);
-      return {
-        date: r.date,
-        sleep_score: r.sleep_score,
-        prev_caffeine_mg: Math.round(mgByDate.get(prevKey) ?? 0),
-      };
-    }
-  ).filter((p) => !(p.prev_caffeine_mg === 0 && (!p.sleep_score || p.sleep_score === 0)));
-
   const running = {
     progress: {
-      target_km: data.runningProgress.target_km,
-      total_km: data.runningProgress.total_km,
-      delta_km: data.runningProgress.delta_km,
+      target_km: api.runningProgress.target_km,
+      total_km: api.runningProgress.total_km,
+      delta_km: api.runningProgress.delta_km,
     },
-    paceSeries: data.paceSeries.map((p) => ({
+    paceSeries: api.paceSeries.map((p) => ({
       date: p.date,
       paceMinPerKm: +(p.pace_sec_per_km / 60).toFixed(2),
     })),
-    heatmap: data.runningHeatmap,
+    heatmap: api.runningHeatmap,
   };
+
+  const sleepPrevCaff = api.sleepPrevCaff;
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-white dark:bg-slate-800">
