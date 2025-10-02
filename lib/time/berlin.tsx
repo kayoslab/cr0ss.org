@@ -1,49 +1,8 @@
 const BERLIN_TZ = "Europe/Berlin";
 
-// existing exports...
-
-/** Normalize "HH:mm" -> "HH:mm" (24h, zero-padded). */
-export function normalizeHHmm(v: string): string {
-  const m = /^(\d{1,2})(?::?(\d{1,2}))?$/.exec(String(v).trim());
-  const hh = Math.max(0, Math.min(23, Number(m?.[1] ?? 0)));
-  const mm = Math.max(0, Math.min(59, Number(m?.[2] ?? 0)));
-  return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
-}
-
-/**
- * Convert a Berlin wall-clock date/time ("YYYY-MM-DD" + "HH:mm") to a UTC ISO string.
- * This respects DST transitions by asking the runtime for the Berlin offset.
- */
-export function berlinDateTimeToUTCISO(ymd: string, hhmm: string): string {
-  const [h, m] = normalizeHHmm(hhmm).split(":").map((s) => Number(s));
-  // Build a Date that represents that wall-clock in Berlin:
-  // Trick: create a Date from the Berlin-local string, then read its UTC instant.
-  const berlinLocal = new Date(
-    new Date(`${ymd}T00:00:00.000Z`).toLocaleString("en-US", { timeZone: BERLIN_TZ })
-  );
-  berlinLocal.setHours(h, m, 0, 0);
-  return new Date(berlinLocal.getTime()).toISOString();
-}
-
-/** Normalize user-entered "HH:mm" to a zero-padded 24h string ("00:00"–"23:59"). */
-export function normalizeBerlinHHmm(v: string): string {
-  const m = /^(\d{1,2})(?::?(\d{1,2}))?$/.exec((v || "").trim());
-  let hh = Number(m?.[1] ?? 0);
-  let mm = Number(m?.[2] ?? 0);
-  if (!Number.isFinite(hh)) hh = 0;
-  if (!Number.isFinite(mm)) mm = 0;
-  hh = Math.max(0, Math.min(23, hh));
-  mm = Math.max(0, Math.min(59, mm));
-  return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
-}
-
-/** Returns a Date representing "now" in Berlin (keeps wall-clock semantics). */
-export function berlinNow(): Date {
-  // Construct from current UTC components but interpreted in Berlin
-  const now = new Date();
-  // No need to mutate; callers usually need ISO strings below
-  return now;
-}
+// -------------------------------------------------------------
+// Day boundaries in Berlin time zone
+// -------------------------------------------------------------
 
 /** Start of day in Berlin for a given Date (default: today), as ISO string (UTC). */
 export function startOfBerlinDayISO(d: Date = new Date()): string {
@@ -62,21 +21,9 @@ export function endOfBerlinDayISO(d: Date = new Date()): string {
   return new Date(utc.getTime() - offset * 60_000).toISOString();
 }
 
-/** Format a time (ms since epoch) as 24h HH:mm in Berlin. */
-export function formatBerlinHHmm(ms: number): string {
-  return new Date(ms).toLocaleTimeString("de-DE", {
-    timeZone: BERLIN_TZ,
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-    hourCycle: "h23",
-  });
-}
-
-/** Returns YYYY-MM-DD for a Date in Berlin. */
-export function toBerlinYMD(d: Date): string {
-  return d.toLocaleDateString("sv-SE", { timeZone: BERLIN_TZ }); // sv-SE → YYYY-MM-DD
-}
+// -------------------------------------------------------------
+// Date arithmetic in Berlin wall-clock sense
+// -------------------------------------------------------------
 
 /** Returns a new Date shifted by N days in Berlin wall-clock sense. */
 export function addBerlinDays(d: Date, days: number): Date {
@@ -95,6 +42,53 @@ export function prevBerlinDateKey(ymd: string): string {
   return toBerlinYMD(prev);
 }
 
+// -------------------------------------------------------------
+// Public Date helpers
+// -------------------------------------------------------------
+
+/** Format a time (ms since epoch) as 24h HH:mm in Berlin. */
+export function isoToBerlinDate(ms: number): string {
+  return new Date(ms).toLocaleTimeString("de-DE", {
+    timeZone: BERLIN_TZ,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    hourCycle: "h23",
+  });
+}
+
+/**
+ * Convert a Berlin wall-clock date/time ("YYYY-MM-DD" + "HH:mm") to a UTC ISO string.
+ * This respects DST transitions by asking the runtime for the Berlin offset.
+ */
+export function berlinDateTimeToUTCISO(ymd: string, hhmm: string): string {
+  const [h, m] = normalizeHHmm(hhmm).split(":").map((s) => Number(s));
+  // Build a Date that represents that wall-clock in Berlin:
+  // Trick: create a Date from the Berlin-local string, then read its UTC instant.
+  const berlinLocal = new Date(
+    new Date(`${ymd}T00:00:00.000Z`).toLocaleString("en-US", { timeZone: BERLIN_TZ })
+  );
+  berlinLocal.setHours(h, m, 0, 0);
+  return new Date(berlinLocal.getTime()).toISOString();
+}
+
+/** Returns YYYY-MM-DD for a Date in Berlin. */
+export function toBerlinYMD(d: Date): string {
+  return d.toLocaleDateString("sv-SE", { timeZone: BERLIN_TZ }); // sv-SE → YYYY-MM-DD
+}
+
+/** Normalize "HH:mm" -> "HH:mm" (24h, zero-padded). */
+export function normalizeHHmm(v: string): string {
+  const m = /^(\d{1,2})(?::?(\d{1,2}))?$/.exec(String(v).trim());
+  const hh = Math.max(0, Math.min(23, Number(m?.[1] ?? 0)));
+  const mm = Math.max(0, Math.min(59, Number(m?.[2] ?? 0)));
+  return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+}
+
+// -------------------------------------------------------------
+// Private Helpers
+// -------------------------------------------------------------
+
 /** Internal: minutes between UTC and Berlin for a given YMD + minutes past midnight. */
 function tzOffsetMinutes(ymd: string, minutes: number): number {
   // Build a local Berlin time at YMD + minutes, then compare to UTC
@@ -108,8 +102,4 @@ function tzOffsetMinutes(ymd: string, minutes: number): number {
   local.setHours(hh, mm, 0, 0);
   // offset = UTC - local (in minutes)
   return Math.round((local.getTime() - Date.parse(`${ymd}T${pad(hh)}:${pad(mm)}:00.000Z`)) / 60_000);
-}
-
-function pad(n: number) {
-  return String(n).padStart(2, "0");
 }

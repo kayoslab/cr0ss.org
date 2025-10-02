@@ -5,7 +5,7 @@ import { getAllCountries, getVisitedCountries } from "@/lib/contentful/api/count
 import { CountryProps } from "@/lib/contentful/api/props/country";
 import DashboardSkeleton from "./Dashboard.skeleton";
 import { SECRET_HEADER } from "@/lib/auth/constants";
-import { formatBerlinHHmm } from "@/lib/time/berlin";
+import { isoToBerlinDate } from "@/lib/time/berlin";
 
 // fetch settings
 export const dynamic = "force-dynamic";
@@ -103,7 +103,7 @@ export default async function DashboardPage() {
   // --- Normalize caffeine to strict hour grid (Berlin)
   // 1) map API points to {label,intake,body} with Berlin HH:mm
   const points = api.caffeineSeries.map((p) => ({
-    label: formatBerlinHHmm(Date.parse(p.timeISO)), // always "HH:mm" in Europe/Berlin
+    label: isoToBerlinDate(Date.parse(p.timeISO)),
     intake_mg: p.intake_mg,
     body_mg: p.body_mg,
   }));
