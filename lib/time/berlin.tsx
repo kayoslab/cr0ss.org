@@ -119,3 +119,7 @@ function tzOffsetMinutes(ymd: string, minutes: number): number {
   // offset = UTC - local (in minutes)
   return Math.round((local.getTime() - Date.parse(`${ymd}T${pad(hh)}:${pad(mm)}:00.000Z`)) / 60_000);
 }
+
+function pad(n: number) {
+  return String(n).padStart(2, "0");
+}
