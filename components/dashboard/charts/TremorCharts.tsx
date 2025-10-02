@@ -209,10 +209,10 @@ export function Scatter({
   data,
   x,
   y,
-  colors = ["violet"],          // keep your default
+  colors = ["violet"],
   groupField,
   isLoading,
-  showLegend = true,            // new: allow toggling
+  showLegend = true,
 }: {
   title: string;
   data: { [k: string]: any }[];
@@ -264,9 +264,9 @@ export function Scatter({
             data={safe}
             x={x}
             y={y}
-            category={category}       // unchanged
-            colors={palette}          // pass our palette to Tremor
-            showLegend={false}        // we render our own above
+            category={category}
+            colors={palette}
+            showLegend={false}
             yAxisWidth={42}
             customTooltip={({ active, payload }) => {
               if (!active || !payload?.length) return null;
@@ -299,7 +299,6 @@ export function Scatter({
     </Panel>
   );
 }
-
 
 /* ------------------------- BarList ------------------------- */
 export function Bars({ title, items, isLoading }:{
