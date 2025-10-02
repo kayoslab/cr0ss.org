@@ -57,19 +57,35 @@ export function isoToBerlinDate(ms: number): string {
   });
 }
 
-/**
- * Convert a Berlin wall-clock date/time ("YYYY-MM-DD" + "HH:mm") to a UTC ISO string.
- * This respects DST transitions by asking the runtime for the Berlin offset.
- */
+/** Combine a Berlin calendar date (YYYY-MM-DD) and HH:mm into a UTC ISO instant. */
 export function berlinDateTimeToUTCISO(ymd: string, hhmm: string): string {
-  const [h, m] = normalizeHHmm(hhmm).split(":").map((s) => Number(s));
-  // Build a Date that represents that wall-clock in Berlin:
-  // Trick: create a Date from the Berlin-local string, then read its UTC instant.
-  const berlinLocal = new Date(
-    new Date(`${ymd}T00:00:00.000Z`).toLocaleString("en-US", { timeZone: BERLIN_TZ })
-  );
-  berlinLocal.setHours(h, m, 0, 0);
-  return new Date(berlinLocal.getTime()).toISOString();
+  // Build a Berlin local time, then obtain the matching UTC timestamp.
+  // Trick: Intl gives us the offset by formatting the UTC time *as if* in Berlin.
+  const [h, m] = (hhmm || "00:00").split(":").map((n) => Math.max(0, parseInt(n || "0", 10)));
+  // Create a Date for "ymd 00:00 UTC"
+  const baseUtc = new Date(`${ymd}T00:00:00.000Z`);
+  // What is that instant's Berlin wall-clock?
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: BERLIN_TZ,
+    hour12: false,
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+  }).formatToParts(baseUtc);
+
+  // Extract the Berlin midnight components for that UTC day
+  const get = (t: string) => Number(parts.find(p => p.type === t)?.value || "0");
+  const y = get("year"), mo = get("month"), d = get("day");
+
+  // Compose the desired Berlin local time on that calendar day
+  // and ask Date to interpret it *as UTC* so we can compute delta cleanly.
+  const berlinLocalAsUTC = Date.parse(`${y}-${String(mo).padStart(2,"0")}-${String(d).padStart(2,"0")}T${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:00.000Z`);
+
+  // Find the real UTC instant that shows that Berlin wall-clock:
+  // take the original UTC midnight and add the delta between desired local time and local midnight
+  const berlinMidnightAsUTC = Date.parse(`${y}-${String(mo).padStart(2,"0")}-${String(d).padStart(2,"0")}T00:00:00.000Z`);
+  const deltaMs = berlinLocalAsUTC - berlinMidnightAsUTC;
+
+  return new Date(baseUtc.getTime() + deltaMs).toISOString();
 }
 
 /** Returns YYYY-MM-DD for a Date in Berlin. */
