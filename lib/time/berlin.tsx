@@ -1,5 +1,29 @@
-// Single-source Berlin timezone helpers (robust across DST)
 const BERLIN_TZ = "Europe/Berlin";
+
+// existing exports...
+
+/** Normalize "HH:mm" -> "HH:mm" (24h, zero-padded). */
+export function normalizeHHmm(v: string): string {
+  const m = /^(\d{1,2})(?::?(\d{1,2}))?$/.exec(String(v).trim());
+  const hh = Math.max(0, Math.min(23, Number(m?.[1] ?? 0)));
+  const mm = Math.max(0, Math.min(59, Number(m?.[2] ?? 0)));
+  return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+}
+
+/**
+ * Convert a Berlin wall-clock date/time ("YYYY-MM-DD" + "HH:mm") to a UTC ISO string.
+ * This respects DST transitions by asking the runtime for the Berlin offset.
+ */
+export function berlinDateTimeToUTCISO(ymd: string, hhmm: string): string {
+  const [h, m] = normalizeHHmm(hhmm).split(":").map((s) => Number(s));
+  // Build a Date that represents that wall-clock in Berlin:
+  // Trick: create a Date from the Berlin-local string, then read its UTC instant.
+  const berlinLocal = new Date(
+    new Date(`${ymd}T00:00:00.000Z`).toLocaleString("en-US", { timeZone: BERLIN_TZ })
+  );
+  berlinLocal.setHours(h, m, 0, 0);
+  return new Date(berlinLocal.getTime()).toISOString();
+}
 
 /** Normalize user-entered "HH:mm" to a zero-padded 24h string ("00:00"–"23:59"). */
 export function normalizeBerlinHHmm(v: string): string {
