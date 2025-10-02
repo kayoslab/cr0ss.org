@@ -162,6 +162,9 @@ export default function DashboardClient({
             categories={["intake_mg", "body_mg"]}
             colors={["emerald", "violet"]}
           />
+          <p className="mt-2 text-xs text-neutral-500">
+            Intake: caffeine consumed (mg) at that time. Body: modeled remaining caffeine (mg) in body over the day.
+          </p>
         </div>
       </Section>
 
@@ -176,7 +179,7 @@ export default function DashboardClient({
               y="sleep_score"
             />
             <p className="mt-2 text-xs text-neutral-500">
-              Each dot is a day (last 60). X: total mg consumed the day before. Y: sleep score for that day.
+              Each dot is a day (last 60). X: Estimated remaining caffeine (mg) at the end of the day. Y: sleep score for that day.
             </p>
           </div>
         </div>
