@@ -31,6 +31,20 @@ import { getBodyProfile } from "@/lib/user/profile";
 import { modelCaffeine, estimateIntakeMgFor } from "@/lib/phys/caffeine";
 import { assertSecret } from "@/lib/auth/secret";
 
+// Helper to slice events for a given window (inclusive start, exclusive end)
+function eventsBetween(events: Array<{ time: string, type: string, amount_ml: number }>, startISO: string, endISO: string) {
+  const s = Date.parse(startISO);
+  const e = Date.parse(endISO);
+  return events.filter((ev) => {
+    const t = Date.parse(ev.time);
+    return t >= s && t < e;
+  }).map((ev) => ({
+    timeISO: ev.time,       // modelCaffeine expects { timeISO, type, amount_ml }
+    type: ev.type,
+    amount_ml: ev.amount_ml,
+  }));
+}
+
 export const GET = wrapTrace("GET /api/dashboard", async (req: Request) => {
   try {
     assertSecret(req);
@@ -67,12 +81,12 @@ export const GET = wrapTrace("GET /api/dashboard", async (req: Request) => {
         getBodyProfile(),
     ]);
 
+    // Caffeine model for today (6am-now + lookback):
     const startISO = startOfBerlinDayISO();
     const endISO   = endOfBerlinDayISO();
-
-    // caffeine model:
     const half = body.half_life_hours ?? 5;
     const lookbackH = Math.max(24, Math.ceil(half * 4));
+    const lookbackMs = lookbackH * 60 * 60 * 1000;
     const events = await qCoffeeEventsForDayWithLookback(startISO, endISO, lookbackH);
     const caffeineSeries = modelCaffeine(events, body, {
       startMs: Date.parse(startISO),
@@ -82,36 +96,52 @@ export const GET = wrapTrace("GET /api/dashboard", async (req: Request) => {
       halfLifeHours: body.half_life_hours ?? undefined,
     });
 
-    // sleep vs previous day caffeine (60d):
-    const sleepRows = await qSleepVsFocusScatter(60);
-    // Pull range once using first/last sleep row, but convert prev-day keys via helper:
-    const minYMD = sleepRows.length ? sleepRows[0].date : new Date().toISOString().slice(0,10);
-    const maxYMD = sleepRows.length ? sleepRows[sleepRows.length-1].date : minYMD;
+    // --- Sleep vs previous-day caffeine (modeled carryover at midnight, 60d)
+    const sleepRows = await qSleepVsFocusScatter(60); // [{date, sleep_score, focus_minutes}]
+    const minYMD = sleepRows.length ? sleepRows[0].date : new Date().toISOString().slice(0, 10);
+    const maxYMD = sleepRows.length ? sleepRows[sleepRows.length - 1].date : minYMD;
 
-    // Build a single fetch range in ISO:
-    const startISOAll = startOfBerlinDayISO(new Date(`${minYMD}T00:00:00.000Z`)); // includes prev-day overlap via lookback if you want
-    const endISOAll   = endOfBerlinDayISO(new Date(`${maxYMD}T00:00:00.000Z`));
+    // Build a single range that covers: (earliest prev-day start - lookback) .. (latest day end)
+    const earliestPrevStartISO = startOfBerlinDayISO(
+      // previous calendar day of the first sleep date
+      new Date(`${prevBerlinDateKey(minYMD)}T00:00:00.000Z`)
+    );
+    const globalStartISO = new Date(Date.parse(earliestPrevStartISO) - lookbackMs).toISOString();
+    const globalEndISO = endOfBerlinDayISO(new Date(`${maxYMD}T00:00:00.000Z`)); // end of the last sleep day
 
-    const rangeEvents = await qCoffeeInRange(startISOAll, endISOAll);
-    // sum by Berlin calendar date:
-    const mgByDate = new Map<string, number>();
-    for (const ev of rangeEvents) {
-      // each ev.time is ISO; bucket by Berlin date:
-      const ymd = toBerlinYMD(new Date(ev.time));
+    // Fetch all coffee events once in that range (raw UTC ISO instants)
+    const allEventsInRange = await qCoffeeInRange(globalStartISO, globalEndISO);
 
-      mgByDate.set(ymd, (mgByDate.get(ymd) ?? 0) + estimateIntakeMgFor(ev.type, ev.amount_ml));
-    }
     const sleepPrevCaff = sleepRows
-      .map((r) => {
-        const prevKey = prevBerlinDateKey(r.date);
-        return {
-          date: r.date,
-          sleep_score: r.sleep_score,
-          prev_caffeine_mg: Math.round(mgByDate.get(prevKey) ?? 0),
-        };
-      })
-      .filter((p) => !(p.prev_caffeine_mg === 0 && (!p.sleep_score || p.sleep_score === 0)));
+  .map((row) => {
+    const prevYMD = prevBerlinDateKey(row.date);
+    const prevStartISO = startOfBerlinDayISO(new Date(`${prevYMD}T00:00:00.000Z`));
+    const prevEndISO   = endOfBerlinDayISO(new Date(`${prevYMD}T00:00:00.000Z`));
 
+    const windowStartISO = new Date(Date.parse(prevStartISO) - lookbackMs).toISOString();
+    const windowEndISO   = prevEndISO;
+
+    const evs = eventsBetween(allEventsInRange, windowStartISO, windowEndISO);
+
+    const series = modelCaffeine(evs, body, {
+      startMs: Date.parse(prevStartISO),
+      endMs:   Date.parse(prevEndISO),
+      alignToHour: true,
+      gridMinutes: 60,
+      halfLifeHours: body.half_life_hours ?? undefined,
+    });
+
+    const last = series.length ? series[series.length - 1] : { body_mg: 0 };
+
+    return {
+      date: row.date,
+      sleep_score: row.sleep_score,
+      prev_caffeine_mg: Math.round(last.body_mg),
+    };
+  })
+  .filter((p) => !(p.prev_caffeine_mg === 0 && (!p.sleep_score || p.sleep_score === 0)));
+
+    
     const monthlyGoals = {
       running_distance_km: 0,
       steps: 0,
