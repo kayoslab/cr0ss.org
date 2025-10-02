@@ -1,7 +1,7 @@
 import { neon } from "@neondatabase/serverless";
 import { z } from "zod";
 import {
-  ZBrewMethodsToday, ZCaffeineCurve, ZConsistency,
+  ZBrewMethodsToday, ZConsistency,
   ZTrend, ZScatter, ZBlocks, ZStreak, ZMonthlyProgress, ZPaceSeries, ZHeat,
   ZDayHabits,
 } from "./models";
@@ -72,20 +72,25 @@ type RawEvent = {
 };
 
 
-export async function qCoffeeEventsForDayWithLookback(dayStartISO: string, dayEndISO: string, lookbackHours: number, filterDecaf = true) {
-  const startMs = Date.parse(dayStartISO) - Math.max(0, lookbackHours) * 60 * 60 * 1000;
+export async function qCoffeeEventsForDayWithLookback(
+  dayStartISO: string,
+  dayEndISO: string,
+  lookbackHours: number,
+  filterDecaf = true
+) {
+  const startMs = Date.parse(dayStartISO) - Math.max(0, lookbackHours) * 3600_000;
   const lookbackStartISO = new Date(startMs).toISOString();
 
   const rows = await sql/*sql*/`
-    select timezone('Europe/Berlin', time) as t_local, type, amount_ml
+    select time, type, amount_ml, coffee_cf_id::text as coffee_cf_id
     from coffee_log
     where time >= ${lookbackStartISO}::timestamptz
       and time <  ${dayEndISO}::timestamptz
     order by time asc
   `;
 
-  let events: RawEvent[] = rows.map((r: any) => ({
-    timeISO: new Date(r.t_local).toISOString(), // normalize to ISO UTC
+  let events = rows.map((r: any) => ({
+    timeISO: (r.time as Date).toISOString(), // raw UTC
     type: String(r.type),
     amount_ml: r.amount_ml === null ? null : Number(r.amount_ml),
     coffee_cf_id: r.coffee_cf_id ? String(r.coffee_cf_id) : null,
@@ -216,14 +221,9 @@ export async function qSleepVsFocusScatter(days = 30) {
   })));
 }
 
-// Fetch coffee events in an arbitrary time range (UTC iso strings)
 export async function qCoffeeInRange(startISO: string, endISO: string) {
   const rows = await sql/*sql*/`
-    select
-      date::date as date,
-      time       as time,
-      type::text as type,
-      coalesce(amount_ml, 0)::int as amount_ml
+    select date::date as date, time, type::text as type, coalesce(amount_ml,0)::int as amount_ml
     from coffee_log
     where time >= ${startISO}::timestamptz
       and time <  ${endISO}::timestamptz
@@ -231,7 +231,7 @@ export async function qCoffeeInRange(startISO: string, endISO: string) {
   `;
   return rows.map((r: any) => ({
     date: r.date as string,
-    time: (r.time as Date).toISOString(),
+    time: (r.time as Date).toISOString(), // raw UTC
     type: r.type as string,
     amount_ml: Number(r.amount_ml) || 0,
   }));

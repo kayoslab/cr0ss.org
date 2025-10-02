@@ -31,9 +31,6 @@ import { getBodyProfile } from "@/lib/user/profile";
 import { modelCaffeine, estimateIntakeMgFor } from "@/lib/phys/caffeine";
 import { assertSecret } from "@/lib/auth/secret";
 
-const startISO = startOfBerlinDayISO();
-const endISO   = endOfBerlinDayISO();
-
 export const GET = wrapTrace("GET /api/dashboard", async (req: Request) => {
   try {
     assertSecret(req);
@@ -69,6 +66,9 @@ export const GET = wrapTrace("GET /api/dashboard", async (req: Request) => {
         qRunningHeatmap(42),
         getBodyProfile(),
     ]);
+
+    const startISO = startOfBerlinDayISO();
+    const endISO   = endOfBerlinDayISO();
 
     // caffeine model:
     const half = body.half_life_hours ?? 5;

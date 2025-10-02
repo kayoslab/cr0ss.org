@@ -51,44 +51,24 @@ export const POST = wrapTrace("POST /api/habits/coffee", async (req: Request) =>
     }
 
     const body = await req.json();
-    const items = (Array.isArray(body) ? body : [body]) as unknown[];
-    const parsed: TCoffee[] = items.map((i) => ZCoffee.parse(i));
+    const items = Array.isArray(body) ? body : [body];
+    const parsed = items.map((i) => ZCoffee.parse(i));
 
     for (const i of parsed) {
-      const ymd = toBerlinYMD(i.date);
       let tsISO: string;
 
-      if (typeof i.time === "string" && i.time.trim() !== "") {
-        const t = i.time.trim();
-
-        if (/^\d{2}:\d{2}$/.test(t)) {
-          // HH:mm → interpret as Berlin wall-clock for the given `date`
-          tsISO = berlinDateTimeToUTCISO(ymd, t);
-        } else {
-          // otherwise try as ISO-like string
-          const d = new Date(t);
-          if (Number.isFinite(d.getTime())) {
-            tsISO = d.toISOString();
-          } else {
-            // bare "YYYY-MM-DDTHH:mm" → normalize and treat as Berlin
-            const hhmm = normalizeHHmm(t.slice(11, 16));
-            tsISO = berlinDateTimeToUTCISO(ymd, hhmm);
-          }
-        }
-      } else if (isValidDate(i.time)) {
-        // Actual Date instance (from server/internal callers)
-        tsISO = i.time.toISOString();
+      if (typeof i.time === "string" && /^\d{2}:\d{2}$/.test(i.time)) {
+        // Berlin wall-clock → UTC instant
+        const ymd = i.date.toISOString().slice(0, 10); // date is already a Date
+        tsISO = berlinDateTimeToUTCISO(ymd, i.time);
+      } else if (i.time && typeof i.time === "string") {
+        // Full ISO provided -> trust it
+        tsISO = i.time;
+      } else if (i.time && (i.time as any) instanceof Date) {
+        // Rare path: time is a Date
+        tsISO = (i.time as Date).toISOString();
       } else {
-        // No time → “now” in Berlin
-        const now = new Date();
-        const hh = now.toLocaleTimeString("de-DE", {
-          timeZone: "Europe/Berlin",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-          hourCycle: "h23",
-        });
-        tsISO = berlinDateTimeToUTCISO(toBerlinYMD(now), hh);
+        tsISO = new Date().toISOString();
       }
 
       await sql/*sql*/`
