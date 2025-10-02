@@ -7,18 +7,18 @@ import { ZCoffee, type TCoffee } from "@/lib/db/validation";
 import { revalidateDashboard } from "@/lib/cache/revalidate";
 import { assertSecret } from "@/lib/auth/secret";
 import { toBerlinYMD, berlinDateTimeToUTCISO, normalizeHHmm } from "@/lib/time/berlin";
-
+import { getAllCoffeeDTO } from "@/lib/contentful/api/coffee";
 
 function isValidDate(v: unknown): v is Date {
   return v instanceof Date && !Number.isNaN(v.getTime());
 }
 
-// GET recent coffee log entries (up to 50)
-export async function GET(req: Request) {
+// GET all coffees from Contentful (up to 20)
+export const GET = wrapTrace("GET /api/habits/coffee", async (req: Request) => {
   try {
     assertSecret(req);
 
-    const rl = await rateLimit(req, "get-coffee", { windowSec: 60, max: 10 });
+    const rl = await rateLimit(req, "get-coffees", { windowSec: 60, max: 10 });
     if (!rl.ok) {
       return new Response("Too many requests", {
         status: 429,
@@ -26,22 +26,12 @@ export async function GET(req: Request) {
       });
     }
 
-    const rows = await sql/*sql*/`
-      SELECT id,
-             date::text,
-             to_char(time AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS time_iso,
-             type::text,
-             amount_ml::numeric,
-             coffee_cf_id
-      FROM coffee_log
-      ORDER BY date DESC, time DESC
-      LIMIT 50
-    `;
-    return new Response(JSON.stringify(rows), { status: 200 });
-  } catch {
-    return new Response(JSON.stringify({ message: "Failed" }), { status: 500 });
+    const { items } = await getAllCoffeeDTO(1, 20);
+    return new Response(JSON.stringify(items), { status: 200 });
+  } catch (err: any) {
+    return new Response(err?.message ?? "Bad Request", { status: err?.status ?? 400 });
   }
-}
+});
 
 // POST new coffee log entry or entries (single object or array)
 export const POST = wrapTrace("POST /api/habits/coffee", async (req: Request) => {
