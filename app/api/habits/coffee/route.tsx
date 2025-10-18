@@ -52,7 +52,18 @@ export const POST = wrapTrace("POST /api/habits/coffee", async (req: Request) =>
 
     const body = await req.json();
     const items = Array.isArray(body) ? body : [body];
-    const parsed = items.map((i) => ZCoffee.parse(i));
+
+    const parsed = [];
+    for (const item of items) {
+      const result = ZCoffee.safeParse(item);
+      if (!result.success) {
+        return new Response(
+          JSON.stringify({ message: "Validation failed", errors: result.error.flatten() }),
+          { status: 400 }
+        );
+      }
+      parsed.push(result.data);
+    }
 
     for (const i of parsed) {
       let tsISO: string;

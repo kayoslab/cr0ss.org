@@ -1,3 +1,5 @@
+export const runtime = "edge";
+
 import { NextResponse } from 'next/server';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { env } from '@/env';

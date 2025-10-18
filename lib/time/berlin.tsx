@@ -21,6 +21,29 @@ export function endOfBerlinDayISO(d: Date = new Date()): string {
   return new Date(utc.getTime() - offset * 60_000).toISOString();
 }
 
+/** Align a timestamp to the nearest Berlin hour boundary (rounds down). Returns UTC timestamp in ms. */
+export function alignToBerlinHour(ms: number): number {
+  const d = new Date(ms);
+
+  // Get Berlin wall-clock hour
+  const berlinTime = d.toLocaleTimeString("de-DE", {
+    timeZone: BERLIN_TZ,
+    hour: "2-digit",
+    hour12: false,
+    hourCycle: "h23",
+  });
+  const berlinHour = parseInt(berlinTime.split(":")[0], 10);
+
+  // Get Berlin calendar date (YYYY-MM-DD)
+  const ymd = toBerlinYMD(d);
+
+  // Convert Berlin local time (YYYY-MM-DD HH:00) → UTC instant
+  const berlinHHmm = `${String(berlinHour).padStart(2, "0")}:00`;
+  const utcISO = berlinDateTimeToUTCISO(ymd, berlinHHmm);
+
+  return Date.parse(utcISO);
+}
+
 // -------------------------------------------------------------
 // Date arithmetic in Berlin wall-clock sense
 // -------------------------------------------------------------
@@ -59,33 +82,53 @@ export function isoToBerlinDate(ms: number): string {
 
 /** Combine a Berlin calendar date (YYYY-MM-DD) and HH:mm into a UTC ISO instant. */
 export function berlinDateTimeToUTCISO(ymd: string, hhmm: string): string {
-  // Build a Berlin local time, then obtain the matching UTC timestamp.
-  // Trick: Intl gives us the offset by formatting the UTC time *as if* in Berlin.
+  // Strategy: Create a date in the local timezone, interpret it as if it were Berlin time,
+  // then extract the UTC timestamp. We use binary search or UTC offset calculation.
+
   const [h, m] = (hhmm || "00:00").split(":").map((n) => Math.max(0, parseInt(n || "0", 10)));
-  // Create a Date for "ymd 00:00 UTC"
-  const baseUtc = new Date(`${ymd}T00:00:00.000Z`);
-  // What is that instant's Berlin wall-clock?
-  const parts = new Intl.DateTimeFormat("en-GB", {
+
+  // Start with a guess: Berlin time matches UTC time (will be off by 1-2 hours)
+  let guessUTC = Date.parse(`${ymd}T${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:00.000Z`);
+
+  // Check what this UTC time looks like in Berlin
+  const formatter = new Intl.DateTimeFormat("en-GB", {
     timeZone: BERLIN_TZ,
     hour12: false,
-    year: "numeric", month: "2-digit", day: "2-digit",
-    hour: "2-digit", minute: "2-digit", second: "2-digit",
-  }).formatToParts(baseUtc);
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
-  // Extract the Berlin midnight components for that UTC day
-  const get = (t: string) => Number(parts.find(p => p.type === t)?.value || "0");
-  const y = get("year"), mo = get("month"), d = get("day");
+  // Iterate to find the correct UTC time (usually converges in 1-2 iterations)
+  for (let i = 0; i < 3; i++) {
+    const parts = formatter.formatToParts(new Date(guessUTC));
+    const get = (t: string) => Number(parts.find(p => p.type === t)?.value || "0");
 
-  // Compose the desired Berlin local time on that calendar day
-  // and ask Date to interpret it *as UTC* so we can compute delta cleanly.
-  const berlinLocalAsUTC = Date.parse(`${y}-${String(mo).padStart(2,"0")}-${String(d).padStart(2,"0")}T${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:00.000Z`);
+    const berlinH = get("hour");
+    const berlinM = get("minute");
+    const berlinD = get("day");
+    const berlinMo = get("month");
+    const berlinY = get("year");
 
-  // Find the real UTC instant that shows that Berlin wall-clock:
-  // take the original UTC midnight and add the delta between desired local time and local midnight
-  const berlinMidnightAsUTC = Date.parse(`${y}-${String(mo).padStart(2,"0")}-${String(d).padStart(2,"0")}T00:00:00.000Z`);
-  const deltaMs = berlinLocalAsUTC - berlinMidnightAsUTC;
+    // Check if we found the right time
+    const [targetY, targetMo, targetD] = ymd.split("-").map(Number);
+    if (berlinY === targetY && berlinMo === targetMo && berlinD === targetD &&
+        berlinH === h && berlinM === m) {
+      return new Date(guessUTC).toISOString();
+    }
 
-  return new Date(baseUtc.getTime() + deltaMs).toISOString();
+    // Calculate the difference and adjust
+    const berlinYMD = `${berlinY}-${String(berlinMo).padStart(2, "0")}-${String(berlinD).padStart(2, "0")}`;
+    const berlinTimeMs = Date.parse(`${berlinYMD}T${String(berlinH).padStart(2, "0")}:${String(berlinM).padStart(2, "0")}:00.000Z`);
+    const targetTimeMs = Date.parse(`${ymd}T${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:00.000Z`);
+    const deltaMs = targetTimeMs - berlinTimeMs;
+
+    guessUTC += deltaMs;
+  }
+
+  return new Date(guessUTC).toISOString();
 }
 
 /** Returns YYYY-MM-DD for a Date in Berlin. */

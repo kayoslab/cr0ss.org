@@ -1,15 +1,16 @@
+export const runtime = "edge";
+
 import { NextResponse } from 'next/server';
 import type { SearchResponse } from '@algolia/client-search';
 import { searchClient, aa, type AlgoliaHit } from '@/lib/algolia/client';
-import { RateLimit } from '@/lib/rate/rate-limit';
-
-const limiter = new RateLimit(60 * 1000, 10); // 10 requests per minute
+import { rateLimit } from '@/lib/rate/limit';
 
 export async function GET(request: Request) {
-  if (!limiter.check()) {
+  const rl = await rateLimit(request, "algolia-search", { windowSec: 60, max: 10 });
+  if (!rl.ok) {
     return NextResponse.json(
-      { error: 'Too many requests' }, 
-      { status: 429 }
+      { error: 'Too many requests' },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } }
     );
   }
   const { searchParams } = new URL(request.url);

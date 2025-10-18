@@ -6,9 +6,10 @@ import { NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
 import { revalidateDashboard } from "@/lib/cache/revalidate";
 import { assertSecret } from "@/lib/auth/secret";
+import { ZDayUpsert } from "@/lib/db/validation";
 
 // GET habit data for a specific day (default: today)
-export async function GET(req: Request) {
+export const GET = wrapTrace("GET /api/habits/day", async (req: Request) => {
   try {
     assertSecret(req);
 
@@ -63,7 +64,7 @@ export async function GET(req: Request) {
     const status = e?.status ?? 500;
     return NextResponse.json({ message: e?.message ?? "Failed" }, { status });
   }
-}
+});
 
 // POST update habit data for a specific day (partial or full)
 export const POST = wrapTrace("POST /api/habits/day", async (req: Request) => {
@@ -79,8 +80,16 @@ export const POST = wrapTrace("POST /api/habits/day", async (req: Request) => {
     }
 
     const body = await req.json();
-    const date = String(body?.date);
-    if (!date) return NextResponse.json({ message: "date required" }, { status: 400 });
+    const result = ZDayUpsert.safeParse(body);
+
+    if (!result.success) {
+      return NextResponse.json(
+        { message: "Validation failed", errors: result.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const parsed = result.data;
 
     await sql/*sql*/`
       INSERT INTO days (
@@ -89,9 +98,9 @@ export const POST = wrapTrace("POST /api/habits/day", async (req: Request) => {
         coding_minutes
       )
       VALUES (
-        ${date}::date, ${body.sleep_score ?? 0}::int, ${body.focus_minutes ?? 0}::int, ${body.steps ?? 0}::int,
-        ${body.reading_minutes ?? 0}::int, ${body.outdoor_minutes ?? 0}::int, ${body.writing_minutes ?? 0}::int,
-        ${body.coding_minutes ?? 0}::int
+        ${parsed.date}::date, ${parsed.sleep_score ?? 0}::int, ${parsed.focus_minutes ?? 0}::int, ${parsed.steps ?? 0}::int,
+        ${parsed.reading_minutes ?? 0}::int, ${parsed.outdoor_minutes ?? 0}::int, ${parsed.writing_minutes ?? 0}::int,
+        ${parsed.coding_minutes ?? 0}::int
       )
       ON CONFLICT (date) DO UPDATE SET
         sleep_score = EXCLUDED.sleep_score,

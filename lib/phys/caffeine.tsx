@@ -1,5 +1,6 @@
 // lib/phys/caffeine.ts
 import type { BodyProfile } from "@/lib/user/profile";
+import { alignToBerlinHour } from "@/lib/time/berlin";
 
 /** A brew event from the DB. */
 export type BrewEvent = {
@@ -89,8 +90,10 @@ export function modelCaffeine(
   let startMs = typeof opts.startMs === "number" ? opts.startMs : (endMs - 24 * 60 * 60 * 1000);
 
   if (opts.alignToHour) {
-    const s = new Date(startMs); s.setMinutes(0, 0, 0); startMs = s.getTime();
-    const e = new Date(endMs);   e.setMinutes(0, 0, 0); endMs   = e.getTime();
+    // Align to Berlin hour boundaries, not UTC
+    // This ensures that chart times match user's mental model and settings input
+    startMs = alignToBerlinHour(startMs);
+    endMs = alignToBerlinHour(endMs);
   }
 
   // hourly grid when aligned; else default to 15-min

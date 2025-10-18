@@ -81,9 +81,9 @@ export const GET = wrapTrace("GET /api/dashboard", async (req: Request) => {
         getBodyProfile(),
     ]);
 
-    // Caffeine model for today (6am-now + lookback):
-    const startISO = startOfBerlinDayISO();
-    const endISO   = endOfBerlinDayISO();
+    // Caffeine model for today (00:00-24:00 Berlin time + lookback for decay calculation):
+    const startISO = startOfBerlinDayISO();  // Today 00:00 Berlin (in UTC)
+    const endISO   = endOfBerlinDayISO();    // Tomorrow 00:00 Berlin (in UTC)
     const half = body.half_life_hours ?? 5;
     const lookbackH = Math.max(24, Math.ceil(half * 4));
     const lookbackMs = lookbackH * 60 * 60 * 1000;
@@ -91,7 +91,7 @@ export const GET = wrapTrace("GET /api/dashboard", async (req: Request) => {
     const caffeineSeries = modelCaffeine(events, body, {
       startMs: Date.parse(startISO),
       endMs: Date.parse(endISO),
-      alignToHour: true,
+      alignToHour: true,  // Align grid points to Berlin hour boundaries
       gridMinutes: 60,
       halfLifeHours: body.half_life_hours ?? undefined,
     });
