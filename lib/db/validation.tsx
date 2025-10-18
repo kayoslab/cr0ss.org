@@ -73,3 +73,24 @@ export const ZBodyProfileUpsert = z.object({
   caffeine_sensitivity: z.coerce.number().positive().optional(),
   bioavailability: z.coerce.number().positive().max(1).optional(),
 });
+
+export const ZDayUpsert = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  sleep_score: z.coerce.number().int().min(0).max(100).optional(),
+  focus_minutes: z.coerce.number().int().min(0).optional(),
+  steps: z.coerce.number().int().min(0).optional(),
+  reading_minutes: z.coerce.number().int().min(0).optional(),
+  outdoor_minutes: z.coerce.number().int().min(0).optional(),
+  writing_minutes: z.coerce.number().int().min(0).optional(),
+  coding_minutes: z.coerce.number().int().min(0).optional(),
+});
+
+export const ZMonthlyGoalsUpsert = z.object({
+  running_distance_km: z.coerce.number().min(0).optional(),
+  steps: z.coerce.number().int().min(0).optional(),
+  reading_minutes: z.coerce.number().int().min(0).optional(),
+  outdoor_minutes: z.coerce.number().int().min(0).optional(),
+  writing_minutes: z.coerce.number().int().min(0).optional(),
+  coding_minutes: z.coerce.number().int().min(0).optional(),
+  focus_minutes: z.coerce.number().int().min(0).optional(),
+});

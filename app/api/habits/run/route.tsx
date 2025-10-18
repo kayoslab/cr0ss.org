@@ -7,7 +7,7 @@ import { ZRun } from "@/lib/db/validation";
 import { revalidateDashboard } from "@/lib/cache/revalidate";
 import { assertSecret } from "@/lib/auth/secret";
 
-export async function GET(req: Request) {
+export const GET = wrapTrace("GET /api/habits/run", async (req: Request) => {
   try {
     assertSecret(req);
 
@@ -34,7 +34,7 @@ export async function GET(req: Request) {
   } catch (err: any) {
     return new Response(err?.message ?? "Bad Request", { status: err?.status ?? 400 });
   }
-}
+});
 
 // POST add one or more new runs
 export const POST = wrapTrace("POST /api/habits/run", async (req: Request) => {
@@ -51,7 +51,18 @@ export const POST = wrapTrace("POST /api/habits/run", async (req: Request) => {
   
     const body = await req.json();
     const items = Array.isArray(body) ? body : [body];
-    const parsed = items.map((i) => ZRun.parse(i));
+
+    const parsed = [];
+    for (const item of items) {
+      const result = ZRun.safeParse(item);
+      if (!result.success) {
+        return new Response(
+          JSON.stringify({ message: "Validation failed", errors: result.error.flatten() }),
+          { status: 400 }
+        );
+      }
+      parsed.push(result.data);
+    }
 
     for (const i of parsed) {
       await sql/*sql*/`

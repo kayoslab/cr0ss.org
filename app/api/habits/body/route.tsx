@@ -9,7 +9,7 @@ import { revalidateDashboard } from "@/lib/cache/revalidate";
 import { assertSecret } from "@/lib/auth/secret";
 
 // GET current body profile
-export async function GET(req: Request) {
+export const GET = wrapTrace("GET /api/habits/body", async (req: Request) => {
   try {
     assertSecret(req);
 
@@ -26,7 +26,7 @@ export async function GET(req: Request) {
   } catch (e: any) {
     return NextResponse.json({ message: e?.message ?? "Failed" }, { status: 500 });
   }
-}
+});
 
 // POST update body profile (partial or full)
 export const POST = wrapTrace("POST /api/habits/body", async (req: Request) => {
@@ -42,8 +42,16 @@ export const POST = wrapTrace("POST /api/habits/body", async (req: Request) => {
     }
 
     const body = await req.json();
-    const parsed = ZBodyProfileUpsert.parse(body);
-    const updated = await upsertBodyProfileDB(parsed);
+    const result = ZBodyProfileUpsert.safeParse(body);
+
+    if (!result.success) {
+      return NextResponse.json(
+        { message: "Validation failed", errors: result.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const updated = await upsertBodyProfileDB(result.data);
     revalidateDashboard();
     return NextResponse.json({ ok: true, profile: updated }, { status: 200 });
   } catch (e: any) {

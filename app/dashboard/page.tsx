@@ -37,9 +37,6 @@ async function jfetchServer<T>(path: string): Promise<JRes<T>> {
   return { ok: true, data: (await res.json()) as T };
 }
 
-function hourGridLabels(): string[] {
-  return Array.from({ length: 25 }, (_, h) => `${String(h).padStart(2, "0")}:00`);
-}
 
 type DashboardApi = {
   cupsToday: number;
@@ -100,28 +97,13 @@ export default async function DashboardPage() {
     focus_minutes: 0,
   };
 
-  // --- Normalize caffeine to strict hour grid (Berlin)
-  // 1) map API points to {label,intake,body} with Berlin HH:mm
-  const points = api.caffeineSeries.map((p) => ({
-    label: isoToBerlinDate(Date.parse(p.timeISO)),
+  // --- Map caffeine series to chart format (Berlin time labels)
+  // The caffeine model already generates points for all hours, so just convert timestamps to Berlin HH:mm
+  const caffeineDual = api.caffeineSeries.map((p) => ({
+    time: isoToBerlinDate(Date.parse(p.timeISO)),
     intake_mg: p.intake_mg,
     body_mg: p.body_mg,
   }));
-
-  // ensure sorted by label (lexicographic works for "HH:mm")
-  points.sort((a, b) => (a.label < b.label ? -1 : a.label > b.label ? 1 : 0));
-
-  // 2) index by label for O(1) hits
-  const byLabel = new Map(points.map((p) => [p.label, p]));
-
-  // 3) walk a canonical 00:00..24:00 grid; if a slot is missing, carry last known value
-  const grid = hourGridLabels();
-  let last = { intake_mg: 0, body_mg: 0 }; // sensible default before first event
-  const caffeineDual = grid.map((hhmm) => {
-    const hit = byLabel.get(hhmm);
-    if (hit) last = { intake_mg: hit.intake_mg, body_mg: hit.body_mg };
-    return { time: hhmm, intake_mg: last.intake_mg, body_mg: last.body_mg };
-  });
 
   // --- Map into client-friendly props
   const travel = {

@@ -18,17 +18,20 @@ export default function Navigation() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [showSearchBar, setShowSearchBar] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     const fetchSuggestions = async () => {
       if (searchQuery.trim().length === 0) {
         setSuggestions([]);
+        setSearchError(null);
         return;
       }
 
       try {
         setIsLoading(true);
+        setSearchError(null);
         const response = await fetch(`/api/algolia/search?q=${encodeURIComponent(searchQuery)}`);
         if (!response.ok) throw new Error('Search failed');
         const data: SearchAPIResponse = await response.json();
@@ -36,6 +39,7 @@ export default function Navigation() {
         setQueryID(data.queryID);
       } catch (error) {
         console.error('Error fetching suggestions:', error);
+        setSearchError('Search temporarily unavailable');
         setSuggestions([]);
       } finally {
         setIsLoading(false);
@@ -200,16 +204,18 @@ export default function Navigation() {
                     <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-700 rounded-md shadow-lg border border-gray-200 dark:border-gray-600 z-100">
                       {isLoading ? (
                         <div className="px-4 py-2 text-sm text-gray-500">Loading...</div>
+                      ) : searchError ? (
+                        <div className="px-4 py-2 text-sm text-red-500 dark:text-red-400">{searchError}</div>
                       ) : suggestions.length > 0 ? (
                         suggestions.map((hit, index) => (
                           <button
                             key={hit.objectID}
                             onClick={() => handleSuggestionClick(hit)}
-                            className={`block w-full text-left px-4 py-2 text-sm 
-                              ${index === selectedIndex 
-                                ? 'bg-gray-100 dark:bg-slate-600' 
+                            className={`block w-full text-left px-4 py-2 text-sm
+                              ${index === selectedIndex
+                                ? 'bg-gray-100 dark:bg-slate-600'
                                 : 'hover:bg-gray-100 dark:hover:bg-slate-600'
-                              } 
+                              }
                               text-gray-700 dark:text-white`}
                           >
                             {hit.title}

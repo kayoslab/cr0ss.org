@@ -1,3 +1,5 @@
+export const runtime = "edge";
+
 import { NextResponse } from 'next/server';
 import { env } from '@/env';
 import { getBlog, getAllBlogs } from '@/lib/contentful/api/blog';

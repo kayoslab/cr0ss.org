@@ -6,9 +6,10 @@ import { NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
 import { revalidateDashboard } from "@/lib/cache/revalidate";
 import { assertSecret } from "@/lib/auth/secret";
+import { ZMonthlyGoalsUpsert } from "@/lib/db/validation";
 
 // GET current-month goals
-export async function GET(req: Request) {
+export const GET = wrapTrace("GET /api/habits/goal", async (req: Request) => {
   try {
     assertSecret(req);
 
@@ -48,7 +49,7 @@ export async function GET(req: Request) {
     const status = e?.status ?? 500;
     return NextResponse.json({ message: e?.message ?? "Failed" }, { status });
   }
-}
+});
 
 // POST update current-month goals (partial or full)
 export const POST = wrapTrace("POST /api/habits/goal", async (req: Request) => {
@@ -64,6 +65,16 @@ export const POST = wrapTrace("POST /api/habits/goal", async (req: Request) => {
     }
 
     const body = await req.json();
+    const result = ZMonthlyGoalsUpsert.safeParse(body);
+
+    if (!result.success) {
+      return NextResponse.json(
+        { message: "Validation failed", errors: result.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const parsed = result.data;
     const [{ month_start }] = await sql/*sql*/`
       SELECT (date_trunc('month', timezone('Europe/Berlin', now()))::date) AS month_start
     `;
@@ -79,7 +90,7 @@ export const POST = wrapTrace("POST /api/habits/goal", async (req: Request) => {
     ] as const;
 
     for (const k of known) {
-      const v = Number(body?.[k] ?? 0);
+      const v = Number(parsed?.[k] ?? 0);
       await sql/*sql*/`
         INSERT INTO monthly_goals (month, kind, target)
         VALUES (${month_start}::date, ${k}::goal_kind, ${v}::numeric)
