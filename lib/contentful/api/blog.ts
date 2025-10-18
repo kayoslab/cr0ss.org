@@ -65,7 +65,7 @@ export async function getBlog(slug: string) {
   try {
     // Escape any special characters in the slug
     const escapedSlug = slug.replace(/"/g, '\\"');
-    
+
     const query = `query {
       blogPostCollection(where: { slug: "${escapedSlug}" }, limit: 1, preview: false) {
         total
@@ -75,7 +75,9 @@ export async function getBlog(slug: string) {
       }
     }`;
 
-    const response = await fetchGraphQL(query, [slug]);
+    // Use both the specific slug and the general 'blogPosts' tag
+    // This ensures individual posts are revalidated when any blog content changes
+    const response = await fetchGraphQL(query, ['blogPosts', slug]);
     if (!response?.data?.blogPostCollection) {
       throw new Error('Invalid response structure');
     }
@@ -85,7 +87,7 @@ export async function getBlog(slug: string) {
     if (!blogPost) {
       throw new Error(`Blog post with slug ${slug} not found`);
     }
-    
+
     return blogPost;
   } catch (error) {
     console.error('Error fetching blog:', error);
