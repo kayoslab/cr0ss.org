@@ -2,7 +2,7 @@ import { env } from '@/env';
 
 export async function fetchGraphQL(
   query: string,
-  tags: [string] = ['']
+  tags: string[] = ['']
 ) {
   return fetch(
     `https://graphql.contentful.com/content/v1/spaces/${env.CONTENTFUL_SPACE_ID}`,
@@ -17,7 +17,7 @@ export async function fetchGraphQL(
       body: JSON.stringify({ query }),
       next: { tags },
     }
-  ).then((response) => 
+  ).then((response) =>
     response.json()
   );
 }

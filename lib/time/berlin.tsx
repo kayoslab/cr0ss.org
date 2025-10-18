@@ -7,18 +7,16 @@ const BERLIN_TZ = "Europe/Berlin";
 /** Start of day in Berlin for a given Date (default: today), as ISO string (UTC). */
 export function startOfBerlinDayISO(d: Date = new Date()): string {
   const ymd = toBerlinYMD(d);
-  const utc = new Date(`${ymd}T00:00:00.000Z`); // midnight UTC
-  // Shift to Berlin midnight by subtracting the offset between UTC and Berlin
-  const offset = tzOffsetMinutes(ymd, 0);
-  return new Date(utc.getTime() - offset * 60_000).toISOString();
+  return berlinDateTimeToUTCISO(ymd, "00:00");
 }
 
 /** End (exclusive) of day in Berlin for a given Date, as ISO string (UTC). */
 export function endOfBerlinDayISO(d: Date = new Date()): string {
   const ymd = toBerlinYMD(d);
-  const utc = new Date(`${ymd}T24:00:00.000Z`); // next midnight UTC
-  const offset = tzOffsetMinutes(ymd, 24 * 60);
-  return new Date(utc.getTime() - offset * 60_000).toISOString();
+  // End of day is midnight of the next day
+  const nextDay = addBerlinDays(new Date(`${ymd}T12:00:00.000Z`), 1);
+  const nextYmd = toBerlinYMD(nextDay);
+  return berlinDateTimeToUTCISO(nextYmd, "00:00");
 }
 
 /** Align a timestamp to the nearest Berlin hour boundary (rounds down). Returns UTC timestamp in ms. */
@@ -51,10 +49,10 @@ export function alignToBerlinHour(ms: number): number {
 /** Returns a new Date shifted by N days in Berlin wall-clock sense. */
 export function addBerlinDays(d: Date, days: number): Date {
   const ymd = toBerlinYMD(d);
-  const base = new Date(`${ymd}T12:00:00.000Z`); // safe midday anchor
-  const offset = tzOffsetMinutes(ymd, 12 * 60);
-  const berlinMiddayUtc = new Date(base.getTime() - offset * 60_000);
-  const shifted = new Date(berlinMiddayUtc.getTime() + days * 24 * 3600 * 1000);
+  // Get Berlin noon as UTC timestamp
+  const berlinMiddayUtc = berlinDateTimeToUTCISO(ymd, "12:00");
+  // Add N days (in milliseconds)
+  const shifted = new Date(Date.parse(berlinMiddayUtc) + days * 24 * 3600 * 1000);
   return shifted;
 }
 
@@ -147,22 +145,4 @@ export function normalizeHHmm(v: string): string {
 // -------------------------------------------------------------
 // Private Helpers
 // -------------------------------------------------------------
-
-/** Internal: minutes between UTC and Berlin for a given YMD + minutes past midnight. */
-function tzOffsetMinutes(ymd: string, minutes: number): number {
-  // Build a local Berlin time at YMD + minutes, then compare to UTC
-  const hh = Math.floor(minutes / 60);
-  const mm = minutes % 60;
-  const local = new Date(
-    new Date(`${ymd}T00:00:00.000Z`).toLocaleString("en-US", {
-      timeZone: BERLIN_TZ,
-    })
-  );
-  local.setHours(hh, mm, 0, 0);
-  // offset = UTC - local (in minutes)
-  return Math.round((local.getTime() - Date.parse(`${ymd}T${pad(hh)}:${pad(mm)}:00.000Z`)) / 60_000);
-}
-
-function pad(n: number) {
-  return String(n).padStart(2, "0");
-}
+// (none currently needed)

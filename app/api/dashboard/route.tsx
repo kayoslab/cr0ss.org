@@ -114,29 +114,63 @@ export const GET = wrapTrace("GET /api/dashboard", async (req: Request) => {
 
     const sleepPrevCaff = sleepRows
   .map((row) => {
-    const prevYMD = prevBerlinDateKey(row.date);
-    const prevStartISO = startOfBerlinDayISO(new Date(`${prevYMD}T00:00:00.000Z`));
-    const prevEndISO   = endOfBerlinDayISO(new Date(`${prevYMD}T00:00:00.000Z`));
+    // For each sleep day, calculate residual caffeine at midnight (00:00 of that day)
+    // by summing decay from all previous caffeine consumption
+    const sleepDayStartISO = startOfBerlinDayISO(new Date(`${row.date}T00:00:00.000Z`)); // midnight in UTC
+    const midnightMs = Date.parse(sleepDayStartISO);
 
-    const windowStartISO = new Date(Date.parse(prevStartISO) - lookbackMs).toISOString();
-    const windowEndISO   = prevEndISO;
+    // Get all events before midnight (including lookback period)
+    const windowStartISO = new Date(midnightMs - lookbackMs).toISOString();
+    const evs = eventsBetween(allEventsInRange, windowStartISO, sleepDayStartISO);
 
-    const evs = eventsBetween(allEventsInRange, windowStartISO, windowEndISO);
+    // Calculate residual caffeine at midnight by summing exponential decay
+    // from all previous doses (same algorithm as in modelCaffeine)
+    const halfLifeHours = body.half_life_hours ?? 5;
+    const kPerMinute = Math.log(2) / (halfLifeHours * 60);
 
-    const series = modelCaffeine(evs, body, {
-      startMs: Date.parse(prevStartISO),
-      endMs:   Date.parse(prevEndISO),
-      alignToHour: true,
-      gridMinutes: 60,
-      halfLifeHours: body.half_life_hours ?? undefined,
-    });
+    // Dose calculation parameters (same as modelCaffeine)
+    const sensitivity = body.caffeine_sensitivity ?? 1.0;
+    const bioavailability = body.bioavailability ?? 0.9;
+    const mgPerMl = {
+      espresso: 2.1,
+      v60: 0.8,
+      chemex: 0.8,
+      moka: 1.6,
+      aero: 1.1,
+      cold_brew: 1.0,
+      other: 1.0,
+    };
+    const shotMl = {
+      espresso: 38,
+      v60: 250,
+      chemex: 300,
+      moka: 60,
+      aero: 200,
+      cold_brew: 250,
+      other: 200,
+    };
 
-    const last = series.length ? series[series.length - 1] : { body_mg: 0 };
+    let midnightBodyMg = 0;
+    for (const e of evs) {
+      const eventMs = Date.parse(e.timeISO);
+      if (eventMs >= midnightMs) continue; // Only events before midnight
+
+      // Calculate dose (same logic as modelCaffeine)
+      const type = (e.type || "other") as keyof typeof mgPerMl;
+      const amount = (typeof e.amount_ml === "number" && e.amount_ml > 0) ? e.amount_ml : (shotMl[type] ?? shotMl.other);
+      const baseDose = amount * (mgPerMl[type] ?? mgPerMl.other);
+      const effectiveDose = baseDose * bioavailability * sensitivity;
+
+      // Apply exponential decay from consumption time to midnight
+      const dtMinutes = (midnightMs - eventMs) / (60 * 1000);
+      const remaining = effectiveDose * Math.exp(-kPerMinute * dtMinutes);
+      midnightBodyMg += remaining;
+    }
 
     return {
       date: row.date,
       sleep_score: row.sleep_score,
-      prev_caffeine_mg: Math.round(last.body_mg),
+      prev_caffeine_mg: Math.round(midnightBodyMg),
     };
   })
   .filter((p) => !(p.prev_caffeine_mg === 0 && (!p.sleep_score || p.sleep_score === 0)));
