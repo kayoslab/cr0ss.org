@@ -41,7 +41,6 @@ export async function getAllBlogs(page = 1, limit = 9) {
     
     const blogs = await fetchGraphQL(query, ['blogPosts']);
     const collection = extractBlogCollection(blogs);
-    
     return collection;
   } catch (error) {
     console.error('Error fetching blogs:', error);
