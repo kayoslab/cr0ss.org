@@ -27,16 +27,41 @@ export async function generateMetadata(
 
     // optionally access and extend (rather than replace) parent metadata
     const previousImages = (await parent).openGraph?.images || []
-   
+
+    // Ensure hero image URL is absolute
+    const heroImageUrl = blog.heroImage?.url
+      ? (blog.heroImage.url.startsWith('http')
+          ? blog.heroImage.url
+          : `https:${blog.heroImage.url}`)
+      : null;
+
     return {
       title: blog.title,
       description: blog.seoDescription,
       keywords: blog.seoKeywords,
+      authors: [{ name: blog.author }],
       openGraph: {
+        type: 'article',
         title: blog.title,
         description: blog.seoDescription,
-        images: [blog.heroImage?.url as string, ...previousImages],
-        url: 'https://cr0ss.org/blog/' + blog.slug,
+        siteName: 'cr0ss.mind',
+        url: `https://cr0ss.org/blog/${blog.slug}`,
+        images: heroImageUrl ? [{
+          url: heroImageUrl,
+          width: 1200,
+          height: 630,
+          alt: blog.title,
+        }] : [...previousImages],
+        publishedTime: blog.sys.firstPublishedAt,
+        authors: [blog.author],
+        section: blog.categoriesCollection?.items[0]?.title,
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: blog.title,
+        description: blog.seoDescription,
+        images: heroImageUrl ? [heroImageUrl] : undefined,
+        creator: blog.author,
       },
       creator: blog.author,
       publisher: 'Simon Krüger',
