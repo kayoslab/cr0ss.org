@@ -1,4 +1,6 @@
 import { CategoryProps } from "./category";
+import { Document } from '@contentful/rich-text-types';
+import type { ContentfulLinks } from '../../rich-text-renderer';
 
 export interface BlogProps {
   sys: {
@@ -8,7 +10,9 @@ export interface BlogProps {
   slug: string;
   title: string;
   author: string;
-  categoriesCollection: { items: [CategoryProps] }
+  categoriesCollection: {
+    items: CategoryProps[];
+  };
   summary: string;
   heroImage?: {
     sys: {
@@ -17,12 +21,12 @@ export interface BlogProps {
     url: string;
   };
   details: {
-    json: any;
-    links?: any;
+    json: Document;
+    links: ContentfulLinks;
   };
   authorText: string;
   seoDescription: string;
-  seoKeywords: [string];
+  seoKeywords: string[];
 }
 
 // Set a variable that contains all the fields needed for blogs when a fetch for content is performed

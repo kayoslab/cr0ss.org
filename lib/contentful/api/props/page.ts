@@ -1,3 +1,6 @@
+import { Document } from '@contentful/rich-text-types';
+import type { ContentfulLinks } from '../../rich-text-renderer';
+
 export interface PageProps {
   sys: {
     id: string;
@@ -12,8 +15,8 @@ export interface PageProps {
     url: string;
   };
   details: {
-    json: any;
-    links?: any;
+    json: Document;
+    links: ContentfulLinks;
   };
 }
 

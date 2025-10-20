@@ -1,90 +1,7 @@
 import { documentToReactComponents } from '@contentful/rich-text-react-renderer';
 import Image from 'next/image';
 import { PageProps } from '@/lib/contentful/api/props/page';
-import { BLOCKS, INLINES } from '@contentful/rich-text-types';
-import Link from 'next/link';
-import SyntaxHighlighter from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-
-function renderOptions(links: any) {
-  // create an asset map
-  const assetMap = new Map();
-  // loop through the assets and add them to the map
-  for (const asset of links.assets.block) {
-    assetMap.set(asset.sys.id, asset);
-  }
-
-  return {
-    renderNode: {
-      [BLOCKS.HEADING_1]: (node: any, children: any) => {
-        return <h1 className="font-bold text-5xl mb-4 dark:text-white">{children}</h1>;
-      },
-      [BLOCKS.HEADING_2]: (node: any, children: any) => {
-        return <h2 className="font-bold text-2xl mb-4 dark:text-white">{children}</h2>;
-      },
-      [BLOCKS.HEADING_3]: (node: any, children: any) => {
-        return <h3 className="font-bold text-xl mb-4 dark:text-white">{children}</h3>;
-      },
-      [BLOCKS.HEADING_4]: (node: any, children: any) => {
-        return <h4 className="font-bold text-lg mb-4 dark:text-white">{children}</h4>;
-      },
-      [BLOCKS.HEADING_5]: (node: any, children: any) => {
-        return <h5 className="font-bold text-lg mb-4 dark:text-white">{children}</h5>;
-      },
-      [BLOCKS.HEADING_6]: (node: any, children: any) => {
-        return <h6 className="font-bold text-lg mb-4 dark:text-white">{children}</h6>;
-      },
-      [BLOCKS.UL_LIST]: (node: any, children: any) => {
-        return <ul className="list-disc dark:text-slate-200">{children}</ul>;
-      },
-      [BLOCKS.LIST_ITEM]: (node: any, children: any) => {
-        return <li className="my-4">{children}</li>;
-      },
-      [BLOCKS.OL_LIST]: (node: any, children: any) => {
-        return <li className="my-4">{children}</li>;
-      },
-      [BLOCKS.PARAGRAPH]: (node: any, children: any) => {
-        return <p className="mb-2 text-slate-700 dark:text-slate-200">{children}</p>;
-      },
-      [BLOCKS.TABLE]: (node: any, children: any) => {
-        return (
-          <table>
-            <tbody>{children}</tbody>
-          </table>
-        );
-      },
-      [BLOCKS.EMBEDDED_ASSET]: (node: any) => {
-        // find the asset in the assetMap by ID
-        const asset = assetMap.get(node.data.target.sys.id);
-
-        // render the asset accordingly
-        return (
-          <Link href={asset.url} >
-            <img src={asset.url} alt={asset.description} />
-          </Link>
-        );
-      },
-    },
-    [INLINES.HYPERLINK]: (node: any, children: any) => {
-      return (
-        <Link href={node.data.uri} className="text-blue-600 hover:underline" style={{ wordWrap: "break-word" }}>
-          {children}
-        </Link>
-      );
-    },
-    [BLOCKS.EMBEDDED_ENTRY]: (node: any, children: any) => {
-      // node.data.fields holds description, language, code
-      const { codeSnippet, language } = node.data.target.fields;
-      return (
-        <SyntaxHighlighter
-         style={vscDarkPlus}
-         language={language}>
-          {codeSnippet}
-        </SyntaxHighlighter>
-      );
-    },
-  };
-}
+import { createRichTextOptions, PAGE_STYLES } from '@/lib/contentful/rich-text-renderer';
 
 export const Page = ({ page }: { page: PageProps }) => {
   return (
@@ -114,7 +31,7 @@ export const Page = ({ page }: { page: PageProps }) => {
               >
                 {documentToReactComponents(
                   page.details.json,
-                  renderOptions(page.details.links)
+                  createRichTextOptions(page.details.links, PAGE_STYLES, { enableCodeSnippets: false })
                 )}
               </div>
             </div>

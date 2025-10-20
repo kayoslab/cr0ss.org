@@ -1,7 +1,14 @@
 import { getAllBlogs } from '@/lib/contentful/api/blog';
 import BlogGrid from '@/components/blog/blog-grid';
+import { POSTS_PER_PAGE } from '@/lib/constants';
+import { createListMetadata } from '@/lib/metadata';
+import type { Metadata } from 'next';
 
-const POSTS_PER_PAGE = 9;
+export const metadata: Metadata = createListMetadata({
+  title: 'Blog | cr0ss.mind',
+  description: 'Explore articles on software development, technology, and personal insights from Simon Krüger.',
+  path: '/blog',
+});
 
 export default async function BlogsContent({
   searchParams,

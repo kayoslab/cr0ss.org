@@ -1,8 +1,38 @@
-
 import { notFound } from 'next/navigation';
 import { getAllPages, getPage } from '@/lib/contentful/api/page';
 import { PageProps } from '@/lib/contentful/api/props/page';
 import { Page } from '@/components/page/page';
+import { createPageMetadata } from '@/lib/metadata';
+import type { Metadata } from 'next';
+
+type Props = {
+  params: { slug: string };
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  try {
+    const page = await getPage(params.slug);
+    if (!page) {
+      return {
+        title: 'Page Not Found',
+        description: 'The requested page could not be found',
+      };
+    }
+
+    return createPageMetadata({
+      title: `${page.title} | cr0ss.mind`,
+      description: `${page.title} - Personal page on cr0ss.org`,
+      slug: page.slug,
+      heroImageUrl: page.heroImage?.url,
+    });
+  } catch (error) {
+    console.error('Error generating page metadata:', error);
+    return {
+      title: 'Page Error',
+      description: 'Error loading page',
+    };
+  }
+}
 
 // At build time, fetch all slugs to build the blog pages so they are static and cached
 export async function generateStaticParams() {
@@ -12,11 +42,7 @@ export async function generateStaticParams() {
   }));
 }
 
-export default async function PageContent({
-  params,
-}: {
-  params: { slug: string };
-}) {
+export default async function PageContent({ params }: Props) {
   const page = await getPage(params.slug);
 
   if (!page) {
