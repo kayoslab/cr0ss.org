@@ -5,6 +5,9 @@ import { algoliasearch } from "algoliasearch";
 import type { SearchResponse } from '@algolia/client-search';
 import { getBlog } from '@/lib/contentful/api/blog';
 import { Suspense } from 'react';
+import { POSTS_PER_PAGE } from '@/lib/constants';
+import { createListMetadata } from '@/lib/metadata';
+import type { Metadata } from 'next';
 
 interface AlgoliaHit {
   objectID: string;
@@ -18,13 +21,29 @@ interface AlgoliaHit {
 
 const client = algoliasearch(env.ALGOLIA_APP_ID, env.ALGOLIA_SEARCH_KEY);
 
-const POSTS_PER_PAGE = 9;
-
-export default async function SearchResults({
-  searchParams,
-}: {
+type Props = {
   searchParams: { q?: string; page?: string };
-}) {
+};
+
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const query = searchParams.q || '';
+
+  if (!query) {
+    return createListMetadata({
+      title: 'Search | Blog | cr0ss.mind',
+      description: 'Search through blog articles on cr0ss.org',
+      path: '/blog/search',
+    });
+  }
+
+  return createListMetadata({
+    title: `Search: ${query} | Blog | cr0ss.mind`,
+    description: `Search results for "${query}" on cr0ss.org blog`,
+    path: `/blog/search?q=${encodeURIComponent(query)}`,
+  });
+}
+
+export default async function SearchResults({ searchParams }: Props) {
   const query = searchParams.q || '';
   const currentPage = Number(searchParams.page) || 1;
   

@@ -1,124 +1,9 @@
 import { documentToReactComponents } from '@contentful/rich-text-react-renderer';
 import Image from 'next/image';
 import { BlogProps } from '@/lib/contentful/api/props/blog';
-import { BLOCKS, INLINES } from '@contentful/rich-text-types';
 import Link from 'next/link';
-import SyntaxHighlighter from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { CategoryProps } from '@/lib/contentful/api/props/category';
-
-function renderOptions(links: any) {
-  // create an asset map
-  const assetMap = new Map();
-  // loop through the assets and add them to the map
-  for (const asset of links.assets.block) {
-    assetMap.set(asset.sys.id, asset);
-  }
-
-  return {
-    renderNode: {
-      [BLOCKS.HEADING_1]: (node: any, children: any) => {
-        return <h1 className="font-bold text-5xl mt-12 mb-6 dark:text-white">{children}</h1>;
-      },
-      [BLOCKS.HEADING_2]: (node: any, children: any) => {
-        return <h2 className="font-bold text-3xl mt-10 mb-5 dark:text-white">{children}</h2>;
-      },
-      [BLOCKS.HEADING_3]: (node: any, children: any) => {
-        return <h3 className="font-bold text-2xl mt-8 mb-4 dark:text-white">{children}</h3>;
-      },
-      [BLOCKS.HEADING_4]: (node: any, children: any) => {
-        return <h4 className="font-bold text-xl mt-6 mb-3 dark:text-white">{children}</h4>;
-      },
-      [BLOCKS.HEADING_5]: (node: any, children: any) => {
-        return <h5 className="font-bold text-lg mt-6 mb-3 dark:text-white">{children}</h5>;
-      },
-      [BLOCKS.HEADING_6]: (node: any, children: any) => {
-        return <h6 className="font-bold text-base mt-6 mb-3 dark:text-white">{children}</h6>;
-      },
-      [BLOCKS.PARAGRAPH]: (node: any, children: any) => {
-        return <p className="mb-6 leading-relaxed text-slate-700 dark:text-slate-200">{children}</p>;
-      },
-      [BLOCKS.QUOTE]: (node: any, children: any) => {
-        return (
-          <blockquote className="border-l-4 border-gray-300 dark:border-gray-700 pl-4 my-6 italic text-gray-700 dark:text-gray-300">
-            {children}
-          </blockquote>
-        );
-      },
-      [BLOCKS.UL_LIST]: (node: any, children: any) => {
-        return <ul className="list-disc dark:text-slate-200 list-style-position:outside ms-4" key={children}>{children}</ul>;
-      },
-      [BLOCKS.LIST_ITEM]: (node: any, children: any) => {
-        return <li className="my-4 list-style-position:outside ms-4" key={children}>{children}</li>;
-      },
-      [BLOCKS.OL_LIST]: (node: any, children: any) => {
-        return <ol className="list-decimal dark:text-slate-200 list-style-position:outside ms-4" key={children}>{children}</ol>;
-      },
-      [BLOCKS.TABLE]: (node: any, children: any) => {
-        return (
-          <table>
-            <tbody>{children}</tbody>
-          </table>
-        );
-      },
-      [BLOCKS.EMBEDDED_ASSET]: (node: any) => {
-        // find the asset in the assetMap by ID
-        const asset = assetMap.get(node.data.target.sys.id);
-
-        // render the asset accordingly
-        return (
-          <Link href={asset.url} >
-            <img src={asset.url} alt={asset.description} />
-          </Link>
-        );
-      },
-      [BLOCKS.EMBEDDED_ENTRY]: (node: any) => {
-        // Get the entry from the links
-        const entry = links?.entries?.block?.find((entry: any) => 
-          entry?.sys?.id === node?.data?.target?.sys?.id
-        );
-        
-        if (!entry) {
-          console.warn('Entry not found:', node?.data?.target?.sys?.id);
-          return null;
-        }
-
-        // Check if it's a code snippet content type using __typename
-        if (entry.__typename === 'CodeSnippet') {
-          const { codeSnippet, language } = entry;
-          return (
-            <SyntaxHighlighter
-              style={vscDarkPlus}
-              language={language?.toLowerCase() || 'text'}
-              showLineNumbers={true}
-              wrapLines={true}
-              customStyle={{
-                margin: '2em 0',
-                padding: '1em',
-                borderRadius: '0.5em',
-              }}>
-              {codeSnippet}
-            </SyntaxHighlighter>
-          );
-        }
-        return null;
-      },
-      [INLINES.HYPERLINK]: (node: any, children: any) => {
-        return (
-          <Link 
-            href={node.data.uri} 
-            className="text-gray-700 dark:text-gray-300 underline decoration-gray-700/30 dark:decoration-gray-300/30 hover:decoration-gray-700 dark:hover:decoration-gray-300 transition-all duration-200" 
-            target={node.data.uri.startsWith('http') ? '_blank' : '_self'}
-            rel={node.data.uri.startsWith('http') ? 'noopener noreferrer' : ''}
-            style={{ wordWrap: "break-word" }}
-          >
-            {children}
-          </Link>
-        );
-      },
-    },
-  };
-}
+import { createRichTextOptions, BLOG_ARTICLE_STYLES } from '@/lib/contentful/rich-text-renderer';
 
 export const Blog = ({ blog, recommendations }: { blog: BlogProps, recommendations: BlogProps[] }) => {
   // Format the date
@@ -176,7 +61,7 @@ export const Blog = ({ blog, recommendations }: { blog: BlogProps, recommendatio
                 >
                   {documentToReactComponents(
                     blog.details.json,
-                    renderOptions(blog.details.links)
+                    createRichTextOptions(blog.details.links, BLOG_ARTICLE_STYLES)
                   )}
                 </div>
               </div>

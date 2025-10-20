@@ -6,6 +6,7 @@ import { Blog } from '@/components/blog/blogarticle';
 import type { Metadata, ResolvingMetadata } from 'next'
 import { CategoryProps } from '@/lib/contentful/api/props/category';
 import { BlogViewTracker } from '@/components/blog/blog-view-tracker';
+import { createBlogMetadata, createBlogJsonLd } from '@/lib/metadata';
 
 type Props = {
   params: { slug: string }
@@ -25,60 +26,16 @@ export async function generateMetadata(
       }
     }
 
-    // optionally access and extend (rather than replace) parent metadata
-    const previousImages = (await parent).openGraph?.images || []
-
-    // Ensure hero image URL is absolute
-    const heroImageUrl = blog.heroImage?.url
-      ? (blog.heroImage.url.startsWith('http')
-          ? blog.heroImage.url
-          : `https:${blog.heroImage.url}`)
-      : null;
-
-    return {
+    return createBlogMetadata({
       title: blog.title,
       description: blog.seoDescription,
       keywords: blog.seoKeywords,
-      authors: [{ name: blog.author }],
-      openGraph: {
-        type: 'article',
-        title: blog.title,
-        description: blog.seoDescription,
-        siteName: 'cr0ss.mind',
-        url: `https://cr0ss.org/blog/${blog.slug}`,
-        images: heroImageUrl ? [{
-          url: heroImageUrl,
-          width: 1200,
-          height: 630,
-          alt: blog.title,
-        }] : [...previousImages],
-        publishedTime: blog.sys.firstPublishedAt,
-        authors: [blog.author],
-        section: blog.categoriesCollection?.items[0]?.title,
-      },
-      twitter: {
-        card: 'summary_large_image',
-        title: blog.title,
-        description: blog.seoDescription,
-        images: heroImageUrl ? [heroImageUrl] : undefined,
-        creator: blog.author,
-      },
-      creator: blog.author,
-      publisher: 'Simon Krüger',
-      robots: {
-        index: true,
-        follow: true,
-        nocache: true,
-        googleBot: {
-          index: true,
-          follow: true,
-          noimageindex: true,
-          'max-video-preview': -1,
-          'max-image-preview': 'large',
-          'max-snippet': -1,
-        },
-      },
-    }
+      author: blog.author,
+      slug: blog.slug,
+      publishedTime: blog.sys.firstPublishedAt,
+      heroImageUrl: blog.heroImage?.url,
+      category: blog.categoriesCollection?.items[0]?.title,
+    });
   } catch (error) {
     console.error('Error generating metadata:', error);
     return {
@@ -148,11 +105,26 @@ export default async function BlogContent({
 
     const recommendations = await getRecommendations(blog);
 
+    const jsonLd = createBlogJsonLd({
+      title: blog.title,
+      description: blog.seoDescription,
+      author: blog.author,
+      slug: blog.slug,
+      publishedTime: blog.sys.firstPublishedAt,
+      heroImageUrl: blog.heroImage?.url,
+    });
+
     return (
-      <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800 pb-24'>
-        <BlogViewTracker blog={blog} />
-        <Blog blog={blog} recommendations={recommendations} />
-      </main>
+      <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800 pb-24'>
+          <BlogViewTracker blog={blog} />
+          <Blog blog={blog} recommendations={recommendations} />
+        </main>
+      </>
     );
   } catch (error) {
     console.error('Error loading blog content:', error);
