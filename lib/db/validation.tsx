@@ -33,12 +33,53 @@ export const ZCoffee = z.object({
 
 export type TCoffee = z.infer<typeof ZCoffee>;
 
+// Legacy run schema (deprecated - use ZWorkout instead)
 export const ZRun = z.object({
   date: z.coerce.date(),
   distance_km: z.coerce.number().min(0),
   duration_min: z.coerce.number().min(0),
   avg_pace_sec_per_km: z.coerce.number().int().min(0).optional(),
 });
+
+// Workout types
+export const WorkoutType = z.enum([
+  'running',
+  'climbing',
+  'bouldering',
+  'rowing',
+  'cycling',
+  'hiking',
+  'strength',
+  'other',
+]);
+
+export const WorkoutIntensity = z.enum(['low', 'moderate', 'high', 'max']);
+
+// Unified workout schema
+export const ZWorkout = z.object({
+  id: z.number().int().optional(),
+  date: z.coerce.date(),
+  workout_type: WorkoutType,
+  duration_min: z.coerce.number().int().positive(),
+  intensity: WorkoutIntensity.optional(),
+  perceived_effort: z.coerce.number().int().min(1).max(10).optional(),
+  details: z.record(z.unknown()).optional(),
+  notes: z.string().optional(),
+  created_at: z.string().optional(),
+});
+
+export const ZWorkoutUpsert = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  workout_type: WorkoutType,
+  duration_min: z.coerce.number().int().positive(),
+  intensity: WorkoutIntensity.optional(),
+  perceived_effort: z.coerce.number().int().min(1).max(10).optional(),
+  details: z.record(z.unknown()).optional(),
+  notes: z.string().optional(),
+});
+
+export type Workout = z.infer<typeof ZWorkout>;
+export type WorkoutUpsert = z.infer<typeof ZWorkoutUpsert>;
 
 export const ZGoal = z.object({
   month: z.coerce.date(),
