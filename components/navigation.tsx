@@ -160,7 +160,7 @@ export default function Navigation() {
           <Link href='/page/about' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
             About
           </Link>
-          <Link href='/page/imprint' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
+          <Link href='/page/contact' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
             Contact
           </Link>
         </PopoverGroup>
@@ -305,7 +305,7 @@ export default function Navigation() {
                   About
                 </Link>
                 <Link
-                  href='/page/imprint'
+                  href='/page/contact'
                   className='-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 dark:text-white hover:bg-gray-50'
                   onClick={() => setMobileMenuOpen(false)}
                 >
