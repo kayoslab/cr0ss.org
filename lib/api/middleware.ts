@@ -63,7 +63,7 @@ export async function validateRequestBody<T extends ZodSchema>(
     }
 
     return { success: true, data: result.data };
-  } catch (error) {
+  } catch {
     return {
       success: false,
       response: createErrorResponse(

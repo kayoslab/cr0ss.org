@@ -1,7 +1,5 @@
-const management = require('contentful-management');
-const spaceImport = require('contentful-import');
-const exportFile = require('./export.json');
-const countries = require('./countries.json');
+import * as management from 'contentful-management';
+import countries from './countries.json';
 const visitedCountries = ["DE", "AT", "IT", "ES", "FR", "PT", "HR", "FI", "GB", "EG", "TH", "US", "LU", "BE", "NL", "PL", "MT", "GR", "GP"];
 const { CONTENTFUL_SPACE_ID, CONTENTFUL_MANAGEMENT_TOKEN } = process.env;
 
@@ -21,63 +19,94 @@ if (!CONTENTFUL_SPACE_ID || !CONTENTFUL_MANAGEMENT_TOKEN) {
 //   content: exportFile,
 // })
 //   .then(() => console.log('The content model of your space is set up!'))
-//   .catch((e: any) => console.error(e));
+//   .catch((e: unknown) => console.error(e));
+
+interface ContentfulClient {
+  getSpace: (spaceId: string) => Promise<ContentfulSpace>;
+}
+
+interface ContentfulSpace {
+  getEnvironment: (env: string) => Promise<ContentfulEnvironment>;
+}
+
+interface ContentfulEntry {
+  fields: {
+    id: { 'en-US': string };
+    [key: string]: unknown;
+  };
+  publish: () => Promise<void>;
+  [key: string]: unknown;
+}
+
+interface ContentfulEntries {
+  items: ContentfulEntry[];
+}
+
+interface ContentfulEnvironment {
+  getEntries: (options: { content_type: string; limit: string }) => Promise<ContentfulEntries>;
+  createEntry: (contentType: string, fields: unknown) => Promise<ContentfulEntry>;
+}
+
+interface CountryData {
+  id: string;
+  title: string;
+  d: string;
+}
 
 const client = management.createClient({
   accessToken: CONTENTFUL_MANAGEMENT_TOKEN,
-});
+}) as ContentfulClient;
 
-client.getSpace(CONTENTFUL_SPACE_ID).then((space: any) => {
-  space.getEnvironment('master').then((environment: any) => {
-    environment.getEntries({'content_type': 'country', 'limit': '1000'}).then(async (entries: any) => {
+client.getSpace(CONTENTFUL_SPACE_ID).then((space) => {
+  space.getEnvironment('master').then((environment) => {
+    environment.getEntries({'content_type': 'country', 'limit': '1000'}).then(async (entries) => {
 
-      // entries.items.forEach((entry: any) => {
+      // entries.items.forEach((entry) => {
       //   entry.unpublish();
       //   entry.delete();
       // });
       // return;
-      var entryIds = entries.items.map((entry: any) => entry.fields.id['en-US']);
-      var localCountries = countries.filter((country: any) => !entryIds.includes(country.id));
+      const entryIds = entries.items.map((entry) => entry.fields.id['en-US']);
+      const localCountries = (countries as CountryData[]).filter((country) => !entryIds.includes(country.id));
 
-      localCountries.forEach(async (country: any) => {
+      for (const country of localCountries) {
         if (!country.id || !country.title || !country.d) {
-          return;
-        }
-  
-        if (entryIds.includes(country.id)) {
-          return
+          continue;
         }
 
-        environment.createEntry('country', {
-          fields: {
-            id: {
-              'en-US': country.id,
+        if (entryIds.includes(country.id)) {
+          continue;
+        }
+
+        try {
+          const entry = await environment.createEntry('country', {
+            fields: {
+              id: {
+                'en-US': country.id,
+              },
+              name: {
+                'en-US': country.title,
+              },
+              visited: {
+                'en-US': visitedCountries.includes(country.id),
+              },
+              data: {
+                'en-US': '{ "path": "' + country.d + '" }',
+              }
             },
-            name: {
-              'en-US': country.title,
-            },
-            visited: {
-              'en-US': visitedCountries.includes(country.id),
-            },
-            data: {
-              'en-US': '{ "path": "' + country.d + '" }',
-            }
-          },
-        })
-        .then(async (entry: any) => {
-          entry.publish()
-          .then(() => {
-            console.log('Country published', country.title);
-          })
-          .catch(() => {
-            console.log('Country created', country.title);
-            console.error
           });
-        })
-        .catch(async () => {
-          console.error
-        });
-      });
+
+          try {
+            await entry.publish();
+            console.log('Country published', country.title);
+          } catch (publishError) {
+            console.log('Country created but not published', country.title);
+            console.error('Publish error:', publishError);
+          }
+        } catch (createError) {
+          console.error('Failed to create country', country.title, createError);
+        }
+      }
     });
   });
 });

@@ -23,8 +23,9 @@ export const GET = wrapTrace("GET /api/habits/body", async (req: Request) => {
 
     const p = await getBodyProfileDB();
     return NextResponse.json(p, { status: 200 });
-  } catch (e: any) {
-    return NextResponse.json({ message: e?.message ?? "Failed" }, { status: 500 });
+  } catch (e: unknown) {
+    const error = e as { message?: string };
+    return NextResponse.json({ message: error?.message ?? "Failed" }, { status: 500 });
   }
 });
 
@@ -54,10 +55,11 @@ export const POST = wrapTrace("POST /api/habits/body", async (req: Request) => {
     const updated = await upsertBodyProfileDB(result.data);
     revalidateDashboard();
     return NextResponse.json({ ok: true, profile: updated }, { status: 200 });
-  } catch (e: any) {
-    const status = e?.status ?? 400;
+  } catch (e: unknown) {
+    const error = e as { status?: number; message?: string };
+    const status = error?.status ?? 400;
     try {
-      const msg = typeof e === "object" && e?.message ? e.message : String(e);
+      const msg = typeof e === "object" && error?.message ? error.message : String(e);
       return NextResponse.json({ message: msg }, { status });
     } catch {
       return NextResponse.json({ message: "Bad Request" }, { status });

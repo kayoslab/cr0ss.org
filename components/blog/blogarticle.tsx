@@ -13,7 +13,7 @@ export const Blog = ({ blog, recommendations }: { blog: BlogProps, recommendatio
     day: 'numeric'
   });
 
-  var recommendationsJSX = <div className='flex flex-col space-y-4 font-bold tracking-tighter sm:text-xl'></div>
+  let recommendationsJSX = <div className='flex flex-col space-y-4 font-bold tracking-tighter sm:text-xl'></div>
   if (recommendations.length > 0) {
     recommendationsJSX = <div className='flex flex-col space-y-4 font-bold tracking-tighter sm:text-xl'>Continue reading:</div>
   }

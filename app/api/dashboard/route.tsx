@@ -9,7 +9,6 @@ import {
   startOfBerlinDayISO,
   endOfBerlinDayISO,
   prevBerlinDateKey,
-  toBerlinYMD
 } from "@/lib/time/berlin";
 
 import {
@@ -28,7 +27,7 @@ import {
   qMonthlyGoalsObject,
 } from "@/lib/db/queries";
 import { getBodyProfile } from "@/lib/user/profile";
-import { modelCaffeine, estimateIntakeMgFor } from "@/lib/phys/caffeine";
+import { modelCaffeine } from "@/lib/phys/caffeine";
 import { assertSecret } from "@/lib/auth/secret";
 
 // Helper to slice events for a given window (inclusive start, exclusive end)
@@ -209,8 +208,9 @@ export const GET = wrapTrace("GET /api/dashboard", async (req: Request) => {
     }
 
     return NextResponse.json(parsed.data, { status: 200 });
-  } catch (e: any) {
-    const status = e?.status ?? 500;
-    return NextResponse.json({ message: e?.message ?? "Failed" }, { status });
+  } catch (e: unknown) {
+    const error = e as { status?: number; message?: string };
+    const status = error?.status ?? 500;
+    return NextResponse.json({ message: error?.message ?? "Failed" }, { status });
   }
 });

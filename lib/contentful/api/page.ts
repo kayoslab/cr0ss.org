@@ -1,12 +1,6 @@
 import { fetchGraphQL } from './api';
 import { PAGE_GRAPHQL_FIELDS } from './props/page';
 
-function extractPageEntries(fetchResponse: {
-  data: { pagesCollection: { items: any } };
-}) {
-  return fetchResponse?.data?.pagesCollection?.items;
-}
-
 export async function getAllPages(limit = 10) {
   const pages = await fetchGraphQL(
     `query {

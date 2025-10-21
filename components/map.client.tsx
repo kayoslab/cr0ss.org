@@ -88,7 +88,7 @@ function calculatePixels(
 ) {
   const mapLeftLon = -169.110266;
   const mapRightLon = 190.486279;
-  const mapTopLat = 83.600842;
+  // const mapTopLat = 83.600842; // Not used in Mercator projection calculation
   const mapBottomLat = -58.508473;
   return convertGeoToPixel(lat, lon, mapWidth, mapHeight, mapLeftLon, mapRightLon, mapBottomLat);
 }

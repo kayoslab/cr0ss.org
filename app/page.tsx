@@ -1,10 +1,11 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default async function HomeContent() {
   return (
     <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800 pb-24'>
         <div>
-            <img src="./home-image.jpeg" alt="Avatar" className="mx-auto mt-6" />
+            <Image src="/home-image.jpeg" alt="Avatar" className="mx-auto mt-6" width={1200} height={1200} priority />
             <blockquote className="border-l-4 border-gray-300 dark:border-gray-700 pl-4 my-6 italic text-gray-700 dark:text-gray-300">
                 Not everything that you can see is real, not everything that is real can be seen.
             </blockquote>

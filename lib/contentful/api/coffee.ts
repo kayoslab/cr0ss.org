@@ -2,16 +2,39 @@ import { fetchGraphQL } from './api';
 import { COFFEE_GRAPHQL_FIELDS } from './props/coffee';
 import type { CoffeeListDTO } from "./coffee-types";
 
+interface CoffeeItem {
+  sys?: {
+    id?: string;
+  };
+  id?: string;
+  name?: string;
+  roaster?: string;
+  decaffeinated?: boolean;
+  country?: {
+    name?: string;
+  };
+  fields?: {
+    decaffeinated?: boolean;
+  };
+  [key: string]: unknown;
+}
+
 interface CoffeeCollection {
-  items: any[];
+  items: CoffeeItem[];
   total: number;
   skip: number;
   limit: number;
 }
 
+interface GraphQLCoffeeResponse {
+  data?: {
+    coffeeCollection?: CoffeeCollection;
+  };
+}
+
 export async function getAllCoffeeDTO(page = 1, limit = 20): Promise<CoffeeListDTO> {
   const raw = await getAllCoffee(page, limit); // your existing function
-  const items = (raw?.items ?? []).map((c: any) => ({
+  const items = (raw?.items ?? []).map((c) => ({
     id: String(c?.sys?.id ?? c?.id ?? ""),
     name: String(c?.name ?? ""),
     roaster: String(c?.roaster ?? ""),
@@ -20,7 +43,7 @@ export async function getAllCoffeeDTO(page = 1, limit = 20): Promise<CoffeeListD
 }
 
 
-function extractCoffeeCollection(fetchResponse: any): CoffeeCollection {
+function extractCoffeeCollection(fetchResponse: GraphQLCoffeeResponse): CoffeeCollection {
 
   if (!fetchResponse?.data?.coffeeCollection) {
     // Return empty collection if no data

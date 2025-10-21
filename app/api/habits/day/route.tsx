@@ -60,9 +60,10 @@ export const GET = wrapTrace("GET /api/habits/day", async (req: Request) => {
     }
 
     return NextResponse.json(rows[0], { status: 200 });
-  } catch (e: any) {
-    const status = e?.status ?? 500;
-    return NextResponse.json({ message: e?.message ?? "Failed" }, { status });
+  } catch (e: unknown) {
+    const error = e as { status?: number; message?: string };
+    const status = error?.status ?? 500;
+    return NextResponse.json({ message: error?.message ?? "Failed" }, { status });
   }
 });
 
@@ -140,8 +141,9 @@ export const POST = wrapTrace("POST /api/habits/day", async (req: Request) => {
 
     revalidateDashboard();
     return NextResponse.json(rows[0], { status: 200 });
-  } catch (e: any) {
-    const status = e?.status ?? 500;
-    return NextResponse.json({ message: e?.message ?? "Failed" }, { status });
+  } catch (e: unknown) {
+    const error = e as { status?: number; message?: string };
+    const status = error?.status ?? 500;
+    return NextResponse.json({ message: error?.message ?? "Failed" }, { status });
   }
 });

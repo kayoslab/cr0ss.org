@@ -2,13 +2,6 @@ import { fetchGraphQL } from './api';
 import { CATEGORY_GRAPHQL_FIELDS } from './props/category';
 import { BLOG_GRAPHQL_FIELDS } from './props/blog';
 
-function extractPageEntries(fetchResponse: {
-  data: { pagesCollection: { items: any } };
-}) {
-  return fetchResponse?.data?.pagesCollection?.items;
-}
-
-
 export async function getCategory(slug: string) {
   const pages = await fetchGraphQL(
     `query {
@@ -23,13 +16,30 @@ export async function getCategory(slug: string) {
   return pages.data.blogCategoryCollection.items[0];
 }
 
-function extractAllBlogEntriesForCategory(fetchResponse: {
-    data: { blogCategoryCollection: { items: [ {linkedFrom: { blogPostCollection: { items: any, total: number } } } ] } };
-}) {
+interface BlogPost {
+  [key: string]: unknown;
+}
+
+interface CategoryGraphQLResponse {
+    data?: {
+      blogCategoryCollection?: {
+        items: [{
+          linkedFrom: {
+            blogPostCollection: {
+              items: BlogPost[];
+              total: number;
+            };
+          };
+        }];
+      };
+    };
+}
+
+function extractAllBlogEntriesForCategory(fetchResponse: CategoryGraphQLResponse) {
     const collection = fetchResponse?.data?.blogCategoryCollection?.items[0]?.linkedFrom.blogPostCollection;
     return {
-        items: collection.items,
-        total: collection.total
+        items: collection?.items ?? [],
+        total: collection?.total ?? 0
     };
 }
   

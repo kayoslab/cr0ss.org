@@ -1,11 +1,21 @@
 import { fetchGraphQL } from './api';
 import { COUNTRY_GRAPHQL_FIELDS } from './props/country';
 
-function extractCountries(fetchResponse: {
-  data: { countryCollection: { items: any } };
-}) {
-  var items = fetchResponse?.data?.countryCollection?.items;
-  return items
+interface Country {
+  [key: string]: unknown;
+}
+
+interface GraphQLCountryResponse {
+  data?: {
+    countryCollection?: {
+      items: Country[];
+    };
+  };
+}
+
+function extractCountries(fetchResponse: GraphQLCountryResponse) {
+  const items = fetchResponse?.data?.countryCollection?.items;
+  return items ?? [];
 }
 
 export async function getAllCountries() {

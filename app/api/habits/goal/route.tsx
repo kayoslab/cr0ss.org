@@ -39,15 +39,16 @@ export const GET = wrapTrace("GET /api/habits/goal", async (req: Request) => {
       coding_minutes: 0,
       focus_minutes: 0,
     };
-    for (const r of rows as any[]) {
+    for (const r of rows as Array<{ kind: string; target: number }>) {
       const k = String(r.kind);
       const v = Number(r.target);
       if (k in out) out[k] = v;
     }
     return NextResponse.json(out, { status: 200 });
-  } catch (e: any) {
-    const status = e?.status ?? 500;
-    return NextResponse.json({ message: e?.message ?? "Failed" }, { status });
+  } catch (e: unknown) {
+    const error = e as { status?: number; message?: string };
+    const status = error?.status ?? 500;
+    return NextResponse.json({ message: error?.message ?? "Failed" }, { status });
   }
 });
 
@@ -100,8 +101,9 @@ export const POST = wrapTrace("POST /api/habits/goal", async (req: Request) => {
 
     revalidateDashboard();
     return NextResponse.json({ ok: true }, { status: 200 });
-  } catch (e: any) {
-    const status = e?.status ?? 500;
-    return NextResponse.json({ message: e?.message ?? "Failed" }, { status });
+  } catch (e: unknown) {
+    const error = e as { status?: number; message?: string };
+    const status = error?.status ?? 500;
+    return NextResponse.json({ message: error?.message ?? "Failed" }, { status });
   }
 });

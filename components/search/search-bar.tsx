@@ -122,7 +122,6 @@ export function SearchBar() {
           <button
             onClick={toggleSearch}
             aria-label="Search"
-            aria-expanded={showSearchBar}
             className={`p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-opacity duration-200
               ${showSearchBar ? 'opacity-0 absolute right-2 pointer-events-none' : 'opacity-100'}`}
           >
@@ -148,6 +147,7 @@ export function SearchBar() {
                     onKeyDown={handleKeyDown}
                     placeholder="Search..."
                     className="w-full pl-3 pr-10 py-1.5 rounded-md text-sm dark:bg-slate-700 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                    role="combobox"
                     aria-label="Search"
                     aria-expanded={showSuggestions}
                     aria-controls="search-suggestions"

@@ -31,8 +31,9 @@ export const GET = wrapTrace("GET /api/habits/run", async (req: Request) => {
       LIMIT 50
     `;
     return new Response(JSON.stringify(rows), { status: 200 });
-  } catch (err: any) {
-    return new Response(err?.message ?? "Bad Request", { status: err?.status ?? 400 });
+  } catch (err: unknown) {
+    const error = err as { message?: string; status?: number };
+    return new Response(error?.message ?? "Bad Request", { status: error?.status ?? 400 });
   }
 });
 
@@ -73,7 +74,8 @@ export const POST = wrapTrace("POST /api/habits/run", async (req: Request) => {
 
     revalidateDashboard();
     return new Response(JSON.stringify({ ok: true, inserted: parsed.length }), { status: 200 });
-  } catch (err: any) {
-    return new Response(err?.message ?? "Bad Request", { status: err?.status ?? 400 });
+  } catch (err: unknown) {
+    const error = err as { message?: string; status?: number };
+    return new Response(error?.message ?? "Bad Request", { status: error?.status ?? 400 });
   }
 });

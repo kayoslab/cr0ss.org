@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getAllBlogs } from '@/lib/contentful/api/blog';
 import { BlogProps } from '@/lib/contentful/api/props/blog';
-var RSS = require('rss');
+import RSS from 'rss';
 
 export async function GET() {
     const ITEMS_PER_PAGE = 10;
     let allPosts: BlogProps[] = [];
-    let currentPage = 1;
     
     // First fetch to get total number of posts
     const initialCollection = await getAllBlogs(1, ITEMS_PER_PAGE);

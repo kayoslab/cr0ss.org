@@ -76,7 +76,7 @@ export function Line({
   showLegend = true,
 }: {
   title: string;
-  data: any[];
+  data: Record<string, string | number>[];
   index: string;
   categories: string[];
   colors?: string[];
@@ -111,7 +111,7 @@ export function Line({
               return (
                 <div className="rounded-md border bg-white p-2 text-sm shadow dark:border-neutral-800 dark:bg-neutral-900">
                   <div className="mb-1 font-medium">{label}</div>
-                  {payload.map((p: any) => {
+                  {payload.map((p: { name?: string; value?: string | number }) => {
                     const name = String(p.name ?? "");
                     const idx = Math.max(0, categories.indexOf(name));
                     const color = palette[idx % palette.length];
@@ -145,7 +145,7 @@ export function Area({
   showLegend = true,
 }: {
   title: string;
-  data: any[];
+  data: Record<string, string | number>[];
   index: string;
   categories: string[];
   colors?: string[];
@@ -180,7 +180,7 @@ export function Area({
               return (
                 <div className="rounded-md border bg-white p-2 text-sm shadow dark:border-neutral-800 dark:bg-neutral-900">
                   <div className="mb-1 font-medium">{label}</div>
-                  {payload.map((p: any) => {
+                  {payload.map((p: { name?: string; value?: string | number }) => {
                     const name = String(p.name ?? "");
                     const idx = Math.max(0, categories.indexOf(name));
                     const color = palette[idx % palette.length];
@@ -215,7 +215,7 @@ export function Scatter({
   showLegend = true,
 }: {
   title: string;
-  data: { [k: string]: any }[];
+  data: Record<string, string | number>[];
   x: string;
   y: string;
   colors?: string[];
@@ -230,7 +230,7 @@ export function Scatter({
       if (!Number.isFinite(xv) || !Number.isFinite(yv)) return null;
       return d;
     })
-    .filter(Boolean) as { [k: string]: any }[];
+    .filter(Boolean) as Record<string, string | number>[];
 
   // Keep your “always pass category” approach
   const category = groupField ?? "__group";
@@ -271,10 +271,10 @@ export function Scatter({
             customTooltip={({ active, payload }) => {
               if (!active || !payload?.length) return null;
               // For Scatter, payload[0].payload is the point, payload[0].color is the rendered color (from Tremor/Recharts)
-              const p0: any = payload[0] ?? {};
-              const point = p0.payload ?? {};
+              const p0 = payload[0] as { payload?: Record<string, string | number>; color?: string } | undefined;
+              const point = p0?.payload ?? {};
               const groupName = String(point?.[category] ?? "");
-              const swatch = (p0.color as string) || colorMap.get(groupName) || palette[0];
+              const swatch = (p0?.color as string) || colorMap.get(groupName) || palette[0];
 
               return (
                 <div className="rounded-md border bg-white p-2 text-sm shadow dark:border-neutral-800 dark:bg-neutral-900">

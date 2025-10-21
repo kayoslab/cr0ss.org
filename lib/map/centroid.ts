@@ -7,13 +7,13 @@ export function polygons(element: string, svgDocument: Document): SVGPoint[] {
   const NUM_POINTS = 20;
   const world = svgDocument.getElementById("world") as SVGSVGElement | null
   const path = world?.getElementById(element) as unknown as SVGPolygonElement;
-  var len = path?.getTotalLength();
-  var points: SVGPoint[] = [];
+  const len = path?.getTotalLength();
+  const points: SVGPoint[] = [];
 
   if (world) {
-    for (var i=0; i < NUM_POINTS; i++) {
-        var point = world.createSVGPoint();
-        var pt = path.getPointAtLength(i * len / (NUM_POINTS-1));
+    for (let i=0; i < NUM_POINTS; i++) {
+        const point = world.createSVGPoint();
+        const pt = path.getPointAtLength(i * len / (NUM_POINTS-1));
         point.x = pt.x;
         point.y = pt.y;
         points.push(point);
@@ -24,13 +24,13 @@ export function polygons(element: string, svgDocument: Document): SVGPoint[] {
 }
 
 export function area(pts: SVGPoint[]): number {
-  var area = 0;
-  var nPts = pts.length;
-  var j = nPts - 1;
-  var p1: Point;
-  var p2: Point;
+  let area = 0;
+  const nPts = pts.length;
+  let j = nPts - 1;
+  let p1: Point;
+  let p2: Point;
 
-  for (var i = 0; i < nPts; j = i++) {
+  for (let i = 0; i < nPts; j = i++) {
     p1 = pts[i];
     p2 = pts[j];
     area += p1.x * p2.y;
@@ -41,13 +41,13 @@ export function area(pts: SVGPoint[]): number {
 };
 
 export function computeCentroid(pts: SVGPoint[]) {
-    var nPts = pts.length;
-    var x=0; var y=0;
-    var f;
-    var j=nPts-1;
-    var p1; var p2;
+    const nPts = pts.length;
+    let x=0; let y=0;
+    let f;
+    let j=nPts-1;
+    let p1; let p2;
 
-    for (var i=0;i<nPts;j=i++) {
+    for (let i=0;i<nPts;j=i++) {
         p1=pts[i]; p2=pts[j];
         f=p1.x*p2.y-p2.x*p1.y;
         x+=(p1.x+p2.x)*f;

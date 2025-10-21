@@ -3,19 +3,17 @@ import { getAllBlogs, getBlog } from '@/lib/contentful/api/blog';
 import { getBlogsForCategory } from '@/lib/contentful/api/category';
 import { BlogProps } from '@/lib/contentful/api/props/blog';
 import { Blog } from '@/components/blog/blogarticle';
-import type { Metadata, ResolvingMetadata } from 'next'
+import type { Metadata } from 'next'
 import { CategoryProps } from '@/lib/contentful/api/props/category';
 import { BlogViewTracker } from '@/components/blog/blog-view-tracker';
 import { createBlogMetadata, createBlogJsonLd } from '@/lib/metadata';
 
 type Props = {
   params: Promise<{ slug: string }>
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
 export async function generateMetadata(
-  { params, searchParams }: Props,
-  parent: ResolvingMetadata
+  { params }: Props
 ): Promise<Metadata> {
   try {
     const { slug } = await params;

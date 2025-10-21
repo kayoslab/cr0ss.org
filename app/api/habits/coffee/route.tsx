@@ -3,19 +3,13 @@ export const runtime = "edge";
 import { rateLimit } from "@/lib/rate/limit";
 import { wrapTrace } from "@/lib/obs/trace";
 import { sql } from "@/lib/db/client";
-import { ZCoffee, type TCoffee } from "@/lib/db/validation";
+import { ZCoffee } from "@/lib/db/validation";
 import { revalidateDashboard } from "@/lib/cache/revalidate";
 import { assertSecret } from "@/lib/auth/secret";
-import { 
-  toBerlinYMD,
+import {
   berlinDateTimeToUTCISO,
-  normalizeHHmm 
 } from "@/lib/time/berlin";
 import { getAllCoffeeDTO } from "@/lib/contentful/api/coffee";
-
-function isValidDate(v: unknown): v is Date {
-  return v instanceof Date && !Number.isNaN(v.getTime());
-}
 
 // GET all coffees from Contentful (up to 20)
 export const GET = wrapTrace("GET /api/habits/coffee", async (req: Request) => {
@@ -32,8 +26,9 @@ export const GET = wrapTrace("GET /api/habits/coffee", async (req: Request) => {
 
     const { items } = await getAllCoffeeDTO(1, 20);
     return new Response(JSON.stringify(items), { status: 200 });
-  } catch (err: any) {
-    return new Response(err?.message ?? "Bad Request", { status: err?.status ?? 400 });
+  } catch (err: unknown) {
+    const error = err as { message?: string; status?: number };
+    return new Response(error?.message ?? "Bad Request", { status: error?.status ?? 400 });
   }
 });
 
@@ -75,9 +70,9 @@ export const POST = wrapTrace("POST /api/habits/coffee", async (req: Request) =>
       } else if (i.time && typeof i.time === "string") {
         // Full ISO provided -> trust it
         tsISO = i.time;
-      } else if (i.time && (i.time as any) instanceof Date) {
+      } else if (i.time && i.time instanceof Date) {
         // Rare path: time is a Date
-        tsISO = (i.time as Date).toISOString();
+        tsISO = i.time.toISOString();
       } else {
         tsISO = new Date().toISOString();
       }
@@ -90,7 +85,8 @@ export const POST = wrapTrace("POST /api/habits/coffee", async (req: Request) =>
 
     revalidateDashboard();
     return new Response(JSON.stringify({ ok: true, inserted: parsed.length }), { status: 200 });
-  } catch (err: any) {
-    return new Response(err?.message ?? "Bad Request", { status: err?.status ?? 400 });
+  } catch (err: unknown) {
+    const error = err as { message?: string; status?: number };
+    return new Response(error?.message ?? "Bad Request", { status: error?.status ?? 400 });
   }
 });

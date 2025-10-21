@@ -1,5 +1,5 @@
 import { neon } from "@neondatabase/serverless";
-import { ZWorkout, ZWorkoutUpsert, type Workout, type WorkoutUpsert } from "@/lib/db/validation";
+import { ZWorkout, ZWorkoutUpsert, type WorkoutUpsert } from "@/lib/db/validation";
 
 const sql = neon(process.env.DATABASE_URL!);
 
