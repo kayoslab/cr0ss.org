@@ -5,16 +5,17 @@ import { Skeleton } from '@/components/ui/Skeleton';
  */
 export default function BlogGridLoading() {
   return (
-    <section className='w-full pt-12 max-w-(--breakpoint-lg)'>
-      <div className='container mx-auto space-y-12 px-4 md:px-6'>
-        {/* Header skeleton */}
-        <div className='flex flex-col items-center justify-center space-y-4 text-center'>
-          <div className='space-y-2'>
-            <Skeleton className='h-12 w-64 mx-auto sm:h-14 sm:w-96' />
+    <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800 pb-24'>
+      <section className='w-full pt-12 max-w-(--breakpoint-lg)'>
+        <div className='container mx-auto space-y-12 px-4 md:px-6'>
+          {/* Header skeleton */}
+          <div className='flex flex-col items-center justify-center space-y-4 text-center'>
+            <div className='space-y-2'>
+              <Skeleton className='h-12 w-64 mx-auto sm:h-14 sm:w-96' />
+            </div>
           </div>
-        </div>
 
-        <div className='space-y-12'>
+          <div className='space-y-12'>
           {/* Blog cards grid skeleton */}
           <div className='grid gap-8 md:grid-cols-2 lg:grid-cols-3'>
             {Array.from({ length: 9 }).map((_, i) => (
@@ -53,5 +54,6 @@ export default function BlogGridLoading() {
         </div>
       </div>
     </section>
+    </main>
   );
 }

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from './route';
+import { NextResponse } from 'next/server';
 
 // Mock dependencies
 vi.mock('next/cache', () => ({
@@ -12,7 +13,6 @@ vi.mock('@/lib/auth/secret', () => ({
 }));
 
 vi.mock('@/lib/api/middleware', () => {
-  const { NextResponse } = require('next/server');
   return {
     createErrorResponse: vi.fn((error: string, status: number, details?: unknown, code?: string) => {
       const response: { error: string; details?: unknown; code?: string } = { error };
