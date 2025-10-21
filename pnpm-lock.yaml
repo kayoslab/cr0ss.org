@@ -62,6 +62,9 @@ importers:
       contentful:
         specifier: ^11.8.7
         version: 11.8.7
+      contentful-management:
+        specifier: ^11.60.4
+        version: 11.60.4
       jiti:
         specifier: ^2.6.1
         version: 2.6.1
