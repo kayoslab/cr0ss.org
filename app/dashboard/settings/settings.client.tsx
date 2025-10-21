@@ -206,6 +206,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
   const [goals, setGoals] = useState<Goals>(emptyGoals);
   const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const [day, setDay] = useState<DayPayload>(emptyDay(todayStr));
+  const [loadingDay, setLoadingDay] = useState(false);
 
   // body form (controlled, stringy to preserve cursor)
   const [bodyForm, setBodyForm] = useState({
@@ -297,6 +298,31 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
     }
   }
 
+  /* ---------------- day data fetcher ---------------- */
+
+  async function fetchDayData(dateStr: string) {
+    if (!secretOK) return;
+    setLoadingDay(true);
+    try {
+      const res = await jfetch<DayPayload>(
+        `/api/habits/day?date=${dateStr}`,
+        { method: "GET" },
+        secret
+      );
+      if (res.ok && res.json) {
+        setDay({ ...(res.json as any) });
+      } else {
+        // If no data found, use empty day
+        setDay(emptyDay(dateStr));
+      }
+    } catch (e: any) {
+      console.error("Failed to fetch day data:", e);
+      setDay(emptyDay(dateStr));
+    } finally {
+      setLoadingDay(false);
+    }
+  }
+
   /* ---------------- submitters ---------------- */
 
   async function submitBody(e?: React.FormEvent) {
@@ -365,10 +391,11 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         setMsg("Day: please enter only numbers for numeric fields.");
         return;
       }
-      const res = await jfetch("/api/habits/day", { method: "POST", body: JSON.stringify(day) }, secret);
-      if (res.ok) {
+      const res = await jfetch<DayPayload>("/api/habits/day", { method: "POST", body: JSON.stringify(day) }, secret);
+      if (res.ok && res.json) {
+        // Update state with the full response from server
+        setDay({ ...(res.json as any) });
         setMsg("Day logged.");
-        // Keep form values so they reflect DB state; no reset here
       } else {
         setMsg(res.error || "Failed to log day.");
       }
@@ -654,13 +681,39 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
           onKeyDown={makeFormHotkeys(() => submitDay())}
           className="grid grid-cols-2 gap-4"
         >
-          <Field
-            label="Date"
-            type="date"
-            value={day.date}
-            onChange={(e)=>setDay(d=>({...d, date:(e.target as HTMLInputElement).value}))}
-            onKeyDown={(e)=>{ if (e.key === "Escape") (e.currentTarget as HTMLInputElement).blur(); }}
-          />
+          <div className="flex flex-col">
+            <Label>Date</Label>
+            <div className="flex gap-2">
+              <input
+                type="date"
+                value={day.date}
+                onChange={(e) => {
+                  const newDate = (e.target as HTMLInputElement).value;
+                  setDay(d => ({ ...d, date: newDate }));
+                  fetchDayData(newDate);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") (e.currentTarget as HTMLInputElement).blur();
+                }}
+                className={cls(
+                  "flex-1 rounded-md border border-neutral-300 dark:border-neutral-700",
+                  "bg-white dark:bg-slate-950 px-3 py-2"
+                )}
+                disabled={loadingDay}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setDay(d => ({ ...d, date: todayStr }));
+                  fetchDayData(todayStr);
+                }}
+                disabled={loadingDay}
+                className="whitespace-nowrap rounded-md border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-50 dark:hover:bg-slate-800 disabled:opacity-50"
+              >
+                {loadingDay ? <Spinner className="text-black/80" /> : "Today"}
+              </button>
+            </div>
+          </div>
           <NumField label="Sleep score" value={day.sleep_score} onCommit={(v)=>setDay(d=>({...d, sleep_score:v}))} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitDay(), step: 1 })}/>
           <NumField label="Focus (min)" value={day.focus_minutes} onCommit={(v)=>setDay(d=>({...d, focus_minutes:v}))} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitDay(), step: 5 })}/>
           <NumField label="Steps" value={day.steps} onCommit={(v)=>setDay(d=>({...d, steps:v}))} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitDay(), step: 100 })}/>

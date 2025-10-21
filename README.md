@@ -310,7 +310,8 @@ The project uses Tailwind CSS with custom configuration:
 ### **Protected Endpoints** (require `x-admin-secret` header)
 
 - `GET /api/dashboard` - Dashboard data
-- `POST /api/habits/day` - Update daily habits
+- `GET /api/habits/day?date=YYYY-MM-DD` - Get daily habits (defaults to today)
+- `POST /api/habits/day` - Update daily habits (partial updates supported, returns full day data)
 - `POST /api/habits/coffee` - Log coffee consumption
 - `POST /api/habits/run` - Log running activities
 - `POST /api/habits/body` - Log body metrics
