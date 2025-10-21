@@ -172,7 +172,7 @@ export const GET = wrapTrace("GET /api/dashboard", async (req: Request) => {
       prev_caffeine_mg: Math.round(midnightBodyMg),
     };
   })
-  .filter((p) => !(p.prev_caffeine_mg === 0 && (!p.sleep_score || p.sleep_score === 0)));
+  .filter((p: { date: string; sleep_score: number; prev_caffeine_mg: number }) => !(p.prev_caffeine_mg === 0 && (!p.sleep_score || p.sleep_score === 0)));
 
     
     const monthlyGoals = {

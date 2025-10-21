@@ -12,7 +12,7 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const { slug } = await params;
-    const page = await getPage(slug);
+    const page = await getPage(slug) as unknown as PageProps;
     if (!page) {
       return {
         title: 'Page Not Found',
@@ -38,14 +38,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 // At build time, fetch all slugs to build the blog pages so they are static and cached
 export async function generateStaticParams() {
   const allPages = await getAllPages();
-  return allPages?.map((page: PageProps) => ({
+  return (allPages as unknown as PageProps[])?.map((page: PageProps) => ({
     slug: page.slug,
   }));
 }
 
 export default async function PageContent({ params }: Props) {
   const { slug } = await params;
-  const page = await getPage(slug);
+  const page = await getPage(slug) as unknown as PageProps;
 
   if (!page) {
     notFound();

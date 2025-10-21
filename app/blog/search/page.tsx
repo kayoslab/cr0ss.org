@@ -84,7 +84,7 @@ export default async function SearchResults({ searchParams }: Props) {
         return null;
       }
       try {
-        return await getBlog(slug);
+        return await getBlog(slug) as unknown as BlogProps;
       } catch (error) {
         console.error(`Error fetching blog for slug ${slug}:`, error);
         return null;

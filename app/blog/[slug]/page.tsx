@@ -17,7 +17,7 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   try {
     const { slug } = await params;
-    const blog = await getBlog(slug);
+    const blog = await getBlog(slug) as unknown as BlogProps;
     if (!blog) {
       return {
         title: 'Blog Not Found',
@@ -47,7 +47,7 @@ export async function generateMetadata(
 // At build time, fetch all slugs to build the blog pages so they are static and cached
 export async function generateStaticParams() {
   const allBlogs = await getAllBlogs();
-  return allBlogs.items.map((blog: BlogProps) => ({
+  return (allBlogs.items as unknown as BlogProps[]).map((blog: BlogProps) => ({
     slug: blog.slug,
   }));
 }
@@ -64,9 +64,9 @@ async function getRecommendations(currentBlog: BlogProps, maxRecommendations: nu
       const categoryResults = await Promise.all(categoryPromises);
       
       const blogMap = new Map<string, BlogProps>();
-      
-      categoryResults.flatMap(result => result.items)
-        .forEach(blog => {
+
+      categoryResults.flatMap(result => result.items as unknown as BlogProps[])
+        .forEach((blog: BlogProps) => {
           if (blog.slug !== currentBlog.slug && !blogMap.has(blog.slug)) {
             blogMap.set(blog.slug, blog);
           }
@@ -81,8 +81,8 @@ async function getRecommendations(currentBlog: BlogProps, maxRecommendations: nu
 
     // Fall back to recent posts if no category recommendations
     const recentPosts = await getAllBlogs(1, maxRecommendations + 1);
-    return recentPosts.items
-      .filter(post => post.slug !== currentBlog.slug)
+    return (recentPosts.items as unknown as BlogProps[])
+      .filter((post: BlogProps) => post.slug !== currentBlog.slug)
       .slice(0, maxRecommendations);
 
   } catch (error) {
@@ -98,7 +98,7 @@ export default async function BlogContent({
 }) {
   try {
     const { slug } = await params;
-    const blog = await getBlog(slug);
+    const blog = await getBlog(slug) as unknown as BlogProps;
     if (!blog) {
       notFound();
     }
