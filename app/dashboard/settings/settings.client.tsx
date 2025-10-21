@@ -100,10 +100,15 @@ function mkNumberKeydownHandler(opts: { onSubmit?: () => void; step?: number } =
 type BodyProfile = {
   weight_kg: number;
   height_cm?: number | null;
+  body_fat_percentage?: number | null;
+  muscle_percentage?: number | null;
   vd_l_per_kg?: number | null;
   half_life_hours?: number | null;
   caffeine_sensitivity?: number | null;
   bioavailability?: number | null;
+  age?: number | null;
+  sex?: string | null;
+  notes?: string | null;
 };
 
 type Goals = {
@@ -212,10 +217,15 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
   const [bodyForm, setBodyForm] = useState({
     weight_kg: "",
     height_cm: "",
+    body_fat_percentage: "",
+    muscle_percentage: "",
     vd_l_per_kg: "",
     half_life_hours: "",
     caffeine_sensitivity: "",
     bioavailability: "",
+    age: "",
+    sex: "",
+    notes: "",
   });
 
   // coffee form
@@ -251,10 +261,15 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
     setBodyForm({
       weight_kg: body.weight_kg?.toString() ?? "",
       height_cm: body.height_cm?.toString() ?? "",
+      body_fat_percentage: body.body_fat_percentage?.toString() ?? "",
+      muscle_percentage: body.muscle_percentage?.toString() ?? "",
       vd_l_per_kg: body.vd_l_per_kg?.toString() ?? "",
       half_life_hours: body.half_life_hours?.toString() ?? "",
       caffeine_sensitivity: body.caffeine_sensitivity?.toString() ?? "",
       bioavailability: body.bioavailability?.toString() ?? "",
+      age: body.age?.toString() ?? "",
+      sex: body.sex?.toString() ?? "",
+      notes: body.notes?.toString() ?? "",
     });
   }, [body]);
 
@@ -333,10 +348,15 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
       const payload: any = {
         weight_kg: bodyForm.weight_kg,
         height_cm: bodyForm.height_cm,
+        body_fat_percentage: bodyForm.body_fat_percentage,
+        muscle_percentage: bodyForm.muscle_percentage,
         vd_l_per_kg: bodyForm.vd_l_per_kg,
         half_life_hours: bodyForm.half_life_hours,
         caffeine_sensitivity: bodyForm.caffeine_sensitivity,
         bioavailability: bodyForm.bioavailability,
+        age: bodyForm.age,
+        sex: bodyForm.sex,
+        notes: bodyForm.notes,
       };
       const res = await jfetch<{ ok: boolean; profile?: BodyProfile }>(
         "/api/habits/body",
@@ -557,47 +577,104 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
           id="form-body"
           onSubmit={submitBody}
           onKeyDown={makeFormHotkeys(() => submitBody())}
-          className="grid grid-cols-2 gap-4"
+          className="space-y-6"
         >
-          <NumField
-            label="Weight (kg)"
-            value={Number(bodyForm.weight_kg) || 0}
-            onCommit={(v) => setBodyForm((f) => ({ ...f, weight_kg: String(v) }))}
-            onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitBody(), step: 0.1 })}
-          />
-          <NumField
-            label="Height (cm)"
-            value={Number(bodyForm.height_cm) || 0}
-            onCommit={(v) => setBodyForm((f) => ({ ...f, height_cm: String(v) }))}
-            onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitBody(), step: 1 })}
-          />
-          <NumField
-            label="Vd (L/kg)"
-            value={Number(bodyForm.vd_l_per_kg) || 0}
-            onCommit={(v) => setBodyForm((f) => ({ ...f, vd_l_per_kg: String(v) }))}
-            onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitBody(), step: 0.1 })}
-          />
-          <NumField
-            label="Half-life (h)"
-            value={Number(bodyForm.half_life_hours) || 0}
-            onCommit={(v) => setBodyForm((f) => ({ ...f, half_life_hours: String(v) }))}
-            onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitBody(), step: 0.1 })}
-          />
-          <NumField
-            label="Sensitivity (×)"
-            value={Number(bodyForm.caffeine_sensitivity) || 0}
-            onCommit={(v) => setBodyForm((f) => ({ ...f, caffeine_sensitivity: String(v) }))}
-            onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitBody(), step: 0.1 })}
-          />
-          <NumField
-            label="Bioavailability (0–1)"
-            value={Number(bodyForm.bioavailability) || 0}
-            onCommit={(v) => setBodyForm((f) => ({ ...f, bioavailability: String(v) }))}
-            onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitBody(), step: 0.05 })}
-          />
+          {/* Core Metrics Section */}
+          <div>
+            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">Core Metrics</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <NumField
+                label="Weight (kg)"
+                value={Number(bodyForm.weight_kg) || 0}
+                onCommit={(v) => setBodyForm((f) => ({ ...f, weight_kg: String(v) }))}
+                onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitBody(), step: 0.1 })}
+              />
+              <NumField
+                label="Height (cm)"
+                value={Number(bodyForm.height_cm) || 0}
+                onCommit={(v) => setBodyForm((f) => ({ ...f, height_cm: String(v) }))}
+                onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitBody(), step: 1 })}
+              />
+              <NumField
+                label="Body Fat (%)"
+                value={Number(bodyForm.body_fat_percentage) || 0}
+                onCommit={(v) => setBodyForm((f) => ({ ...f, body_fat_percentage: String(v) }))}
+                onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitBody(), step: 0.1 })}
+              />
+              <NumField
+                label="Muscle (%)"
+                value={Number(bodyForm.muscle_percentage) || 0}
+                onCommit={(v) => setBodyForm((f) => ({ ...f, muscle_percentage: String(v) }))}
+                onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitBody(), step: 0.1 })}
+              />
+            </div>
+          </div>
+
+          {/* Caffeine Metabolism Section */}
+          <div>
+            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">Caffeine Metabolism</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <NumField
+                label="Vd (L/kg lean mass)"
+                value={Number(bodyForm.vd_l_per_kg) || 0}
+                onCommit={(v) => setBodyForm((f) => ({ ...f, vd_l_per_kg: String(v) }))}
+                onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitBody(), step: 0.1 })}
+              />
+              <NumField
+                label="Half-life (h)"
+                value={Number(bodyForm.half_life_hours) || 0}
+                onCommit={(v) => setBodyForm((f) => ({ ...f, half_life_hours: String(v) }))}
+                onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitBody(), step: 0.1 })}
+              />
+              <NumField
+                label="Sensitivity (×)"
+                value={Number(bodyForm.caffeine_sensitivity) || 0}
+                onCommit={(v) => setBodyForm((f) => ({ ...f, caffeine_sensitivity: String(v) }))}
+                onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitBody(), step: 0.1 })}
+              />
+              <NumField
+                label="Bioavailability (0–1)"
+                value={Number(bodyForm.bioavailability) || 0}
+                onCommit={(v) => setBodyForm((f) => ({ ...f, bioavailability: String(v) }))}
+                onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitBody(), step: 0.05 })}
+              />
+            </div>
+          </div>
+
+          {/* Optional Demographics Section */}
+          <div>
+            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">Optional</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <NumField
+                label="Age"
+                value={Number(bodyForm.age) || 0}
+                onCommit={(v) => setBodyForm((f) => ({ ...f, age: String(v) }))}
+                onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitBody(), step: 1 })}
+              />
+              <SelectField label="Sex" value={bodyForm.sex} onChange={(v)=>setBodyForm(f=>({...f, sex:v}))}>
+                <option value="">— select —</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </SelectField>
+            </div>
+            <div className="mt-4">
+              <Label>Notes</Label>
+              <textarea
+                value={bodyForm.notes}
+                onChange={(e) => setBodyForm((f) => ({ ...f, notes: e.target.value }))}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") (e.currentTarget as HTMLTextAreaElement).blur();
+                }}
+                className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-slate-950 px-3 py-2"
+                rows={2}
+                placeholder="Measurement notes, scale used, time of day, etc."
+              />
+            </div>
+          </div>
         </form>
         <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-2">
-          Forms unlock only after a valid secret. Numbers are validated client-side; server enforces types again.
+          Body fat % improves caffeine calculations. Vd is per kg lean body mass (~0.6 L/kg).
         </p>
       </Card>
 

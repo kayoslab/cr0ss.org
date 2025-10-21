@@ -4,10 +4,14 @@ import { getBodyProfileDB } from "@/lib/db/profile";
 export type BodyProfile = {
   weight_kg: number;
   height_cm?: number | null;
+  body_fat_percentage?: number | null;
+  muscle_percentage?: number | null;
   vd_l_per_kg?: number | null;
   half_life_hours?: number | null;
   caffeine_sensitivity?: number | null;
   bioavailability?: number | null;
+  age?: number | null;
+  sex?: string | null;
 };
 
 
@@ -33,10 +37,14 @@ export async function getBodyProfile(): Promise<BodyProfile> {
     return {
       weight_kg: db.weight_kg,
       height_cm: db.height_cm ?? undefined,
+      body_fat_percentage: db.body_fat_percentage ?? undefined,
+      muscle_percentage: db.muscle_percentage ?? undefined,
       vd_l_per_kg: db.vd_l_per_kg ?? undefined,
       half_life_hours: db.half_life_hours ?? undefined,
       caffeine_sensitivity: db.caffeine_sensitivity ?? undefined,
       bioavailability: db.bioavailability ?? undefined,
+      age: db.age ?? undefined,
+      sex: db.sex ?? undefined,
     };
   } catch {
     return envFallback();
