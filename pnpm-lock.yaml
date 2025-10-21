@@ -56,6 +56,9 @@ importers:
       algoliasearch:
         specifier: ^5.40.1
         version: 5.40.1
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
       contentful:
         specifier: ^11.8.7
         version: 11.8.7

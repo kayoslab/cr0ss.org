@@ -14,7 +14,12 @@ export default function Section({
   const headingId = id ? `${id}-heading` : undefined;
 
   return (
-    <section id={id} aria-labelledby={headingId} className={className}>
+    <section
+      id={id}
+      aria-labelledby={headingId}
+      aria-label={!id ? title : undefined}
+      className={className}
+    >
       <h2
         id={headingId}
         className="mb-4 text-base font-semibold text-neutral-700 dark:text-neutral-200"
