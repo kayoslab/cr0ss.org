@@ -11,7 +11,7 @@ vi.mock('@/lib/auth/secret', () => ({
 }));
 
 vi.mock('@/lib/db/client', () => {
-  const sqlMock = vi.fn((strings: TemplateStringsArray, ...values: unknown[]) => {
+  const sqlMock = vi.fn(() => {
     // Return a promise by default
     return Promise.resolve([{ d: '2025-01-01' }]);
   });
@@ -30,7 +30,7 @@ vi.mock('@/lib/cache/revalidate', () => ({
 }));
 
 vi.mock('@/lib/obs/trace', () => ({
-  wrapTrace: (_name: string, fn: Function) => fn,
+  wrapTrace: <T extends (...args: unknown[]) => unknown>(_name: string, fn: T): T => fn,
 }));
 
 import { rateLimit } from '@/lib/rate/limit';
