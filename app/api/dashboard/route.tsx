@@ -112,7 +112,7 @@ export const GET = wrapTrace("GET /api/dashboard", async (req: Request) => {
     const allEventsInRange = await qCoffeeInRange(globalStartISO, globalEndISO);
 
     const sleepPrevCaff = sleepRows
-  .map((row) => {
+  .map((row: { date: string; sleep_score: number; focus_minutes: number }) => {
     // For each sleep day, calculate residual caffeine at midnight (00:00 of that day)
     // by summing decay from all previous caffeine consumption
     const sleepDayStartISO = startOfBerlinDayISO(new Date(`${row.date}T00:00:00.000Z`)); // midnight in UTC
