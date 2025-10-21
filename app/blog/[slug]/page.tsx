@@ -9,8 +9,8 @@ import { BlogViewTracker } from '@/components/blog/blog-view-tracker';
 import { createBlogMetadata, createBlogJsonLd } from '@/lib/metadata';
 
 type Props = {
-  params: { slug: string }
-  searchParams: { [key: string]: string | string[] | undefined }
+  params: Promise<{ slug: string }>
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
 export async function generateMetadata(
@@ -18,7 +18,8 @@ export async function generateMetadata(
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   try {
-    const blog = await getBlog(params.slug);
+    const { slug } = await params;
+    const blog = await getBlog(slug);
     if (!blog) {
       return {
         title: 'Blog Not Found',
@@ -95,10 +96,11 @@ async function getRecommendations(currentBlog: BlogProps, maxRecommendations: nu
 export default async function BlogContent({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
   try {
-    const blog = await getBlog(params.slug);
+    const { slug } = await params;
+    const blog = await getBlog(slug);
     if (!blog) {
       notFound();
     }

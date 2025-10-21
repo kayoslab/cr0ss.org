@@ -12,7 +12,6 @@ export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
 const DashboardClient = NextDynamic(() => import("./Dashboard.client"), {
-  ssr: false,
   loading: () => <DashboardSkeleton />,
 });
 

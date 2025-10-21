@@ -6,13 +6,14 @@ import { createListMetadata } from '@/lib/metadata';
 import type { Metadata } from 'next';
 
 type Props = {
-  params: { slug: string };
-  searchParams: { page?: string };
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ page?: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
-    const category = await getCategory(params.slug);
+    const { slug } = await params;
+    const category = await getCategory(slug);
     if (!category) {
       return {
         title: 'Category Not Found',
@@ -23,7 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return createListMetadata({
       title: `${category.title} | Blog | cr0ss.mind`,
       description: `Explore articles about ${category.title} from Simon Krüger's blog.`,
-      path: `/blog/category/${params.slug}`,
+      path: `/blog/category/${slug}`,
     });
   } catch (error) {
     console.error('Error generating category metadata:', error);
@@ -35,9 +36,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function BlogCategoriesContent({ params, searchParams }: Props) {
-  const currentPage = Number(searchParams.page) || 1;
-  const category = await getCategory(params.slug);
-  const blogCollection = await getBlogsForCategory(params.slug, currentPage, POSTS_PER_PAGE);
+  const { slug } = await params;
+  const { page } = await searchParams;
+  const currentPage = Number(page) || 1;
+  const category = await getCategory(slug);
+  const blogCollection = await getBlogsForCategory(slug, currentPage, POSTS_PER_PAGE);
   
   if (!category || !blogCollection) {
     notFound();
@@ -53,7 +56,7 @@ export default async function BlogCategoriesContent({ params, searchParams }: Pr
         posts={currentPosts}
         currentPage={currentPage}
         totalPages={totalPages}
-        basePath={`/blog/category/${params.slug}`}
+        basePath={`/blog/category/${slug}`}
         title={category.title}
       />
     </main>
