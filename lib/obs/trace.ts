@@ -34,7 +34,7 @@ export function wrapTrace(
         })
       );
       return res;
-    } catch (err: any) {
+    } catch (err: unknown) {
       const ms = Date.now() - started;
       console.error(
         JSON.stringify({
@@ -44,7 +44,7 @@ export function wrapTrace(
           who,
           method: req.method,
           ms,
-          error: String(err?.message ?? err),
+          error: err instanceof Error ? err.message : String(err),
         })
       );
       throw err;

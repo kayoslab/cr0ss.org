@@ -18,17 +18,23 @@ async function jfetch<T>(
   if (!headers.has("content-type")) headers.set("content-type", "application/json");
   if (secret) headers.set(SECRET_HEADER, secret);
   const res = await fetch(url, { ...opts, headers, cache: "no-store" });
-  let json: any = null;
+  let json: T | null = null;
   try {
     json = await res.json();
   } catch {
     // ignore
   }
+
+  // Type guard for error extraction
+  const hasError = (obj: unknown): obj is { error?: string; message?: string } => {
+    return typeof obj === 'object' && obj !== null;
+  };
+
   return {
     ok: res.ok,
     status: res.status,
     json,
-    error: (!res.ok && (json?.error || json?.message || res.statusText)) || undefined,
+    error: (!res.ok && hasError(json) && (json.error || json.message || res.statusText)) || undefined,
   };
 }
 
@@ -88,7 +94,7 @@ function mkNumberKeydownHandler(opts: { onSubmit?: () => void; step?: number } =
       t.value = String(next);
       // Fire an input event so React updates controlled state
       const ev = new Event("input", { bubbles: true });
-      t.dispatchEvent(ev as any);
+      t.dispatchEvent(ev);
     }
   };
 }
@@ -148,7 +154,7 @@ type WorkoutPayload = {
   duration_min: number;
   intensity?: 'low' | 'moderate' | 'high' | 'max';
   perceived_effort?: number; // 1-10
-  details?: Record<string, any>;
+  details?: Record<string, string | number | boolean | object>;
   notes?: string;
 };
 
@@ -331,14 +337,14 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
       ]);
 
       if (bodyRes.ok && bodyRes.json) setBody(bodyRes.json);
-      if (goalsRes.ok && goalsRes.json) setGoals({ ...emptyGoals, ...(goalsRes.json as any) });
-      if (dayRes.ok && dayRes.json) setDay({ ...(dayRes.json as any) });
+      if (goalsRes.ok && goalsRes.json) setGoals({ ...emptyGoals, ...goalsRes.json });
+      if (dayRes.ok && dayRes.json) setDay({ ...dayRes.json });
       else setDay(emptyDay(todayStr));
 
       setMsg("Secret saved. Data loaded.");
-    } catch (e: any) {
+    } catch (e: unknown) {
       setSecretOK(false);
-      setMsg(e?.message || "Could not validate the secret.");
+      setMsg(e instanceof Error ? e.message : "Could not validate the secret.");
     } finally {
       setChecking(false);
     }
@@ -356,12 +362,12 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         secret
       );
       if (res.ok && res.json) {
-        setDay({ ...(res.json as any) });
+        setDay({ ...res.json });
       } else {
         // If no data found, use empty day
         setDay(emptyDay(dateStr));
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("Failed to fetch day data:", e);
       setDay(emptyDay(dateStr));
     } finally {
@@ -376,7 +382,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
     if (!secretOK) return setMsg("Enter a valid secret first.");
     setSavingBody(true);
     try {
-      const payload: any = {
+      const payload: Record<string, string> = {
         weight_kg: bodyForm.weight_kg,
         height_cm: bodyForm.height_cm,
         body_fat_percentage: bodyForm.body_fat_percentage,
@@ -394,8 +400,8 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         { method: "POST", body: JSON.stringify(payload) },
         secret
       );
-      if (res.ok && res.json && (res.json as any).profile) {
-        const profile = (res.json as any).profile as BodyProfile;
+      if (res.ok && res.json && res.json.profile) {
+        const profile = res.json.profile;
         setBody(profile); // triggers bodyForm sync via useEffect
         setMsg("Body profile saved.");
       } else if (res.ok) {
@@ -437,7 +443,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         "writing_minutes",
         "coding_minutes",
       ];
-      const valid = numericKeys.every((k) => Number.isFinite(Number((day as any)[k])));
+      const valid = numericKeys.every((k) => Number.isFinite(Number(day[k])));
       if (!valid) {
         setMsg("Day: please enter only numbers for numeric fields.");
         return;
@@ -445,7 +451,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
       const res = await jfetch<DayPayload>("/api/habits/day", { method: "POST", body: JSON.stringify(day) }, secret);
       if (res.ok && res.json) {
         // Update state with the full response from server
-        setDay({ ...(res.json as any) });
+        setDay({ ...res.json });
         setMsg("Day logged.");
       } else {
         setMsg(res.error || "Failed to log day.");
@@ -489,7 +495,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
     if (!secretOK) return setMsg("Enter a valid secret first.");
     setSavingWorkout(true);
     try {
-      const details: Record<string, any> = {};
+      const details: Record<string, string | number | boolean | object> = {};
 
       // Build details object based on workout type
       if (workoutType === 'running') {
@@ -1197,12 +1203,14 @@ function NumField({
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
 }) {
   const [text, setText] = useState<string>(() => (Number.isFinite(value) ? String(value) : ""));
+  const [prevValue, setPrevValue] = useState(value);
 
-  // keep local text in sync when parent value changes externally
-  useEffect(() => {
+  // Derived state pattern - update text when value changes
+  if (value !== prevValue) {
+    setPrevValue(value);
     const next = Number.isFinite(value) ? String(value) : "";
     setText(next);
-  }, [value]);
+  }
 
   const commit = () => {
     const raw = text.replace(",", ".").trim();
@@ -1237,25 +1245,6 @@ function NumField({
         }}
         className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-slate-950 px-3 py-2"
       />
-    </div>
-  );
-}
-
-/** Checkbox */
-function Bool({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
-  const id = React.useId();
-  return (
-    <div className="flex items-center gap-2">
-      <input
-        id={id}
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="h-4 w-4 accent-emerald-600"
-      />
-      <label htmlFor={id} className="text-sm text-neutral-700 dark:text-neutral-300">
-        {label}
-      </label>
     </div>
   );
 }

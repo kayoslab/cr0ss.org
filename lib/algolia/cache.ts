@@ -1,6 +1,6 @@
 type CacheEntry = {
   timestamp: number;
-  data: any;
+  data: unknown;
 };
 
 export class SearchCache {
@@ -11,7 +11,7 @@ export class SearchCache {
     this.ttl = ttlSeconds * 1000;
   }
 
-  get(key: string): any | null {
+  get(key: string): unknown | null {
     const entry = this.cache.get(key);
     if (!entry) return null;
     
@@ -23,7 +23,7 @@ export class SearchCache {
     return entry.data;
   }
 
-  set(key: string, data: any): void {
+  set(key: string, data: unknown): void {
     this.cache.set(key, {
       timestamp: Date.now(),
       data

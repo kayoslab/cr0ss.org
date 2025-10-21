@@ -36,7 +36,12 @@ export async function qCoffeeOriginThisWeek() {
     group by coffee_cf_id
   `;
 
-  const idCounts = new Map<string, number>(rows.map((r:any) => [String(r.coffee_cf_id), Number(r.count)]));
+  interface CoffeeCountRow {
+    coffee_cf_id: string;
+    count: number;
+  }
+
+  const idCounts = new Map<string, number>(rows.map((r) => [String((r as CoffeeCountRow).coffee_cf_id), Number((r as CoffeeCountRow).count)]));
   if (idCounts.size === 0) return [] as { name: string; value: number }[];
 
   const coffees = await getCoffees(Array.from(idCounts.keys()) as [string]);
@@ -64,14 +69,6 @@ export const ZCoffeeEvent = z.object({
   amount_ml: z.number().int().min(0).nullable().optional(),
 });
 
-type RawEvent = {
-  timeISO: string;
-  type: string;
-  amount_ml: number | null | undefined;
-  coffee_cf_id: string | null;
-};
-
-
 export async function qCoffeeEventsForDayWithLookback(
   dayStartISO: string,
   dayEndISO: string,
@@ -89,12 +86,22 @@ export async function qCoffeeEventsForDayWithLookback(
     order by time asc
   `;
 
-  let events = rows.map((r: any) => ({
-    timeISO: (r.time as Date).toISOString(), // raw UTC
-    type: String(r.type),
-    amount_ml: r.amount_ml === null ? null : Number(r.amount_ml),
-    coffee_cf_id: r.coffee_cf_id ? String(r.coffee_cf_id) : null,
-  }));
+  interface CoffeeEventRow {
+    time: Date;
+    type: string;
+    amount_ml: number | null;
+    coffee_cf_id: string | null;
+  }
+
+  let events = rows.map((r) => {
+    const row = r as CoffeeEventRow;
+    return {
+      timeISO: row.time.toISOString(), // raw UTC
+      type: String(row.type),
+      amount_ml: row.amount_ml === null ? null : Number(row.amount_ml),
+      coffee_cf_id: row.coffee_cf_id ? String(row.coffee_cf_id) : null,
+    };
+  });
 
   if (filterDecaf) {
     // Resolve only linked bags (ignore "0" or empty → treated as caffeinated)
@@ -108,9 +115,9 @@ export async function qCoffeeEventsForDayWithLookback(
       // Adjust this accessor if your Contentful model stores the flag under fields.decaffeinated
       const decafIds = new Set(
         items
-          .filter((c: any) => c?.decaffeinated === true || c?.fields?.decaffeinated === true)
-          .map((c: any) => c?.sys?.id)
-          .filter(Boolean)
+          .filter((c) => c?.decaffeinated === true || c?.fields?.decaffeinated === true)
+          .map((c) => c?.sys?.id)
+          .filter((id): id is string => Boolean(id))
       );
 
       events = events.filter(e => !(e.coffee_cf_id && decafIds.has(e.coffee_cf_id)));
@@ -118,7 +125,8 @@ export async function qCoffeeEventsForDayWithLookback(
   }
 
   // Strip the helper field before returning and validate
-  const out = events.map(({ coffee_cf_id: _ignore, ...rest }) => rest);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const out = events.map(({ coffee_cf_id, ...rest }) => rest);
   return z.array(ZCoffeeEvent).parse(out);
 }
 
@@ -154,13 +162,24 @@ export async function qHabitConsistencyThisWeek() {
     where date >= current_date - interval '6 days'
     order by date asc
   `;
-  const days = rows.map((r:any)=> ({
-    steps: Number(r.steps||0),
-    read: Number(r.reading_minutes||0),
-    outdoor: Number(r.outdoor_minutes||0),
-    write: Number(r.writing_minutes||0),
-    code: Number(r.coding_minutes||0),
-  }));
+  interface HabitRow {
+    steps: number | null;
+    reading_minutes: number | null;
+    outdoor_minutes: number | null;
+    writing_minutes: number | null;
+    coding_minutes: number | null;
+  }
+
+  const days = rows.map((r) => {
+    const row = r as HabitRow;
+    return {
+      steps: Number(row.steps || 0),
+      read: Number(row.reading_minutes || 0),
+      outdoor: Number(row.outdoor_minutes || 0),
+      write: Number(row.writing_minutes || 0),
+      code: Number(row.coding_minutes || 0),
+    };
+  });
 
   const total = Math.max(1, days.length);
   const kept = {
@@ -194,9 +213,20 @@ export async function qWritingVsFocusTrend(days=14) {
     where date >= ${startStr}::date
     order by date asc
   `;
-  return ZTrend.parse(rows.map((r:any)=> ({
-    date: r.date, writing_minutes: Number(r.writing_minutes), focus_minutes: Number(r.focus_minutes)
-  })));
+  interface TrendRow {
+    date: string;
+    writing_minutes: number;
+    focus_minutes: number;
+  }
+
+  return ZTrend.parse(rows.map((r) => {
+    const row = r as TrendRow;
+    return {
+      date: row.date,
+      writing_minutes: Number(row.writing_minutes),
+      focus_minutes: Number(row.focus_minutes)
+    };
+  }));
 }
 
 // ---- Focus & Flow
@@ -214,11 +244,20 @@ export async function qSleepVsFocusScatter(days = 30) {
     where date >= ${startStr}::date
     order by date asc
   `;
-  return ZScatter.parse(rows.map((r:any) => ({
-    date: r.date,
-    sleep_score: Number(r.sleep_score),
-    focus_minutes: Number(r.focus_minutes),
-  })));
+  interface ScatterRow {
+    date: string;
+    sleep_score: number;
+    focus_minutes: number;
+  }
+
+  return ZScatter.parse(rows.map((r) => {
+    const row = r as ScatterRow;
+    return {
+      date: row.date,
+      sleep_score: Number(row.sleep_score),
+      focus_minutes: Number(row.focus_minutes),
+    };
+  }));
 }
 
 export async function qCoffeeInRange(startISO: string, endISO: string) {
@@ -229,12 +268,22 @@ export async function qCoffeeInRange(startISO: string, endISO: string) {
       and time <  ${endISO}::timestamptz
     order by time asc
   `;
-  return rows.map((r: any) => ({
-    date: r.date as string,
-    time: (r.time as Date).toISOString(), // raw UTC
-    type: r.type as string,
-    amount_ml: Number(r.amount_ml) || 0,
-  }));
+  interface CoffeeRangeRow {
+    date: Date;
+    time: Date;
+    type: string;
+    amount_ml: number;
+  }
+
+  return rows.map((r) => {
+    const row = r as CoffeeRangeRow;
+    return {
+      date: row.date as unknown as string,
+      time: row.time.toISOString(), // raw UTC
+      type: row.type,
+      amount_ml: Number(row.amount_ml) || 0,
+    };
+  });
 }
 
 export async function qDeepWorkBlocksThisWeek() {
@@ -244,7 +293,15 @@ export async function qDeepWorkBlocksThisWeek() {
     where date >= current_date - interval '6 days'
     order by date asc
   `;
-  const data = rows.map((r:any)=> ({ date: r.date, blocks: Math.round(Number(r.focus)/50) })); // ~50-min block
+  interface BlocksRow {
+    date: string;
+    focus: number;
+  }
+
+  const data = rows.map((r) => {
+    const row = r as BlocksRow;
+    return { date: row.date, blocks: Math.round(Number(row.focus) / 50) };
+  }); // ~50-min block
   return ZBlocks.parse(data);
 }
 
@@ -285,9 +342,15 @@ export async function qFocusStreak(target?: number) {
     ORDER BY date DESC
     LIMIT 60
   `;
+  interface StreakRow {
+    date: Date;
+    focus: number;
+  }
+
   let streak = 0;
-  for (const r of rows as any[]) {
-    if (Number(r.focus) >= threshold) streak++;
+  for (const r of rows) {
+    const row = r as StreakRow;
+    if (Number(row.focus) >= threshold) streak++;
     else break;
   }
   return ZStreak.parse({ days: streak });
@@ -335,7 +398,15 @@ export async function qPaceLastRuns(limit=10) {
     order by date desc
     limit ${limit}
   `;
-  const data = rows.map((r:any)=> ({ date: r.date, avg_pace_sec_per_km: Number(r.avg_pace_sec_per_km) })).reverse();
+  interface PaceRow {
+    date: string;
+    avg_pace_sec_per_km: number;
+  }
+
+  const data = rows.map((r) => {
+    const row = r as PaceRow;
+    return { date: row.date, avg_pace_sec_per_km: Number(row.avg_pace_sec_per_km) };
+  }).reverse();
   return ZPaceSeries.parse(data);
 }
 
@@ -354,7 +425,15 @@ export async function qRunningHeatmap(days = 42) {
       and details ? 'distance_km'
     group by date
   `;
-  const byDate = new Map(rows.map((r:any) => [r.date, Number(r.km)]));
+  interface HeatmapRow {
+    date: string;
+    km: number;
+  }
+
+  const byDate = new Map(rows.map((r) => {
+    const row = r as HeatmapRow;
+    return [row.date, Number(row.km)] as [string, number];
+  }));
 
   const today = new Date();
   const out = Array.from({ length: days }, (_, i) => {
@@ -388,9 +467,15 @@ export async function qMonthlyGoalsObject(): Promise<Record<string, number>> {
     focus_minutes: 0,
   };
 
-  for (const r of rows as any[]) {
-    const k = String(r.kind);
-    const v = Number(r.target);
+  interface GoalRow {
+    kind: string;
+    target: number;
+  }
+
+  for (const r of rows) {
+    const row = r as GoalRow;
+    const k = String(row.kind);
+    const v = Number(row.target);
     if (k in out) out[k] = v;
   }
   return out;

@@ -43,7 +43,7 @@ export default async function Map({ lat, lon, className }: Props) {
 function calculatePixels(mapWidth: number, mapHeight: number, lat: number, lon: number) {
   const mapLeftLon = -169.110266;
   const mapRightLon = 190.486279;
-  const mapTopLat = 83.600842;
+  // const mapTopLat = 83.600842; // Not used in Mercator projection calculation
   const mapBottomLat = -58.508473;
   return convertGeoToPixel(lat, lon, mapWidth, mapHeight, mapLeftLon, mapRightLon, mapBottomLat);
 }

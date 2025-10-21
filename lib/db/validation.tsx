@@ -74,7 +74,7 @@ export const ZWorkoutUpsert = z.object({
   duration_min: z.coerce.number().int().positive(),
   intensity: WorkoutIntensity.optional(),
   perceived_effort: z.coerce.number().int().min(1).max(10).optional(),
-  details: z.record(z.unknown()).optional(),
+  details: z.record(z.unknown(), z.any()).optional(),
   notes: z.string().optional(),
 });
 

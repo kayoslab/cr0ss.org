@@ -31,15 +31,16 @@ export const GET = wrapTrace("GET /api/habits/workout", async (req: Request) => 
       : await getRecentWorkoutsDB(limit);
 
     return createSuccessResponse(workouts);
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof Error && err.message === "Unauthorized") {
       return createErrorResponse("Unauthorized", 401, undefined, "UNAUTHORIZED");
     }
     console.error("GET /api/habits/workout failed:", err);
+    const error = err as { message?: string };
     return createErrorResponse(
       "Failed to fetch workouts",
       500,
-      process.env.NODE_ENV === "development" ? err?.message : undefined,
+      process.env.NODE_ENV === "development" ? error?.message : undefined,
       "INTERNAL_ERROR"
     );
   }
@@ -88,15 +89,16 @@ export const POST = wrapTrace("POST /api/habits/workout", async (req: Request) =
       { ok: true, inserted: inserted.length, workouts: inserted },
       200
     );
-  } catch (err: any) {
+  } catch (err: unknown) {
     if (err instanceof Error && err.message === "Unauthorized") {
       return createErrorResponse("Unauthorized", 401, undefined, "UNAUTHORIZED");
     }
     console.error("POST /api/habits/workout failed:", err);
+    const error = err as { message?: string };
     return createErrorResponse(
       "Failed to create workout",
       500,
-      process.env.NODE_ENV === "development" ? err?.message : undefined,
+      process.env.NODE_ENV === "development" ? error?.message : undefined,
       "INTERNAL_ERROR"
     );
   }

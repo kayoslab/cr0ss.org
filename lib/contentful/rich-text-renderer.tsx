@@ -1,6 +1,7 @@
 import { Options } from '@contentful/rich-text-react-renderer';
-import { BLOCKS, INLINES, Block, Inline, Text, Document } from '@contentful/rich-text-types';
+import { BLOCKS, INLINES, Block, Inline } from '@contentful/rich-text-types';
 import Link from 'next/link';
+import Image from 'next/image';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
@@ -157,7 +158,13 @@ export function createRichTextOptions(
 
       return (
         <Link href={asset.url}>
-          <img src={asset.url} alt={asset.description || asset.title || 'Embedded asset'} />
+          <Image
+            src={asset.url}
+            alt={asset.description || asset.title || 'Embedded asset'}
+            width={800}
+            height={600}
+            className="w-full h-auto"
+          />
         </Link>
       );
     },

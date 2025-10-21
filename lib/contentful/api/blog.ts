@@ -1,14 +1,24 @@
 import { fetchGraphQL } from './api';
 import { BLOG_GRAPHQL_FIELDS } from './props/blog';
 
+interface BlogPost {
+  [key: string]: unknown;
+}
+
 interface BlogCollection {
-  items: any[];
+  items: BlogPost[];
   total: number;
   skip: number;
   limit: number;
 }
 
-function extractBlogCollection(fetchResponse: any): BlogCollection {
+interface GraphQLResponse {
+  data?: {
+    blogPostCollection?: BlogCollection;
+  };
+}
+
+function extractBlogCollection(fetchResponse: GraphQLResponse): BlogCollection {
   if (!fetchResponse?.data?.blogPostCollection) {
     // Return empty collection if no data
     return {
