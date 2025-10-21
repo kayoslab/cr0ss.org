@@ -6,12 +6,13 @@ import { createPageMetadata } from '@/lib/metadata';
 import type { Metadata } from 'next';
 
 type Props = {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
-    const page = await getPage(params.slug);
+    const { slug } = await params;
+    const page = await getPage(slug);
     if (!page) {
       return {
         title: 'Page Not Found',
@@ -43,7 +44,8 @@ export async function generateStaticParams() {
 }
 
 export default async function PageContent({ params }: Props) {
-  const page = await getPage(params.slug);
+  const { slug } = await params;
+  const page = await getPage(slug);
 
   if (!page) {
     notFound();

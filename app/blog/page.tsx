@@ -13,9 +13,10 @@ export const metadata: Metadata = createListMetadata({
 export default async function BlogsContent({
   searchParams,
 }: {
-  searchParams: { page?: string };
+  searchParams: Promise<{ page?: string }>;
 }) {
-  const currentPage = Number(searchParams.page) || 1;
+  const { page } = await searchParams;
+  const currentPage = Number(page) || 1;
   const blogCollection = await getAllBlogs(currentPage, POSTS_PER_PAGE);
   
   const totalPosts = blogCollection.total;

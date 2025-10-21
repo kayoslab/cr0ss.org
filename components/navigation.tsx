@@ -8,6 +8,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
 import type { AlgoliaHit, SearchAPIResponse } from '@/lib/algolia/client';
+import Link from 'next/link';
 
 export default function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -130,10 +131,10 @@ export default function Navigation() {
         aria-label='Global'
       >
         <div className='flex lg:flex-1'>
-          <a href='/' className='-m-1.5 p-1.5'>
+          <Link href='/' className='-m-1.5 p-1.5'>
             <span className='sr-only'>cr0ss.org</span>
             cr0ss.org
-          </a>
+          </Link>
         </div>
         <div className='flex lg:hidden'>
           <button
@@ -147,21 +148,21 @@ export default function Navigation() {
         </div>
 
         <Popover.Group className='hidden lg:flex lg:gap-x-12 items-center'>
-          <a href='/' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
+          <Link href='/' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
             Home
-          </a>
-          <a href='/blog' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
+          </Link>
+          <Link href='/blog' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
             Blog
-          </a>
-          <a href='/dashboard' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
+          </Link>
+          <Link href='/dashboard' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
             Dashboard
-          </a>
-          <a href='/page/about' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
+          </Link>
+          <Link href='/page/about' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
             About
-          </a>
-          <a href='/page/imprint' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
+          </Link>
+          <Link href='/page/imprint' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
             Contact
-          </a>
+          </Link>
         </Popover.Group>
         <div className='hidden lg:flex lg:flex-1 lg:justify-end'>
           <div className="relative w-64 h-full flex items-center">
@@ -241,10 +242,10 @@ export default function Navigation() {
         <div className='fixed inset-0 z-10' />
         <Dialog.Panel className='fixed inset-y-0 right-0 z-10 w-full overflow-y-auto bg-white dark:bg-slate-800 px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10'>
           <div className='flex items-center justify-between'>
-            <a href='/' className='-m-1.5 p-1.5'>
+            <Link href='/' className='-m-1.5 p-1.5'>
               <span className='sr-only'>cr0ss.org</span>
               cr0ss.org
-            </a>
+            </Link>
             <button
               type='button'
               className='-m-2.5 rounded-md p-2.5 text-gray-700 dark:text-white'
@@ -275,36 +276,36 @@ export default function Navigation() {
                     </button>
                   </div>
                 </form>
-                <a
+                <Link
                   href='/'
                   className='-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 dark:text-white hover:bg-gray-50'
                 >
                   Home
-                </a>
-                <a
+                </Link>
+                <Link
                   href='/blog'
                   className='-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 dark:text-white hover:bg-gray-50'
                 >
                   Blog
-                </a>
-                <a
+                </Link>
+                <Link
                   href='/dashboard'
                   className='-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 dark:text-white hover:bg-gray-50'
                 >
                   Dashboard
-                </a>
-                <a
+                </Link>
+                <Link
                   href='/page/about'
                   className='-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 dark:text-white hover:bg-gray-50'
                 >
                   About
-                </a>
-                <a
+                </Link>
+                <Link
                   href='/page/imprint'
                   className='-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 dark:text-white hover:bg-gray-50'
                 >
                   Contact
-                </a>
+                </Link>
               </div>
               <div className='py-6'>
                 {/* <a

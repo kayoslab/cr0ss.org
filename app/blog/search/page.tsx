@@ -22,11 +22,12 @@ interface AlgoliaHit {
 const client = algoliasearch(env.ALGOLIA_APP_ID, env.ALGOLIA_SEARCH_KEY);
 
 type Props = {
-  searchParams: { q?: string; page?: string };
+  searchParams: Promise<{ q?: string; page?: string }>;
 };
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const query = searchParams.q || '';
+  const { q } = await searchParams;
+  const query = q || '';
 
   if (!query) {
     return createListMetadata({
@@ -44,8 +45,9 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 }
 
 export default async function SearchResults({ searchParams }: Props) {
-  const query = searchParams.q || '';
-  const currentPage = Number(searchParams.page) || 1;
+  const { q, page } = await searchParams;
+  const query = q || '';
+  const currentPage = Number(page) || 1;
   
   const { results } = await client.search<AlgoliaHit>([{
     indexName: 'www',

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default async function HomeContent() {
   return (
     <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800 pb-24'>
@@ -8,7 +10,7 @@ export default async function HomeContent() {
             </blockquote>
         </div>
         <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left pb-24">
-            <a
+            <Link
             href="https://github.com/kayoslab"
             className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 dark:hover:border-neutral-700 dark:hover:bg-neutral-800/30"
             target="_blank"
@@ -23,9 +25,9 @@ export default async function HomeContent() {
             <p className="m-0 max-w-[30ch] text-sm opacity-50">
                 See some of my contributions on GitHub.
             </p>
-            </a>
+            </Link>
 
-            <a
+            <Link
             href="./cv.pdf"
             className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 dark:hover:border-neutral-700 dark:hover:bg-neutral-800/30"
             target="_blank"
@@ -40,9 +42,9 @@ export default async function HomeContent() {
             <p className="m-0 max-w-[30ch] text-sm opacity-50">
                 Are you looking for a professional? Check out my experience.
             </p>
-            </a>
+            </Link>
 
-            <a
+            <Link
             href="https://www.linkedin.com/in/cr0ss/"
             className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 dark:hover:border-neutral-700 dark:hover:bg-neutral-800/30"
             target="_blank"
@@ -57,9 +59,9 @@ export default async function HomeContent() {
             <p className="m-0 max-w-[30ch] text-sm opacity-50">
                 Connect with me on LinkedIn to work together.
             </p>
-            </a>
+            </Link>
 
-            <a
+            <Link
             href="https://instagram.com/cr0ss.mind"
             className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 dark:hover:border-neutral-700 dark:hover:bg-neutral-800/30"
             target="_blank"
@@ -74,7 +76,7 @@ export default async function HomeContent() {
             <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
                 See what I am up to and follow me on Instagram.
             </p>
-            </a>
+            </Link>
         </div>
     </main>
   );
