@@ -1,4 +1,3 @@
-// lib/phys/caffeine.ts
 import type { BodyProfile } from "@/lib/user/profile";
 import { alignToBerlinHour } from "@/lib/time/berlin";
 
@@ -67,7 +66,16 @@ export function modelCaffeine(
 
   const weight_kg = body.weight_kg || 75;
   const vd_l_per_kg = body.vd_l_per_kg ?? 0.6;
-  const Vd_L = Math.max(1, vd_l_per_kg * Math.max(30, weight_kg)); // total distribution volume (L)
+
+  // Calculate lean body mass if body fat percentage is available
+  // Caffeine distributes primarily in lean tissue, not fat
+  const body_fat_pct = body.body_fat_percentage;
+  const lean_body_mass_kg = (body_fat_pct !== null && body_fat_pct !== undefined)
+    ? weight_kg * (1 - body_fat_pct / 100)
+    : weight_kg; // fallback to total weight if no body fat data
+
+  // Use lean body mass for more accurate Vd calculation
+  const Vd_L = Math.max(1, vd_l_per_kg * Math.max(30, lean_body_mass_kg)); // total distribution volume (L)
 
   // ---- normalize events and compute per-event dose (mg)
   const evts = [...events]

@@ -56,22 +56,34 @@ export const ZGoal = z.object({
 
 export const ZBodyProfileRow = z.object({
   id: z.number().int(),
+  measured_at: z.string(),
   weight_kg: z.number().positive(),
   height_cm: z.number().int().positive().nullable().optional(),
+  body_fat_percentage: z.number().min(0).max(100).nullable().optional(),
+  muscle_percentage: z.number().min(0).max(100).nullable().optional(),
   vd_l_per_kg: z.number().positive().nullable().optional(),
   half_life_hours: z.number().positive().nullable().optional(),
   caffeine_sensitivity: z.number().positive().nullable().optional(),
   bioavailability: z.number().positive().max(1).nullable().optional(),
-  updated_at: z.string(),
+  age: z.number().int().positive().max(150).nullable().optional(),
+  sex: z.enum(['male', 'female', 'other']).nullable().optional(),
+  notes: z.string().nullable().optional(),
+  created_at: z.string(),
 });
 
 export const ZBodyProfileUpsert = z.object({
+  measured_at: z.coerce.date().optional(),
   weight_kg: z.coerce.number().positive().optional(),
   height_cm: z.coerce.number().int().positive().optional(),
+  body_fat_percentage: z.coerce.number().min(0).max(100).optional(),
+  muscle_percentage: z.coerce.number().min(0).max(100).optional(),
   vd_l_per_kg: z.coerce.number().positive().optional(),
   half_life_hours: z.coerce.number().positive().optional(),
   caffeine_sensitivity: z.coerce.number().positive().optional(),
   bioavailability: z.coerce.number().positive().max(1).optional(),
+  age: z.coerce.number().int().positive().max(150).optional(),
+  sex: z.enum(['male', 'female', 'other']).optional(),
+  notes: z.string().optional(),
 });
 
 export const ZDayUpsert = z.object({
