@@ -91,6 +91,18 @@ export const POST = wrapTrace("POST /api/habits/day", async (req: Request) => {
 
     const parsed = result.data;
 
+    // Build dynamic SET clause - only update fields that were provided
+    const updates: string[] = [];
+    if (parsed.sleep_score !== undefined) updates.push('sleep_score = EXCLUDED.sleep_score');
+    if (parsed.focus_minutes !== undefined) updates.push('focus_minutes = EXCLUDED.focus_minutes');
+    if (parsed.steps !== undefined) updates.push('steps = EXCLUDED.steps');
+    if (parsed.reading_minutes !== undefined) updates.push('reading_minutes = EXCLUDED.reading_minutes');
+    if (parsed.outdoor_minutes !== undefined) updates.push('outdoor_minutes = EXCLUDED.outdoor_minutes');
+    if (parsed.writing_minutes !== undefined) updates.push('writing_minutes = EXCLUDED.writing_minutes');
+    if (parsed.coding_minutes !== undefined) updates.push('coding_minutes = EXCLUDED.coding_minutes');
+
+    const setClause = updates.length > 0 ? updates.join(', ') : 'sleep_score = days.sleep_score';
+
     await sql/*sql*/`
       INSERT INTO days (
         date, sleep_score, focus_minutes, steps,
@@ -98,22 +110,36 @@ export const POST = wrapTrace("POST /api/habits/day", async (req: Request) => {
         coding_minutes
       )
       VALUES (
-        ${parsed.date}::date, ${parsed.sleep_score ?? 0}::int, ${parsed.focus_minutes ?? 0}::int, ${parsed.steps ?? 0}::int,
-        ${parsed.reading_minutes ?? 0}::int, ${parsed.outdoor_minutes ?? 0}::int, ${parsed.writing_minutes ?? 0}::int,
+        ${parsed.date}::date,
+        ${parsed.sleep_score ?? 0}::int,
+        ${parsed.focus_minutes ?? 0}::int,
+        ${parsed.steps ?? 0}::int,
+        ${parsed.reading_minutes ?? 0}::int,
+        ${parsed.outdoor_minutes ?? 0}::int,
+        ${parsed.writing_minutes ?? 0}::int,
         ${parsed.coding_minutes ?? 0}::int
       )
-      ON CONFLICT (date) DO UPDATE SET
-        sleep_score = EXCLUDED.sleep_score,
-        focus_minutes = EXCLUDED.focus_minutes,
-        steps = EXCLUDED.steps,
-        reading_minutes = EXCLUDED.reading_minutes,
-        outdoor_minutes = EXCLUDED.outdoor_minutes,
-        writing_minutes = EXCLUDED.writing_minutes,
-        coding_minutes = EXCLUDED.coding_minutes
+      ON CONFLICT (date) DO UPDATE SET ${sql.unsafe(setClause)}
+    `;
+
+    // Fetch and return the full day data after update
+    const rows = await sql/*sql*/`
+      SELECT
+        to_char(date, 'YYYY-MM-DD') as date,
+        COALESCE(sleep_score,0)::int           as sleep_score,
+        COALESCE(focus_minutes,0)::int         as focus_minutes,
+        COALESCE(steps,0)::int                 as steps,
+        COALESCE(reading_minutes,0)::int       as reading_minutes,
+        COALESCE(outdoor_minutes,0)::int       as outdoor_minutes,
+        COALESCE(writing_minutes,0)::int       as writing_minutes,
+        COALESCE(coding_minutes,0)::int        as coding_minutes
+      FROM days
+      WHERE date = ${parsed.date}::date
+      LIMIT 1
     `;
 
     revalidateDashboard();
-    return NextResponse.json({ ok: true }, { status: 200 });
+    return NextResponse.json(rows[0], { status: 200 });
   } catch (e: any) {
     const status = e?.status ?? 500;
     return NextResponse.json({ message: e?.message ?? "Failed" }, { status });
