@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET } from './route';
+import type { SearchResponse } from '@algolia/client-search';
+import type { AlgoliaHit } from '@/lib/algolia/client';
 
 // Mock dependencies
 vi.mock('@/lib/rate/limit', () => ({
@@ -16,11 +18,40 @@ vi.mock('@/lib/algolia/client', () => ({
 import { rateLimit } from '@/lib/rate/limit';
 import { searchClient, aa } from '@/lib/algolia/client';
 
+// Helper to create properly typed mock search response
+function createMockSearchResponse(
+  hits: AlgoliaHit[] = [],
+  queryID?: string,
+  query = '',
+  params = ''
+): { results: SearchResponse<AlgoliaHit>[] } {
+  return {
+    results: [
+      {
+        hits,
+        queryID,
+        query,
+        params,
+        page: 0,
+        nbHits: hits.length,
+        nbPages: 1,
+        hitsPerPage: 5,
+        exhaustiveNbHits: true,
+        exhaustiveTypo: true,
+        exhaustive: { nbHits: true, typo: true },
+        processingTimeMS: 1,
+        processingTimingsMS: {},
+        serverTimeMS: 1,
+      } as SearchResponse<AlgoliaHit>,
+    ],
+  };
+}
+
 describe('GET /api/algolia/search', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Default: rate limit passes
-    vi.mocked(rateLimit).mockResolvedValue({ ok: true, retryAfterSec: 0 });
+    vi.mocked(rateLimit).mockResolvedValue({ ok: true });
   });
 
   describe('Rate Limiting', () => {
@@ -40,12 +71,9 @@ describe('GET /api/algolia/search', () => {
     it('should call rateLimit with correct parameters', async () => {
       const request = new Request('http://localhost:3000/api/algolia/search?q=test');
 
-      vi.mocked(searchClient.search).mockResolvedValue({
-        results: [{
-          hits: [],
-          queryID: 'test-query-id',
-        }],
-      });
+      vi.mocked(searchClient.search).mockResolvedValue(
+        createMockSearchResponse([], 'test-query-id', 'test')
+      );
 
       await GET(request);
 
@@ -83,17 +111,26 @@ describe('GET /api/algolia/search', () => {
 
   describe('Search Functionality', () => {
     it('should perform search with query parameter', async () => {
-      const mockHits = [
-        { objectID: '1', title: 'Test Post', summary: 'Test summary' },
-        { objectID: '2', title: 'Another Post', summary: 'Another summary' },
+      const mockHits: AlgoliaHit[] = [
+        {
+          objectID: '1',
+          title: 'Test Post',
+          summary: 'Test summary',
+          categories: ['TypeScript', 'Testing'],
+          url: '/blog/test-post',
+        },
+        {
+          objectID: '2',
+          title: 'Another Post',
+          summary: 'Another summary',
+          categories: ['React'],
+          url: '/blog/another-post',
+        },
       ];
 
-      vi.mocked(searchClient.search).mockResolvedValue({
-        results: [{
-          hits: mockHits,
-          queryID: 'test-query-id-123',
-        }],
-      });
+      vi.mocked(searchClient.search).mockResolvedValue(
+        createMockSearchResponse(mockHits, 'test-query-id-123', 'typescript')
+      );
 
       const request = new Request('http://localhost:3000/api/algolia/search?q=typescript');
       const response = await GET(request);
@@ -116,12 +153,9 @@ describe('GET /api/algolia/search', () => {
     });
 
     it('should handle empty query parameter', async () => {
-      vi.mocked(searchClient.search).mockResolvedValue({
-        results: [{
-          hits: [],
-          queryID: null,
-        }],
-      });
+      vi.mocked(searchClient.search).mockResolvedValue(
+        createMockSearchResponse([], undefined, '')
+      );
 
       const request = new Request('http://localhost:3000/api/algolia/search');
       const response = await GET(request);
@@ -138,12 +172,9 @@ describe('GET /api/algolia/search', () => {
     });
 
     it('should return empty results when search returns no hits', async () => {
-      vi.mocked(searchClient.search).mockResolvedValue({
-        results: [{
-          hits: [],
-          queryID: 'empty-query-id',
-        }],
-      });
+      vi.mocked(searchClient.search).mockResolvedValue(
+        createMockSearchResponse([], 'empty-query-id', 'nonexistent')
+      );
 
       const request = new Request('http://localhost:3000/api/algolia/search?q=nonexistent');
       const response = await GET(request);
@@ -189,12 +220,9 @@ describe('GET /api/algolia/search', () => {
 
   describe('Query Parameter Edge Cases', () => {
     it('should handle special characters in query', async () => {
-      vi.mocked(searchClient.search).mockResolvedValue({
-        results: [{
-          hits: [],
-          queryID: 'special-query-id',
-        }],
-      });
+      vi.mocked(searchClient.search).mockResolvedValue(
+        createMockSearchResponse([], 'special-query-id', 'test & special')
+      );
 
       const request = new Request('http://localhost:3000/api/algolia/search?q=test%20%26%20special');
       await GET(request);
