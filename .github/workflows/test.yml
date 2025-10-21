@@ -1,0 +1,133 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run TypeScript type checking
+        run: pnpm tsc --noEmit
+
+      - name: Run ESLint
+        run: pnpm lint
+
+      - name: Run tests
+        run: pnpm test:ci
+        env:
+          # Test environment variables
+          DATABASE_URL: 'postgresql://test@localhost:5432/test'
+          DASHBOARD_API_SECRET: 'test-secret'
+          CONTENTFUL_SPACE_ID: 'test-space'
+          CONTENTFUL_ACCESS_TOKEN: 'test-token'
+          CONTENTFUL_ENVIRONMENT: 'test'
+          CONTENTFUL_REVALIDATE_SECRET: 'test-revalidate-secret'
+          ALGOLIA_APP_ID: 'test-app-id'
+          ALGOLIA_ADMIN_KEY: 'test-admin-key'
+          ALGOLIA_SEARCH_KEY: 'test-search-key'
+          ALGOLIA_INDEX: 'test-index'
+          KV_REST_API_URL: 'http://localhost:8080'
+          KV_REST_API_TOKEN: 'test-token'
+          NEXT_PUBLIC_SITE_URL: 'http://localhost:3000'
+          LOCATION_API_SECRET: 'test-location-secret'
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  build:
+    name: Build Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build project
+        run: pnpm build
+        env:
+          # Required build-time environment variables
+          DATABASE_URL: 'postgresql://test@localhost:5432/test'
+          DASHBOARD_API_SECRET: 'test-secret'
+          CONTENTFUL_SPACE_ID: 'test-space'
+          CONTENTFUL_ACCESS_TOKEN: 'test-token'
+          CONTENTFUL_ENVIRONMENT: 'test'
+          CONTENTFUL_PREVIEW_ACCESS_TOKEN: 'test-preview-token'
+          CONTENTFUL_REVALIDATE_SECRET: 'test-revalidate-secret'
+          CONTENTFUL_MANAGEMENT_TOKEN: 'test-management-token'
+          ALGOLIA_APP_ID: 'test-app-id'
+          ALGOLIA_ADMIN_KEY: 'test-admin-key'
+          ALGOLIA_SEARCH_KEY: 'test-search-key'
+          ALGOLIA_INDEX: 'test-index'
+          KV_REST_API_URL: 'http://localhost:8080'
+          KV_REST_API_TOKEN: 'test-token'
+          NEXT_PUBLIC_SITE_URL: 'http://localhost:3000'
+          LOCATION_API_SECRET: 'test-location-secret'
