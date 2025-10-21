@@ -66,6 +66,9 @@ Personal and professional website of Simon Krüger, built with Next.js 14, TypeS
 - **[T3 Env](https://env.t3.gg/)** - Type-safe environment variables
 - **[Prettier](https://prettier.io/)** - Code formatting
 - **[ESLint](https://eslint.org/)** - Linting
+- **[Vitest](https://vitest.dev/)** - Fast, modern test runner
+- **[Testing Library](https://testing-library.com/)** - User-centric component testing
+- **[MSW](https://mswjs.io/)** - API mocking for tests
 
 ### **Deployment & Analytics**
 - **[Vercel](https://vercel.com/)** - Deployment and hosting
@@ -367,6 +370,15 @@ npm run lint         # Run ESLint
 npm run format       # Check code formatting
 npm run format:fix   # Fix code formatting
 
+# Testing
+npm run test              # Run all tests
+npm run test:watch        # Run tests in watch mode
+npm run test:ui           # Run tests with UI
+npm run test:coverage     # Generate coverage report
+npm run test:coverage:ui  # View coverage report in UI
+npm run test:changed      # Run tests for changed files
+npm run test:ci           # Run tests in CI mode with coverage
+
 # Contentful
 npm run setup        # Set up Contentful content types
 ```
@@ -385,6 +397,79 @@ The project uses strict TypeScript with:
 - **Prettier** - Consistent code formatting
 - **ESLint** - Catch common errors
 - **Component naming** - PascalCase for components, kebab-case for files
+
+### **Testing**
+
+The project uses [Vitest](https://vitest.dev/) and [Testing Library](https://testing-library.com/) for comprehensive test coverage:
+
+#### **Test Structure**
+```
+├── lib/                    # Business logic tests
+│   ├── phys/
+│   │   ├── caffeine.ts
+│   │   └── caffeine.test.ts
+│   ├── time/
+│   │   ├── berlin.tsx
+│   │   └── berlin.test.ts
+│   └── db/
+│       ├── validation.tsx
+│       └── validation.test.ts
+├── app/api/               # API route tests
+│   ├── auth/check/
+│   │   ├── route.tsx
+│   │   └── route.test.ts
+│   └── location/
+│       ├── route.ts
+│       └── route.test.ts
+├── components/            # Component tests
+│   └── dashboard/
+│       ├── Section.tsx
+│       └── Section.test.tsx
+└── test/                  # Test utilities
+    ├── setup.ts          # Global test configuration
+    ├── utils.tsx         # Test helpers
+    └── mocks/            # MSW handlers
+        ├── handlers.ts   # API mocks
+        └── server.ts     # Mock server setup
+```
+
+#### **Coverage Goals**
+- **Business logic**: 90%+ coverage
+- **API routes**: 80%+ coverage
+- **Components**: 70%+ coverage
+- **Overall**: 75%+ coverage
+
+#### **What's Tested**
+- ✅ **Core business logic** - Caffeine metabolism modeling, time utilities, data validation
+- ✅ **API routes** - Authentication, validation, error handling
+- ✅ **React components** - User interactions, accessibility, conditional rendering
+- ✅ **Integration tests** - External API mocking (Contentful, Algolia, Vercel KV)
+
+#### **Running Tests**
+
+```bash
+# Run all tests
+pnpm test
+
+# Watch mode (re-run on changes)
+pnpm test:watch
+
+# Coverage report
+pnpm test:coverage
+
+# View coverage in browser
+pnpm test:coverage:ui
+```
+
+#### **CI/CD**
+
+Tests run automatically on every push and pull request via GitHub Actions:
+- TypeScript type checking
+- ESLint validation
+- Full test suite with coverage
+- Build verification
+
+See `.github/workflows/test.yml` for the complete CI configuration.
 
 ---
 

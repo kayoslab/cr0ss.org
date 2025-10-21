@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   const lat = body.lat;
   const lon = body.lon;
 
-  if (!lat || !lon) {
+  if (typeof lat !== 'number' || typeof lon !== 'number' || isNaN(lat) || isNaN(lon)) {
     return NextResponse.json({ message: 'No geo position provided' }, { status: 400 });
   }
 
