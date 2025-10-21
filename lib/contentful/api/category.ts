@@ -2,6 +2,20 @@ import { fetchGraphQL } from './api';
 import { CATEGORY_GRAPHQL_FIELDS } from './props/category';
 import { BLOG_GRAPHQL_FIELDS } from './props/blog';
 
+export async function getAllCategories() {
+  const response = await fetchGraphQL(
+    `query {
+      blogCategoryCollection(limit: 100, order: title_ASC) {
+        items {
+          ${CATEGORY_GRAPHQL_FIELDS}
+        }
+      }
+    }`,
+    ['categories']
+  );
+  return response.data.blogCategoryCollection.items;
+}
+
 export async function getCategory(slug: string) {
   const pages = await fetchGraphQL(
     `query {

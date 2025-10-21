@@ -30,6 +30,11 @@ export default function BlogGrid({ posts, currentPage, totalPages, basePath, tit
                 day: 'numeric'
               });
               
+              // Optimize Contentful images with size and format parameters
+              const optimizedImageUrl = blog?.heroImage?.url 
+                ? `${blog.heroImage.url}?w=700&h=526&fit=fill&fm=webp&q=80`
+                : '';
+              
               return (
                 <article
                   key={blog.sys.id}
@@ -37,11 +42,13 @@ export default function BlogGrid({ posts, currentPage, totalPages, basePath, tit
                 >
                   <Link href={`/blog/${blog.slug}`}>
                     <Image
-                      alt='placeholder'
+                      alt={blog.title}
                       className='aspect-4/3 w-full object-cover'
                       height='263'
-                      src={blog?.heroImage?.url ?? ''}
+                      src={optimizedImageUrl}
                       width='350'
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      priority={false}
                     />
                   </Link>
                   <div className='flex-1 p-6'>

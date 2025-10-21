@@ -5,7 +5,8 @@ import { Skeleton } from '@/components/ui/Skeleton';
  */
 export default function BlogPostLoading() {
   return (
-    <section className='w-full max-w-(--breakpoint-lg)'>
+    <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800 pb-24'>
+      <section className='w-full max-w-(--breakpoint-lg)'>
       <div className='container space-y-12 px-4 md:px-6'>
         {/* Title and metadata */}
         <div className='space-y-4'>
@@ -103,5 +104,6 @@ export default function BlogPostLoading() {
         </div>
       </div>
     </section>
+    </main>
   );
 }

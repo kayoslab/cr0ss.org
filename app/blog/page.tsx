@@ -5,6 +5,9 @@ import { POSTS_PER_PAGE } from '@/lib/constants';
 import { createListMetadata } from '@/lib/metadata';
 import type { Metadata } from 'next';
 
+// Revalidate the page every hour
+export const revalidate = 3600;
+
 export const metadata: Metadata = createListMetadata({
   title: 'Blog | cr0ss.mind',
   description: 'Explore articles on software development, technology, and personal insights from Simon Krüger.',

@@ -2,7 +2,8 @@ import { env } from '@/env';
 
 export async function fetchGraphQL(
   query: string,
-  tags: string[] = ['']
+  tags: string[] = [''],
+  revalidate: number | false = 3600 // Default: revalidate every hour (3600 seconds)
 ) {
   return fetch(
     `https://graphql.contentful.com/content/v1/spaces/${env.CONTENTFUL_SPACE_ID}`,
@@ -15,7 +16,7 @@ export async function fetchGraphQL(
         }`,
       },
       body: JSON.stringify({ query }),
-      next: { tags },
+      next: { tags, revalidate },
     }
   ).then((response) =>
     response.json()

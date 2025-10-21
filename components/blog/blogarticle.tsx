@@ -39,13 +39,14 @@ export const Blog = ({ blog, recommendations }: { blog: BlogProps, recommendatio
           </div>
           <div className='space-y-8 lg:space-y-10'>
             <Image
-              alt='Blog Image'
+              alt={blog.title}
               className='aspect-video w-full overflow-hidden rounded-xl object-cover'
-              src={blog.heroImage?.url as string}
+              src={`${blog.heroImage?.url}?w=1200&fm=webp&q=85` as string}
               width={0}
               height={0}
               sizes="100vw"
-              style={{ width: '100%', height: 'auto' }} // optional
+              style={{ width: '100%', height: 'auto' }}
+              priority={true}
             />
             <div className='flex flex-col justify-between md:flex-row'>
               <p
@@ -80,18 +81,24 @@ export const Blog = ({ blog, recommendations }: { blog: BlogProps, recommendatio
           { recommendationsJSX }
           <div className='space-y-12'>
             <div className='grid gap-8 md:grid-cols-2 lg:grid-cols-3'>
-              {recommendations.map((recommendation: BlogProps) => (
+              {recommendations.map((recommendation: BlogProps) => {
+                const optimizedImageUrl = recommendation?.heroImage?.url
+                  ? `${recommendation.heroImage.url}?w=700&h=526&fit=fill&fm=webp&q=80`
+                  : '';
+                
+                return (
                 <article
                   key={recommendation.title}
                   className='flex h-full flex-col overflow-hidden rounded-lg shadow-lg'
                 >
                   <Link href={`/blog/${recommendation.slug}`}>
                     <Image
-                      alt='placeholder'
+                      alt={recommendation.title}
                       className='aspect-4/3 w-full object-cover'
                       height='263'
-                      src={recommendation?.heroImage?.url ?? ''}
+                      src={optimizedImageUrl}
                       width='350'
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     />
                   </Link>
                   <div className='flex-1 p-6'>
@@ -110,7 +117,8 @@ export const Blog = ({ blog, recommendations }: { blog: BlogProps, recommendatio
                     </div>
                   </div>
                 </article>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
