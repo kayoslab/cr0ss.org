@@ -111,7 +111,7 @@ export function Line({
               return (
                 <div className="rounded-md border bg-white p-2 text-sm shadow dark:border-neutral-800 dark:bg-neutral-900">
                   <div className="mb-1 font-medium">{label}</div>
-                  {payload.map((p: { name?: string; value?: string | number }) => {
+                  {payload.map((p: { name?: string | number; value?: string | number | (string | number)[] }) => {
                     const name = String(p.name ?? "");
                     const idx = Math.max(0, categories.indexOf(name));
                     const color = palette[idx % palette.length];
@@ -180,7 +180,7 @@ export function Area({
               return (
                 <div className="rounded-md border bg-white p-2 text-sm shadow dark:border-neutral-800 dark:bg-neutral-900">
                   <div className="mb-1 font-medium">{label}</div>
-                  {payload.map((p: { name?: string; value?: string | number }) => {
+                  {payload.map((p: { name?: string | number; value?: string | number | (string | number)[] }) => {
                     const name = String(p.name ?? "");
                     const idx = Math.max(0, categories.indexOf(name));
                     const color = palette[idx % palette.length];

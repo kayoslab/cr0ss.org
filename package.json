@@ -9,7 +9,14 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "setup": "ts-node ./lib/contentful/setup.ts"
+    "setup": "ts-node ./lib/contentful/setup.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "test:coverage:ui": "vitest run --coverage --ui",
+    "test:changed": "vitest run --changed",
+    "test:ci": "vitest run --coverage --reporter=verbose"
   },
   "dependencies": {
     "@algolia/client-search": "^5.40.1",
@@ -44,21 +51,29 @@
     "@eslint/js": "^9.38.0",
     "@next/eslint-plugin-next": "^15.5.6",
     "@tailwindcss/postcss": "^4.1.15",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "24.9.1",
     "@types/react": "19.2.2",
     "@types/react-dom": "^19.2.2",
     "@types/react-syntax-highlighter": "^15.5.13",
     "@types/rss": "^0.0.32",
+    "@vitejs/plugin-react": "^5.0.4",
+    "@vitest/ui": "^3.2.4",
     "autoprefixer": "^10.4.21",
     "contentful-import": "^9.4.122",
     "eslint": "^9.38.0",
     "eslint-config-next": "15.5.6",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.0.0",
+    "jsdom": "^27.0.1",
+    "msw": "^2.11.6",
     "postcss": "^8.5.6",
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.7.1",
     "tailwindcss": "^4.1.15",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vitest": "^3.2.4"
   }
 }

@@ -1,4 +1,5 @@
 import { getAllBlogs } from '@/lib/contentful/api/blog';
+import { BlogProps } from '@/lib/contentful/api/props/blog';
 import BlogGrid from '@/components/blog/blog-grid';
 import { POSTS_PER_PAGE } from '@/lib/constants';
 import { createListMetadata } from '@/lib/metadata';
@@ -18,10 +19,10 @@ export default async function BlogsContent({
   const { page } = await searchParams;
   const currentPage = Number(page) || 1;
   const blogCollection = await getAllBlogs(currentPage, POSTS_PER_PAGE);
-  
+
   const totalPosts = blogCollection.total;
   const totalPages = Math.ceil(totalPosts / POSTS_PER_PAGE);
-  const currentPosts = blogCollection.items;
+  const currentPosts = blogCollection.items as unknown as BlogProps[];
 
   return (
     <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800 pb-24'>

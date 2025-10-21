@@ -14,6 +14,8 @@ These documents ensure consistency, quality, and adherence to established patter
 - **[api-patterns.md](api-patterns.md)** - API route design patterns and conventions
 - **[component-patterns.md](component-patterns.md)** - React component patterns and organization
 - **[database-patterns.md](database-patterns.md)** - Database query patterns, migrations, and JSONB usage
+- **[testing-guidelines.md](testing-guidelines.md)** - Testing standards and best practices
+- **[test-strategy.md](test-strategy.md)** - Comprehensive test implementation roadmap and strategy
 - **[testing.md](testing.md)** - Testing approach and requirements
 - **[security.md](security.md)** - Security guidelines and requirements
 

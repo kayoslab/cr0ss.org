@@ -27,7 +27,7 @@ export default async function Map({ lat, lon, className }: Props) {
       strokeLinejoin="round"
       strokeWidth=".1"
     >
-      {countries.map((country: CountryProps) => (
+      {(countries as unknown as CountryProps[]).map((country: CountryProps) => (
         <path
           id={country.id}
           key={country.id}

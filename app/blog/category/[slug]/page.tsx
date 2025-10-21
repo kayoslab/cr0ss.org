@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getBlogsForCategory, getCategory } from '@/lib/contentful/api/category';
+import { BlogProps } from '@/lib/contentful/api/props/blog';
 import BlogGrid from '@/components/blog/blog-grid';
 import { POSTS_PER_PAGE } from '@/lib/constants';
 import { createListMetadata } from '@/lib/metadata';
@@ -41,14 +42,14 @@ export default async function BlogCategoriesContent({ params, searchParams }: Pr
   const currentPage = Number(page) || 1;
   const category = await getCategory(slug);
   const blogCollection = await getBlogsForCategory(slug, currentPage, POSTS_PER_PAGE);
-  
+
   if (!category || !blogCollection) {
     notFound();
   }
 
   const totalPosts = blogCollection.total;
   const totalPages = Math.ceil(totalPosts / POSTS_PER_PAGE);
-  const currentPosts = blogCollection.items;
+  const currentPosts = blogCollection.items as unknown as BlogProps[];
 
   return (
     <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800 pb-24'>

@@ -55,7 +55,7 @@ interface CountryData {
 
 const client = management.createClient({
   accessToken: CONTENTFUL_MANAGEMENT_TOKEN,
-}) as ContentfulClient;
+}) as unknown as ContentfulClient;
 
 client.getSpace(CONTENTFUL_SPACE_ID).then((space) => {
   space.getEnvironment('master').then((environment) => {

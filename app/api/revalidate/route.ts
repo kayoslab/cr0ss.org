@@ -7,6 +7,7 @@ import { getBlog } from '@/lib/contentful/api/blog';
 import { algoliasearch } from 'algoliasearch';
 import { env } from '@/env';
 import type { CategoryProps } from '@/lib/contentful/api/props/category';
+import type { BlogProps } from '@/lib/contentful/api/props/blog';
 
 /**
  * Contentful webhook payload structure
@@ -97,7 +98,7 @@ async function updateAlgoliaIndex(slug: string): Promise<void> {
       env.ALGOLIA_ADMIN_KEY
     );
 
-    const post = await getBlog(slug);
+    const post = await getBlog(slug) as unknown as BlogProps;
 
     await algoliaClient.addOrUpdateObject({
       indexName: env.ALGOLIA_INDEX,

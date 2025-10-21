@@ -75,7 +75,7 @@ export default async function DashboardPage() {
 
   // Contentful
   const [countries = [], visited = []] = await Promise.all([getAllCountries(), getVisitedCountries(true)]);
-  const countriesSlim = countries.map((c: CountryProps) => ({
+  const countriesSlim = (countries as unknown as CountryProps[]).map((c: CountryProps) => ({
     id: c.id,
     path: c.data?.path ?? "",
     visited: c.lastVisited != null,
@@ -108,7 +108,7 @@ export default async function DashboardPage() {
   const travel = {
     totalCountries: countries.length,
     visitedCount: visited.length,
-    recentVisited: (visited as CountryProps[]).slice(0, 5).map((c) => ({ id: c.id, name: c.name })),
+    recentVisited: (visited as unknown as CountryProps[]).slice(0, 5).map((c) => ({ id: c.id, name: c.name })),
     countries: countriesSlim,
     lat,
     lon,
