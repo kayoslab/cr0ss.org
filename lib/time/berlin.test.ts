@@ -54,20 +54,20 @@ describe('berlin time utilities', () => {
   });
 
   describe('endOfBerlinDayISO', () => {
-    it('should return end of day in Berlin timezone as UTC ISO', () => {
+    it('should return start of next day in Berlin timezone as UTC ISO', () => {
       const date = new Date('2024-01-15T10:30:00Z');
       const result = endOfBerlinDayISO(date);
 
-      // Jan 15 23:59:59.999 in Berlin (CET) is Jan 15 22:59:59.999 UTC
-      expect(result).toBe('2024-01-15T22:59:59.999Z');
+      // End (exclusive) = Jan 16 00:00 in Berlin (CET = UTC+1) is Jan 15 23:00 UTC
+      expect(result).toBe('2024-01-15T23:00:00.000Z');
     });
 
-    it('should be exactly 1ms before next day start', () => {
+    it('should equal next day start', () => {
       const date = new Date('2024-01-15T10:30:00Z');
-      const end = Date.parse(endOfBerlinDayISO(date));
-      const nextStart = Date.parse(startOfBerlinDayISO(new Date('2024-01-16T00:00:00Z')));
+      const end = endOfBerlinDayISO(date);
+      const nextStart = startOfBerlinDayISO(new Date('2024-01-16T00:00:00Z'));
 
-      expect(nextStart - end).toBe(1);
+      expect(end).toBe(nextStart);
     });
   });
 
@@ -121,13 +121,13 @@ describe('berlin time utilities', () => {
   });
 
   describe('isoToBerlinDate', () => {
-    it('should convert UTC timestamp to Berlin date string', () => {
+    it('should convert UTC timestamp to Berlin time string (HH:mm)', () => {
       const timestamp = Date.parse('2024-01-15T13:30:00.000Z');
       const result = isoToBerlinDate(timestamp);
 
       // 13:30 UTC = 14:30 CET
-      expect(result).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/);
-      expect(result).toBe('2024-01-15 14:30');
+      expect(result).toMatch(/^\d{2}:\d{2}$/);
+      expect(result).toBe('14:30');
     });
 
     it('should handle near-midnight conversions', () => {
@@ -135,7 +135,7 @@ describe('berlin time utilities', () => {
       const result = isoToBerlinDate(timestamp);
 
       // 23:30 UTC = 00:30 CET next day
-      expect(result).toBe('2024-01-15 00:30');
+      expect(result).toBe('00:30');
     });
   });
 });
