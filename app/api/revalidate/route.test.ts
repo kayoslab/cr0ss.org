@@ -1,0 +1,386 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { POST } from './route';
+
+// Mock dependencies
+vi.mock('next/cache', () => ({
+  revalidatePath: vi.fn(),
+  revalidateTag: vi.fn(),
+}));
+
+vi.mock('@/lib/auth/secret', () => ({
+  hasValidSecret: vi.fn(),
+}));
+
+vi.mock('@/lib/api/middleware', () => ({
+  createErrorResponse: vi.fn((message: string, status: number, _detail?: unknown, _code?: string) => {
+    return new Response(JSON.stringify({ message, status }), { status });
+  }),
+  createSuccessResponse: vi.fn((data: unknown) => {
+    return new Response(JSON.stringify(data), { status: 200 });
+  }),
+}));
+
+vi.mock('@/lib/contentful/api/blog', () => ({
+  getBlog: vi.fn(),
+}));
+
+vi.mock('algoliasearch', () => ({
+  algoliasearch: vi.fn(() => ({
+    addOrUpdateObject: vi.fn(),
+  })),
+}));
+
+vi.mock('@/env', () => ({
+  env: {
+    ALGOLIA_APP_ID: 'test-app-id',
+    ALGOLIA_ADMIN_KEY: 'test-admin-key',
+    ALGOLIA_INDEX: 'test-index',
+  },
+}));
+
+vi.mock('@/lib/obs/trace', () => ({
+  wrapTrace: <T extends (...args: unknown[]) => unknown>(_name: string, fn: T): T => fn,
+}));
+
+import { revalidatePath, revalidateTag } from 'next/cache';
+import { hasValidSecret } from '@/lib/auth/secret';
+import { getBlog } from '@/lib/contentful/api/blog';
+import { algoliasearch } from 'algoliasearch';
+
+describe('POST /api/revalidate', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(hasValidSecret).mockReturnValue(true);
+    
+    // Setup Algolia mock
+    const mockAlgoliaClient = {
+      addOrUpdateObject: vi.fn().mockResolvedValue(undefined),
+    };
+    vi.mocked(algoliasearch).mockReturnValue(mockAlgoliaClient as never);
+  });
+
+  describe('Authentication', () => {
+    it('should require valid secret', async () => {
+      vi.mocked(hasValidSecret).mockReturnValue(false);
+
+      const request = new Request('http://localhost:3000/api/revalidate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tag: 'blogPosts' }),
+      });
+      const response = await POST(request);
+
+      expect(response.status).toBe(401);
+      expect(hasValidSecret).toHaveBeenCalledWith(request);
+    });
+
+    it('should accept valid secret', async () => {
+      const request = new Request('http://localhost:3000/api/revalidate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tag: 'blogPosts' }),
+      });
+      const response = await POST(request);
+
+      expect(response.status).toBe(200);
+      expect(hasValidSecret).toHaveBeenCalledWith(request);
+    });
+  });
+
+  describe('Legacy Format', () => {
+    it('should revalidate tag from legacy format', async () => {
+      const request = new Request('http://localhost:3000/api/revalidate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tag: 'blogPosts' }),
+      });
+      const response = await POST(request);
+
+      expect(response.status).toBe(200);
+      expect(revalidateTag).toHaveBeenCalledWith('blogPosts');
+      
+      const data = await response.json();
+      expect(data.tags).toContain('blogPosts');
+    });
+
+    it('should revalidate path from legacy format', async () => {
+      const request = new Request('http://localhost:3000/api/revalidate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: '/blog' }),
+      });
+      const response = await POST(request);
+
+      expect(response.status).toBe(200);
+      expect(revalidatePath).toHaveBeenCalledWith('/blog');
+      
+      const data = await response.json();
+      expect(data.paths).toContain('/blog');
+    });
+
+    it('should revalidate both tag and path from legacy format', async () => {
+      const request = new Request('http://localhost:3000/api/revalidate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tag: 'blogPosts', path: '/blog' }),
+      });
+      const response = await POST(request);
+
+      expect(response.status).toBe(200);
+      expect(revalidateTag).toHaveBeenCalledWith('blogPosts');
+      expect(revalidatePath).toHaveBeenCalledWith('/blog');
+    });
+  });
+
+  describe('Blog Post Revalidation', () => {
+    it('should revalidate blog post tags and paths', async () => {
+      const request = new Request('http://localhost:3000/api/revalidate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sys: {
+            type: 'Entry',
+            contentType: {
+              sys: { id: 'blogPost' },
+            },
+          },
+          fields: {
+            slug: { 'en-US': 'my-blog-post' },
+          },
+        }),
+      });
+      const response = await POST(request);
+
+      expect(response.status).toBe(200);
+      expect(revalidateTag).toHaveBeenCalledWith('blogPosts');
+      expect(revalidateTag).toHaveBeenCalledWith('my-blog-post');
+      expect(revalidatePath).toHaveBeenCalledWith('/blog');
+      expect(revalidatePath).toHaveBeenCalledWith('/blog/my-blog-post');
+      
+      const data = await response.json();
+      expect(data.tags).toEqual(['blogPosts', 'my-blog-post']);
+      expect(data.paths).toEqual(['/blog', '/blog/my-blog-post']);
+    });
+
+    it('should update Algolia index for blog posts', async () => {
+      const mockBlogPost = {
+        sys: { id: 'blog-123' },
+        slug: 'test-post',
+        title: 'Test Post',
+        summary: 'A test post',
+        author: 'Test Author',
+        heroImage: { url: 'https://example.com/image.jpg' },
+        categoriesCollection: {
+          items: [
+            { title: 'Tech' },
+            { title: 'Design' },
+          ],
+        },
+      };
+      vi.mocked(getBlog).mockResolvedValue(mockBlogPost as never);
+
+      const mockAlgoliaClient = {
+        addOrUpdateObject: vi.fn().mockResolvedValue(undefined),
+      };
+      vi.mocked(algoliasearch).mockReturnValue(mockAlgoliaClient as never);
+
+      const request = new Request('http://localhost:3000/api/revalidate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sys: {
+            contentType: { sys: { id: 'blogPost' } },
+          },
+          fields: {
+            slug: { 'en-US': 'test-post' },
+          },
+        }),
+      });
+      const response = await POST(request);
+
+      expect(response.status).toBe(200);
+      expect(getBlog).toHaveBeenCalledWith('test-post');
+      expect(mockAlgoliaClient.addOrUpdateObject).toHaveBeenCalledWith({
+        indexName: 'test-index',
+        objectID: 'blog-123',
+        body: {
+          url: '/blog/test-post/',
+          title: 'Test Post',
+          summary: 'A test post',
+          author: 'Test Author',
+          categories: 'Tech,Design',
+          image: 'https://example.com/image.jpg',
+          objectID: 'blog-123',
+        },
+      });
+      
+      const data = await response.json();
+      expect(data.algoliaIndexed).toBe(true);
+    });
+
+    it('should handle Algolia failures gracefully', async () => {
+      vi.mocked(getBlog).mockRejectedValue(new Error('Algolia error'));
+
+      const request = new Request('http://localhost:3000/api/revalidate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sys: {
+            contentType: { sys: { id: 'blogPost' } },
+          },
+          fields: {
+            slug: { 'en-US': 'test-post' },
+          },
+        }),
+      });
+      const response = await POST(request);
+
+      // Should still succeed even if Algolia fails
+      expect(response.status).toBe(200);
+      expect(revalidateTag).toHaveBeenCalled();
+      expect(revalidatePath).toHaveBeenCalled();
+    });
+  });
+
+  describe('Page Revalidation', () => {
+    it('should revalidate page tags and paths', async () => {
+      const request = new Request('http://localhost:3000/api/revalidate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sys: {
+            contentType: { sys: { id: 'page' } },
+          },
+          fields: {
+            slug: { 'en-US': 'about' },
+          },
+        }),
+      });
+      const response = await POST(request);
+
+      expect(response.status).toBe(200);
+      expect(revalidateTag).toHaveBeenCalledWith('pages');
+      expect(revalidateTag).toHaveBeenCalledWith('about');
+      expect(revalidatePath).toHaveBeenCalledWith('/page/about');
+      
+      const data = await response.json();
+      expect(data.tags).toEqual(['pages', 'about']);
+      expect(data.paths).toEqual(['/page/about']);
+    });
+  });
+
+  describe('Country Revalidation', () => {
+    it('should revalidate country data', async () => {
+      const request = new Request('http://localhost:3000/api/revalidate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sys: {
+            contentType: { sys: { id: 'country' } },
+          },
+        }),
+      });
+      const response = await POST(request);
+
+      expect(response.status).toBe(200);
+      expect(revalidateTag).toHaveBeenCalledWith('countries');
+      expect(revalidatePath).toHaveBeenCalledWith('/');
+      
+      const data = await response.json();
+      expect(data.tags).toEqual(['countries']);
+      expect(data.paths).toEqual(['/']);
+    });
+  });
+
+  describe('Coffee Revalidation', () => {
+    it('should revalidate coffee data', async () => {
+      const request = new Request('http://localhost:3000/api/revalidate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sys: {
+            contentType: { sys: { id: 'coffee' } },
+          },
+        }),
+      });
+      const response = await POST(request);
+
+      expect(response.status).toBe(200);
+      expect(revalidateTag).toHaveBeenCalledWith('coffee');
+      expect(revalidatePath).toHaveBeenCalledWith('/dashboard');
+      
+      const data = await response.json();
+      expect(data.tags).toEqual(['coffee']);
+      expect(data.paths).toEqual(['/dashboard']);
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should return 400 when no revalidation targets determined', async () => {
+      const request = new Request('http://localhost:3000/api/revalidate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      const response = await POST(request);
+
+      expect(response.status).toBe(400);
+      expect(revalidateTag).not.toHaveBeenCalled();
+      expect(revalidatePath).not.toHaveBeenCalled();
+    });
+
+    it('should handle unknown content types', async () => {
+      const request = new Request('http://localhost:3000/api/revalidate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sys: {
+            contentType: { sys: { id: 'unknownType' } },
+          },
+        }),
+      });
+      const response = await POST(request);
+
+      // Should return 400 as no tags/paths were determined
+      expect(response.status).toBe(400);
+    });
+
+    it('should return 500 on JSON parse error', async () => {
+      const request = new Request('http://localhost:3000/api/revalidate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: 'invalid json{',
+      });
+      const response = await POST(request);
+
+      expect(response.status).toBe(500);
+    });
+  });
+
+  describe('Response Structure', () => {
+    it('should return complete response with timestamp', async () => {
+      const request = new Request('http://localhost:3000/api/revalidate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sys: {
+            contentType: { sys: { id: 'blogPost' } },
+          },
+          fields: {
+            slug: { 'en-US': 'test' },
+          },
+        }),
+      });
+      const response = await POST(request);
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data).toHaveProperty('revalidated', true);
+      expect(data).toHaveProperty('tags');
+      expect(data).toHaveProperty('paths');
+      expect(data).toHaveProperty('algoliaIndexed');
+      expect(data).toHaveProperty('timestamp');
+      expect(typeof data.timestamp).toBe('number');
+    });
+  });
+});
