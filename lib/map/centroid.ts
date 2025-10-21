@@ -23,7 +23,7 @@ export function polygons(element: string, svgDocument: Document): SVGPoint[] {
   return points;
 }
 
-export function area(pts: SVGPoint[]): number {
+export function area(pts: Point[]): number {
   let area = 0;
   const nPts = pts.length;
   let j = nPts - 1;
@@ -40,7 +40,7 @@ export function area(pts: SVGPoint[]): number {
   return area;
 };
 
-export function computeCentroid(pts: SVGPoint[]) {
+export function computeCentroid(pts: Point[]) {
     const nPts = pts.length;
     let x=0; let y=0;
     let f;
