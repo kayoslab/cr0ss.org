@@ -15,7 +15,10 @@ vi.mock('@/lib/db/client', () => {
     // Return a promise by default
     return Promise.resolve([{ d: '2025-01-01' }]);
   });
-  sqlMock.unsafe = vi.fn((query: string) => query);
+  // Add unsafe as a property
+  Object.assign(sqlMock, {
+    unsafe: vi.fn((query: string) => query),
+  });
 
   return {
     sql: sqlMock,
@@ -38,7 +41,7 @@ import { revalidateDashboard } from '@/lib/cache/revalidate';
 describe('GET /api/habits/day', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(rateLimit).mockResolvedValue({ ok: true, retryAfterSec: 0 });
+    vi.mocked(rateLimit).mockResolvedValue({ ok: true });
     vi.mocked(assertSecret).mockImplementation(() => {});
   });
 
@@ -128,7 +131,7 @@ describe('GET /api/habits/day', () => {
 describe('POST /api/habits/day', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(rateLimit).mockResolvedValue({ ok: true, retryAfterSec: 0 });
+    vi.mocked(rateLimit).mockResolvedValue({ ok: true });
     vi.mocked(assertSecret).mockImplementation(() => {});
     vi.mocked(revalidateDashboard).mockImplementation(() => {});
   });
