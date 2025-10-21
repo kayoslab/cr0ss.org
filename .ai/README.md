@@ -13,6 +13,7 @@ These documents ensure consistency, quality, and adherence to established patter
 - **[tech-stack.md](tech-stack.md)** - Technology choices and when to use them
 - **[api-patterns.md](api-patterns.md)** - API route design patterns and conventions
 - **[component-patterns.md](component-patterns.md)** - React component patterns and organization
+- **[database-patterns.md](database-patterns.md)** - Database query patterns, migrations, and JSONB usage
 - **[testing.md](testing.md)** - Testing approach and requirements
 - **[security.md](security.md)** - Security guidelines and requirements
 

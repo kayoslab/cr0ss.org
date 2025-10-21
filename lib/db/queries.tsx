@@ -305,8 +305,10 @@ export async function qRunningMonthlyProgress() {
         WHERE month = m.month_start AND kind = 'running_distance_km'
       ), 0)::numeric                                             AS target_km,
       coalesce((
-        SELECT sum(distance_km) FROM runs
-        WHERE date >= m.month_start AND date < (m.month_start + interval '1 month')
+        SELECT sum((details->>'distance_km')::numeric) FROM workouts
+        WHERE workout_type = 'running'
+          AND date >= m.month_start AND date < (m.month_start + interval '1 month')
+          AND details ? 'distance_km'
       ), 0)::numeric                                             AS total_km
     FROM m
   `;
@@ -325,8 +327,11 @@ export async function qRunningMonthlyProgress() {
 
 export async function qPaceLastRuns(limit=10) {
   const rows = await sql/*sql*/`
-    select to_char(date,'YYYY-MM-DD') as date, coalesce(avg_pace_sec_per_km,0)::int as avg_pace_sec_per_km
-    from runs
+    select to_char(date,'YYYY-MM-DD') as date,
+           coalesce((details->>'avg_pace_sec_per_km')::int, 0) as avg_pace_sec_per_km
+    from workouts
+    where workout_type = 'running'
+      and details ? 'avg_pace_sec_per_km'
     order by date desc
     limit ${limit}
   `;
@@ -342,9 +347,11 @@ export async function qRunningHeatmap(days = 42) {
 
   const rows = await sql/*sql*/`
     select to_char(date,'YYYY-MM-DD') as date,
-           coalesce(sum(distance_km),0)::numeric as km
-    from runs
-    where date >= ${startStr}::date
+           coalesce(sum((details->>'distance_km')::numeric),0)::numeric as km
+    from workouts
+    where workout_type = 'running'
+      and date >= ${startStr}::date
+      and details ? 'distance_km'
     group by date
   `;
   const byDate = new Map(rows.map((r:any) => [r.date, Number(r.km)]));

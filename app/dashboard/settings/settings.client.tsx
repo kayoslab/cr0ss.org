@@ -142,11 +142,14 @@ type CoffeeLogPayload = {
   coffee_cf_id?: string | null; // "0" for None (treated as no link)
 };
 
-type RunPayload = {
+type WorkoutPayload = {
   date: string; // YYYY-MM-DD
-  distance_km: number;
+  workout_type: 'running' | 'climbing' | 'bouldering' | 'rowing' | 'cycling' | 'hiking' | 'strength' | 'other';
   duration_min: number;
-  avg_pace_sec_per_km?: number;
+  intensity?: 'low' | 'moderate' | 'high' | 'max';
+  perceived_effort?: number; // 1-10
+  details?: Record<string, any>;
+  notes?: string;
 };
 
 type CoffeeRow = { id: string; name: string; roaster: string };
@@ -204,7 +207,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
   const [savingGoals, setSavingGoals] = useState(false);
   const [savingDay, setSavingDay] = useState(false);
   const [savingCoffee, setSavingCoffee] = useState(false);
-  const [savingRun, setSavingRun] = useState(false);
+  const [savingWorkout, setSavingWorkout] = useState(false);
 
   // data models
   const [body, setBody] = useState<BodyProfile | null>(null);
@@ -240,11 +243,39 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
   const [amount, setAmount] = useState<number>(methodDefaults.espresso);
   const [coffeeId, setCoffeeId] = useState<string>(""); // Contentful ID; "0" when None
 
-  // run form
-  const [runDate, setRunDate] = useState<string>(todayStr);
-  const [distanceKm, setDistanceKm] = useState<number>(0);
+  // workout form - common fields
+  const [workoutDate, setWorkoutDate] = useState<string>(todayStr);
+  const [workoutType, setWorkoutType] = useState<WorkoutPayload['workout_type']>('running');
   const [durationMin, setDurationMin] = useState<number>(0);
+  const [intensity, setIntensity] = useState<WorkoutPayload['intensity']>('moderate');
+  const [perceivedEffort, setPerceivedEffort] = useState<number>(5);
+  const [workoutNotes, setWorkoutNotes] = useState<string>('');
+
+  // workout form - type-specific fields (stored in details)
+  const [distanceKm, setDistanceKm] = useState<number>(0);
+  const [elevationGainM, setElevationGainM] = useState<number>(0);
   const [paceSec, setPaceSec] = useState<number>(0);
+  const [avgHeartRate, setAvgHeartRate] = useState<number>(0);
+
+  // rowing-specific
+  const [distanceM, setDistanceM] = useState<number>(0);
+  const [strokes, setStrokes] = useState<number>(0);
+  const [avgPower, setAvgPower] = useState<number>(0);
+
+  // climbing-specific
+  const [grade, setGrade] = useState<string>('');
+  const [pitches, setPitches] = useState<number>(0);
+  const [climbingStyle, setClimbingStyle] = useState<string>('lead');
+  const [location, setLocation] = useState<string>('');
+  const [indoor, setIndoor] = useState<boolean>(true);
+
+  // bouldering-specific
+  const [problems, setProblems] = useState<number>(0);
+  const [maxGrade, setMaxGrade] = useState<string>('');
+  const [sends, setSends] = useState<number>(0);
+
+  // strength-specific
+  const [exercisesJson, setExercisesJson] = useState<string>('');
 
   // load secret from localStorage
   useEffect(() => {
@@ -453,26 +484,92 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
     }
   }
 
-  async function submitRun(e?: React.FormEvent) {
+  async function submitWorkout(e?: React.FormEvent) {
     e?.preventDefault();
     if (!secretOK) return setMsg("Enter a valid secret first.");
-    setSavingRun(true);
+    setSavingWorkout(true);
     try {
-      const payload: RunPayload = {
-        date: runDate,
-        distance_km: Number(distanceKm) || 0,
+      const details: Record<string, any> = {};
+
+      // Build details object based on workout type
+      if (workoutType === 'running') {
+        if (distanceKm > 0) details.distance_km = distanceKm;
+        if (elevationGainM > 0) details.elevation_gain_m = elevationGainM;
+        if (paceSec > 0) details.avg_pace_sec_per_km = paceSec;
+        if (avgHeartRate > 0) details.avg_heart_rate = avgHeartRate;
+      } else if (workoutType === 'rowing') {
+        if (distanceM > 0) details.distance_m = distanceM;
+        if (strokes > 0) details.strokes = strokes;
+        if (avgPower > 0) details.avg_power_watts = avgPower;
+        if (avgHeartRate > 0) details.avg_heart_rate = avgHeartRate;
+      } else if (workoutType === 'cycling') {
+        if (distanceKm > 0) details.distance_km = distanceKm;
+        if (elevationGainM > 0) details.elevation_gain_m = elevationGainM;
+        if (avgHeartRate > 0) details.avg_heart_rate = avgHeartRate;
+      } else if (workoutType === 'hiking') {
+        if (distanceKm > 0) details.distance_km = distanceKm;
+        if (elevationGainM > 0) details.elevation_gain_m = elevationGainM;
+        if (location) details.location = location;
+      } else if (workoutType === 'climbing') {
+        if (grade) details.grade = grade;
+        if (pitches > 0) details.pitches = pitches;
+        if (climbingStyle) details.style = climbingStyle;
+        if (location) details.location = location;
+        details.indoor = indoor;
+      } else if (workoutType === 'bouldering') {
+        if (problems > 0) details.problems = problems;
+        if (maxGrade) details.max_grade = maxGrade;
+        if (sends > 0) details.sends = sends;
+        details.indoor = indoor;
+        if (location) details.location = location;
+      } else if (workoutType === 'strength') {
+        if (exercisesJson) {
+          try {
+            details.exercises = JSON.parse(exercisesJson);
+          } catch {
+            setMsg("Invalid JSON in exercises field");
+            setSavingWorkout(false);
+            return;
+          }
+        }
+      }
+
+      const payload: WorkoutPayload = {
+        date: workoutDate,
+        workout_type: workoutType,
         duration_min: Number(durationMin) || 0,
-        avg_pace_sec_per_km: Number(paceSec) || undefined,
+        intensity,
+        perceived_effort: perceivedEffort > 0 ? Number(perceivedEffort) : undefined,
+        details: Object.keys(details).length > 0 ? details : undefined,
+        notes: workoutNotes || undefined,
       };
-      const res = await jfetch("/api/habits/run", { method: "POST", body: JSON.stringify(payload) }, secret);
+
+      const res = await jfetch("/api/habits/workout", { method: "POST", body: JSON.stringify(payload) }, secret);
       if (res.ok) {
-        setMsg("Run logged.");
-        setDistanceKm(0);
+        setMsg(`${workoutType.charAt(0).toUpperCase() + workoutType.slice(1)} logged.`);
+        // Reset common fields
         setDurationMin(0);
+        setWorkoutNotes('');
+        setIntensity('moderate');
+        setPerceivedEffort(5);
+        // Reset type-specific fields
+        setDistanceKm(0);
+        setElevationGainM(0);
         setPaceSec(0);
-      } else setMsg(res.error || "Failed to log run.");
+        setAvgHeartRate(0);
+        setDistanceM(0);
+        setStrokes(0);
+        setAvgPower(0);
+        setGrade('');
+        setPitches(0);
+        setLocation('');
+        setProblems(0);
+        setMaxGrade('');
+        setSends(0);
+        setExercisesJson('');
+      } else setMsg(res.error || "Failed to log workout.");
     } finally {
-      setSavingRun(false);
+      setSavingWorkout(false);
     }
   }
 
@@ -851,38 +948,203 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         </form>
       </Card>
 
-      {/* Log Run */}
+      {/* Log Workout */}
       <Card
-        title="Log Run"
+        title="Log Workout"
         footer={
           <button
             type="submit"
-            form="form-run"
+            form="form-workout"
             {...blurOnMouseDown}
             className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50 flex items-center gap-2"
-            disabled={!secretOK || savingRun}
+            disabled={!secretOK || savingWorkout}
           >
-            {savingRun && <Spinner className="text-black/80" />}
-            {savingRun ? "Saving…" : "Save Run"}
+            {savingWorkout && <Spinner className="text-black/80" />}
+            {savingWorkout ? "Saving…" : "Save Workout"}
           </button>
         }
       >
         <form
-          id="form-run"
-          onSubmit={submitRun}
-          onKeyDown={makeFormHotkeys(() => submitRun())}
+          id="form-workout"
+          onSubmit={submitWorkout}
+          onKeyDown={makeFormHotkeys(() => submitWorkout())}
           className="grid grid-cols-2 gap-4"
         >
           <Field
             label="Date"
             type="date"
-            value={runDate}
-            onChange={(e)=>setRunDate((e.target as HTMLInputElement).value)}
+            value={workoutDate}
+            onChange={(e)=>setWorkoutDate((e.target as HTMLInputElement).value)}
             onKeyDown={(e)=>{ if (e.key === "Escape") (e.currentTarget as HTMLInputElement).blur(); }}
           />
-          <NumField label="Distance (km)" value={distanceKm} onCommit={setDistanceKm} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitRun(), step: 0.5 })}/>
-          <NumField label="Duration (min)" value={durationMin} onCommit={setDurationMin} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitRun(), step: 1 })}/>
-          <NumField label="Pace (sec/km)" value={paceSec} onCommit={setPaceSec} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitRun(), step: 5 })}/>
+          <SelectField label="Type" value={workoutType} onChange={(v)=>setWorkoutType(v as WorkoutPayload['workout_type'])}>
+            <option value="running">Running</option>
+            <option value="climbing">Climbing</option>
+            <option value="bouldering">Bouldering</option>
+            <option value="rowing">Rowing</option>
+            <option value="cycling">Cycling</option>
+            <option value="hiking">Hiking</option>
+            <option value="strength">Strength</option>
+            <option value="other">Other</option>
+          </SelectField>
+          <NumField label="Duration (min)" value={durationMin} onCommit={setDurationMin} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitWorkout(), step: 1 })}/>
+          <SelectField label="Intensity" value={intensity || 'moderate'} onChange={(v)=>setIntensity(v as WorkoutPayload['intensity'])}>
+            <option value="low">Low</option>
+            <option value="moderate">Moderate</option>
+            <option value="high">High</option>
+            <option value="max">Max</option>
+          </SelectField>
+          <NumField label="Effort (1-10)" value={perceivedEffort} onCommit={setPerceivedEffort} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitWorkout(), step: 1 })}/>
+
+          {/* Running-specific fields */}
+          {workoutType === 'running' && (
+            <>
+              <NumField label="Distance (km)" value={distanceKm} onCommit={setDistanceKm} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitWorkout(), step: 0.5 })}/>
+              <NumField label="Elevation (m)" value={elevationGainM} onCommit={setElevationGainM} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitWorkout(), step: 10 })}/>
+              <NumField label="Pace (sec/km)" value={paceSec} onCommit={setPaceSec} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitWorkout(), step: 5 })}/>
+              <NumField label="Avg HR (bpm)" value={avgHeartRate} onCommit={setAvgHeartRate} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitWorkout(), step: 1 })}/>
+            </>
+          )}
+
+          {/* Rowing-specific fields */}
+          {workoutType === 'rowing' && (
+            <>
+              <NumField label="Distance (m)" value={distanceM} onCommit={setDistanceM} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitWorkout(), step: 100 })}/>
+              <NumField label="Strokes" value={strokes} onCommit={setStrokes} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitWorkout(), step: 10 })}/>
+              <NumField label="Avg Power (W)" value={avgPower} onCommit={setAvgPower} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitWorkout(), step: 5 })}/>
+              <NumField label="Avg HR (bpm)" value={avgHeartRate} onCommit={setAvgHeartRate} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitWorkout(), step: 1 })}/>
+            </>
+          )}
+
+          {/* Cycling-specific fields */}
+          {workoutType === 'cycling' && (
+            <>
+              <NumField label="Distance (km)" value={distanceKm} onCommit={setDistanceKm} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitWorkout(), step: 1 })}/>
+              <NumField label="Elevation (m)" value={elevationGainM} onCommit={setElevationGainM} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitWorkout(), step: 10 })}/>
+              <NumField label="Avg HR (bpm)" value={avgHeartRate} onCommit={setAvgHeartRate} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitWorkout(), step: 1 })}/>
+            </>
+          )}
+
+          {/* Hiking-specific fields */}
+          {workoutType === 'hiking' && (
+            <>
+              <NumField label="Distance (km)" value={distanceKm} onCommit={setDistanceKm} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitWorkout(), step: 0.5 })}/>
+              <NumField label="Elevation (m)" value={elevationGainM} onCommit={setElevationGainM} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitWorkout(), step: 10 })}/>
+              <Field
+                label="Location"
+                type="text"
+                value={location}
+                onChange={(e)=>setLocation((e.target as HTMLInputElement).value)}
+                onKeyDown={(e)=>{ if (e.key === "Escape") (e.currentTarget as HTMLInputElement).blur(); }}
+              />
+            </>
+          )}
+
+          {/* Climbing-specific fields */}
+          {workoutType === 'climbing' && (
+            <>
+              <Field
+                label="Grade (e.g. 6b+)"
+                type="text"
+                value={grade}
+                onChange={(e)=>setGrade((e.target as HTMLInputElement).value)}
+                onKeyDown={(e)=>{ if (e.key === "Escape") (e.currentTarget as HTMLInputElement).blur(); }}
+              />
+              <NumField label="Pitches" value={pitches} onCommit={setPitches} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitWorkout(), step: 1 })}/>
+              <SelectField label="Style" value={climbingStyle} onChange={setClimbingStyle}>
+                <option value="lead">Lead</option>
+                <option value="top_rope">Top Rope</option>
+                <option value="multi_pitch">Multi-pitch</option>
+              </SelectField>
+              <Field
+                label="Location"
+                type="text"
+                value={location}
+                onChange={(e)=>setLocation((e.target as HTMLInputElement).value)}
+                onKeyDown={(e)=>{ if (e.key === "Escape") (e.currentTarget as HTMLInputElement).blur(); }}
+              />
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={indoor}
+                  onChange={(e)=>setIndoor(e.target.checked)}
+                  className="rounded border-neutral-300 dark:border-neutral-700"
+                />
+                <Label>Indoor</Label>
+              </div>
+            </>
+          )}
+
+          {/* Bouldering-specific fields */}
+          {workoutType === 'bouldering' && (
+            <>
+              <NumField label="Problems" value={problems} onCommit={setProblems} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitWorkout(), step: 1 })}/>
+              <Field
+                label="Max Grade (e.g. V5)"
+                type="text"
+                value={maxGrade}
+                onChange={(e)=>setMaxGrade((e.target as HTMLInputElement).value)}
+                onKeyDown={(e)=>{ if (e.key === "Escape") (e.currentTarget as HTMLInputElement).blur(); }}
+              />
+              <NumField label="Sends" value={sends} onCommit={setSends} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitWorkout(), step: 1 })}/>
+              <Field
+                label="Location/Gym"
+                type="text"
+                value={location}
+                onChange={(e)=>setLocation((e.target as HTMLInputElement).value)}
+                onKeyDown={(e)=>{ if (e.key === "Escape") (e.currentTarget as HTMLInputElement).blur(); }}
+              />
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={indoor}
+                  onChange={(e)=>setIndoor(e.target.checked)}
+                  className="rounded border-neutral-300 dark:border-neutral-700"
+                />
+                <Label>Indoor</Label>
+              </div>
+            </>
+          )}
+
+          {/* Strength-specific fields */}
+          {workoutType === 'strength' && (
+            <div className="col-span-2">
+              <Label>Exercises (JSON)</Label>
+              <textarea
+                value={exercisesJson}
+                onChange={(e)=>setExercisesJson(e.target.value)}
+                onKeyDown={(e)=>{
+                  if (e.key === "Escape") (e.currentTarget as HTMLTextAreaElement).blur();
+                }}
+                className={cls(
+                  "w-full rounded-md border border-neutral-300 dark:border-neutral-700",
+                  "bg-white dark:bg-slate-950 px-3 py-2 min-h-[80px] font-mono text-xs"
+                )}
+                placeholder='[{"name": "Squat", "sets": 3, "reps": 8, "weight_kg": 100}]'
+              />
+            </div>
+          )}
+
+          <div className="col-span-2">
+            <Label>Notes</Label>
+            <textarea
+              value={workoutNotes}
+              onChange={(e)=>setWorkoutNotes(e.target.value)}
+              onKeyDown={(e)=>{
+                if (e.key === "Escape") (e.currentTarget as HTMLTextAreaElement).blur();
+                if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                  e.preventDefault();
+                  (document.activeElement as HTMLElement | null)?.blur();
+                  submitWorkout();
+                }
+              }}
+              className={cls(
+                "w-full rounded-md border border-neutral-300 dark:border-neutral-700",
+                "bg-white dark:bg-slate-950 px-3 py-2 min-h-[60px]"
+              )}
+              placeholder="Optional notes about the workout..."
+            />
+          </div>
         </form>
       </Card>
 
