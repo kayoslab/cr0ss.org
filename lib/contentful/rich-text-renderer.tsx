@@ -73,17 +73,18 @@ export const BLOG_ARTICLE_STYLES: RichTextStyleConfig = {
  * Default styles for regular pages
  */
 export const PAGE_STYLES: RichTextStyleConfig = {
-  heading1: 'font-bold text-5xl mb-4 dark:text-white',
-  heading2: 'font-bold text-2xl mb-4 dark:text-white',
-  heading3: 'font-bold text-xl mb-4 dark:text-white',
-  heading4: 'font-bold text-lg mb-4 dark:text-white',
-  heading5: 'font-bold text-lg mb-4 dark:text-white',
-  heading6: 'font-bold text-lg mb-4 dark:text-white',
-  paragraph: 'mb-2 text-slate-700 dark:text-slate-200',
-  ulList: 'list-disc dark:text-slate-200',
-  olList: 'list-decimal dark:text-slate-200',
-  listItem: 'my-4',
-  hyperlink: 'text-blue-600 hover:underline',
+  heading1: 'font-bold text-5xl mt-12 mb-6 dark:text-white',
+  heading2: 'font-bold text-3xl mt-10 mb-5 dark:text-white',
+  heading3: 'font-bold text-2xl mt-8 mb-4 dark:text-white',
+  heading4: 'font-bold text-xl mt-6 mb-3 dark:text-white',
+  heading5: 'font-bold text-lg mt-6 mb-3 dark:text-white',
+  heading6: 'font-bold text-base mt-6 mb-3 dark:text-white',
+  paragraph: 'mb-6 leading-relaxed text-slate-700 dark:text-slate-200',
+  quote: 'border-l-4 border-gray-300 dark:border-gray-700 pl-4 my-6 italic text-gray-700 dark:text-gray-300',
+  ulList: 'list-disc dark:text-slate-200 list-style-position:outside ms-4',
+  olList: 'list-decimal dark:text-slate-200 list-style-position:outside ms-4',
+  listItem: 'my-4 list-style-position:outside ms-4',
+  hyperlink: 'text-gray-700 dark:text-gray-300 underline decoration-gray-700/30 dark:decoration-gray-300/30 hover:decoration-gray-700 dark:hover:decoration-gray-300 transition-all duration-200',
 };
 
 /**
