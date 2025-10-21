@@ -251,7 +251,7 @@ describe('centroid calculations', () => {
     it('should handle single point (degenerate case)', () => {
       const point: Point[] = [{ x: 5, y: 10 }];
 
-      const [cx, cy] = computeCentroid(point);
+      const [cx] = computeCentroid(point);
 
       // When area is 0, result will be NaN or Infinity
       // This is expected behavior for degenerate case
@@ -264,7 +264,7 @@ describe('centroid calculations', () => {
         { x: 10, y: 10 },
       ];
 
-      const [cx, cy] = computeCentroid(segment);
+      const [cx] = computeCentroid(segment);
 
       // When area is 0, result will be NaN or Infinity
       // This is expected behavior for degenerate case

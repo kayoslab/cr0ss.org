@@ -5,7 +5,6 @@ import {
   DEFAULT_MG_PER_ML,
   DEFAULT_SHOT_ML,
   type BrewEvent,
-  type CaffeineOptions,
 } from './caffeine';
 import type { BodyProfile } from '@/lib/user/profile';
 
@@ -21,7 +20,6 @@ describe('caffeine modeling', () => {
     sex: 'male',
     body_fat_percentage: null,
     muscle_percentage: null,
-    notes: null,
   };
 
   describe('modelCaffeine', () => {
