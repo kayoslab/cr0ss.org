@@ -1,9 +1,11 @@
 export const runtime = "edge";
+export const revalidate = 300; // Revalidate every 5 minutes (300 seconds)
 
 import { rateLimit } from "@/lib/rate/limit";
 import { wrapTrace } from "@/lib/obs/trace";
 import { NextResponse } from "next/server";
 import { ZDashboard } from "@/lib/api/dashboard";
+import { unstable_cache } from "next/cache";
 
 import {
   startOfBerlinDayISO,
@@ -29,6 +31,52 @@ import {
 import { getBodyProfile } from "@/lib/user/profile";
 import { modelCaffeine } from "@/lib/phys/caffeine";
 import { assertSecret } from "@/lib/auth/secret";
+
+// Cache wrapper for dashboard data with "dashboard" tag
+const getCachedDashboardData = unstable_cache(
+  async () => {
+    const [
+      cupsToday,
+      brewMethodsToday,
+      origins7d,
+      habitsToday,
+      consistency,
+      writingVsFocus,
+      runningProgress,
+      paceSeries,
+      runningHeatmap,
+      body,
+    ] = await Promise.all([
+      qCupsToday(),
+      qBrewMethodsToday(),
+      qCoffeeOriginThisWeek(),
+      qHabitsToday(),
+      qHabitConsistencyThisWeek(),
+      qWritingVsFocusTrend(14),
+      qRunningMonthlyProgress(),
+      qPaceLastRuns(10),
+      qRunningHeatmap(42),
+      getBodyProfile(),
+    ]);
+    return {
+      cupsToday,
+      brewMethodsToday,
+      origins7d,
+      habitsToday,
+      consistency,
+      writingVsFocus,
+      runningProgress,
+      paceSeries,
+      runningHeatmap,
+      body,
+    };
+  },
+  ['dashboard-data'], // cache key
+  {
+    tags: ['dashboard'], // cache tag that can be revalidated
+    revalidate: 300, // 5 minutes
+  }
+);
 
 // Helper to slice events for a given window (inclusive start, exclusive end)
 function eventsBetween(events: Array<{ time: string, type: string, amount_ml: number }>, startISO: string, endISO: string) {
@@ -56,29 +104,19 @@ export const GET = wrapTrace("GET /api/dashboard", async (req: Request) => {
       });
     }
 
-    const [
-        cupsToday,
-        brewMethodsToday,
-        origins7d,
-        habitsToday,
-        consistency,
-        writingVsFocus,
-        runningProgress,
-        paceSeries,
-        runningHeatmap,
-        body,,
-    ] = await Promise.all([
-        qCupsToday(),
-        qBrewMethodsToday(),
-        qCoffeeOriginThisWeek(),
-        qHabitsToday(),
-        qHabitConsistencyThisWeek(),
-        qWritingVsFocusTrend(14),
-        qRunningMonthlyProgress(),
-        qPaceLastRuns(10),
-        qRunningHeatmap(42),
-        getBodyProfile(),
-    ]);
+    // Get cached dashboard data
+    const {
+      cupsToday,
+      brewMethodsToday,
+      origins7d,
+      habitsToday,
+      consistency,
+      writingVsFocus,
+      runningProgress,
+      paceSeries,
+      runningHeatmap,
+      body,
+    } = await getCachedDashboardData();
 
     // Caffeine model for today (00:00-24:00 Berlin time + lookback for decay calculation):
     const startISO = startOfBerlinDayISO();  // Today 00:00 Berlin (in UTC)

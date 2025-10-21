@@ -3,6 +3,7 @@ export const runtime = "edge";
 import { NextResponse } from 'next/server';
 import { kv } from "@vercel/kv";
 import { env } from '@/env';
+import { revalidateDashboard } from '@/lib/cache/revalidate';
 
 export async function POST(request: Request) {
   const requestHeaders = new Headers(request.headers);
@@ -28,6 +29,7 @@ export async function POST(request: Request) {
 
   if (!storedLocation) {
     await kv.set(locationKey, currentLocation);
+    revalidateDashboard();
     return NextResponse.json({ revalidated: true, now: Date.now() });
   } else {
     const distance = distanceInKmBetweenEarthCoordinates(
@@ -39,6 +41,7 @@ export async function POST(request: Request) {
 
     if (distance > locationThreshold) {
       await kv.set(locationKey, currentLocation);
+      revalidateDashboard();
       return NextResponse.json({ revalidated: true, now: Date.now() });
     } else {
       return NextResponse.json({ revalidated: false, now: Date.now() });

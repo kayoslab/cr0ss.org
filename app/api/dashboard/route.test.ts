@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET } from './route';
 
+// Mock next/cache
+vi.mock('next/cache', () => ({
+  unstable_cache: vi.fn((fn) => fn), // Pass through the function
+}));
+
 // Mock dependencies
 vi.mock('@/lib/rate/limit', () => ({
   rateLimit: vi.fn(),
