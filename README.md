@@ -2,7 +2,7 @@
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/kayoslab/cr0ss.org)
 
-Personal and professional website of Simon Krüger, built with Next.js 14, TypeScript, and Contentful CMS. Features a blog, personal dashboard with habit tracking, travel map, and more.
+Personal and professional website of Simon Krüger, built with Next.js 15, TypeScript, and Contentful CMS. Features a blog, personal dashboard with habit tracking, caffeine metabolism modeling, travel map, and more.
 
 🌐 **Live Site:** [cr0ss.org](https://cr0ss.org)
 
@@ -25,7 +25,8 @@ Personal and professional website of Simon Krüger, built with Next.js 14, TypeS
 
 ### 📊 **Personal Dashboard**
 - **Habit Tracking** - Coffee consumption, running, body metrics, writing goals
-- **Interactive Charts** - Built with Tremor React components
+- **Caffeine Metabolism Modeling** - Real-time caffeine tracking with pharmacokinetic calculations
+- **Interactive Charts** - Built with Tremor React and Recharts components
 - **PostgreSQL Database** - Powered by Neon serverless Postgres
 - **Rate-Limited API** - Secure endpoints with Redis-based rate limiting
 
@@ -44,10 +45,10 @@ Personal and professional website of Simon Krüger, built with Next.js 14, TypeS
 ## 🛠️ Tech Stack
 
 ### **Core**
-- **[Next.js 14](https://nextjs.org/)** - React framework with App Router
-- **[TypeScript](https://www.typescriptlang.org/)** - Type-safe development
-- **[Tailwind CSS](https://tailwindcss.com/)** - Utility-first CSS framework
-- **[React 18](https://react.dev/)** - Latest React with Server Components
+- **[Next.js 15](https://nextjs.org/)** - React framework with App Router
+- **[TypeScript 5.9](https://www.typescriptlang.org/)** - Type-safe development with strict mode
+- **[Tailwind CSS 4](https://tailwindcss.com/)** - Utility-first CSS framework
+- **[React 19](https://react.dev/)** - Latest React with Server Components
 
 ### **Content & Data**
 - **[Contentful](https://www.contentful.com/)** - Headless CMS for content management
@@ -62,13 +63,13 @@ Personal and professional website of Simon Krüger, built with Next.js 14, TypeS
 - **[React Syntax Highlighter](https://github.com/react-syntax-highlighter/react-syntax-highlighter)** - Code syntax highlighting
 
 ### **Developer Tools**
-- **[Zod](https://zod.dev/)** - Schema validation
+- **[Zod 4](https://zod.dev/)** - Runtime type validation and schema parsing
 - **[T3 Env](https://env.t3.gg/)** - Type-safe environment variables
-- **[Prettier](https://prettier.io/)** - Code formatting
-- **[ESLint](https://eslint.org/)** - Linting
-- **[Vitest](https://vitest.dev/)** - Fast, modern test runner
+- **[Prettier](https://prettier.io/)** - Code formatting with Tailwind plugin
+- **[ESLint 9](https://eslint.org/)** - Linting with flat config
+- **[Vitest](https://vitest.dev/)** - Fast, modern test runner with native TypeScript support
 - **[Testing Library](https://testing-library.com/)** - User-centric component testing
-- **[MSW](https://mswjs.io/)** - API mocking for tests
+- **[MSW 2](https://mswjs.io/)** - API mocking at network level for tests
 
 ### **Deployment & Analytics**
 - **[Vercel](https://vercel.com/)** - Deployment and hosting
@@ -112,12 +113,25 @@ cr0ss.org/
 │   │   └── rich-text-renderer.tsx  # Rich text rendering
 │   ├── db/                     # Database queries and models
 │   ├── algolia/                # Algolia integration
+│   ├── phys/                   # Physics models
+│   │   └── caffeine.tsx       # Pharmacokinetic caffeine modeling
+│   ├── map/                    # Geographic utilities
+│   │   └── centroid.ts        # Polygon centroid calculations
 │   ├── rate/                   # Rate limiting
-│   ├── time/                   # Timezone utilities
+│   ├── time/                   # Timezone utilities (Berlin timezone)
+│   ├── user/                   # User profile types
 │   ├── constants.ts            # Shared constants
-│   └── metadata.ts             # SEO metadata helpers
+│   ├── metadata.ts             # SEO metadata helpers
+│   └── validation.tsx          # Zod validation schemas
 │
 ├── hooks/                       # Custom React hooks
+├── test/                        # Test utilities and configuration
+│   ├── setup.ts                # Vitest global setup
+│   ├── utils.tsx               # Test helpers (render, etc.)
+│   └── mocks/                  # MSW mock handlers
+├── .claude/                     # AI agent documentation
+│   ├── README.md               # Project context for Claude
+│   └── docs/                   # Detailed documentation
 ├── docs/                        # Documentation
 │   └── REVALIDATION.md         # Cache revalidation guide
 ├── db/migrations/               # Database migration scripts
@@ -130,8 +144,8 @@ cr0ss.org/
 
 ### **Prerequisites**
 
-- Node.js 18+
-- npm, yarn, pnpm, or bun
+- Node.js 24+ (tested on v24.9.0)
+- pnpm 10+ (package manager - tested on v10.18.0)
 - Contentful account
 - Vercel account (for deployment)
 - Neon database (for habits tracking)
@@ -147,7 +161,7 @@ cr0ss.org/
 
 2. **Install dependencies**
    ```bash
-   npm install
+   pnpm install
    ```
 
 3. **Set up environment variables**
@@ -158,7 +172,9 @@ cr0ss.org/
    # Contentful
    CONTENTFUL_SPACE_ID=your_space_id
    CONTENTFUL_ACCESS_TOKEN=your_access_token
+   CONTENTFUL_ENVIRONMENT=master
    CONTENTFUL_PREVIEW_ACCESS_TOKEN=your_preview_token
+   CONTENTFUL_MANAGEMENT_TOKEN=your_management_token
    CONTENTFUL_REVALIDATE_SECRET=your_webhook_secret  # Used for all Contentful webhooks
 
    # Database (Neon)
@@ -168,6 +184,7 @@ cr0ss.org/
    ALGOLIA_APP_ID=your_app_id
    ALGOLIA_ADMIN_KEY=your_admin_key
    ALGOLIA_SEARCH_KEY=your_search_key
+   ALGOLIA_INDEX=your_index_name
 
    # API Secrets
    DASHBOARD_API_SECRET=your_dashboard_secret
@@ -176,6 +193,9 @@ cr0ss.org/
    # Vercel KV (Redis)
    KV_REST_API_URL=your_kv_url
    KV_REST_API_TOKEN=your_kv_token
+
+   # Public URL
+   NEXT_PUBLIC_SITE_URL=http://localhost:3000
    ```
 
 4. **Run database migrations** (if using habits tracking)
@@ -187,13 +207,13 @@ cr0ss.org/
 
 5. **Set up Contentful** (optional)
    ```bash
-   npm run setup
+   pnpm setup
    ```
    This will create the necessary content types in Contentful.
 
 6. **Run the development server**
    ```bash
-   npm run dev
+   pnpm dev
    ```
 
 7. **Open [http://localhost:3000](http://localhost:3000)**
@@ -361,26 +381,26 @@ All API endpoints are rate-limited using Redis (Vercel KV):
 
 ```bash
 # Development
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run start        # Start production server
+pnpm dev          # Start development server
+pnpm build        # Build for production
+pnpm start        # Start production server
 
 # Code Quality
-npm run lint         # Run ESLint
-npm run format       # Check code formatting
-npm run format:fix   # Fix code formatting
+pnpm lint         # Run ESLint
+pnpm format       # Check code formatting
+pnpm format:fix   # Fix code formatting
 
 # Testing
-npm run test              # Run all tests
-npm run test:watch        # Run tests in watch mode
-npm run test:ui           # Run tests with UI
-npm run test:coverage     # Generate coverage report
-npm run test:coverage:ui  # View coverage report in UI
-npm run test:changed      # Run tests for changed files
-npm run test:ci           # Run tests in CI mode with coverage
+pnpm test              # Run all tests
+pnpm test:watch        # Run tests in watch mode
+pnpm test:ui           # Run tests with UI
+pnpm test:coverage     # Generate coverage report
+pnpm test:coverage:ui  # View coverage report in UI
+pnpm test:changed      # Run tests for changed files
+pnpm test:ci           # Run tests in CI mode with coverage
 
 # Contentful
-npm run setup        # Set up Contentful content types
+pnpm setup        # Set up Contentful content types
 ```
 
 ### **TypeScript**
@@ -433,17 +453,27 @@ The project uses [Vitest](https://vitest.dev/) and [Testing Library](https://tes
         └── server.ts     # Mock server setup
 ```
 
-#### **Coverage Goals**
-- **Business logic**: 90%+ coverage
-- **API routes**: 80%+ coverage
-- **Components**: 70%+ coverage
-- **Overall**: 75%+ coverage
+#### **Current Test Suite**
+- **7 test files** with **132 passing tests**
+- Tests co-located with source files (e.g., `caffeine.test.ts` next to `caffeine.tsx`)
+- MSW for API mocking at network level
+- jsdom environment for React component testing
+
+#### **Coverage Goals & Per-File Thresholds**
+The project uses per-file coverage thresholds instead of global ones to maintain high quality on tested code while allowing gradual expansion:
+
+- **`lib/phys/caffeine.tsx`**: 80% branches, 100% functions/lines/statements
+- **`lib/time/berlin.tsx`**: 82% branches, 90-94% other metrics
+- **`lib/map/centroid.ts`**: 60% (core functions tested)
+- **`lib/db/validation.tsx`**: 90% all metrics
+- **API routes**: 70-80% coverage
 
 #### **What's Tested**
-- ✅ **Core business logic** - Caffeine metabolism modeling, time utilities, data validation
-- ✅ **API routes** - Authentication, validation, error handling
-- ✅ **React components** - User interactions, accessibility, conditional rendering
-- ✅ **Integration tests** - External API mocking (Contentful, Algolia, Vercel KV)
+- ✅ **Core business logic** - Caffeine metabolism modeling (34 tests), timezone utilities (16 tests), data validation (24 tests)
+- ✅ **Geographic calculations** - Polygon centroids and area calculations (24 tests)
+- ✅ **API routes** - Authentication (4 tests), location tracking (21 tests)
+- ✅ **React components** - Dashboard sections (9 tests)
+- ✅ **Integration tests** - External API mocking (Contentful, Algolia, Vercel KV) via MSW
 
 #### **Running Tests**
 
@@ -464,10 +494,13 @@ pnpm test:coverage:ui
 #### **CI/CD**
 
 Tests run automatically on every push and pull request via GitHub Actions:
-- TypeScript type checking
-- ESLint validation
-- Full test suite with coverage
-- Build verification
+- ✅ **TypeScript type checking** (`pnpm tsc --noEmit`)
+- ✅ **ESLint validation** (`pnpm lint`)
+- ✅ **Full test suite** with coverage reporting (`pnpm test:ci`)
+- ✅ **Build verification** (`pnpm build`)
+- ✅ **Codecov integration** - Coverage reports uploaded to Codecov
+
+The workflow uses the **Production environment** for secrets and runs on **Node.js 20** with **pnpm 10**.
 
 See `.github/workflows/test.yml` for the complete CI configuration.
 
