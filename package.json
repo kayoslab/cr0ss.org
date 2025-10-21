@@ -63,6 +63,7 @@
     "@types/react-syntax-highlighter": "^15.5.13",
     "@types/rss": "^0.0.32",
     "@vitejs/plugin-react": "^5.0.4",
+    "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
     "autoprefixer": "^10.4.21",
     "contentful-import": "^9.4.122",
