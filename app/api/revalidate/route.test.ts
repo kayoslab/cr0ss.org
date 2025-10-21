@@ -11,14 +11,20 @@ vi.mock('@/lib/auth/secret', () => ({
   hasValidSecret: vi.fn(),
 }));
 
-vi.mock('@/lib/api/middleware', () => ({
-  createErrorResponse: vi.fn((message: string, status: number, _detail?: unknown, _code?: string) => {
-    return new Response(JSON.stringify({ message, status }), { status });
-  }),
-  createSuccessResponse: vi.fn((data: unknown) => {
-    return new Response(JSON.stringify(data), { status: 200 });
-  }),
-}));
+vi.mock('@/lib/api/middleware', () => {
+  const { NextResponse } = require('next/server');
+  return {
+    createErrorResponse: vi.fn((error: string, status: number, details?: unknown, code?: string) => {
+      const response: { error: string; details?: unknown; code?: string } = { error };
+      if (details !== undefined) response.details = details;
+      if (code) response.code = code;
+      return NextResponse.json(response, { status });
+    }),
+    createSuccessResponse: vi.fn((data: unknown, status: number = 200) => {
+      return NextResponse.json(data, { status });
+    }),
+  };
+});
 
 vi.mock('@/lib/contentful/api/blog', () => ({
   getBlog: vi.fn(),
@@ -72,6 +78,10 @@ describe('POST /api/revalidate', () => {
 
       expect(response.status).toBe(401);
       expect(hasValidSecret).toHaveBeenCalledWith(request);
+      
+      const data = await response.json();
+      expect(data.error).toBe('Unauthorized');
+      expect(data.code).toBe('UNAUTHORIZED');
     });
 
     it('should accept valid secret', async () => {
@@ -134,6 +144,20 @@ describe('POST /api/revalidate', () => {
 
   describe('Blog Post Revalidation', () => {
     it('should revalidate blog post tags and paths', async () => {
+      // Mock getBlog to return a valid blog post
+      const mockBlogPost = {
+        sys: { id: 'blog-456' },
+        slug: 'my-blog-post',
+        title: 'My Blog Post',
+        summary: 'A test blog post',
+        author: 'Test Author',
+        heroImage: { url: 'https://example.com/hero.jpg' },
+        categoriesCollection: {
+          items: [{ title: 'Technology' }],
+        },
+      };
+      vi.mocked(getBlog).mockResolvedValue(mockBlogPost as never);
+
       const request = new Request('http://localhost:3000/api/revalidate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -160,6 +184,7 @@ describe('POST /api/revalidate', () => {
       const data = await response.json();
       expect(data.tags).toEqual(['blogPosts', 'my-blog-post']);
       expect(data.paths).toEqual(['/blog', '/blog/my-blog-post']);
+      expect(data.algoliaIndexed).toBe(true);
     });
 
     it('should update Algolia index for blog posts', async () => {
@@ -327,6 +352,11 @@ describe('POST /api/revalidate', () => {
       expect(response.status).toBe(400);
       expect(revalidateTag).not.toHaveBeenCalled();
       expect(revalidatePath).not.toHaveBeenCalled();
+      
+      const data = await response.json();
+      expect(data.error).toBe('No revalidation targets determined from payload');
+      expect(data.code).toBe('MISSING_TARGETS');
+      expect(data.details).toEqual({ payload: {} });
     });
 
     it('should handle unknown content types', async () => {
@@ -354,6 +384,10 @@ describe('POST /api/revalidate', () => {
       const response = await POST(request);
 
       expect(response.status).toBe(500);
+      
+      const data = await response.json();
+      expect(data.error).toBe('Failed to revalidate');
+      expect(data.code).toBe('REVALIDATION_ERROR');
     });
   });
 
