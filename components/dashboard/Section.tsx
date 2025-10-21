@@ -15,16 +15,14 @@ export default function Section({
   const headingId = id ? `${id}-heading` : undefined;
 
   return (
-    <section id={id} aria-labelledby={headingId} className={clsx("relative", className)}>
-      <div className="sticky top-20 z-30" style={{ background: "inherit" }}>
-        <h2
-          id={headingId}
-          className="py-2 text-sm font-medium tracking-wide text-neutral-500 dark:text-neutral-400 border-b border-neutral-200/70 dark:border-neutral-700/60"
-        >
-          {title}
-        </h2>
-      </div>
-      <div className="mt-4">{children}</div>
+    <section id={id} aria-labelledby={headingId} className={className}>
+      <h2
+        id={headingId}
+        className="mb-4 text-base font-semibold text-neutral-700 dark:text-neutral-200"
+      >
+        {title}
+      </h2>
+      <div>{children}</div>
     </section>
   );
 }
