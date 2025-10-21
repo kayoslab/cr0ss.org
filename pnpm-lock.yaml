@@ -89,6 +89,9 @@ importers:
       vercel:
         specifier: ^48.4.1
         version: 48.4.1(rollup@4.52.5)
+      zod:
+        specifier: ^4.1.12
+        version: 4.1.12
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3.3.1
