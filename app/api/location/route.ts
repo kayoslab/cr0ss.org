@@ -10,19 +10,19 @@ const LOCATION_THRESHOLD_KM = 150;
 
 export async function POST(request: Request) {
   try {
-    // Use standard auth (same as other API routes)
     assertSecret(request);
 
     const storedLocation = await kv.get<{ lat: number; lon: number }>(LOCATION_KEY);
     const body = await request.json();
 
-    const lat = body.lat;
-    const lon = body.lon;
+    // Parse lat/lon as numbers (handles both string and number input)
+    const lat = typeof body.lat === 'string' ? parseFloat(body.lat) : body.lat;
+    const lon = typeof body.lon === 'string' ? parseFloat(body.lon) : body.lon;
 
     if (typeof lat !== 'number' || typeof lon !== 'number' || isNaN(lat) || isNaN(lon)) {
       return validationError('Invalid coordinates', {
-        lat: typeof lat === 'number' ? 'valid' : 'must be a number',
-        lon: typeof lon === 'number' ? 'valid' : 'must be a number',
+        lat: typeof lat === 'number' && !isNaN(lat) ? 'valid' : 'must be a valid number',
+        lon: typeof lon === 'number' && !isNaN(lon) ? 'valid' : 'must be a valid number',
       });
     }
 

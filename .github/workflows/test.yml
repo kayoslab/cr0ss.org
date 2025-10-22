@@ -65,7 +65,6 @@ jobs:
           KV_REST_API_URL: ${{ secrets.KV_REST_API_URL || 'http://localhost:8080' }}
           KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN || 'test-token' }}
           NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000' }}
-          LOCATION_API_SECRET: ${{ secrets.LOCATION_API_SECRET || 'test-location-secret' }}
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v4
@@ -132,4 +131,3 @@ jobs:
           KV_REST_API_URL: ${{ secrets.KV_REST_API_URL || 'http://localhost:8080' }}
           KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN || 'test-token' }}
           NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000' }}
-          LOCATION_API_SECRET: ${{ secrets.LOCATION_API_SECRET || 'test-location-secret' }}

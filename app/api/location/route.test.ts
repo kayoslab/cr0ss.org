@@ -139,7 +139,7 @@ describe('POST /api/location', () => {
       expect(data).toEqual({ error: 'Invalid coordinates', code: 'VALIDATION_ERROR', details: expect.any(Object) });
     });
 
-    it('should return 400 with string coordinates', async () => {
+    it('should accept valid string coordinates', async () => {
       const request = new Request('http://localhost:3000/api/location', {
         method: 'POST',
         headers: {
@@ -147,6 +147,24 @@ describe('POST /api/location', () => {
           'x-admin-secret': 'test-dashboard-secret',
         },
         body: JSON.stringify({ lat: '52.52', lon: '13.405' }),
+      });
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data).toHaveProperty('revalidated');
+      expect(data).toHaveProperty('now');
+    });
+
+    it('should return 400 with invalid string coordinates', async () => {
+      const request = new Request('http://localhost:3000/api/location', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-secret': 'test-dashboard-secret',
+        },
+        body: JSON.stringify({ lat: 'invalid', lon: 'invalid' }),
       });
 
       const response = await POST(request);

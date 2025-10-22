@@ -32,7 +32,6 @@ process.env.ALGOLIA_SEARCH_KEY = 'test-search-key';
 process.env.ALGOLIA_INDEX = 'test-index';
 process.env.KV_REST_API_URL = 'http://localhost:8080';
 process.env.KV_REST_API_TOKEN = 'test-token';
-process.env.LOCATION_API_SECRET = 'test-location-secret';
 process.env.NEXT_PUBLIC_SITE_URL = 'http://localhost:3000';
 
 // Mock Next.js specific modules that may not be available in test environment
