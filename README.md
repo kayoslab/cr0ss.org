@@ -188,7 +188,6 @@ cr0ss.org/
 
    # API Secrets
    DASHBOARD_API_SECRET=your_dashboard_secret
-   LOCATION_API_SECRET=your_location_secret
 
    # Vercel KV (Redis)
    KV_REST_API_URL=your_kv_url
