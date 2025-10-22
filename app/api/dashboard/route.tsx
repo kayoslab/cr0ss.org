@@ -1,11 +1,12 @@
 export const runtime = "edge";
 export const revalidate = 300; // Revalidate every 5 minutes (300 seconds)
 
-import { rateLimit } from "@/lib/rate/limit";
-import { wrapTrace } from "@/lib/obs/trace";
 import { NextResponse } from "next/server";
 import { ZDashboard } from "@/lib/api/dashboard";
 import { unstable_cache } from "next/cache";
+import { createApiRoute } from "@/lib/api/middleware";
+import { CACHE_TAGS, CACHE_KEYS } from "@/lib/constants/cache";
+import { RATE_LIMIT_BUCKETS } from "@/lib/constants/rate-limits";
 
 import {
   startOfBerlinDayISO,
@@ -30,7 +31,6 @@ import {
 } from "@/lib/db/queries";
 import { getBodyProfile } from "@/lib/user/profile";
 import { modelCaffeine } from "@/lib/phys/caffeine";
-import { assertSecret } from "@/lib/auth/secret";
 
 // Cache wrapper for dashboard data with "dashboard" tag
 const getCachedDashboardData = unstable_cache(
@@ -71,9 +71,9 @@ const getCachedDashboardData = unstable_cache(
       body,
     };
   },
-  ['dashboard-data'], // cache key
+  [CACHE_KEYS.DASHBOARD_DATA], // cache key
   {
-    tags: ['dashboard'], // cache tag that can be revalidated
+    tags: [CACHE_TAGS.DASHBOARD], // cache tag that can be revalidated
     revalidate: 300, // 5 minutes
   }
 );
@@ -86,24 +86,17 @@ function eventsBetween(events: Array<{ time: string, type: string, amount_ml: nu
     const t = Date.parse(ev.time);
     return t >= s && t < e;
   }).map((ev) => ({
-    timeISO: ev.time,       // modelCaffeine expects { timeISO, type, amount_ml }
+    timeISO: ev.time,
     type: ev.type,
     amount_ml: ev.amount_ml,
   }));
 }
 
-export const GET = wrapTrace("GET /api/dashboard", async (req: Request) => {
-  try {
-    assertSecret(req);
-
-    const rl = await rateLimit(req, "get-dashboard", { windowSec: 60, max: 10 });
-    if (!rl.ok) {
-      return new Response("Too many requests", {
-        status: 429,
-        headers: { "Retry-After": String(rl.retryAfterSec) },
-      });
-    }
-
+export const GET = createApiRoute()
+  .withAuth()
+  .withRateLimit(RATE_LIMIT_BUCKETS.GET_DASHBOARD, { windowSec: 60, max: 10 })
+  .withTrace("GET /api/dashboard")
+  .handle(async () => {
     // Get cached dashboard data
     const {
       cupsToday,
@@ -246,9 +239,4 @@ export const GET = wrapTrace("GET /api/dashboard", async (req: Request) => {
     }
 
     return NextResponse.json(parsed.data, { status: 200 });
-  } catch (e: unknown) {
-    const error = e as { status?: number; message?: string };
-    const status = error?.status ?? 500;
-    return NextResponse.json({ message: error?.message ?? "Failed" }, { status });
-  }
-});
+  });

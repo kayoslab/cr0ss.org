@@ -1,6 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET } from './route';
 
+// Mock constants
+vi.mock('@/lib/constants', () => ({
+  CACHE_TAGS: {
+    DASHBOARD: 'dashboard',
+  },
+  CACHE_KEYS: {
+    DASHBOARD_DATA: 'dashboard-data',
+  },
+  RATE_LIMIT_BUCKETS: {
+    GET_DASHBOARD: 'get-dashboard',
+  },
+  PATHS: {
+    DASHBOARD: '/dashboard',
+  },
+}));
+
 // Mock next/cache
 vi.mock('next/cache', () => ({
   unstable_cache: vi.fn((fn) => fn), // Pass through the function
@@ -160,7 +176,7 @@ describe('GET /api/dashboard', () => {
   describe('Authentication', () => {
     it('should require authentication', async () => {
       vi.mocked(assertSecret).mockImplementation(() => {
-        throw { status: 401, message: 'Unauthorized' };
+        throw new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
       });
 
       const request = new Request('http://localhost:3000/api/dashboard');
@@ -422,7 +438,8 @@ describe('GET /api/dashboard', () => {
 
       expect(response.status).toBe(500);
       const data = await response.json();
-      expect(data.message).toBeDefined();
+      expect(data.error).toBeDefined();
+      expect(data.code).toBe('INTERNAL_ERROR');
     });
 
     it('should handle body profile fetch errors', async () => {
@@ -443,8 +460,10 @@ describe('GET /api/dashboard', () => {
       expect(response.status).toBe(500);
     });
 
-    it('should preserve error status if provided', async () => {
-      vi.mocked(qCupsToday).mockRejectedValue({ status: 503, message: 'Service unavailable' });
+    it('should preserve error status if Response thrown', async () => {
+      vi.mocked(qCupsToday).mockRejectedValue(
+        new Response(JSON.stringify({ error: 'Service unavailable' }), { status: 503 })
+      );
 
       const request = new Request('http://localhost:3000/api/dashboard');
       const response = await GET(request);

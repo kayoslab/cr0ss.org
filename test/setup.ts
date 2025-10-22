@@ -22,6 +22,7 @@ afterAll(() => {
 // Mock environment variables
 process.env.DATABASE_URL = 'postgresql://test@localhost:5432/test';
 process.env.DASHBOARD_API_SECRET = 'test-secret';
+process.env.CONTENTFUL_REVALIDATE_SECRET = 'test-revalidate-secret';
 process.env.CONTENTFUL_SPACE_ID = 'test-space';
 process.env.CONTENTFUL_ACCESS_TOKEN = 'test-token';
 process.env.CONTENTFUL_ENVIRONMENT = 'test';
@@ -31,6 +32,7 @@ process.env.ALGOLIA_SEARCH_KEY = 'test-search-key';
 process.env.ALGOLIA_INDEX = 'test-index';
 process.env.KV_REST_API_URL = 'http://localhost:8080';
 process.env.KV_REST_API_TOKEN = 'test-token';
+process.env.LOCATION_API_SECRET = 'test-location-secret';
 process.env.NEXT_PUBLIC_SITE_URL = 'http://localhost:3000';
 
 // Mock Next.js specific modules that may not be available in test environment
@@ -45,6 +47,12 @@ vi.mock('@vercel/kv', () => ({
     get: vi.fn(),
     set: vi.fn(),
     del: vi.fn(),
+    ttl: vi.fn(),
+    multi: vi.fn(() => ({
+      incr: vi.fn(),
+      expire: vi.fn(),
+      exec: vi.fn(async () => [1, 1]), // Return count of 1 (within limit)
+    })),
   },
 }));
 

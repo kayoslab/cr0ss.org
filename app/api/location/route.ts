@@ -1,37 +1,39 @@
 export const runtime = "edge";
 
-import { NextResponse } from 'next/server';
 import { kv } from "@vercel/kv";
-import { env } from '@/env';
+import { assertSecret } from '@/lib/auth/secret';
 import { revalidateDashboard } from '@/lib/cache/revalidate';
+import { apiSuccess, validationError } from '@/lib/api/responses';
+
+const LOCATION_KEY = 'GEOLOCATION';
+const LOCATION_THRESHOLD_KM = 150;
 
 export async function POST(request: Request) {
-  const requestHeaders = new Headers(request.headers);
-  const secret = requestHeaders.get('token');
-  const locationKey = 'GEOLOCATION';
-  const locationThreshold = 150;
+  try {
+    // Use standard auth (same as other API routes)
+    assertSecret(request);
 
-  if (secret !== env.LOCATION_API_SECRET) {
-    return NextResponse.json({ message: 'Invalid secret' }, { status: 401 });
-  }
+    const storedLocation = await kv.get<{ lat: number; lon: number }>(LOCATION_KEY);
+    const body = await request.json();
 
-  const storedLocation = await kv.get<{ lat: number; lon: number }>(locationKey);
-  const body = await request.json();
+    const lat = body.lat;
+    const lon = body.lon;
 
-  const lat = body.lat;
-  const lon = body.lon;
+    if (typeof lat !== 'number' || typeof lon !== 'number' || isNaN(lat) || isNaN(lon)) {
+      return validationError('Invalid coordinates', {
+        lat: typeof lat === 'number' ? 'valid' : 'must be a number',
+        lon: typeof lon === 'number' ? 'valid' : 'must be a number',
+      });
+    }
 
-  if (typeof lat !== 'number' || typeof lon !== 'number' || isNaN(lat) || isNaN(lon)) {
-    return NextResponse.json({ message: 'No geo position provided' }, { status: 400 });
-  }
+    const currentLocation = { lat, lon };
 
-  const currentLocation = { lat: lat, lon: lon };
+    if (!storedLocation) {
+      await kv.set(LOCATION_KEY, currentLocation);
+      revalidateDashboard();
+      return apiSuccess({ revalidated: true, now: Date.now() });
+    }
 
-  if (!storedLocation) {
-    await kv.set(locationKey, currentLocation);
-    revalidateDashboard();
-    return NextResponse.json({ revalidated: true, now: Date.now() });
-  } else {
     const distance = distanceInKmBetweenEarthCoordinates(
       storedLocation.lat,
       storedLocation.lon,
@@ -39,13 +41,19 @@ export async function POST(request: Request) {
       currentLocation.lon
     );
 
-    if (distance > locationThreshold) {
-      await kv.set(locationKey, currentLocation);
+    if (distance > LOCATION_THRESHOLD_KM) {
+      await kv.set(LOCATION_KEY, currentLocation);
       revalidateDashboard();
-      return NextResponse.json({ revalidated: true, now: Date.now() });
-    } else {
-      return NextResponse.json({ revalidated: false, now: Date.now() });
+      return apiSuccess({ revalidated: true, now: Date.now(), distance });
     }
+
+    return apiSuccess({ revalidated: false, now: Date.now(), distance });
+  } catch (error) {
+    // assertSecret throws a Response on auth failure
+    if (error instanceof Response) {
+      return error;
+    }
+    throw error;
   }
 }
 
