@@ -110,15 +110,24 @@ export function withErrorHandler(
 }
 
 /**
- * Type-safe API route handler builder
+ * Context passed to API route handlers
  */
-export class ApiRouteBuilder<TContext = object> {
+export interface ApiContext {
+  clientId?: string;
+  requestId?: string;
+}
+
+/**
+ * Type-safe API route handler builder with common middleware
+ */
+export class ApiRouteBuilder<TContext extends ApiContext = ApiContext> {
   private middlewares: Array<
     (request: Request, context: TContext) => Promise<void>
   > = [];
+  private traceName?: string;
 
   /**
-   * Add middleware to the chain
+   * Add custom middleware to the chain
    */
   use(
     middleware: (request: Request, context: TContext) => Promise<void>
@@ -128,7 +137,52 @@ export class ApiRouteBuilder<TContext = object> {
   }
 
   /**
-   * Build the final handler
+   * Add authentication middleware (uses assertSecret)
+   */
+  withAuth(): this {
+    return this.use(async (request) => {
+      const { assertSecret } = await import('@/lib/auth/secret');
+      assertSecret(request);
+    });
+  }
+
+  /**
+   * Add rate limiting middleware
+   *
+   * @param bucket - Rate limit bucket name (e.g., "get-dashboard")
+   * @param options - Rate limit options (windowSec, max)
+   */
+  withRateLimit(
+    bucket: string,
+    options: { windowSec: number; max: number }
+  ): this {
+    return this.use(async (request, context) => {
+      const { rateLimit } = await import('@/lib/rate/limit');
+      const { getClientId } = await import('@/lib/rate/who');
+      const { tooManyRequests } = await import('@/lib/api/responses');
+
+      const result = await rateLimit(request, bucket, options);
+      if (!result.ok) {
+        throw tooManyRequests(result.retryAfterSec);
+      }
+
+      // Store client ID in context
+      context.clientId = getClientId(request);
+    });
+  }
+
+  /**
+   * Add observability tracing
+   *
+   * @param name - Trace name (e.g., "GET /api/dashboard")
+   */
+  withTrace(name: string): this {
+    this.traceName = name;
+    return this;
+  }
+
+  /**
+   * Build the final handler with all middleware applied
    */
   handle(
     handler: (
@@ -136,7 +190,7 @@ export class ApiRouteBuilder<TContext = object> {
       context: TContext
     ) => Promise<NextResponse | Response>
   ): (request: Request) => Promise<NextResponse | Response> {
-    return withErrorHandler(async (request: Request) => {
+    const wrappedHandler = withErrorHandler(async (request: Request) => {
       const context = {} as TContext;
 
       // Run all middlewares
@@ -147,12 +201,34 @@ export class ApiRouteBuilder<TContext = object> {
       // Run the actual handler
       return await handler(request, context);
     });
+
+    // Apply tracing if specified
+    if (this.traceName) {
+      return async (request: Request) => {
+        const { wrapTrace } = await import('@/lib/obs/trace');
+        return wrapTrace(this.traceName!, wrappedHandler)(request);
+      };
+    }
+
+    return wrappedHandler;
   }
 }
 
 /**
  * Creates a new API route builder
+ *
+ * @example
+ * ```ts
+ * export const GET = createApiRoute()
+ *   .withAuth()
+ *   .withRateLimit("get-dashboard", { windowSec: 60, max: 30 })
+ *   .withTrace("GET /api/dashboard")
+ *   .handle(async (req, ctx) => {
+ *     const data = await getDashboardData();
+ *     return apiSuccess(data);
+ *   });
+ * ```
  */
-export function createApiRoute<TContext = object>(): ApiRouteBuilder<TContext> {
+export function createApiRoute<TContext extends ApiContext = ApiContext>(): ApiRouteBuilder<TContext> {
   return new ApiRouteBuilder<TContext>();
 }

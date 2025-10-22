@@ -1,5 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+// Mock constants
+vi.mock('@/lib/constants', () => ({
+  CACHE_TAGS: {
+    DASHBOARD: 'dashboard',
+  },
+  PATHS: {
+    DASHBOARD: '/dashboard',
+  },
+}));
+
 // Mock @vercel/kv - must be before imports
 vi.mock('@vercel/kv', () => ({
   kv: {
@@ -8,10 +18,10 @@ vi.mock('@vercel/kv', () => ({
   },
 }));
 
-// Mock env
+// Mock env - now using standard auth
 vi.mock('@/env', () => ({
   env: {
-    LOCATION_API_SECRET: 'test-location-secret',
+    DASHBOARD_API_SECRET: 'test-dashboard-secret',
   },
 }));
 
@@ -31,7 +41,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          token: 'wrong-secret',
+          'x-admin-secret': 'wrong-secret',
         },
         body: JSON.stringify({ lat: 52.52, lon: 13.405 }),
       });
@@ -40,7 +50,7 @@ describe('POST /api/location', () => {
       const data = await response.json();
 
       expect(response.status).toBe(401);
-      expect(data).toEqual({ message: 'Invalid secret' });
+      expect(data).toEqual({ error: 'Unauthorized' });
     });
 
     it('should return 401 without secret', async () => {
@@ -56,7 +66,7 @@ describe('POST /api/location', () => {
       const data = await response.json();
 
       expect(response.status).toBe(401);
-      expect(data).toEqual({ message: 'Invalid secret' });
+      expect(data).toEqual({ error: 'Unauthorized' });
     });
   });
 
@@ -66,7 +76,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          token: 'test-location-secret',
+          'x-admin-secret': 'test-dashboard-secret',
         },
         body: JSON.stringify({ lon: 13.405 }),
       });
@@ -75,7 +85,7 @@ describe('POST /api/location', () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data).toEqual({ message: 'No geo position provided' });
+      expect(data).toEqual({ error: 'Invalid coordinates', code: 'VALIDATION_ERROR', details: expect.any(Object) });
     });
 
     it('should return 400 without longitude', async () => {
@@ -83,7 +93,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          token: 'test-location-secret',
+          'x-admin-secret': 'test-dashboard-secret',
         },
         body: JSON.stringify({ lat: 52.52 }),
       });
@@ -92,7 +102,7 @@ describe('POST /api/location', () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data).toEqual({ message: 'No geo position provided' });
+      expect(data).toEqual({ error: 'Invalid coordinates', code: 'VALIDATION_ERROR', details: expect.any(Object) });
     });
 
     it('should return 400 with empty body', async () => {
@@ -100,7 +110,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          token: 'test-location-secret',
+          'x-admin-secret': 'test-dashboard-secret',
         },
         body: JSON.stringify({}),
       });
@@ -109,7 +119,7 @@ describe('POST /api/location', () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data).toEqual({ message: 'No geo position provided' });
+      expect(data).toEqual({ error: 'Invalid coordinates', code: 'VALIDATION_ERROR', details: expect.any(Object) });
     });
 
     it('should return 400 with null latitude', async () => {
@@ -117,7 +127,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          token: 'test-location-secret',
+          'x-admin-secret': 'test-dashboard-secret',
         },
         body: JSON.stringify({ lat: null, lon: 13.405 }),
       });
@@ -126,7 +136,7 @@ describe('POST /api/location', () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data).toEqual({ message: 'No geo position provided' });
+      expect(data).toEqual({ error: 'Invalid coordinates', code: 'VALIDATION_ERROR', details: expect.any(Object) });
     });
 
     it('should return 400 with string coordinates', async () => {
@@ -134,7 +144,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          token: 'test-location-secret',
+          'x-admin-secret': 'test-dashboard-secret',
         },
         body: JSON.stringify({ lat: '52.52', lon: '13.405' }),
       });
@@ -143,7 +153,7 @@ describe('POST /api/location', () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data).toEqual({ message: 'No geo position provided' });
+      expect(data).toEqual({ error: 'Invalid coordinates', code: 'VALIDATION_ERROR', details: expect.any(Object) });
     });
 
     it('should return 400 with NaN values', async () => {
@@ -151,7 +161,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          token: 'test-location-secret',
+          'x-admin-secret': 'test-dashboard-secret',
         },
         body: JSON.stringify({ lat: NaN, lon: 13.405 }),
       });
@@ -160,7 +170,7 @@ describe('POST /api/location', () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data).toEqual({ message: 'No geo position provided' });
+      expect(data).toEqual({ error: 'Invalid coordinates', code: 'VALIDATION_ERROR', details: expect.any(Object) });
     });
   });
 
@@ -172,7 +182,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          token: 'test-location-secret',
+          'x-admin-secret': 'test-dashboard-secret',
         },
         body: JSON.stringify({ lat: 52.52, lon: 13.405 }),
       });
@@ -201,7 +211,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          token: 'test-location-secret',
+          'x-admin-secret': 'test-dashboard-secret',
         },
         body: JSON.stringify({ lat: 48.1351, lon: 11.582 }),
       });
@@ -227,7 +237,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          token: 'test-location-secret',
+          'x-admin-secret': 'test-dashboard-secret',
         },
         body: JSON.stringify({ lat: 52.52, lon: 13.405 }),
       });
@@ -250,7 +260,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          token: 'test-location-secret',
+          'x-admin-secret': 'test-dashboard-secret',
         },
         body: JSON.stringify({ lat: 52.4, lon: 13.06 }),
       });
@@ -271,7 +281,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          token: 'test-location-secret',
+          'x-admin-secret': 'test-dashboard-secret',
         },
         body: JSON.stringify({ lat: 52.52, lon: 13.405 }),
       });
@@ -290,7 +300,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          token: 'test-location-secret',
+          'x-admin-secret': 'test-dashboard-secret',
         },
         body: JSON.stringify({ lat: 52.52, lon: 13.405 }),
       });
@@ -311,7 +321,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          token: 'test-location-secret',
+          'x-admin-secret': 'test-dashboard-secret',
         },
         body: JSON.stringify({ lat: 0, lon: 100 }),
       });
@@ -330,7 +340,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          token: 'test-location-secret',
+          'x-admin-secret': 'test-dashboard-secret',
         },
         body: JSON.stringify({ lat: 51.5, lon: 0 }),
       });
@@ -349,7 +359,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          token: 'test-location-secret',
+          'x-admin-secret': 'test-dashboard-secret',
         },
         body: JSON.stringify({ lat: 0, lon: 0 }),
       });
@@ -370,7 +380,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          token: 'test-location-secret',
+          'x-admin-secret': 'test-dashboard-secret',
         },
         body: JSON.stringify({ lat: -37.814, lon: 144.963 }),
       });
@@ -389,7 +399,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          token: 'test-location-secret',
+          'x-admin-secret': 'test-dashboard-secret',
         },
         body: JSON.stringify({ lat: 90, lon: 0 }),
       });
@@ -406,7 +416,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          token: 'test-location-secret',
+          'x-admin-secret': 'test-dashboard-secret',
         },
         body: JSON.stringify({ lat: -90, lon: 0 }),
       });
@@ -423,7 +433,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          token: 'test-location-secret',
+          'x-admin-secret': 'test-dashboard-secret',
         },
         body: JSON.stringify({
           lat: 52.520008,

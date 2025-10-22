@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Dialog, DialogPanel, PopoverGroup } from '@headlessui/react';
+import { Dialog, Popover } from '@headlessui/react';
 import {
   Bars3Icon,
   XMarkIcon,
@@ -147,7 +147,7 @@ export default function Navigation() {
           </button>
         </div>
 
-        <PopoverGroup className='hidden lg:flex lg:gap-x-12 items-center'>
+        <Popover.Group className='hidden lg:flex lg:gap-x-12 items-center'>
           <Link href='/' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
             Home
           </Link>
@@ -163,7 +163,7 @@ export default function Navigation() {
           <Link href='/page/contact' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
             Contact
           </Link>
-        </PopoverGroup>
+        </Popover.Group>
         <div className='hidden lg:flex lg:flex-1 lg:justify-end'>
           <div className="relative w-64 h-full flex items-center">
             <div className="absolute right-0 h-full flex items-center">
@@ -240,7 +240,7 @@ export default function Navigation() {
         onClose={setMobileMenuOpen}
       >
         <div className='fixed inset-0 z-10' />
-        <DialogPanel className='fixed inset-y-0 right-0 z-10 w-full overflow-y-auto bg-white dark:bg-slate-800 px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10'>
+        <Dialog.Panel className='fixed inset-y-0 right-0 z-10 w-full overflow-y-auto bg-white dark:bg-slate-800 px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10'>
           <div className='flex items-center justify-between'>
             <Link href='/' className='-m-1.5 p-1.5'>
               <span className='sr-only'>cr0ss.org</span>
@@ -322,7 +322,7 @@ export default function Navigation() {
               </div>
             </div>
           </div>
-        </DialogPanel>
+        </Dialog.Panel>
       </Dialog>
     </header>
   );
