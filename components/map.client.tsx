@@ -12,11 +12,13 @@ export default function MapClient({
   lat,
   lon,
   countries,
+  showLocation = true,
   className,
 }: {
   lat: number | string | null | undefined;
   lon: number | string | null | undefined;
   countries: TravelCountry[];
+  showLocation?: boolean;
   className?: string;
 }) {
   // --- Normalize inputs ------------------------------------------------------
@@ -50,7 +52,9 @@ export default function MapClient({
     >
       <title id={titleId}>World map with visited countries</title>
       <desc id={descId}>
-        {`Current location at latitude ${latNum.toFixed(3)}, longitude ${lonNum.toFixed(3)}. Visited countries are shaded darker.`}
+        {showLocation
+          ? `Current location at latitude ${latNum.toFixed(3)}, longitude ${lonNum.toFixed(3)}. Visited countries are shaded darker.`
+          : `World map showing visited countries (shaded darker). No current location data available.`}
       </desc>
 
       {countries.map((c) => (
@@ -63,19 +67,21 @@ export default function MapClient({
         />
       ))}
 
-      {/* Focusable “you are here” marker */}
-      <circle
-        cx={x + r / 2}
-        cy={y + r / 2}
-        r={r}
-        fill="blue"
-        id="GEO"
-        tabIndex={0}
-        role="img"
-        aria-label={`Current location: ${latNum.toFixed(3)}, ${lonNum.toFixed(3)}`}
-      >
-        <title>Current location</title>
-      </circle>
+      {/* Focusable "you are here" marker - only shown when valid location exists */}
+      {showLocation && (
+        <circle
+          cx={x + r / 2}
+          cy={y + r / 2}
+          r={r}
+          fill="blue"
+          id="GEO"
+          tabIndex={0}
+          role="img"
+          aria-label={`Current location: ${latNum.toFixed(3)}, ${lonNum.toFixed(3)}`}
+        >
+          <title>Current location</title>
+        </circle>
+      )}
     </svg>
   );
 }

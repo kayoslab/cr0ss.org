@@ -42,6 +42,7 @@ type TravelProps = {
   countries: TravelCountry[];
   lat: number;
   lon: number;
+  hasLocation: boolean;
 };
 
 type MorningProps = {
@@ -94,6 +95,7 @@ export default function DashboardClient({
                   lat={travel.lat}
                   lon={travel.lon}
                   countries={travel.countries}
+                  showLocation={travel.hasLocation}
                   className="block w-full h-auto"
                 />
               </div>
