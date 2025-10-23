@@ -70,8 +70,9 @@ type DashboardApi = {
 export default async function DashboardPage() {
   // live location (KV)
   const storedLocation = await kv.get<{ lat: number; lon: number }>("GEOLOCATION");
-  const lat = Number(storedLocation?.lat ?? 0);
-  const lon = Number(storedLocation?.lon ?? 0);
+  const lat = storedLocation?.lat ?? 0;
+  const lon = storedLocation?.lon ?? 0;
+  const hasLocation = storedLocation != null;
 
   // Contentful
   const [countries = [], visited = []] = await Promise.all([getAllCountries(), getVisitedCountries(true)]);
@@ -112,6 +113,7 @@ export default async function DashboardPage() {
     countries: countriesSlim,
     lat,
     lon,
+    hasLocation,
   };
 
   const morning = {
