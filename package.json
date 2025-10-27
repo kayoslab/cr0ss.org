@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@algolia/client-search": "^5.40.1",
-    "@contentful/live-preview": "^4.6.50",
+    "@contentful/live-preview": "^4.6.52",
     "@contentful/rich-text-plain-text-renderer": "^17.1.5",
     "@contentful/rich-text-react-renderer": "^16.1.5",
     "@contentful/rich-text-types": "^17.2.4",
