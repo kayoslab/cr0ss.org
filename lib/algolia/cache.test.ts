@@ -266,7 +266,8 @@ describe('SearchCache', () => {
       obj.foo = 'baz';
 
       // Cache should still have the mutated reference (no deep copy)
-      expect((cache.get('key') as any).foo).toBe('baz');
+      const cached = cache.get('key') as { foo: string };
+      expect(cached.foo).toBe('baz');
     });
   });
 });
