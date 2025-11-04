@@ -17,12 +17,12 @@ describe('BlogViewTracker', () => {
     vi.useRealTimers();
   });
 
-  const mockBlog: BlogProps = {
+  const mockBlog = {
     sys: {
       id: 'test-blog-123',
     },
     title: 'Test Blog',
-  } as BlogProps;
+  } as unknown as BlogProps;
 
   it('should render nothing (null)', () => {
     mockFetch.mockResolvedValueOnce({ ok: true });
@@ -118,8 +118,8 @@ describe('BlogViewTracker', () => {
   it('should track view with different blog IDs', async () => {
     mockFetch.mockResolvedValue({ ok: true });
 
-    const blog1 = { ...mockBlog, sys: { id: 'blog-1' } };
-    const blog2 = { ...mockBlog, sys: { id: 'blog-2' } };
+    const blog1 = { ...mockBlog, sys: { id: 'blog-1' } } as unknown as BlogProps;
+    const blog2 = { ...mockBlog, sys: { id: 'blog-2' } } as unknown as BlogProps;
 
     const { rerender } = render(<BlogViewTracker blog={blog1} />);
     await vi.runAllTimersAsync();

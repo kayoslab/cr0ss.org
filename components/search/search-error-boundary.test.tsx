@@ -3,7 +3,7 @@ import { render } from '@testing-library/react';
 import { SearchErrorBoundary } from './search-error-boundary';
 
 // Component that throws an error
-function ThrowError() {
+function ThrowError(): never {
   throw new Error('Test error');
 }
 
