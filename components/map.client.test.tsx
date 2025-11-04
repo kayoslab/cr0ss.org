@@ -128,7 +128,7 @@ describe('MapClient', () => {
     });
 
     it('should handle invalid string coordinates', () => {
-      const { container } = render(
+      render(
         <MapClient
           lat="invalid"
           lon="invalid"

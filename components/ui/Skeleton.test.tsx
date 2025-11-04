@@ -116,7 +116,7 @@ describe('SkeletonCard', () => {
   });
 
   it('should handle complex nested content', () => {
-    const { getByText, container } = render(
+    const { container } = render(
       <SkeletonCard className="p-6">
         <Skeleton className="w-20 h-20 rounded-full mb-4" />
         <div>

@@ -45,9 +45,9 @@ describe('Search Preferences', () => {
     });
 
     it('should return default preferences on server side (no window)', () => {
-      // @ts-ignore - Testing server-side behavior
+      // @ts-expect-error - Testing server-side behavior
       const originalWindow = global.window;
-      // @ts-ignore
+      // @ts-expect-error - Testing server-side behavior
       delete global.window;
 
       const prefs = getSearchPreferences();
@@ -58,7 +58,7 @@ describe('Search Preferences', () => {
         darkMode: false,
       });
 
-      // @ts-ignore
+      // @ts-expect-error - Restoring window
       global.window = originalWindow;
     });
 
