@@ -101,7 +101,7 @@ export async function getAllCoffee(page = 1, limit = 9) {
   }
 }
 
-export async function getCoffees(coffeeIds: [string]) {
+export async function getCoffees(coffeeIds: string[]) {
   try {    
     const ids = (coffeeIds ?? []).map(id => `"${id}"`).join(",");
     
