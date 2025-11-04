@@ -45,10 +45,9 @@ describe('Search Preferences', () => {
     });
 
     it('should return default preferences on server side (no window)', () => {
-      // @ts-expect-error - Testing server-side behavior
       const originalWindow = global.window;
-      // @ts-expect-error - Testing server-side behavior
-      delete global.window;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      delete (global as any).window;
 
       const prefs = getSearchPreferences();
 
@@ -58,8 +57,8 @@ describe('Search Preferences', () => {
         darkMode: false,
       });
 
-      // @ts-expect-error - Restoring window
-      global.window = originalWindow;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (global as any).window = originalWindow;
     });
 
     it('should return stored preferences', () => {

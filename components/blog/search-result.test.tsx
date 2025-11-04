@@ -61,7 +61,10 @@ describe('Blog SearchResult', () => {
   });
 
   it('should handle undefined categories', () => {
-    const hitWithUndefinedCategories = { ...mockHit, categories: undefined };
+    const hitWithUndefinedCategories: AlgoliaHit = {
+      ...mockHit,
+      categories: undefined as unknown as string[]
+    };
 
     const { container } = render(
       <SearchResult hit={hitWithUndefinedCategories} onClick={mockOnClick} isSelected={false} />
