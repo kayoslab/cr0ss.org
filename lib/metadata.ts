@@ -9,12 +9,37 @@ import {
 } from './constants';
 
 /**
- * Ensures image URL is absolute
+ * Ensures image URL is absolute and converts to social media compatible format
+ * LinkedIn and other platforms don't support AVIF, so we convert to JPEG
  */
 export function ensureAbsoluteUrl(url: string | undefined | null): string | null {
   if (!url) return null;
-  if (url.startsWith('http')) return url;
-  return `https:${url}`;
+
+  // Make URL absolute
+  let absoluteUrl = url.startsWith('http') ? url : `https:${url}`;
+
+  // Check if this is a Contentful image URL
+  if (absoluteUrl.includes('ctfassets.net')) {
+    // Convert AVIF to JPEG for better social media compatibility
+    // LinkedIn doesn't support AVIF images for Open Graph previews
+    if (absoluteUrl.endsWith('.avif') || absoluteUrl.includes('fm=avif')) {
+      // Parse URL to add/modify query parameters
+      const urlObj = new URL(absoluteUrl);
+
+      // Set format to JPEG and quality for optimal social sharing
+      urlObj.searchParams.set('fm', 'jpg');
+      urlObj.searchParams.set('q', '85');
+
+      // Ensure proper dimensions for Open Graph
+      if (!urlObj.searchParams.has('w')) {
+        urlObj.searchParams.set('w', String(OG_IMAGE_WIDTH));
+      }
+
+      absoluteUrl = urlObj.toString();
+    }
+  }
+
+  return absoluteUrl;
 }
 
 /**
