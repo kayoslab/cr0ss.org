@@ -91,7 +91,7 @@ export default function Footer() {
             <ul className='space-y-3'>
               <li>
                 <Link
-                  href='/page/about'
+                  href='https://www.linkedin.com/in/cr0ss/'
                   className='text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors'
                 >
                   LinkedIn
@@ -99,10 +99,18 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href='/page/contact'
+                  href='https://github.com/kayoslab'
                   className='text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors'
                 >
                   GitHub
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href='https://www.instagram.com/cr0ss.mind/'
+                  className='text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors'
+                >
+                  Instagram
                 </Link>
               </li>
             </ul>
