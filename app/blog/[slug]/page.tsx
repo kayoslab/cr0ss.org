@@ -27,7 +27,7 @@ export async function generateMetadata(
 
     return createBlogMetadata({
       title: blog.title,
-      description: blog.seoDescription,
+      description: blog.seoDescription || blog.summary,
       keywords: blog.seoKeywords,
       author: blog.author,
       slug: blog.slug,
@@ -107,7 +107,7 @@ export default async function BlogContent({
 
     const jsonLd = createBlogJsonLd({
       title: blog.title,
-      description: blog.seoDescription,
+      description: blog.seoDescription || blog.summary,
       author: blog.author,
       slug: blog.slug,
       publishedTime: blog.sys.firstPublishedAt,
