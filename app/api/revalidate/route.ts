@@ -207,7 +207,7 @@ export async function POST(request: Request) {
 
     // Revalidate all determined tags
     for (const tag of tagsToRevalidate) {
-      revalidateTag(tag);
+      revalidateTag(tag, 'max');
       console.log(`Revalidated tag: ${tag} at ${Date.now()}`);
     }
 

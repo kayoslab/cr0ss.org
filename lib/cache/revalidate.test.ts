@@ -26,7 +26,7 @@ describe('revalidateDashboard', () => {
   it('should call revalidateTag with dashboard tag', () => {
     revalidateDashboard();
 
-    expect(revalidateTag).toHaveBeenCalledWith('dashboard');
+    expect(revalidateTag).toHaveBeenCalledWith('dashboard', 'max');
   });
 
   it('should call revalidatePath with dashboard path and page type', () => {
@@ -46,7 +46,7 @@ describe('revalidateDashboard', () => {
     revalidateDashboard();
 
     // Verify it's using the constant values
-    expect(revalidateTag).toHaveBeenCalledWith('dashboard');
+    expect(revalidateTag).toHaveBeenCalledWith('dashboard', 'max');
     expect(revalidatePath).toHaveBeenCalledWith('/dashboard', 'page');
   });
 });
