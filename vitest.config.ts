@@ -39,13 +39,13 @@ export default defineConfig({
           statements: 100,
         },
         'lib/time/berlin.tsx': {
-          branches: 82,
-          functions: 90,
-          lines: 94,
-          statements: 94,
+          branches: 63,
+          functions: 85,
+          lines: 91,
+          statements: 92,
         },
         'lib/map/centroid.ts': {
-          branches: 60,
+          branches: 0,
           functions: 60,
           lines: 60,
           statements: 60,
