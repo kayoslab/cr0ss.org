@@ -49,9 +49,6 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
-    "vercel": "^48.10.1",
-    "@eslint/eslintrc": "^3.3.1",
-    "@eslint/js": "^9.39.1",
     "@next/eslint-plugin-next": "^16.0.3",
     "@tailwindcss/postcss": "^4.1.17",
     "@testing-library/jest-dom": "^6.9.1",
@@ -62,6 +59,8 @@
     "@types/react-dom": "^19.2.3",
     "@types/react-syntax-highlighter": "^15.5.13",
     "@types/rss": "^0.0.32",
+    "@typescript-eslint/eslint-plugin": "^8.46.4",
+    "@typescript-eslint/parser": "^8.46.4",
     "@vitejs/plugin-react": "^5.1.1",
     "@vitest/coverage-v8": "^4.0.9",
     "@vitest/ui": "^4.0.9",
@@ -78,6 +77,7 @@
     "prettier-plugin-tailwindcss": "^0.7.1",
     "tailwindcss": "^4.1.17",
     "typescript": "5.9.3",
+    "vercel": "^48.10.1",
     "vitest": "^4.0.9"
   }
 }
