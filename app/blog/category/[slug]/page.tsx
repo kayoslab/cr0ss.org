@@ -75,7 +75,7 @@ export default async function BlogCategoriesContent({ params, searchParams }: Pr
   const currentPosts = blogCollection.items as unknown as BlogProps[];
 
   return (
-    <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800 pb-24'>
+    <main className='flex min-h-screen flex-col items-center justify-between bg-white pb-24'>
       <BlogGrid
         posts={currentPosts}
         currentPage={currentPage}

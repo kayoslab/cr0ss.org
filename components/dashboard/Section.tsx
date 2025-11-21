@@ -22,7 +22,7 @@ export default function Section({
     >
       <h2
         id={headingId}
-        className="mb-4 text-base font-semibold text-neutral-700 dark:text-neutral-200"
+        className="mb-4 text-base font-semibold text-neutral-700"
       >
         {title}
       </h2>

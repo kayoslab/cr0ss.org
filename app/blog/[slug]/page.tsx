@@ -120,7 +120,7 @@ export default async function BlogContent({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800 pb-24'>
+        <main className='flex min-h-screen flex-col items-center justify-between bg-white pb-24'>
           <BlogViewTracker blog={blog} />
           <Blog blog={blog} recommendations={recommendations} />
         </main>

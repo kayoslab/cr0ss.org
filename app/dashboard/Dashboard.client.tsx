@@ -89,7 +89,7 @@ export default function DashboardClient({
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {/* Map card */}
           <div className="md:col-span-3">
-            <div className="rounded-xl border border-neutral-200/60 dark:border-neutral-700 shadow-sm">
+            <div className="rounded-xl border border-neutral-200/60 shadow-sm">
               <div className="p-2 sm:p-3 md:p-4">
                 <MapClient
                   lat={travel.lat}

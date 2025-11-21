@@ -2,7 +2,7 @@
 
 ## Overview
 
-cr0ss.org is a Next.js 14 application using the App Router with a headless CMS (Contentful), serverless database (Neon PostgreSQL), and search platform (Algolia).
+cr0ss.org is a Next.js 15 application using the App Router with a headless CMS (Contentful), serverless database (Neon PostgreSQL), search platform (Algolia), and AI chat assistant powered by Transformers.js.
 
 ## Core Principles
 
@@ -11,6 +11,7 @@ cr0ss.org is a Next.js 14 application using the App Router with a headless CMS (
 - **Default to Server Components** - Use React Server Components by default
 - **Client Components Only When Needed** - Mark with `'use client'` directive only when necessary
 - **Edge Runtime for APIs** - Use `export const runtime = "edge"` for API routes when possible
+- **Node Runtime for AI** - Use `export const runtime = "nodejs"` for Transformers.js routes
 
 ### 2. Static Generation with Dynamic Revalidation
 

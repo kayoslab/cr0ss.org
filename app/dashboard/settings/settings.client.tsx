@@ -593,8 +593,8 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
     footer?: React.ReactNode;
   }) {
     return (
-      <section className="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-slate-800 p-4">
-        <div className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">{title}</div>
+      <section className="rounded-lg border border-neutral-200 bg-white p-4">
+        <div className="text-sm font-medium text-neutral-700 mb-3">{title}</div>
         {children}
         {footer && <div className="pt-3">{footer}</div>}
       </section>
@@ -608,7 +608,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 space-y-8">
-      <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Dashboard Settings</h1>
+      <h1 className="text-xl font-semibold text-neutral-900">Dashboard Settings</h1>
 
       {/* status region for SR announcement */}
       <div role="status" aria-live="polite" className="sr-only">
@@ -649,7 +649,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
               onKeyDown={(e) => {
                 if (e.key === "Escape") (e.currentTarget as HTMLInputElement).blur();
               }}
-              className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-slate-950 px-3 py-2"
+              className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2"
               placeholder="x-vercel-revalidation-key"
               autoComplete="off"
             />
@@ -684,7 +684,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         >
           {/* Core Metrics Section */}
           <div>
-            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">Core Metrics</h3>
+            <h3 className="text-sm font-medium text-neutral-700 mb-3">Core Metrics</h3>
             <div className="grid grid-cols-2 gap-4">
               <NumField
                 label="Weight (kg)"
@@ -715,7 +715,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
 
           {/* Caffeine Metabolism Section */}
           <div>
-            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">Caffeine Metabolism</h3>
+            <h3 className="text-sm font-medium text-neutral-700 mb-3">Caffeine Metabolism</h3>
             <div className="grid grid-cols-2 gap-4">
               <NumField
                 label="Vd (L/kg lean mass)"
@@ -746,7 +746,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
 
           {/* Optional Demographics Section */}
           <div>
-            <h3 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">Optional</h3>
+            <h3 className="text-sm font-medium text-neutral-700 mb-3">Optional</h3>
             <div className="grid grid-cols-2 gap-4">
               <NumField
                 label="Age"
@@ -769,14 +769,14 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
                 onKeyDown={(e) => {
                   if (e.key === "Escape") (e.currentTarget as HTMLTextAreaElement).blur();
                 }}
-                className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-slate-950 px-3 py-2"
+                className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2"
                 rows={2}
                 placeholder="Measurement notes, scale used, time of day, etc."
               />
             </div>
           </div>
         </form>
-        <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-2">
+        <p className="text-xs text-neutral-500 mt-2">
           Body fat % improves caffeine calculations. Vd is per kg lean body mass (~0.6 L/kg).
         </p>
       </Card>
@@ -818,7 +818,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-neutral-500 dark:text-neutral-400">
+              <tr className="text-left text-neutral-500">
                 <th className="py-2">ID</th>
                 <th className="py-2">Name</th>
                 <th className="py-2">Roaster</th>
@@ -828,7 +828,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
               {coffees.length === 0 ? (
                 <tr><td colSpan={3} className="py-3 text-neutral-500">No coffee entries found.</td></tr>
               ) : coffees.map(c => (
-                <tr key={c.id} className="border-t border-neutral-200 dark:border-neutral-800">
+                <tr key={c.id} className="border-t border-neutral-200">
                   <td className="py-2 font-mono text-xs">{c.id}</td>
                   <td className="py-2">{c.name}</td>
                   <td className="py-2">{c.roaster}</td>
@@ -876,8 +876,8 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
                   if (e.key === "Escape") (e.currentTarget as HTMLInputElement).blur();
                 }}
                 className={cls(
-                  "flex-1 rounded-md border border-neutral-300 dark:border-neutral-700",
-                  "bg-white dark:bg-slate-950 px-3 py-2"
+                  "flex-1 rounded-md border border-neutral-300",
+                  "bg-white px-3 py-2"
                 )}
                 disabled={loadingDay}
               />
@@ -888,7 +888,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
                   fetchDayData(todayStr);
                 }}
                 disabled={loadingDay}
-                className="whitespace-nowrap rounded-md border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-50 dark:hover:bg-slate-800 disabled:opacity-50"
+                className="whitespace-nowrap rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 disabled:opacity-50"
               >
                 {loadingDay ? <Spinner className="text-black/80" /> : "Today"}
               </button>
@@ -1074,7 +1074,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
                   type="checkbox"
                   checked={indoor}
                   onChange={(e)=>setIndoor(e.target.checked)}
-                  className="rounded border-neutral-300 dark:border-neutral-700"
+                  className="rounded border-neutral-300"
                 />
                 <Label>Indoor</Label>
               </div>
@@ -1105,7 +1105,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
                   type="checkbox"
                   checked={indoor}
                   onChange={(e)=>setIndoor(e.target.checked)}
-                  className="rounded border-neutral-300 dark:border-neutral-700"
+                  className="rounded border-neutral-300"
                 />
                 <Label>Indoor</Label>
               </div>
@@ -1123,8 +1123,8 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
                   if (e.key === "Escape") (e.currentTarget as HTMLTextAreaElement).blur();
                 }}
                 className={cls(
-                  "w-full rounded-md border border-neutral-300 dark:border-neutral-700",
-                  "bg-white dark:bg-slate-950 px-3 py-2 min-h-[80px] font-mono text-xs"
+                  "w-full rounded-md border border-neutral-300",
+                  "bg-white px-3 py-2 min-h-[80px] font-mono text-xs"
                 )}
                 placeholder='[{"name": "Squat", "sets": 3, "reps": 8, "weight_kg": 100}]'
               />
@@ -1145,8 +1145,8 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
                 }
               }}
               className={cls(
-                "w-full rounded-md border border-neutral-300 dark:border-neutral-700",
-                "bg-white dark:bg-slate-950 px-3 py-2 min-h-[60px]"
+                "w-full rounded-md border border-neutral-300",
+                "bg-white px-3 py-2 min-h-[60px]"
               )}
               placeholder="Optional notes about the workout..."
             />
@@ -1154,7 +1154,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
         </form>
       </Card>
 
-      {msg && <div className="text-sm text-neutral-600 dark:text-neutral-400">{msg}</div>}
+      {msg && <div className="text-sm text-neutral-600">{msg}</div>}
     </div>
   );
 }
@@ -1164,7 +1164,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
 --------------------------------------------------------- */
 
 function Label({ children }: { children: React.ReactNode }) {
-  return <label className="block text-xs text-neutral-500 dark:text-neutral-400 mb-1">{children}</label>;
+  return <label className="block text-xs text-neutral-500 mb-1">{children}</label>;
 }
 
 /** Generic text input (also used for date fields). */
@@ -1176,8 +1176,8 @@ function Field(props: React.InputHTMLAttributes<HTMLInputElement> & { label?: st
       <input
         {...rest}
         className={cls(
-          "w-full rounded-md border border-neutral-300 dark:border-neutral-700",
-          "bg-white dark:bg-slate-950 px-3 py-2",
+          "w-full rounded-md border border-neutral-300",
+          "bg-white px-3 py-2",
           className
         )}
       />
@@ -1243,7 +1243,7 @@ function NumField({
           // Let parent hotkeys handle ↑/↓, Esc, ⌘/Ctrl+Enter etc.
           onKeyDown?.(e);
         }}
-        className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-slate-950 px-3 py-2"
+        className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2"
       />
     </div>
   );
@@ -1268,7 +1268,7 @@ function SelectField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={(e)=>{ if (e.key === "Escape") (e.currentTarget as HTMLSelectElement).blur(); }}
-        className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-slate-950 px-3 py-2"
+        className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2"
       >
         {children}
       </select>
@@ -1357,7 +1357,7 @@ function TimeField({
           onChange={(e) => handleChange(e.target.value)}
           onBlur={commit}
           onKeyDown={onKeyDown}
-          className="w-full rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-slate-950 px-3 py-2 font-mono"
+          className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 font-mono"
           aria-label={`${label}, 24-hour time, format HH colon mm`}
         />
         <button
@@ -1370,7 +1370,7 @@ function TimeField({
             setText(curr);
             onChange(curr);
           }}
-          className="whitespace-nowrap rounded-md border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm hover:bg-neutral-50 dark:hover:bg-slate-800"
+          className="whitespace-nowrap rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50"
         >
           Now
         </button>

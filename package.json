@@ -16,7 +16,12 @@
     "test:coverage": "vitest run --coverage",
     "test:coverage:ui": "vitest run --coverage --ui",
     "test:changed": "vitest run --changed",
-    "test:ci": "vitest run --coverage --reporter=verbose"
+    "test:ci": "vitest run --coverage --reporter=verbose",
+    "ai:setup": "tsx --import ./scripts/load-env.ts ./scripts/setup-pgvector.ts",
+    "ai:index": "tsx --import ./scripts/load-env.ts ./scripts/index-embeddings.ts",
+    "ai:download": "tsx ./scripts/download-llm.ts",
+    "prebuild": "pnpm ai:download",
+    "postbuild": "pnpm ai:index"
   },
   "dependencies": {
     "@algolia/client-search": "^5.43.0",
@@ -26,6 +31,7 @@
     "@contentful/rich-text-types": "^17.2.5",
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
+    "@huggingface/transformers": "^3.8.0",
     "@neondatabase/serverless": "^1.0.2",
     "@t3-oss/env-nextjs": "^0.13.8",
     "@tailwindcss/typography": "^0.5.19",
@@ -34,6 +40,7 @@
     "@vercel/kv": "^3.0.0",
     "@vercel/postgres": "^0.10.0",
     "@vercel/speed-insights": "^1.2.0",
+    "ai": "^5.0.97",
     "algoliasearch": "^5.43.0",
     "clsx": "^2.1.1",
     "contentful": "^11.8.12",
@@ -42,10 +49,12 @@
     "next": "^16.0.3",
     "react": "19.2.0",
     "react-dom": "19.2.0",
+    "react-markdown": "^10.1.0",
     "react-syntax-highlighter": "^16.1.0",
     "recharts": "^3.4.1",
     "rss": "^1.2.2",
     "search-insights": "^2.17.3",
+    "sharp": "^0.34.5",
     "zod": "^4.1.12"
   },
   "devDependencies": {
@@ -66,6 +75,7 @@
     "@vitest/ui": "^4.0.9",
     "autoprefixer": "^10.4.22",
     "contentful-import": "^9.4.128",
+    "dotenv": "^17.2.3",
     "eslint": "^9.39.1",
     "eslint-config-next": "16.0.3",
     "eslint-config-prettier": "^10.1.8",
@@ -76,6 +86,7 @@
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.7.1",
     "tailwindcss": "^4.1.17",
+    "tsx": "^4.20.6",
     "typescript": "5.9.3",
     "vercel": "^48.10.1",
     "vitest": "^4.0.9"

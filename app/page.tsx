@@ -3,17 +3,17 @@ import Image from "next/image";
 
 export default async function HomeContent() {
   return (
-    <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800 pb-24'>
+    <main className='flex min-h-screen flex-col items-center justify-between bg-white pb-24'>
         <div>
             <Image src="/home-image.jpeg" alt="Avatar" className="mx-auto mt-6" width={1200} height={1200} priority />
-            <blockquote className="border-l-4 border-gray-300 dark:border-gray-700 pl-4 my-6 italic text-gray-700 dark:text-gray-300">
+            <blockquote className="border-l-4 border-gray-300 pl-4 my-6 italic text-gray-700">
                 Not everything that you can see is real, not everything that is real can be seen.
             </blockquote>
         </div>
         <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left pb-24">
             <Link
             href="https://github.com/kayoslab"
-            className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 dark:hover:border-neutral-700 dark:hover:bg-neutral-800/30"
+            className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100:border-neutral-700:bg-neutral-800/30"
             target="_blank"
             rel="noopener noreferrer"
             >
@@ -30,7 +30,7 @@ export default async function HomeContent() {
 
             <Link
             href="./cv.pdf"
-            className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 dark:hover:border-neutral-700 dark:hover:bg-neutral-800/30"
+            className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100:border-neutral-700:bg-neutral-800/30"
             target="_blank"
             rel="noopener noreferrer"
             >
@@ -47,7 +47,7 @@ export default async function HomeContent() {
 
             <Link
             href="https://www.linkedin.com/in/cr0ss/"
-            className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 dark:hover:border-neutral-700 dark:hover:bg-neutral-800/30"
+            className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100:border-neutral-700:bg-neutral-800/30"
             target="_blank"
             rel="noopener noreferrer"
             >
@@ -64,7 +64,7 @@ export default async function HomeContent() {
 
             <Link
             href="https://instagram.com/cr0ss.mind"
-            className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 dark:hover:border-neutral-700 dark:hover:bg-neutral-800/30"
+            className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100:border-neutral-700:bg-neutral-800/30"
             target="_blank"
             rel="noopener noreferrer"
             >

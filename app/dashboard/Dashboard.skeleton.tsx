@@ -6,8 +6,8 @@ import { Skeleton, SkeletonCard } from "@/components/ui/Skeleton";
 // Small helper that mimics your Section header styling
 function Header({ children }: { children: React.ReactNode }) {
   return (
-    <div className="sticky z-30 top-16 bg-white dark:bg-slate-800">
-      <h2 className="py-2 text-sm font-medium tracking-wide text-neutral-500 dark:text-neutral-400 border-b border-neutral-200/70 dark:border-neutral-700/60">
+    <div className="sticky z-30 top-16 bg-white">
+      <h2 className="py-2 text-sm font-medium tracking-wide text-neutral-500 border-b border-neutral-200/70">
         {children}
       </h2>
     </div>

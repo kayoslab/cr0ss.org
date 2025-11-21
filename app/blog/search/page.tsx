@@ -63,10 +63,10 @@ export default async function SearchResults({ searchParams }: Props) {
   // If no results, show a message instead of empty grid
   if (nbHits === 0) {
     return (
-      <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800 pb-24'>
+      <main className='flex min-h-screen flex-col items-center justify-between bg-white pb-24'>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <h1 className="text-2xl font-bold mb-4">Search Results for &ldquo;{query}&rdquo;</h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-gray-600">
             No results found. Try different keywords or check your spelling.
           </p>
         </div>
@@ -95,10 +95,10 @@ export default async function SearchResults({ searchParams }: Props) {
   const totalPages = Math.ceil(nbHits / POSTS_PER_PAGE);
 
   return (
-    <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800 pb-24'>
+    <main className='flex min-h-screen flex-col items-center justify-between bg-white pb-24'>
       <Suspense fallback={
         <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-gray-900 dark:border-white"></div>
+          <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-gray-900"></div>
         </div>
       }>
         <BlogGrid

@@ -174,7 +174,7 @@ export default async function DashboardPage() {
   const sleepPrevCaff = api.sleepPrevCaff;
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-white dark:bg-slate-800">
+    <main className="min-h-screen overflow-x-hidden bg-white">
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
         <DashboardClient
           travel={travel}

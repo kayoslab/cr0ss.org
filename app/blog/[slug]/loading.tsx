@@ -5,7 +5,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
  */
 export default function BlogPostLoading() {
   return (
-    <main className='flex min-h-screen flex-col items-center justify-between bg-white dark:bg-slate-800 pb-24'>
+    <main className='flex min-h-screen flex-col items-center justify-between bg-white pb-24'>
       <section className='w-full max-w-(--breakpoint-lg) mx-auto'>
       <div className='container space-y-12 px-4 md:px-6'>
         {/* Title and metadata */}
@@ -85,7 +85,7 @@ export default function BlogPostLoading() {
             {Array.from({ length: 3 }).map((_, i) => (
               <article
                 key={i}
-                className='flex h-full flex-col overflow-hidden rounded-lg shadow-lg border border-neutral-200/60 dark:border-neutral-700'
+                className='flex h-full flex-col overflow-hidden rounded-lg shadow-lg border border-neutral-200/60'
               >
                 <Skeleton className='aspect-4/3 w-full rounded-none' />
                 <div className='flex-1 p-6 space-y-4'>

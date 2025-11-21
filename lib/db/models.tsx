@@ -68,3 +68,33 @@ export const ZPacePoint = z.object({ date: z.string(), avg_pace_sec_per_km: z.nu
 export const ZPaceSeries = z.array(ZPacePoint);
 export const ZHeatDay = z.object({ date: z.string(), km: z.number().min(0) });
 export const ZHeat = z.array(ZHeatDay);
+
+// AI Chat Embeddings
+export const ZEmbeddingSource = z.enum(["blog", "knowledge"]);
+export type EmbeddingSource = z.infer<typeof ZEmbeddingSource>;
+
+export const ZEmbeddingMetadata = z.object({
+  source: ZEmbeddingSource,
+  slug: z.string().optional(),      // For blog posts
+  title: z.string().optional(),     // For blog posts
+  file: z.string().optional(),      // For knowledge base files
+  url: z.string().optional(),       // Full URL if applicable
+});
+export type EmbeddingMetadata = z.infer<typeof ZEmbeddingMetadata>;
+
+export const ZChatEmbedding = z.object({
+  id: z.number().int(),
+  content: z.string(),
+  embedding: z.array(z.number()).length(384).optional(), // Vector as array (all-MiniLM-L6-v2)
+  metadata: ZEmbeddingMetadata,
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type ChatEmbedding = z.infer<typeof ZChatEmbedding>;
+
+export const ZRetrievalResult = z.object({
+  content: z.string(),
+  metadata: ZEmbeddingMetadata,
+  similarity: z.number().min(0).max(1),
+});
+export type RetrievalResult = z.infer<typeof ZRetrievalResult>;

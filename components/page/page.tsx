@@ -27,7 +27,7 @@ export const Page = ({ page }: { page: PageProps }) => {
           <div className='space-y-4 md:space-y-6'>
             <div className='space-y-2'>
               <div
-                className='prose max-w-[900px] text-zinc-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-zinc-400'
+                className='prose max-w-[900px] text-zinc-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed'
               >
                 {documentToReactComponents(
                   page.details.json,

@@ -40,6 +40,13 @@ Personal and professional website of Simon Krüger, built with Next.js 15, TypeS
 - **Search analytics** - Track search queries and click-through rates
 - **Keyboard navigation** - Full keyboard support for power users
 
+### 🤖 **AI Chat Assistant**
+- **RAG-powered** - Retrieval-Augmented Generation using knowledge base and blog content
+- **Local LLM** - Qwen3 0.6B via Transformers.js (no external API dependencies)
+- **Vector search** - pgvector for semantic similarity search
+- **Privacy-first** - All processing happens server-side, no data sent to third parties
+- **Auto-indexed** - Content automatically indexed on build and Contentful webhooks
+
 ---
 
 ## 🛠️ Tech Stack
@@ -52,9 +59,14 @@ Personal and professional website of Simon Krüger, built with Next.js 15, TypeS
 
 ### **Content & Data**
 - **[Contentful](https://www.contentful.com/)** - Headless CMS for content management
-- **[Neon](https://neon.tech/)** - Serverless PostgreSQL database
+- **[Neon](https://neon.tech/)** - Serverless PostgreSQL database with pgvector
 - **[Vercel KV](https://vercel.com/storage/kv)** - Redis for rate limiting and caching
 - **[Algolia](https://www.algolia.com/)** - Search and analytics
+
+### **AI & Machine Learning**
+- **[Transformers.js](https://huggingface.co/docs/transformers.js)** - Local LLM inference (Qwen3 0.6B)
+- **[pgvector](https://github.com/pgvector/pgvector)** - Vector similarity search
+- **all-MiniLM-L6-v2** - Embedding model (384 dimensions)
 
 ### **UI Components**
 - **[Tremor](https://www.tremor.so/)** - Dashboard and chart components
@@ -92,6 +104,7 @@ cr0ss.org/
 │   │   ├── [slug]/             # Individual blog posts
 │   │   ├── category/[slug]/    # Category pages
 │   │   └── search/             # Search results
+│   ├── chat/                    # AI chat assistant
 │   ├── dashboard/               # Personal dashboard
 │   ├── page/[slug]/            # Dynamic Contentful pages
 │   ├── rss.xml/                # RSS feed generation
@@ -99,12 +112,14 @@ cr0ss.org/
 │
 ├── components/                  # React components
 │   ├── blog/                   # Blog-specific components
+│   ├── chat/                   # AI chat components
 │   ├── dashboard/              # Dashboard components
 │   ├── page/                   # Page rendering components
 │   ├── search/                 # Search UI components
 │   └── ui/                     # Shared UI components
 │
 ├── lib/                         # Utility libraries
+│   ├── ai/                     # AI chat (LLM, embeddings, RAG)
 │   ├── api/                    # API utilities and middleware
 │   ├── auth/                   # Authentication helpers
 │   ├── cache/                  # Cache management
@@ -400,6 +415,11 @@ pnpm test:ci           # Run tests in CI mode with coverage
 
 # Contentful
 pnpm setup        # Set up Contentful content types
+
+# AI Chat
+pnpm ai:download  # Download LLM models (runs automatically in prebuild)
+pnpm ai:index     # Index content for RAG (runs automatically in postbuild)
+pnpm ai:setup     # Set up pgvector database table
 ```
 
 ### **TypeScript**
@@ -540,6 +560,7 @@ psql $DATABASE_URL < db/migrations/*.sql
 
 ## 📖 Documentation
 
+- [AI Chat Assistant](docs/ai-chat.md) - RAG-powered chat implementation
 - [Revalidation API](docs/REVALIDATION.md) - Cache invalidation guide
 - [Contentful Setup](lib/contentful/setup.ts) - Content type definitions
 - [API Middleware](lib/api/middleware.ts) - API utilities

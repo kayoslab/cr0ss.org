@@ -25,7 +25,7 @@ function BuildCustomLegend(categories: string[], palette: string[]) {
 
 function Skeleton({ className = "" }: { className?: string }) {
   return (
-    <div className={`h-full w-full rounded-lg animate-pulse bg-neutral-100/60 dark:bg-neutral-800/60 ${className}`} />
+    <div className={`h-full w-full rounded-lg animate-pulse bg-neutral-100/60 ${className}`} />
   );
 }
 
@@ -39,7 +39,7 @@ const ProgressImpl= dynamic(() => import("@tremor/react").then(m => m.ProgressBa
 /** Panel now matches KPI shell exactly */
 export function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-lg border border-neutral-200/60 dark:border-neutral-700 shadow-sm p-4 h-full">
+    <div className="rounded-lg border border-neutral-200/60 shadow-sm p-4 h-full">
       <div className="uppercase tracking-wider text-neutral-400 text-xs mb-3">{title}</div>
       {children}
     </div>
@@ -47,7 +47,7 @@ export function Panel({ title, children }: { title: string; children: React.Reac
 }
 
 function Empty({ hint }: { hint?: string }) {
-  return <div className="text-neutral-500 dark:text-neutral-400 text-sm">No data yet{hint ? ` — ${hint}` : ""}.</div>;
+  return <div className="text-neutral-500 text-sm">No data yet{hint ? ` — ${hint}` : ""}.</div>;
 }
 
 /* ------------------------- Donut ------------------------- */
@@ -109,7 +109,7 @@ export function Line({
             customTooltip={({ active, payload, label }) => {
               if (!active || !payload?.length) return null;
               return (
-                <div className="rounded-md border bg-white p-2 text-sm shadow dark:border-neutral-800 dark:bg-neutral-900">
+                <div className="rounded-md border bg-white p-2 text-sm shadow">
                   <div className="mb-1 font-medium">{label}</div>
                   {payload.map((p: { name?: string | number; value?: string | number | (string | number)[] }) => {
                     const name = String(p.name ?? "");
@@ -178,7 +178,7 @@ export function Area({
             customTooltip={({ active, payload, label }) => {
               if (!active || !payload?.length) return null;
               return (
-                <div className="rounded-md border bg-white p-2 text-sm shadow dark:border-neutral-800 dark:bg-neutral-900">
+                <div className="rounded-md border bg-white p-2 text-sm shadow">
                   <div className="mb-1 font-medium">{label}</div>
                   {payload.map((p: { name?: string | number; value?: string | number | (string | number)[] }) => {
                     const name = String(p.name ?? "");
@@ -277,7 +277,7 @@ export function Scatter({
               const swatch = (p0?.color as string) || colorMap.get(groupName) || palette[0];
 
               return (
-                <div className="rounded-md border bg-white p-2 text-sm shadow dark:border-neutral-800 dark:bg-neutral-900">
+                <div className="rounded-md border bg-white p-2 text-sm shadow">
                   <div className="mb-1 flex items-center gap-2">
                     {derivedCats.length > 0 && (
                       <span className="inline-block h-3 w-3 rounded" style={{ backgroundColor: swatch }} />
