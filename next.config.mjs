@@ -10,6 +10,14 @@ const nextConfig = {
     serverActions: { bodySizeLimit: '2mb' },
   },
   reactStrictMode: true,
+  // Turbopack configuration for Transformers.js on Vercel serverless
+  // onnxruntime-node has native binaries that don't work on serverless
+  // We alias it to onnxruntime-web which uses WASM instead
+  turbopack: {
+    resolveAlias: {
+      'onnxruntime-node': 'onnxruntime-web',
+    },
+  },
   images: {
     remotePatterns: [
       {
