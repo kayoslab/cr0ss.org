@@ -1,6 +1,7 @@
 /**
- * Pre-download LLM models at build time
- * This ensures the model is cached before the app runs
+ * Pre-download AI models at build time
+ * This ensures models are cached before the app runs
+ * Downloads both LLM (text generation) and embedding models
  */
 
 import { pipeline, env } from "@huggingface/transformers";
@@ -9,9 +10,13 @@ import { AVAILABLE_MODELS, MODELS_TO_PRELOAD } from "../lib/ai/models";
 // Configure cache directory
 env.cacheDir = "./.transformers-cache";
 
-async function downloadModels() {
-  console.log("🤖 Pre-downloading LLM models...\n");
+// Embedding model used for RAG
+const EMBEDDING_MODEL = "Xenova/all-MiniLM-L6-v2";
 
+async function downloadModels() {
+  console.log("🤖 Pre-downloading AI models...\n");
+
+  // Download LLM models
   for (const modelKey of MODELS_TO_PRELOAD) {
     const model = AVAILABLE_MODELS[modelKey as keyof typeof AVAILABLE_MODELS];
     if (!model) {
@@ -19,7 +24,7 @@ async function downloadModels() {
       continue;
     }
 
-    console.log(`📥 Downloading: ${model.name} (${model.id})`);
+    console.log(`📥 Downloading LLM: ${model.name} (${model.id})`);
     console.log(`   Size: ${model.size}`);
 
     try {
@@ -35,6 +40,17 @@ async function downloadModels() {
       console.error(`❌ Failed to download ${model.name}:`, error);
       process.exit(1);
     }
+  }
+
+  // Download embedding model (used for RAG indexing)
+  console.log(`📥 Downloading embedding model: ${EMBEDDING_MODEL}`);
+  try {
+    const embedPipe = await pipeline("feature-extraction", EMBEDDING_MODEL);
+    if ("dispose" in embedPipe) await (embedPipe as { dispose: () => Promise<void> }).dispose();
+    console.log(`✅ Embedding model downloaded and cached\n`);
+  } catch (error) {
+    console.error(`❌ Failed to download embedding model:`, error);
+    process.exit(1);
   }
 
   console.log("🎉 All models downloaded successfully!");

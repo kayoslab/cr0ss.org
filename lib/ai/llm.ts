@@ -6,10 +6,8 @@
 import { pipeline, env, TextGenerationPipeline } from "@huggingface/transformers";
 import { getCurrentModel } from "./models";
 
-// Configure Transformers.js
-if (process.env.NODE_ENV === "production") {
-  env.allowRemoteModels = false;
-}
+// Configure Transformers.js cache directory
+// Models are downloaded on first use and cached for subsequent requests
 env.cacheDir = "./.transformers-cache";
 
 // Set Hugging Face token if available (for gated models)
