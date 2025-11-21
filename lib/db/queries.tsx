@@ -125,7 +125,7 @@ export async function qCoffeeEventsForDayWithLookback(
   }
 
   // Strip the helper field before returning and validate
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   const out = events.map(({ coffee_cf_id, ...rest }) => rest);
   return z.array(ZCoffeeEvent).parse(out);
 }

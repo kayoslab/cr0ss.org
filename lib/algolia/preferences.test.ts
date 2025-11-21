@@ -46,7 +46,7 @@ describe('Search Preferences', () => {
 
     it('should return default preferences on server side (no window)', () => {
       const originalWindow = global.window;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       delete (global as any).window;
 
       const prefs = getSearchPreferences();
@@ -57,7 +57,7 @@ describe('Search Preferences', () => {
         darkMode: false,
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       (global as any).window = originalWindow;
     });
 

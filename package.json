@@ -47,6 +47,7 @@
     "contentful-management": "^11.63.1",
     "jiti": "^2.6.1",
     "next": "^16.0.3",
+    "onnxruntime-web": "^1.23.2",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-markdown": "^10.1.0",
