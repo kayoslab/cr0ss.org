@@ -125,7 +125,7 @@ export default function Navigation() {
   };
 
   return (
-    <header className='bg-white dark:bg-slate-800'>
+    <header className='bg-white'>
       <nav
         className='mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8'
         aria-label='Global'
@@ -139,7 +139,7 @@ export default function Navigation() {
         <div className='flex lg:hidden'>
           <button
             type='button'
-            className='-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700 dark:text-white'
+            className='-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700'
             onClick={() => setMobileMenuOpen(true)}
           >
             <span className='sr-only'>Open main menu</span>
@@ -148,20 +148,28 @@ export default function Navigation() {
         </div>
 
         <Popover.Group className='hidden lg:flex lg:gap-x-12 items-center'>
-          <Link href='/' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
+          <Link href='/' className='text-sm font-semibold leading-6 text-gray-900'>
             Home
           </Link>
-          <Link href='/blog' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
+          <Link href='/blog' className='text-sm font-semibold leading-6 text-gray-900'>
             Blog
           </Link>
-          <Link href='/dashboard' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
+          <Link href='/dashboard' className='text-sm font-semibold leading-6 text-gray-900'>
             Dashboard
           </Link>
-          <Link href='/page/about' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
+          <Link href='/page/about' className='text-sm font-semibold leading-6 text-gray-900'>
             About
           </Link>
-          <Link href='/page/contact' className='text-sm font-semibold leading-6 text-gray-900 dark:text-white'>
+          <Link href='/page/contact' className='text-sm font-semibold leading-6 text-gray-900'>
             Contact
+          </Link>
+          <Link
+            href='/chat'
+            className='inline-flex rounded-full p-[1px] bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 transition-all duration-200 hover:scale-105'
+          >
+            <span className='flex items-center bg-white rounded-full px-4 py-1.5 text-sm font-semibold'>
+              <span className='bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 bg-clip-text text-transparent'>Chat</span>
+            </span>
           </Link>
         </Popover.Group>
         <div className='hidden lg:flex lg:flex-1 lg:justify-end'>
@@ -169,7 +177,7 @@ export default function Navigation() {
             <div className="absolute right-0 h-full flex items-center">
               <button
                 onClick={toggleSearch}
-                className={`p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-opacity duration-200
+                className={`p-2 text-gray-500 hover:text-gray-700 transition-opacity duration-200
                   ${showSearchBar ? 'opacity-0 absolute right-2 pointer-events-none' : 'opacity-100'}`}
               >
                 <MagnifyingGlassIcon className="h-5 w-5" />
@@ -193,20 +201,20 @@ export default function Navigation() {
                         }}
                         onKeyDown={handleKeyDown}
                         placeholder="Search..."
-                        className="w-full pl-3 pr-10 py-1.5 rounded-md text-sm dark:bg-slate-700 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                        className="w-full pl-3 pr-10 py-1.5 rounded-md text-sm border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                       />
                       <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2">
-                        <MagnifyingGlassIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                        <MagnifyingGlassIcon className="h-4 w-4 text-gray-500" />
                       </button>
                     </div>
                   </form>
 
                   {showSuggestions && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-700 rounded-md shadow-lg border border-gray-200 dark:border-gray-600 z-100">
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-md shadow-lg border border-gray-200 z-100">
                       {isLoading ? (
                         <div className="px-4 py-2 text-sm text-gray-500">Loading...</div>
                       ) : searchError ? (
-                        <div className="px-4 py-2 text-sm text-red-500 dark:text-red-400">{searchError}</div>
+                        <div className="px-4 py-2 text-sm text-red-500">{searchError}</div>
                       ) : suggestions.length > 0 ? (
                         suggestions.map((hit, index) => (
                           <button
@@ -214,10 +222,10 @@ export default function Navigation() {
                             onClick={() => handleSuggestionClick(hit)}
                             className={`block w-full text-left px-4 py-2 text-sm
                               ${index === selectedIndex
-                                ? 'bg-gray-100 dark:bg-slate-600'
-                                : 'hover:bg-gray-100 dark:hover:bg-slate-600'
+                                ? 'bg-gray-100'
+                                : 'hover:bg-gray-100'
                               }
-                              text-gray-700 dark:text-white`}
+                              text-gray-700`}
                           >
                             {hit.title}
                           </button>
@@ -240,7 +248,7 @@ export default function Navigation() {
         onClose={setMobileMenuOpen}
       >
         <div className='fixed inset-0 z-10' />
-        <Dialog.Panel className='fixed inset-y-0 right-0 z-10 w-full overflow-y-auto bg-white dark:bg-slate-800 px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10'>
+        <Dialog.Panel className='fixed inset-y-0 right-0 z-10 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10'>
           <div className='flex items-center justify-between'>
             <Link href='/' className='-m-1.5 p-1.5'>
               <span className='sr-only'>cr0ss.org</span>
@@ -248,7 +256,7 @@ export default function Navigation() {
             </Link>
             <button
               type='button'
-              className='-m-2.5 rounded-md p-2.5 text-gray-700 dark:text-white'
+              className='-m-2.5 rounded-md p-2.5 text-gray-700'
               onClick={() => setMobileMenuOpen(false)}
             >
               <span className='sr-only'>Close menu</span>
@@ -266,50 +274,59 @@ export default function Navigation() {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search..."
-                      className="w-full pl-3 pr-10 py-2 rounded-md text-sm dark:bg-slate-700 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                      className="w-full pl-3 pr-10 py-2 rounded-md text-sm border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                     />
                     <button
                       type="submit"
                       className="absolute right-2 top-1/2 -translate-y-1/2"
                     >
-                      <MagnifyingGlassIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                      <MagnifyingGlassIcon className="h-4 w-4 text-gray-500" />
                     </button>
                   </div>
                 </form>
                 <Link
                   href='/'
-                  className='-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 dark:text-white hover:bg-gray-50'
+                  className='-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50'
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Home
                 </Link>
                 <Link
                   href='/blog'
-                  className='-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 dark:text-white hover:bg-gray-50'
+                  className='-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50'
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Blog
                 </Link>
                 <Link
                   href='/dashboard'
-                  className='-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 dark:text-white hover:bg-gray-50'
+                  className='-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50'
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Dashboard
                 </Link>
                 <Link
                   href='/page/about'
-                  className='-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 dark:text-white hover:bg-gray-50'
+                  className='-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50'
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   About
                 </Link>
                 <Link
                   href='/page/contact'
-                  className='-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 dark:text-white hover:bg-gray-50'
+                  className='-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50'
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Contact
+                </Link>
+                <Link
+                  href='/chat'
+                  className='mt-4 inline-flex rounded-full p-[1px] bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 transition-all duration-200'
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <span className='flex items-center justify-center bg-white rounded-full px-6 py-2 text-base font-semibold'>
+                    <span className='bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 bg-clip-text text-transparent'>Chat</span>
+                  </span>
                 </Link>
               </div>
               <div className='py-6'>

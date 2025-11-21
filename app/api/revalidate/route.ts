@@ -218,11 +218,31 @@ export async function POST(request: Request) {
       algoliaUpdated = true;
     }
 
+    // Re-index blog post for AI chat
+    // Note: This runs async and doesn't block the response
+    let aiIndexed = false;
+    if (contentTypeId === 'blogPost' && slug) {
+      // Call the AI re-indexing endpoint (runs on Node runtime)
+      fetch(new URL('/api/ai/reindex-blog', request.url), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-vercel-revalidation-key': request.headers.get('x-vercel-revalidation-key') || '',
+        },
+        body: JSON.stringify({ slug }),
+      })
+        .then(() => console.log(`AI re-indexing triggered for: ${slug}`))
+        .catch((error) => console.error(`AI re-indexing failed for ${slug}:`, error));
+
+      aiIndexed = true;
+    }
+
     return createSuccessResponse({
       revalidated: true,
       tags: tagsToRevalidate,
       paths: pathsToRevalidate,
       algoliaIndexed: algoliaUpdated,
+      aiIndexQueued: aiIndexed,
       timestamp: Date.now(),
     });
   } catch (error) {

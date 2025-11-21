@@ -18,7 +18,7 @@ export class SearchErrorBoundary extends Component<Props, { hasError: boolean }>
   render() {
     if (this.state.hasError) {
       return (
-        <div className="text-sm text-red-500 dark:text-red-400">
+        <div className="text-sm text-red-500">
           Search is temporarily unavailable
         </div>
       );

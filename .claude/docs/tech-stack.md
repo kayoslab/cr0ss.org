@@ -2,7 +2,7 @@
 
 ## Core Framework
 
-### Next.js 14 (App Router)
+### Next.js 15 (App Router)
 
 **Why**: Modern React framework with Server Components, Edge Runtime, and built-in optimizations
 
@@ -429,11 +429,55 @@ npm run format:fix  # Fix
 
 ```json
 {
-  "node": ">=18.0.0",
-  "next": "14.2.x",
-  "react": "18.3.x",
-  "typescript": "5.x"
+  "node": ">=24.0.0",
+  "next": "15.x",
+  "react": "19.x",
+  "typescript": "5.9.x"
 }
+```
+
+## AI & Machine Learning
+
+### Transformers.js
+
+**Why**: Run ML models locally in Node.js without external API dependencies
+
+**Use For**:
+- ✅ LLM text generation (Qwen3 0.6B)
+- ✅ Embedding generation (all-MiniLM-L6-v2)
+- ✅ RAG context retrieval
+
+**Patterns**:
+```typescript
+// Text generation
+import { pipeline } from "@huggingface/transformers";
+const generator = await pipeline("text-generation", "onnx-community/Qwen3-0.6B-ONNX");
+
+// Embeddings
+const embedder = await pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2");
+```
+
+**Don't**:
+- ❌ Client-side model loading (too slow)
+- ❌ Models larger than 1GB (too slow for serverless)
+- ❌ Streaming (not yet supported well)
+
+### pgvector
+
+**Why**: Vector similarity search in PostgreSQL
+
+**Use For**:
+- ✅ Storing embeddings
+- ✅ Semantic search
+- ✅ RAG retrieval
+
+**Patterns**:
+```typescript
+// Store embedding
+await sql`INSERT INTO chat_embeddings (content, embedding) VALUES (${text}, ${vector})`;
+
+// Search similar
+await sql`SELECT * FROM chat_embeddings ORDER BY embedding <=> ${queryVector} LIMIT 5`;
 ```
 
 ## Migration Notes

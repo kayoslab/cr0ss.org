@@ -52,11 +52,11 @@ export default function BlogGrid({ posts, currentPage, totalPages, basePath, tit
                     />
                   </Link>
                   <div className='flex-1 p-6'>
-                    <div className='text-sm text-zinc-500 dark:text-zinc-400'>
+                    <div className='text-sm text-zinc-500'>
                       {publishDate}
                     </div>
                     <Link href={`/blog/${blog.slug}`}>
-                      <h3 className='py-4 text-2xl font-bold leading-tight text-zinc-900 dark:text-zinc-50'>
+                      <h3 className='py-4 text-2xl font-bold leading-tight text-zinc-900'>
                         {blog.title}
                       </h3>
                     </Link>
@@ -79,20 +79,20 @@ export default function BlogGrid({ posts, currentPage, totalPages, basePath, tit
             {currentPage > 1 && (
               <Link
                 href={`${basePath}?page=${currentPage - 1}`}
-                className="px-4 py-2 text-sm font-medium text-zinc-900 dark:text-zinc-50 bg-zinc-100 dark:bg-zinc-800 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                className="px-4 py-2 text-sm font-medium text-zinc-900 bg-zinc-100 rounded-md hover:bg-zinc-200:bg-zinc-700"
               >
                 Previous
               </Link>
             )}
             
-            <span className="px-4 py-2 text-sm font-medium text-zinc-900 dark:text-zinc-50">
+            <span className="px-4 py-2 text-sm font-medium text-zinc-900">
               Page {currentPage} of {totalPages}
             </span>
 
             {currentPage < totalPages && (
               <Link
                 href={`${basePath}?page=${currentPage + 1}`}
-                className="px-4 py-2 text-sm font-medium text-zinc-900 dark:text-zinc-50 bg-zinc-100 dark:bg-zinc-800 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                className="px-4 py-2 text-sm font-medium text-zinc-900 bg-zinc-100 rounded-md hover:bg-zinc-200:bg-zinc-700"
               >
                 Next
               </Link>

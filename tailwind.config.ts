@@ -10,6 +10,7 @@ export default {
     "./node_modules/@tremor/**/*.{js,ts,jsx,tsx,mjs}",
   ],
   theme: { extend: {} },
-  darkMode: "class",
+  // Dark mode disabled
+  // darkMode: "class",
   plugins: [],
 } satisfies Config;

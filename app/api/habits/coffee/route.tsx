@@ -11,7 +11,7 @@ import {
 } from "@/lib/time/berlin";
 import { getAllCoffeeDTO } from "@/lib/contentful/api/coffee";
 
-// GET all coffees from Contentful (up to 20)
+// GET all coffees from Contentful (up to 100)
 export const GET = wrapTrace("GET /api/habits/coffee", async (req: Request) => {
   try {
     assertSecret(req);
