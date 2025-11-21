@@ -6,13 +6,8 @@
 
 import { pipeline, env, FeatureExtractionPipeline, Tensor } from "@huggingface/transformers";
 
-// Configure Transformers.js
-// Disable remote models in production (use cached models)
-if (process.env.NODE_ENV === "production") {
-  env.allowRemoteModels = false;
-}
-
-// Cache directory for models (local development)
+// Configure Transformers.js cache directory
+// Models are downloaded on first use and cached for subsequent requests
 env.cacheDir = "./.transformers-cache";
 
 // Type for the embedding pipeline call signature

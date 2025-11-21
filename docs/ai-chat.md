@@ -119,7 +119,7 @@ components/chat/
 pnpm ai:download
 ```
 
-Downloads configured models to `.transformers-cache/`. Runs automatically via `prebuild` hook.
+Downloads configured models (LLM + embedding) to `.transformers-cache/`. Runs automatically via `prebuild` hook.
 
 ### Index All Content
 
