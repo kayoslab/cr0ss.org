@@ -6,8 +6,11 @@
 import { pipeline, env, TextGenerationPipeline } from "@huggingface/transformers";
 import { getCurrentModel } from "./models";
 
-// Configure Transformers.js cache directory
-// Models are downloaded on first use and cached for subsequent requests
+// Configure Transformers.js for serverless environment
+// Use WASM backend (works on Vercel serverless, unlike native onnxruntime-node)
+if (env.backends?.onnx?.wasm) {
+  env.backends.onnx.wasm.wasmPaths = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.21.0/dist/";
+}
 env.cacheDir = "./.transformers-cache";
 
 // Set Hugging Face token if available (for gated models)
