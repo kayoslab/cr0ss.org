@@ -1,5 +1,5 @@
-// Node runtime required for Transformers.js
-export const runtime = "nodejs";
+// Edge runtime for Transformers.js with WASM backend (no native modules)
+export const runtime = "edge";
 export const maxDuration = 60; // 60 seconds for LLM generation
 
 import { NextResponse } from "next/server";

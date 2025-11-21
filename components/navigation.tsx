@@ -163,14 +163,14 @@ export default function Navigation() {
           <Link href='/page/contact' className='text-sm font-semibold leading-6 text-gray-900'>
             Contact
           </Link>
-          {/* <Link
+          <Link
             href='/chat'
             className='inline-flex rounded-full p-[1px] bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 transition-all duration-200 hover:scale-105'
           >
             <span className='flex items-center bg-white rounded-full px-4 py-1.5 text-sm font-semibold'>
               <span className='bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 bg-clip-text text-transparent'>Chat</span>
             </span>
-          </Link> */}
+          </Link>
         </Popover.Group>
         <div className='hidden lg:flex lg:flex-1 lg:justify-end'>
           <div className="relative w-64 h-full flex items-center">
@@ -319,7 +319,7 @@ export default function Navigation() {
                 >
                   Contact
                 </Link>
-                {/* <Link
+                <Link
                   href='/chat'
                   className='mt-4 inline-flex rounded-full p-[1px] bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 transition-all duration-200'
                   onClick={() => setMobileMenuOpen(false)}
@@ -327,7 +327,7 @@ export default function Navigation() {
                   <span className='flex items-center justify-center bg-white rounded-full px-6 py-2 text-base font-semibold'>
                     <span className='bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 bg-clip-text text-transparent'>Chat</span>
                   </span>
-                </Link> */}
+                </Link>
               </div>
               <div className='py-6'>
                 {/* <a
