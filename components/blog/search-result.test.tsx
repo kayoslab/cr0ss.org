@@ -93,7 +93,6 @@ describe('Blog SearchResult', () => {
 
     const button = getByRole('button');
     expect(button).toHaveClass('bg-gray-100');
-    expect(button).toHaveClass('dark:bg-slate-600');
   });
 
   it('should apply hover styling when isSelected is false', () => {
@@ -103,7 +102,6 @@ describe('Blog SearchResult', () => {
 
     const button = getByRole('button');
     expect(button).toHaveClass('hover:bg-gray-100');
-    expect(button).toHaveClass('dark:hover:bg-slate-600');
   });
 
   it('should have correct text styling', () => {
@@ -117,7 +115,6 @@ describe('Blog SearchResult', () => {
     const summary = getByText('This is a blog post summary');
     expect(summary).toHaveClass('text-xs');
     expect(summary).toHaveClass('text-gray-500');
-    expect(summary).toHaveClass('dark:text-gray-400');
   });
 
   it('should truncate summary text', () => {

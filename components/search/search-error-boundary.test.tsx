@@ -51,7 +51,6 @@ describe('SearchErrorBoundary', () => {
     const errorDiv = container.querySelector('div');
     expect(errorDiv).toHaveClass('text-sm');
     expect(errorDiv).toHaveClass('text-red-500');
-    expect(errorDiv).toHaveClass('dark:text-red-400');
 
     consoleErrorSpy.mockRestore();
   });

@@ -12,7 +12,7 @@ export function SearchResult({ hit, onClick, isSelected }: Props) {
     <button
       onClick={() => onClick(hit)}
       className={`block w-full text-left px-4 py-2 text-sm 
-        ${isSelected ? 'bg-gray-100' : 'hover:bg-gray-100:bg-slate-600'}
+        ${isSelected ? 'bg-gray-100' : 'hover:bg-gray-100'}
         text-gray-700`}
     >
       <div className="font-medium">{hit.title}</div>

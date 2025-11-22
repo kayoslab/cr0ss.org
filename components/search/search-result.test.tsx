@@ -79,7 +79,6 @@ describe('SearchResult', () => {
 
     const button = getByRole('button');
     expect(button).toHaveClass('bg-gray-100');
-    expect(button).toHaveClass('dark:bg-slate-600');
   });
 
   it('should apply hover styling when isSelected is false', () => {
@@ -89,7 +88,6 @@ describe('SearchResult', () => {
 
     const button = getByRole('button');
     expect(button).toHaveClass('hover:bg-gray-100');
-    expect(button).toHaveClass('dark:hover:bg-slate-600');
   });
 
   it('should render as a button element', () => {
