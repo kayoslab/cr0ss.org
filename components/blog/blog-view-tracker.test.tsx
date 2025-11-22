@@ -10,11 +10,19 @@ describe('BlogViewTracker', () => {
     mockFetch = vi.fn();
     global.fetch = mockFetch as unknown as typeof fetch;
     vi.useFakeTimers();
+
+    // Mock localStorage for user token
+    const mockStorage: Record<string, string> = {};
+    vi.stubGlobal('localStorage', {
+      getItem: vi.fn((key: string) => mockStorage[key] || null),
+      setItem: vi.fn((key: string, value: string) => { mockStorage[key] = value; }),
+    });
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
     vi.useRealTimers();
+    vi.unstubAllGlobals();
   });
 
   const mockBlog = {
@@ -45,10 +53,14 @@ describe('BlogViewTracker', () => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        objectID: 'test-blog-123',
-      }),
+      body: expect.stringContaining('"objectID":"test-blog-123"'),
     });
+
+    // Verify the body contains the expected fields
+    const callBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+    expect(callBody.objectID).toBe('test-blog-123');
+    expect(callBody.eventType).toBe('view');
+    expect(callBody.userToken).toBeDefined();
   });
 
   it('should retry on failed response', async () => {
@@ -124,23 +136,21 @@ describe('BlogViewTracker', () => {
     const { rerender } = render(<BlogViewTracker blog={blog1} />);
     await vi.runAllTimersAsync();
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      '/api/algolia/analytics',
-      expect.objectContaining({
-        body: JSON.stringify({ objectID: 'blog-1' }),
-      })
-    );
+    // Verify the first blog was tracked
+    const firstCallBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+    expect(firstCallBody.objectID).toBe('blog-1');
+    expect(firstCallBody.eventType).toBe('view');
+    expect(firstCallBody.userToken).toBeDefined();
 
     mockFetch.mockClear();
 
     rerender(<BlogViewTracker blog={blog2} />);
     await vi.runAllTimersAsync();
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      '/api/algolia/analytics',
-      expect.objectContaining({
-        body: JSON.stringify({ objectID: 'blog-2' }),
-      })
-    );
+    // Verify the second blog was tracked
+    const secondCallBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+    expect(secondCallBody.objectID).toBe('blog-2');
+    expect(secondCallBody.eventType).toBe('view');
+    expect(secondCallBody.userToken).toBeDefined();
   });
 });

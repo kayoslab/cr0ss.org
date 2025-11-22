@@ -5,17 +5,33 @@ import { aa } from '@/lib/algolia/client';
 
 export async function POST(request: Request) {
   try {
-    const { objectID } = await request.json();
-    
+    const { objectID, eventType, userToken } = await request.json();
+
     if (!objectID) {
       return NextResponse.json({ error: 'objectID is required' }, { status: 400 });
     }
 
-    aa('clickedObjectIDs', {
-      eventName: 'Post Viewed',
-      index: 'www',
-      objectIDs: [objectID]
-    });
+    // Set user token for personalization (important for Algolia Recommend)
+    if (userToken) {
+      aa('setUserToken', userToken);
+    }
+
+    // Use viewedObjectIDs for page views (important for Algolia Recommend)
+    // Use clickedObjectIDs for search result clicks
+    if (eventType === 'click') {
+      aa('clickedObjectIDs', {
+        eventName: 'Blog Clicked',
+        index: 'www',
+        objectIDs: [objectID],
+      });
+    } else {
+      // Default to view event
+      aa('viewedObjectIDs', {
+        eventName: 'Blog Viewed',
+        index: 'www',
+        objectIDs: [objectID],
+      });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

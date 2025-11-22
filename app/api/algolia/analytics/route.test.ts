@@ -26,14 +26,49 @@ describe('POST /api/algolia/analytics', () => {
       const response = await POST(request);
 
       expect(response.status).toBe(200);
-      expect(aa).toHaveBeenCalledWith('clickedObjectIDs', {
-        eventName: 'Post Viewed',
+      expect(aa).toHaveBeenCalledWith('viewedObjectIDs', {
+        eventName: 'Blog Viewed',
         index: 'www',
         objectIDs: ['blog-post-123'],
       });
 
       const data = await response.json();
       expect(data).toEqual({ success: true });
+    });
+
+    it('should track click event when eventType is click', async () => {
+      const request = new Request('http://localhost:3000/api/algolia/analytics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ objectID: 'blog-post-123', eventType: 'click' }),
+      });
+
+      const response = await POST(request);
+
+      expect(response.status).toBe(200);
+      expect(aa).toHaveBeenCalledWith('clickedObjectIDs', {
+        eventName: 'Blog Clicked',
+        index: 'www',
+        objectIDs: ['blog-post-123'],
+      });
+    });
+
+    it('should set user token when provided', async () => {
+      const request = new Request('http://localhost:3000/api/algolia/analytics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ objectID: 'blog-post-123', userToken: 'user_abc123' }),
+      });
+
+      const response = await POST(request);
+
+      expect(response.status).toBe(200);
+      expect(aa).toHaveBeenCalledWith('setUserToken', 'user_abc123');
+      expect(aa).toHaveBeenCalledWith('viewedObjectIDs', {
+        eventName: 'Blog Viewed',
+        index: 'www',
+        objectIDs: ['blog-post-123'],
+      });
     });
 
     it('should handle numeric objectID', async () => {
@@ -46,8 +81,8 @@ describe('POST /api/algolia/analytics', () => {
       const response = await POST(request);
 
       expect(response.status).toBe(200);
-      expect(aa).toHaveBeenCalledWith('clickedObjectIDs', {
-        eventName: 'Post Viewed',
+      expect(aa).toHaveBeenCalledWith('viewedObjectIDs', {
+        eventName: 'Blog Viewed',
         index: 'www',
         objectIDs: [12345],
       });
@@ -149,8 +184,8 @@ describe('POST /api/algolia/analytics', () => {
       const response = await POST(request);
 
       expect(response.status).toBe(200);
-      expect(aa).toHaveBeenCalledWith('clickedObjectIDs', {
-        eventName: 'Post Viewed',
+      expect(aa).toHaveBeenCalledWith('viewedObjectIDs', {
+        eventName: 'Blog Viewed',
         index: 'www',
         objectIDs: ['test-id'],
       });
@@ -166,8 +201,8 @@ describe('POST /api/algolia/analytics', () => {
       const response = await POST(request);
 
       expect(response.status).toBe(200);
-      expect(aa).toHaveBeenCalledWith('clickedObjectIDs', {
-        eventName: 'Post Viewed',
+      expect(aa).toHaveBeenCalledWith('viewedObjectIDs', {
+        eventName: 'Blog Viewed',
         index: 'www',
         objectIDs: ['post-123-@-special!'],
       });

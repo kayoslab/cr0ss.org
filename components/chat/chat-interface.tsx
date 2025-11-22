@@ -4,11 +4,17 @@ import { useState, useRef, useEffect } from "react";
 import { Message } from "./message";
 import { SuggestedQuestions } from "./suggested-questions";
 
+export interface ChatSource {
+  title: string;
+  url: string;
+}
+
 export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   timestamp: number;
   modelName?: string;
+  sources?: ChatSource[];
 }
 
 interface RateLimitState {
@@ -171,6 +177,7 @@ export default function ChatInterface() {
         content: data.response,
         timestamp: data.timestamp,
         modelName: data.model?.name,
+        sources: data.sources,
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
@@ -191,8 +198,10 @@ export default function ChatInterface() {
     sendMessage(question);
   };
 
+  const hasMessages = messages.length > 0 || isLoading;
+
   return (
-    <div className="flex flex-col">
+    <div className={`flex flex-col ${hasMessages ? '' : 'min-h-[50vh] justify-end'}`}>
       {/* Header */}
       <div className="flex flex-col items-center justify-center space-y-4 text-center mb-8">
         <div className="space-y-2">
@@ -205,7 +214,7 @@ export default function ChatInterface() {
       {/* Messages Container */}
       <div className="space-y-6">
         {messages.length === 0 && !isLoading && (
-          <div className="flex flex-col items-center justify-center space-y-8 py-8">
+          <div className="flex flex-col items-center justify-center space-y-6">
             <p className="text-gray-600 text-center">
               Try one of these questions to get started:
             </p>
@@ -256,7 +265,7 @@ export default function ChatInterface() {
       </div>
 
       {/* Input Area */}
-      <div className="sticky bottom-0 pt-4 pb-2 bg-white mt-6">
+      <div className="pt-6 pb-2 bg-white">
         <form onSubmit={handleSubmit} className="flex space-x-2">
           <input
             type="text"

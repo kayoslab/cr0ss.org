@@ -57,7 +57,7 @@ export async function POST(request: Request) {
     console.log(`\n🤖 Chat request: "${message}"`);
 
     // Retrieve relevant context using RAG
-    const context = await retrieveContext(message, 5);
+    const { context, sources } = await retrieveContext(message, 5);
 
     // Generate system prompt
     const systemPrompt = createSystemPrompt();
@@ -68,6 +68,11 @@ export async function POST(request: Request) {
     // Get model info
     const model = getCurrentModel();
 
+    // Filter sources to only include blog posts with URLs for the response
+    const blogSources = sources
+      .filter((s) => s.type === "blog" && s.url)
+      .map((s) => ({ title: s.title, url: s.url! }));
+
     // Return response
     return NextResponse.json({
       response: responseText,
@@ -75,6 +80,7 @@ export async function POST(request: Request) {
         name: model.name,
         provider: model.provider,
       },
+      sources: blogSources,
       timestamp: Date.now(),
     });
   } catch (error) {

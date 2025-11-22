@@ -14,6 +14,16 @@ export interface AlgoliaHit {
   image?: string;
 }
 
+// Recommendation result interface
+export interface RecommendationHit {
+  objectID: string;
+  title: string;
+  summary?: string;
+  url: string;
+  image?: string;
+  _score?: number;
+}
+
 // Initialize the Algolia client
 export const searchClient: SearchClient = algoliasearch(
   env.ALGOLIA_APP_ID,
@@ -78,4 +88,64 @@ export { aa };
 export interface SearchAPIResponse {
   hits: AlgoliaHit[];
   queryID: string | null;
+}
+
+/**
+ * Get related blog post recommendations using Algolia Recommend API
+ * Uses the REST API directly since algoliasearch v5 doesn't include recommend methods
+ */
+export async function getRelatedPosts(
+  objectID: string,
+  maxRecommendations: number = 3
+): Promise<RecommendationHit[]> {
+  try {
+    const body = {
+      requests: [
+        {
+          indexName: env.ALGOLIA_INDEX,
+          model: "related-products",
+          objectID,
+          threshold: 30,
+          maxRecommendations,
+          queryParameters: {
+            attributesToRetrieve: ["title", "summary", "url", "image"],
+          },
+        },
+      ],
+    };
+
+    const response = await fetch(
+      `https://${env.ALGOLIA_APP_ID}-dsn.algolia.net/1/indexes/*/recommendations`,
+      {
+        method: "POST",
+        headers: {
+          "X-Algolia-Application-Id": env.ALGOLIA_APP_ID,
+          "X-Algolia-API-Key": env.ALGOLIA_SEARCH_KEY,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+        next: { revalidate: 3600 }, // Cache for 1 hour
+      }
+    );
+
+    if (!response.ok) {
+      console.error("Algolia Recommend API error:", response.status);
+      return [];
+    }
+
+    const data = await response.json();
+    const hits = data.results?.[0]?.hits || [];
+
+    return hits.map((hit: Record<string, unknown>) => ({
+      objectID: hit.objectID as string,
+      title: hit.title as string,
+      summary: hit.summary as string | undefined,
+      url: hit.url as string,
+      image: hit.image as string | undefined,
+      _score: hit._score as number | undefined,
+    }));
+  } catch (error) {
+    console.error("Failed to get recommendations:", error);
+    return [];
+  }
 } 
