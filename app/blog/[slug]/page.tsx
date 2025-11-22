@@ -7,6 +7,7 @@ import type { Metadata } from 'next'
 import { CategoryProps } from '@/lib/contentful/api/props/category';
 import { BlogViewTracker } from '@/components/blog/blog-view-tracker';
 import { createBlogMetadata, createBlogJsonLd } from '@/lib/metadata';
+import { getRelatedPosts } from '@/lib/algolia/client';
 
 type Props = {
   params: Promise<{ slug: string }>
@@ -54,15 +55,34 @@ export async function generateStaticParams() {
 
 async function getRecommendations(currentBlog: BlogProps, maxRecommendations: number = 3): Promise<BlogProps[]> {
   try {
+    // Try Algolia Recommend first
+    const algoliaRecs = await getRelatedPosts(currentBlog.sys.id, maxRecommendations);
+
+    if (algoliaRecs.length > 0) {
+      // Fetch full blog data for each recommendation
+      const blogPromises = algoliaRecs.map(async (rec) => {
+        // Extract slug from URL (format: /blog/slug/)
+        const slug = rec.url.replace(/^\/blog\//, '').replace(/\/$/, '');
+        return getBlog(slug) as unknown as BlogProps | null;
+      });
+
+      const blogs = await Promise.all(blogPromises);
+      const validBlogs = blogs.filter((blog): blog is BlogProps => blog !== null);
+
+      if (validBlogs.length > 0) {
+        return validBlogs.slice(0, maxRecommendations);
+      }
+    }
+
+    // Fallback: category-based recommendations
     const categories = currentBlog.categoriesCollection?.items || [];
-    
-    // Try to get category-based recommendations first
+
     if (categories && categories.length > 0) {
-      const categoryPromises = categories.map((category: CategoryProps) => 
+      const categoryPromises = categories.map((category: CategoryProps) =>
         getBlogsForCategory(category.slug)
       );
       const categoryResults = await Promise.all(categoryPromises);
-      
+
       const blogMap = new Map<string, BlogProps>();
 
       categoryResults.flatMap(result => result.items as unknown as BlogProps[])
@@ -79,7 +99,7 @@ async function getRecommendations(currentBlog: BlogProps, maxRecommendations: nu
       }
     }
 
-    // Fall back to recent posts if no category recommendations
+    // Final fallback: recent posts
     const recentPosts = await getAllBlogs(1, maxRecommendations + 1);
     return (recentPosts.items as unknown as BlogProps[])
       .filter((post: BlogProps) => post.slug !== currentBlog.slug)

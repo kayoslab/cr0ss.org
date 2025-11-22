@@ -6,6 +6,17 @@
 import { generateEmbedding } from "./embeddings";
 import { retrieveRelevantContext } from "../db/embeddings";
 
+export interface ChatSource {
+  type: "blog" | "knowledge";
+  title: string;
+  url?: string;
+}
+
+export interface RetrievalResponse {
+  context: string;
+  sources: ChatSource[];
+}
+
 /**
  * Create system prompt for the AI assistant
  */
@@ -28,12 +39,12 @@ Remember: Accuracy is more important than comprehensiveness. Only share what you
 
 /**
  * Retrieve relevant context for a user question
- * Returns formatted context string to include in the LLM prompt
+ * Returns formatted context string and source references
  */
 export async function retrieveContext(
   userQuestion: string,
   maxResults: number = 5
-): Promise<string> {
+): Promise<RetrievalResponse> {
   console.log(`Retrieving context for: "${userQuestion}"`);
 
   // Generate embedding for the question
@@ -46,7 +57,10 @@ export async function retrieveContext(
 
   if (results.length === 0) {
     console.log("⚠️  No relevant context found");
-    return "No specific information available. Please provide a general response based on common knowledge about software development and architecture.";
+    return {
+      context: "No specific information available. Please provide a general response based on common knowledge about software development and architecture.",
+      sources: [],
+    };
   }
 
   console.log(`✅ Found ${results.length} relevant pieces of context`);
@@ -56,5 +70,26 @@ export async function retrieveContext(
     return result.content;
   });
 
-  return contextParts.join("\n\n---\n\n");
+  // Extract unique sources (deduplicate by URL or title)
+  const seenSources = new Set<string>();
+  const sources: ChatSource[] = [];
+
+  for (const result of results) {
+    const { metadata } = result;
+    const key = metadata.url || metadata.title || metadata.file || "";
+
+    if (key && !seenSources.has(key)) {
+      seenSources.add(key);
+      sources.push({
+        type: metadata.source,
+        title: metadata.title || metadata.file?.replace(".md", "") || "Unknown",
+        url: metadata.url,
+      });
+    }
+  }
+
+  return {
+    context: contextParts.join("\n\n---\n\n"),
+    sources,
+  };
 }
