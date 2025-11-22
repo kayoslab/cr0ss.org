@@ -21,8 +21,8 @@
     "ai:setup": "tsx --import ./scripts/load-env.ts ./scripts/setup-pgvector.ts",
     "ai:index": "tsx --import ./scripts/load-env.ts ./scripts/index-embeddings.ts",
     "ai:download": "tsx ./scripts/download-llm.ts",
-    "prebuild": "pnpm ai:download",
-    "postbuild": "pnpm ai:index"
+    "prebuild": "node -e \"if(process.env.VERCEL==='1'){console.log('Skipping ai:download on Vercel');process.exit(0)}else{process.exit(1)}\" || pnpm ai:download",
+    "postbuild": "node -e \"if(process.env.VERCEL==='1'){console.log('Skipping ai:index on Vercel');process.exit(0)}else{process.exit(1)}\" || pnpm ai:index"
   },
   "dependencies": {
     "@algolia/client-search": "^5.43.0",
