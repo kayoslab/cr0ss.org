@@ -42,10 +42,10 @@ Personal and professional website of Simon Krüger, built with Next.js 15, TypeS
 
 ### 🤖 **AI Chat Assistant**
 - **RAG-powered** - Retrieval-Augmented Generation using knowledge base and blog content
-- **Local LLM** - Qwen3 0.6B via Transformers.js (no external API dependencies)
+- **Vercel AI Gateway** - Unified access to OpenAI, Anthropic, and other providers
 - **Vector search** - pgvector for semantic similarity search
-- **Privacy-first** - All processing happens server-side, no data sent to third parties
-- **Auto-indexed** - Content automatically indexed on build and Contentful webhooks
+- **Provider switching** - Easy model switching via environment variables
+- **Auto-indexed** - Content automatically indexed on Contentful webhooks
 
 ---
 
@@ -64,9 +64,10 @@ Personal and professional website of Simon Krüger, built with Next.js 15, TypeS
 - **[Algolia](https://www.algolia.com/)** - Search and analytics
 
 ### **AI & Machine Learning**
-- **[Transformers.js](https://huggingface.co/docs/transformers.js)** - Local LLM inference (Qwen3 0.6B)
+- **[Vercel AI Gateway](https://vercel.com/ai-gateway)** - Unified access to OpenAI, Anthropic, etc.
+- **[Vercel AI SDK](https://ai-sdk.dev/)** - TypeScript toolkit for AI applications
 - **[pgvector](https://github.com/pgvector/pgvector)** - Vector similarity search
-- **all-MiniLM-L6-v2** - Embedding model (384 dimensions)
+- **text-embedding-3-small** - OpenAI embedding model (384 dimensions)
 
 ### **UI Components**
 - **[Tremor](https://www.tremor.so/)** - Dashboard and chart components
@@ -203,6 +204,9 @@ cr0ss.org/
 
    # API Secrets
    DASHBOARD_API_SECRET=your_dashboard_secret
+
+   # AI (Vercel AI Gateway)
+   AI_GATEWAY_API_KEY=your_ai_gateway_key
 
    # Vercel KV (Redis)
    KV_REST_API_URL=your_kv_url

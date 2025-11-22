@@ -17,12 +17,8 @@
     "test:coverage:ui": "vitest run --coverage --ui",
     "test:changed": "vitest run --changed",
     "test:ci": "vitest run --coverage --reporter=verbose",
-    "postinstall": "node scripts/postinstall.mjs",
     "ai:setup": "tsx --import ./scripts/load-env.ts ./scripts/setup-pgvector.ts",
-    "ai:index": "tsx --import ./scripts/load-env.ts ./scripts/index-embeddings.ts",
-    "ai:download": "tsx ./scripts/download-llm.ts",
-    "prebuild": "node -e \"if(process.env.VERCEL==='1'){console.log('Skipping ai:download on Vercel');process.exit(0)}else{process.exit(1)}\" || pnpm ai:download",
-    "postbuild": "node -e \"if(process.env.VERCEL==='1'){console.log('Skipping ai:index on Vercel');process.exit(0)}else{process.exit(1)}\" || pnpm ai:index"
+    "ai:index": "tsx --import ./scripts/load-env.ts ./scripts/index-embeddings.ts"
   },
   "dependencies": {
     "@algolia/client-search": "^5.43.0",
@@ -32,7 +28,6 @@
     "@contentful/rich-text-types": "^17.2.5",
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
-    "@huggingface/transformers": "^3.8.0",
     "@neondatabase/serverless": "^1.0.2",
     "@t3-oss/env-nextjs": "^0.13.8",
     "@tailwindcss/typography": "^0.5.19",
@@ -48,7 +43,6 @@
     "contentful-management": "^11.63.1",
     "jiti": "^2.6.1",
     "next": "^16.0.3",
-    "onnxruntime-web": "^1.23.2",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-markdown": "^10.1.0",

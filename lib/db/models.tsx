@@ -85,7 +85,7 @@ export type EmbeddingMetadata = z.infer<typeof ZEmbeddingMetadata>;
 export const ZChatEmbedding = z.object({
   id: z.number().int(),
   content: z.string(),
-  embedding: z.array(z.number()).length(384).optional(), // Vector as array (all-MiniLM-L6-v2)
+  embedding: z.array(z.number()).length(384).optional(), // Vector as array (text-embedding-3-small, truncated to 384 dims)
   metadata: ZEmbeddingMetadata,
   created_at: z.string(),
   updated_at: z.string(),

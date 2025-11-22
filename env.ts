@@ -11,6 +11,8 @@ export const env = createEnv({
     CONTENTFUL_ACCESS_TOKEN: z.string().length(43),
     CONTENTFUL_REVALIDATE_SECRET: z.string().min(20),
     DASHBOARD_API_SECRET: z.string().min(20),
+    // AI Gateway (Vercel AI)
+    AI_GATEWAY_API_KEY: z.string().min(10).optional(),
   },
   client: {},
   // If you're using Next.js < 13.4.4, you'll need to specify the runtimeEnv manually

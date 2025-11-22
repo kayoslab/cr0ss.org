@@ -182,8 +182,7 @@ async function main() {
       return;
     }
 
-    console.log(`\n🔤 Generating ${allDocuments.length} embeddings...`);
-    console.log("   (This may take a few minutes on first run to download the model)\n");
+    console.log(`\n🔤 Generating ${allDocuments.length} embeddings via AI Gateway...`);
 
     // Generate embeddings
     const texts = allDocuments.map(d => d.content);
