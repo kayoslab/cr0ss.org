@@ -1,45 +1,21 @@
 /**
- * Embedding generation using Transformers.js
- * Model: all-MiniLM-L6-v2 (384 dimensions)
- * Runs locally on Node.js/Edge - no API calls needed
+ * Embedding generation using Vercel AI Gateway
+ * Used for RAG (Retrieval-Augmented Generation)
+ *
+ * Note: OpenAI embeddings produce 1536-dimensional vectors by default.
+ * We use dimensions: 384 for compatibility with existing pgvector index.
  */
 
-import { pipeline, env, FeatureExtractionPipeline, Tensor } from "@huggingface/transformers";
+import { embedMany, embed, createGateway } from "ai";
 
-// Configure Transformers.js for serverless environment
-// Use WASM backend (works on Vercel serverless, unlike native onnxruntime-node)
-if (env.backends?.onnx?.wasm) {
-  env.backends.onnx.wasm.wasmPaths = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.21.0/dist/";
-}
-env.cacheDir = "./.transformers-cache";
+// Create gateway instance with API key
+const gateway = createGateway({
+  apiKey: process.env.AI_GATEWAY_API_KEY ?? "",
+});
 
-// Type for the embedding pipeline call signature
-type EmbeddingPipelineFn = (
-  texts: string | string[],
-  options?: { pooling?: string; normalize?: boolean }
-) => Promise<Tensor>;
-
-let embeddingPipeline: EmbeddingPipelineFn | null = null;
-
-/**
- * Get or initialize the embedding pipeline
- * Uses all-MiniLM-L6-v2 model (384 dimensions)
- */
-async function getEmbeddingPipeline(): Promise<EmbeddingPipelineFn> {
-  if (!embeddingPipeline) {
-    console.log("Loading embedding model (all-MiniLM-L6-v2)...");
-    // The pipeline function has a complex union type that TypeScript can't fully resolve
-    // We know the return type for "feature-extraction" task
-    const pipelineFn = pipeline as (
-      task: "feature-extraction",
-      model: string
-    ) => Promise<FeatureExtractionPipeline>;
-    const pipe = await pipelineFn("feature-extraction", "Xenova/all-MiniLM-L6-v2");
-    embeddingPipeline = pipe as unknown as EmbeddingPipelineFn;
-    console.log("✅ Embedding model loaded");
-  }
-  return embeddingPipeline;
-}
+// Model configuration
+const EMBEDDING_MODEL = "openai/text-embedding-3-small";
+const EMBEDDING_DIMENSIONS = 384; // Match existing pgvector index
 
 /**
  * Generate embedding for a single text
@@ -47,22 +23,21 @@ async function getEmbeddingPipeline(): Promise<EmbeddingPipelineFn> {
  * @returns 384-dimensional embedding vector
  */
 export async function generateEmbedding(text: string): Promise<number[]> {
-  const pipe = await getEmbeddingPipeline();
-
-  // Generate embedding
-  const output = await pipe(text, {
-    pooling: "mean",
-    normalize: true,
+  const { embedding } = await embed({
+    model: gateway.textEmbeddingModel(EMBEDDING_MODEL),
+    value: text,
+    experimental_telemetry: { isEnabled: false },
   });
 
-  // Extract the embedding array
-  const embedding = Array.from(output.data) as number[];
+  // OpenAI text-embedding-3-small returns 1536 dimensions by default
+  // We truncate to 384 for compatibility with existing pgvector index
+  const truncated = embedding.slice(0, EMBEDDING_DIMENSIONS);
 
-  if (embedding.length !== 384) {
-    throw new Error(`Expected 384 dimensions, got ${embedding.length}`);
+  if (truncated.length !== EMBEDDING_DIMENSIONS) {
+    throw new Error(`Expected ${EMBEDDING_DIMENSIONS} dimensions, got ${truncated.length}`);
   }
 
-  return embedding;
+  return truncated;
 }
 
 /**
@@ -76,38 +51,29 @@ export async function generateEmbeddingsBatch(
 ): Promise<number[][]> {
   if (texts.length === 0) return [];
 
-  const pipe = await getEmbeddingPipeline();
-
-  // Process in batches of 32 for optimal performance
-  const batchSize = 32;
+  // Process in batches of 100 for optimal performance
+  const batchSize = 100;
   const embeddings: number[][] = [];
 
   for (let i = 0; i < texts.length; i += batchSize) {
     const batch = texts.slice(i, i + batchSize);
     console.log(`Processing embeddings batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(texts.length / batchSize)}...`);
 
-    const outputs = await pipe(batch, {
-      pooling: "mean",
-      normalize: true,
+    const { embeddings: batchEmbeddings } = await embedMany({
+      model: gateway.textEmbeddingModel(EMBEDDING_MODEL),
+      values: batch,
+      experimental_telemetry: { isEnabled: false },
     });
 
-    // For batch processing, outputs.data contains all embeddings concatenated
-    // We need to reshape it into individual 384-dim vectors
-    const data = Array.from(outputs.data) as number[];
-    const numEmbeddings = batch.length;
-    const embeddingDim = 384;
-
-    for (let j = 0; j < numEmbeddings; j++) {
-      const start = j * embeddingDim;
-      const end = start + embeddingDim;
-      embeddings.push(data.slice(start, end));
-    }
+    // Truncate each embedding to 384 dimensions
+    const truncatedBatch = batchEmbeddings.map(emb => emb.slice(0, EMBEDDING_DIMENSIONS));
+    embeddings.push(...truncatedBatch);
   }
 
   // Validate dimensions
   for (const embedding of embeddings) {
-    if (embedding.length !== 384) {
-      throw new Error(`Expected 384 dimensions, got ${embedding.length}`);
+    if (embedding.length !== EMBEDDING_DIMENSIONS) {
+      throw new Error(`Expected ${EMBEDDING_DIMENSIONS} dimensions, got ${embedding.length}`);
     }
   }
 

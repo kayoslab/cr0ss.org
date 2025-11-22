@@ -438,29 +438,44 @@ npm run format:fix  # Fix
 
 ## AI & Machine Learning
 
-### Transformers.js
+### Vercel AI Gateway + AI SDK
 
-**Why**: Run ML models locally in Node.js without external API dependencies
+**Why**: Unified access to multiple AI providers (OpenAI, Anthropic) with automatic failover, caching, and zero token markup
 
 **Use For**:
-- ✅ LLM text generation (Qwen3 0.6B)
-- ✅ Embedding generation (all-MiniLM-L6-v2)
+- ✅ LLM text generation (GPT-4o-mini, Claude, etc.)
+- ✅ Embedding generation (text-embedding-3-small)
 - ✅ RAG context retrieval
+- ✅ Provider switching via environment variables
 
 **Patterns**:
 ```typescript
-// Text generation
-import { pipeline } from "@huggingface/transformers";
-const generator = await pipeline("text-generation", "onnx-community/Qwen3-0.6B-ONNX");
+// Text generation via AI Gateway
+import { generateText, createGateway } from "ai";
 
-// Embeddings
-const embedder = await pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2");
+const gateway = createGateway({
+  apiKey: process.env.AI_GATEWAY_API_KEY ?? "",
+});
+
+const { text } = await generateText({
+  model: gateway("openai/gpt-4o-mini"),
+  system: systemPrompt,
+  prompt: userMessage,
+});
+
+// Embeddings via AI Gateway
+import { embed } from "ai";
+
+const { embedding } = await embed({
+  model: gateway.textEmbeddingModel("openai/text-embedding-3-small"),
+  value: text,
+});
 ```
 
 **Don't**:
-- ❌ Client-side model loading (too slow)
-- ❌ Models larger than 1GB (too slow for serverless)
-- ❌ Streaming (not yet supported well)
+- ❌ Direct provider SDK usage (use AI Gateway)
+- ❌ Client-side API calls (always server-side)
+- ❌ Exposing API keys to client
 
 ### pgvector
 
@@ -485,7 +500,7 @@ await sql`SELECT * FROM chat_embeddings ORDER BY embedding <=> ${queryVector} LI
 ### Future Considerations:
 
 - **User Authentication**: NextAuth.js when needed
-- **Real-time Features**: Vercel AI SDK if needed
+- **Streaming Responses**: AI SDK supports streaming out of the box
 - **File Uploads**: Vercel Blob if needed
 - **Payments**: Stripe if monetization needed
 

@@ -1,14 +1,13 @@
-// Node runtime - Transformers.js configured to use WASM backend
+// Vercel AI SDK - works on serverless
 export const runtime = "nodejs";
-export const maxDuration = 60; // 60 seconds for LLM generation
+export const maxDuration = 60;
 
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { rateLimit } from "@/lib/rate/limit";
 import { createErrorResponse } from "@/lib/api/middleware";
 import { retrieveContext, createSystemPrompt } from "@/lib/ai/retrieval";
-import { generateResponse } from "@/lib/ai/llm";
-import { getCurrentModel } from "@/lib/ai/models";
+import { generateResponse, getCurrentModel } from "@/lib/ai/llm";
 
 const ZChatRequest = z.object({
   message: z.string().min(1).max(500),
@@ -19,21 +18,23 @@ const ZChatRequest = z.object({
  * POST /api/chat
  * Body: { message: "user question" }
  *
- * Returns streaming response from LLM
+ * Uses openai/gpt-4o-mini via Vercel AI Gateway
+ * Rate limited to 10 requests per 12 hours per user
  */
 export async function POST(request: Request) {
   try {
-    // Rate limiting - 10 requests per minute
+    // Rate limiting - 10 requests per 12 hours (to control AI costs)
+    const TWELVE_HOURS_SEC = 12 * 60 * 60; // 43200 seconds
     const rl = await rateLimit(request, "ai-chat", {
-      windowSec: 60,
+      windowSec: TWELVE_HOURS_SEC,
       max: 10,
     });
 
     if (!rl.ok) {
       return createErrorResponse(
-        "Too many requests. Please wait a moment before trying again.",
+        "You've reached your chat limit. Please try again later.",
         429,
-        { retryAfterSec: rl.retryAfterSec },
+        { retryAfterSec: rl.retryAfterSec, limit: 10, windowHours: 12 },
         "RATE_LIMIT_EXCEEDED"
       );
     }
@@ -61,7 +62,7 @@ export async function POST(request: Request) {
     // Generate system prompt
     const systemPrompt = createSystemPrompt();
 
-    // Generate response
+    // Generate response using Vercel AI SDK
     const responseText = await generateResponse(systemPrompt, context, message);
 
     // Get model info
@@ -72,7 +73,7 @@ export async function POST(request: Request) {
       response: responseText,
       model: {
         name: model.name,
-        size: model.size,
+        provider: model.provider,
       },
       timestamp: Date.now(),
     });
@@ -81,12 +82,26 @@ export async function POST(request: Request) {
 
     // Check for specific error types
     if (error instanceof Error) {
-      if (error.message.includes("model") || error.message.includes("pipeline")) {
+      // API key errors
+      if (
+        error.message.includes("API key") ||
+        error.message.includes("authentication")
+      ) {
         return createErrorResponse(
-          "AI model is loading. Please try again in a moment.",
+          "AI service configuration error. Please try again later.",
           503,
           process.env.NODE_ENV === "development" ? error.message : undefined,
-          "MODEL_LOADING"
+          "API_CONFIG_ERROR"
+        );
+      }
+
+      // Rate limit from provider
+      if (error.message.includes("rate limit")) {
+        return createErrorResponse(
+          "AI service is busy. Please try again in a moment.",
+          503,
+          process.env.NODE_ENV === "development" ? error.message : undefined,
+          "PROVIDER_RATE_LIMIT"
         );
       }
     }

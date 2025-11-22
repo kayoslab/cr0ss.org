@@ -1,228 +1,132 @@
 /**
- * LLM Text Generation using Transformers.js
- * Supports multiple models with easy swapping
+ * LLM Text Generation using Vercel AI Gateway
+ * Unified access to multiple AI providers through a single API
  */
 
-import { pipeline, env, TextGenerationPipeline } from "@huggingface/transformers";
-import { getCurrentModel } from "./models";
+import { generateText, streamText, createGateway } from "ai";
 
-// Configure Transformers.js for serverless environment
-// Use WASM backend (works on Vercel serverless, unlike native onnxruntime-node)
-if (env.backends?.onnx?.wasm) {
-  env.backends.onnx.wasm.wasmPaths = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.21.0/dist/";
+// Create gateway instance with API key
+const gateway = createGateway({
+  apiKey: process.env.AI_GATEWAY_API_KEY ?? "",
+});
+
+// Model configuration
+interface ModelConfig {
+  /** Model identifier in provider/model format */
+  id: string;
+  /** Human-readable name */
+  name: string;
+  /** Provider name for display */
+  provider: string;
+  /** Maximum output tokens */
+  maxTokens: number;
 }
-env.cacheDir = "./.transformers-cache";
 
-// Set Hugging Face token if available (for gated models)
-if (process.env.HF_TOKEN) {
-  (env as Record<string, unknown>).HF_TOKEN = process.env.HF_TOKEN;
-}
+// Available models via AI Gateway
+const MODELS: Record<string, ModelConfig> = {
+  // OpenAI models
+  "gpt-4o-mini": {
+    id: "openai/gpt-4o-mini",
+    name: "GPT-4o Mini",
+    provider: "openai",
+    maxTokens: 500,
+  },
+  "gpt-4o": {
+    id: "openai/gpt-4o",
+    name: "GPT-4o",
+    provider: "openai",
+    maxTokens: 500,
+  },
+  // Anthropic models
+  "claude-3-haiku": {
+    id: "anthropic/claude-3-haiku-20240307",
+    name: "Claude 3 Haiku",
+    provider: "anthropic",
+    maxTokens: 500,
+  },
+  "claude-3-5-sonnet": {
+    id: "anthropic/claude-3-5-sonnet-20241022",
+    name: "Claude 3.5 Sonnet",
+    provider: "anthropic",
+    maxTokens: 500,
+  },
+};
 
-let generationPipeline: TextGenerationPipeline | null = null;
-let currentModelId: string | null = null;
+// Default model - can be overridden via environment variable
+const DEFAULT_MODEL = "gpt-4o-mini";
 
 /**
- * Get or initialize the text generation pipeline
+ * Get the current model configuration
  */
-async function getGenerationPipeline(): Promise<TextGenerationPipeline> {
-  const model = getCurrentModel();
+export function getCurrentModel(): ModelConfig {
+  const modelKey = process.env.AI_MODEL || DEFAULT_MODEL;
+  const model = MODELS[modelKey];
 
-  if (!generationPipeline) {
-    console.log(`Loading LLM model: ${model.name} (${model.id})...`);
-    console.log(`Size: ${model.size}, Quality: ${model.quality}, Speed: ${model.speed}`);
-
-    // Pass HF token if available for authenticated model downloads
-    const pipelineOptions: Record<string, unknown> = {};
-    if (process.env.HF_TOKEN) {
-      pipelineOptions.token = process.env.HF_TOKEN;
-    }
-
-    // The pipeline function has a complex union type that TypeScript can't fully resolve
-    // We know the return type for "text-generation" task
-    const pipelineFn = pipeline as (
-      task: "text-generation",
-      model: string,
-      options?: Record<string, unknown>
-    ) => Promise<TextGenerationPipeline>;
-    generationPipeline = await pipelineFn("text-generation", model.id, pipelineOptions);
-
-    currentModelId = model.id;
-    console.log(`✅ LLM model loaded: ${model.name}`);
+  if (!model) {
+    console.warn(`Unknown model "${modelKey}", falling back to ${DEFAULT_MODEL}`);
+    return MODELS[DEFAULT_MODEL];
   }
 
-  return generationPipeline;
-}
-
-/**
- * Format the prompt with system message and context
- */
-function formatPrompt(systemPrompt: string, context: string, userMessage: string): string {
-  const model = getCurrentModel();
-
-  // Format depends on model - this is a generic format
-  // Qwen uses <|im_start|> and <|im_end|> tokens
-  // TinyLlama uses a different format
-  // Adjust based on model documentation
-
-  if (model.id.includes("Qwen")) {
-    // Use /no_think to disable Qwen3's internal reasoning mode (faster responses)
-    return `<|im_start|>system
-${systemPrompt}
-
-Context:
-${context}<|im_end|>
-<|im_start|>user
-${userMessage} /no_think<|im_end|>
-<|im_start|>assistant
-`;
-  }
-
-  if (model.id.includes("TinyLlama")) {
-    return `<|system|>
-${systemPrompt}
-
-Context:
-${context}</s>
-<|user|>
-${userMessage}</s>
-<|assistant|>
-`;
-  }
-
-  if (model.id.includes("Phi")) {
-    return `<|system|>
-${systemPrompt}
-
-Context:
-${context}<|end|>
-<|user|>
-${userMessage}<|end|>
-<|assistant|>
-`;
-  }
-
-  // Generic format for other models
-  return `System: ${systemPrompt}
-
-Context:
-${context}
-
-User: ${userMessage}
-
-Assistant: `;
+  return model;
 }
 
 /**
- * Generate a response from the LLM
+ * Generate a response from the LLM via AI Gateway
  */
 export async function generateResponse(
   systemPrompt: string,
   context: string,
   userMessage: string
 ): Promise<string> {
-  const model = getCurrentModel();
-  const pipe = await getGenerationPipeline();
+  const config = getCurrentModel();
 
-  const prompt = formatPrompt(systemPrompt, context, userMessage);
+  console.log(`Generating response with ${config.name} via AI Gateway...`);
 
-  console.log(`Generating response with ${model.name}...`);
+  // Combine system prompt with context
+  const fullSystemPrompt = `${systemPrompt}
 
-  const output = await pipe(prompt, model.config);
+Context:
+${context}`;
 
-  // Extract the generated text
-  // Output structure: TextGenerationOutput[] where TextGenerationOutput = { generated_text: string | Chat }[]
-  // For text generation (not chat), generated_text is always a string
-  const results = output as { generated_text: string | unknown }[];
-  const rawText = results[0]?.generated_text;
+  const { text } = await generateText({
+    model: gateway(config.id),
+    system: fullSystemPrompt,
+    prompt: userMessage,
+    maxOutputTokens: config.maxTokens,
+    temperature: 0.7,
+  });
 
-  // Handle the case where generated_text might be a Chat array (though it shouldn't be for text generation)
-  const generatedText = typeof rawText === 'string'
-    ? rawText
-    : Array.isArray(rawText)
-      ? JSON.stringify(rawText)
-      : String(rawText ?? '');
+  console.log(`Response generated (${text.length} chars)`);
 
-  if (!generatedText) {
-    throw new Error("No text generated from model");
-  }
-
-  // Extract the assistant's response
-  // Different models return output differently - some echo the prompt, some don't
-  // Look for assistant markers and extract text after them
-  let response = "";
-
-  // Try to find assistant marker (Qwen format)
-  const assistantMarkers = [
-    "<|im_start|>assistant\n",
-    "<|im_start|>assistant",
-    "<|assistant|>\n",
-    "<|assistant|>",
-    "assistant\n",
-    "Assistant: ",
-  ];
-
-  for (const marker of assistantMarkers) {
-    const markerIndex = generatedText.lastIndexOf(marker);
-    if (markerIndex !== -1) {
-      response = generatedText.slice(markerIndex + marker.length).trim();
-      // Remove any trailing tokens
-      response = response.replace(/<\|im_end\|>/g, "").replace(/<\/s>/g, "").trim();
-      break;
-    }
-  }
-
-  // If no marker found, try slicing from prompt length (fallback)
-  if (!response && generatedText.length > prompt.length) {
-    response = generatedText.slice(prompt.length).trim();
-  }
-
-  // Post-process to clean up response
-  response = cleanupResponse(response);
-
-  console.log(`✅ Response generated (${response.length} chars)`);
-
-  return response;
+  return text;
 }
 
 /**
- * Clean up the response text
+ * Generate a streaming response from the LLM via AI Gateway
+ * Returns a ReadableStream for streaming responses
  */
-function cleanupResponse(text: string): string {
-  let cleaned = text.trim();
+export async function generateStreamingResponse(
+  systemPrompt: string,
+  context: string,
+  userMessage: string
+) {
+  const config = getCurrentModel();
 
-  // Remove Qwen3's <think>...</think> reasoning blocks
-  cleaned = cleaned.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+  console.log(`Streaming response with ${config.name} via AI Gateway...`);
 
-  // Remove any trailing incomplete sentence (ends mid-word)
-  const lastPunctuation = Math.max(
-    cleaned.lastIndexOf('.'),
-    cleaned.lastIndexOf('!'),
-    cleaned.lastIndexOf('?')
-  );
-  if (lastPunctuation > 0 && lastPunctuation < cleaned.length - 1) {
-    // There's text after the last sentence - remove it
-    cleaned = cleaned.slice(0, lastPunctuation + 1);
-  }
+  // Combine system prompt with context
+  const fullSystemPrompt = `${systemPrompt}
 
-  // Remove exact duplicate sentences only
-  const sentences = cleaned.split(/(?<=[.!?])\s+/);
-  const seen = new Set<string>();
-  const uniqueSentences: string[] = [];
+Context:
+${context}`;
 
-  for (const sentence of sentences) {
-    const normalized = sentence.toLowerCase().trim();
-    if (!seen.has(normalized) && sentence.trim().length > 0) {
-      seen.add(normalized);
-      uniqueSentences.push(sentence);
-    }
-  }
-
-  const result = uniqueSentences.join(' ').trim();
-
-  // If we ended up with nothing useful, return a fallback
-  if (result.length < 20) {
-    return "I found relevant information but couldn't generate a proper response. Please try rephrasing your question.";
-  }
+  const result = streamText({
+    model: gateway(config.id),
+    system: fullSystemPrompt,
+    prompt: userMessage,
+    maxOutputTokens: config.maxTokens,
+    temperature: 0.7,
+  });
 
   return result;
 }

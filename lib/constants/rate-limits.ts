@@ -50,6 +50,10 @@ export const RATE_LIMIT_BUCKETS = {
   GET_GOAL: 'get-goal',
   /** POST /api/habits/goal */
   POST_GOAL: 'post-goal',
+
+  // AI Chat (openai/gpt-4o-mini via Vercel AI Gateway)
+  /** POST /api/chat - 10 requests per 12 hours */
+  AI_CHAT: 'ai-chat',
 } as const;
 
 /**
