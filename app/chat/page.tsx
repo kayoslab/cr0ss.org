@@ -10,10 +10,12 @@ export const metadata: Metadata = createListMetadata({
 
 export default function ChatPage() {
   return (
-    <main className='flex flex-col bg-white pb-24'>
-      <div className="flex flex-col max-w-3xl w-full mx-auto px-4">
-        <ChatInterface />
-      </div>
+    <main className='flex min-h-screen flex-col items-center bg-white pb-24'>
+      <section className='w-full pt-12 max-w-(--breakpoint-lg)'>
+        <div className='container mx-auto px-4 md:px-6'>
+          <ChatInterface />
+        </div>
+      </section>
     </main>
   );
 }
