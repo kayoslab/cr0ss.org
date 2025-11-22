@@ -81,6 +81,11 @@ function getRevalidationTags(payload: ContentfulWebhookPayload): string[] {
       tags.push('coffee');
       break;
 
+    case 'knowledgeBase':
+      // Revalidate knowledge base collection
+      tags.push('knowledgeBase');
+      break;
+
     default:
       console.warn(`Unknown content type: ${contentTypeId}`);
   }
@@ -218,7 +223,7 @@ export async function POST(request: Request) {
       algoliaUpdated = true;
     }
 
-    // Re-index blog post for AI chat
+    // Re-index content for AI chat
     // Note: This runs async and doesn't block the response
     let aiIndexed = false;
     if (contentTypeId === 'blogPost' && slug) {
@@ -231,8 +236,24 @@ export async function POST(request: Request) {
         },
         body: JSON.stringify({ slug }),
       })
-        .then(() => console.log(`AI re-indexing triggered for: ${slug}`))
-        .catch((error) => console.error(`AI re-indexing failed for ${slug}:`, error));
+        .then(() => console.log(`AI re-indexing triggered for blog: ${slug}`))
+        .catch((error) => console.error(`AI re-indexing failed for blog ${slug}:`, error));
+
+      aiIndexed = true;
+    }
+
+    // Re-index knowledge base entry for AI chat
+    if (contentTypeId === 'knowledgeBase' && slug) {
+      fetch(new URL('/api/ai/reindex-knowledge', request.url), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-vercel-revalidation-key': request.headers.get('x-vercel-revalidation-key') || '',
+        },
+        body: JSON.stringify({ slug }),
+      })
+        .then(() => console.log(`AI re-indexing triggered for knowledge base: ${slug}`))
+        .catch((error) => console.error(`AI re-indexing failed for knowledge base ${slug}:`, error));
 
       aiIndexed = true;
     }
