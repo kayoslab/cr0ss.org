@@ -13,7 +13,7 @@ export async function getAllPages(limit = 10) {
     ['pages']
   );
 
-  return pages.data.pageCollection.items;
+  return pages?.data?.pageCollection?.items ?? [];
 }
 
 export async function getPage(slug: string) {
@@ -28,5 +28,5 @@ export async function getPage(slug: string) {
     [slug]
   );
 
-  return pages.data.pageCollection.items[0];
+  return pages?.data?.pageCollection?.items?.[0];
 }

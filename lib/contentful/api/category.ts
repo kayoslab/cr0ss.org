@@ -13,7 +13,7 @@ export async function getAllCategories() {
     }`,
     ['categories']
   );
-  return response.data.blogCategoryCollection.items;
+  return response?.data?.blogCategoryCollection?.items ?? [];
 }
 
 export async function getCategory(slug: string) {
@@ -27,7 +27,7 @@ export async function getCategory(slug: string) {
       }`,
     [slug]
   );
-  return pages.data.blogCategoryCollection.items[0];
+  return pages?.data?.blogCategoryCollection?.items?.[0];
 }
 
 interface BlogPost {
