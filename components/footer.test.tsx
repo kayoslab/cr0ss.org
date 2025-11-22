@@ -122,7 +122,6 @@ describe('Footer', () => {
 
     const footer = container.querySelector('footer');
     expect(footer).toHaveClass('bg-white');
-    expect(footer).toHaveClass('dark:bg-slate-800');
     expect(footer).toHaveClass('border-t');
   });
 

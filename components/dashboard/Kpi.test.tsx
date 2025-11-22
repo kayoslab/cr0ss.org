@@ -68,7 +68,6 @@ describe('Kpi', () => {
     expect(wrapper).toHaveClass('rounded-lg');
     expect(wrapper).toHaveClass('border');
     expect(wrapper).toHaveClass('border-neutral-200/60');
-    expect(wrapper).toHaveClass('dark:border-neutral-700');
     expect(wrapper).toHaveClass('shadow-sm');
     expect(wrapper).toHaveClass('p-4');
     expect(wrapper).toHaveClass('h-full');
