@@ -1,6 +1,6 @@
 /**
  * Index all content for AI chat assistant
- * - Knowledge base markdown files
+ * - Knowledge base from Contentful
  * - Blog posts from Contentful
  *
  * Run with: pnpm ai:index
@@ -8,11 +8,10 @@
  */
 
 import "./load-env"; // Load environment variables first
-import fs from "fs";
-import path from "path";
 import { generateEmbeddingsBatch, chunkText } from "../lib/ai/embeddings";
 import { insertEmbeddingsBatch, deleteEmbeddingsBySource, getEmbeddingStats } from "../lib/db/embeddings";
 import { fetchGraphQLForScript } from "../lib/contentful/api/script-api";
+import { KNOWLEDGE_BASE_GRAPHQL_FIELDS } from "../lib/contentful/api/props/knowledge-base";
 import type { EmbeddingMetadata } from "../lib/db/models";
 
 // Simplified fields for indexing (to avoid complex query errors)
@@ -32,35 +31,44 @@ interface DocumentToIndex {
 }
 
 /**
- * Index knowledge base markdown files
+ * Index knowledge base from Contentful
  */
 async function indexKnowledgeBase(): Promise<DocumentToIndex[]> {
-  console.log("\n📚 Indexing knowledge base...");
-
-  const knowledgeDir = path.join(process.cwd(), "lib/ai/knowledge-base");
-  const files = fs.readdirSync(knowledgeDir).filter(f => f.endsWith(".md") && f !== "README.md");
+  console.log("\n📚 Indexing knowledge base from Contentful...");
 
   const documents: DocumentToIndex[] = [];
 
-  for (const file of files) {
-    const filePath = path.join(knowledgeDir, file);
-    const content = fs.readFileSync(filePath, "utf-8");
+  const query = `query {
+    knowledgeBaseCollection(order: order_ASC, preview: false) {
+      items {
+        ${KNOWLEDGE_BASE_GRAPHQL_FIELDS}
+      }
+    }
+  }`;
 
-    // Remove HTML comments from content
-    const cleanContent = content.replace(/<!--[\s\S]*?-->/g, "");
+  const response = await fetchGraphQLForScript(query);
+  const items = response?.data?.knowledgeBaseCollection?.items ?? [];
+
+  console.log(`   Found ${items.length} knowledge base entries`);
+
+  for (const item of items) {
+    const title = (item.title as string) || "";
+    const slug = (item.slug as string) || "";
+    const category = (item.category as string) || "";
+    const content = (item.content as string) || "";
 
     // Chunk the content for better retrieval
-    const chunks = chunkText(cleanContent, 1000);
+    const chunks = chunkText(content, 1000);
 
-    console.log(`   📄 ${file}: ${chunks.length} chunks`);
+    console.log(`   📄 ${title} (${category}): ${chunks.length} chunks`);
 
     for (let i = 0; i < chunks.length; i++) {
       documents.push({
         content: chunks[i],
         metadata: {
           source: "knowledge",
-          file: file,
-          title: `${file.replace(".md", "")} (part ${i + 1}/${chunks.length})`,
+          file: `${slug}.md`, // Keep backward compatible metadata
+          title: `${title} (part ${i + 1}/${chunks.length})`,
         },
       });
     }
