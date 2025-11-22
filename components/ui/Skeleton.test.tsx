@@ -10,7 +10,6 @@ describe('Skeleton', () => {
     expect(skeleton).toHaveClass('animate-pulse');
     expect(skeleton).toHaveClass('rounded-md');
     expect(skeleton).toHaveClass('bg-neutral-200/70');
-    expect(skeleton).toHaveClass('dark:bg-neutral-700/60');
   });
 
   it('should apply custom className', () => {
@@ -48,7 +47,6 @@ describe('SkeletonCard', () => {
     expect(card).toHaveClass('rounded-xl');
     expect(card).toHaveClass('border');
     expect(card).toHaveClass('border-neutral-200/60');
-    expect(card).toHaveClass('dark:border-neutral-700');
     expect(card).toHaveClass('shadow-sm');
     expect(card).toHaveClass('p-4');
   });

@@ -98,14 +98,6 @@ export default function ChatInterface() {
     return () => clearInterval(interval);
   }, [isLoading]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
   // Countdown timer for rate limit
   useEffect(() => {
     if (!rateLimit.isLimited || !rateLimit.resetTime) return;
@@ -202,28 +194,21 @@ export default function ChatInterface() {
   return (
     <div className="flex flex-col">
       {/* Header */}
-      <div className="py-8 bg-white">
-        <h1 className="text-2xl font-semibold text-gray-900">
-          Chat with AI Assistant
-        </h1>
-        <p className="text-sm text-gray-600 mt-1">
-          Ask me anything about Simon&apos;s professional background, expertise, or blog posts.
-          <span className="text-gray-400 ml-1">Powered by GPT-4o Mini.</span>
-        </p>
+      <div className="flex flex-col items-center justify-center space-y-4 text-center mb-8">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl">
+            AI Chat
+          </h1>
+        </div>
       </div>
 
       {/* Messages Container */}
       <div className="space-y-6">
         {messages.length === 0 && !isLoading && (
-          <div className="flex flex-col items-center justify-center h-full space-y-6">
-            <div className="text-center space-y-2">
-              <h2 className="text-xl font-semibold text-gray-900">
-                Welcome! How can I help you today?
-              </h2>
-              <p className="text-gray-600">
-                Try one of these questions to get started:
-              </p>
-            </div>
+          <div className="flex flex-col items-center justify-center space-y-8 py-8">
+            <p className="text-gray-600 text-center">
+              Try one of these questions to get started:
+            </p>
             <SuggestedQuestions onQuestionClick={handleSuggestedQuestion} />
           </div>
         )}
