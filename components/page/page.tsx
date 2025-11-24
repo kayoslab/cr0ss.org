@@ -2,6 +2,7 @@ import { documentToReactComponents } from '@contentful/rich-text-react-renderer'
 import Image from 'next/image';
 import { PageProps } from '@/lib/contentful/api/props/page';
 import { createRichTextOptions, PAGE_STYLES } from '@/lib/contentful/rich-text-renderer';
+import { optimizeWithPreset } from '@/lib/contentful/image-utils';
 
 export const Page = ({ page }: { page: PageProps }) => {
   return (
@@ -15,15 +16,18 @@ export const Page = ({ page }: { page: PageProps }) => {
           </h1>
         </div>
         <div className='space-y-8 lg:space-y-10'>
-          <Image
-            alt='Page Image'
-            className='aspect-video w-full overflow-hidden rounded-xl object-cover'
-            src={page.heroImage?.url as string}
-            width={0}
-            height={0}
-            sizes="100vw"
-            style={{ width: '100%', height: 'auto' }} // optional
-          />
+          {page.heroImage?.url && (
+            <Image
+              alt={page.title}
+              className='aspect-video w-full overflow-hidden rounded-xl object-cover'
+              src={optimizeWithPreset(page.heroImage.url, 'hero')}
+              width={0}
+              height={0}
+              sizes="100vw"
+              style={{ width: '100%', height: 'auto' }}
+              priority={true}
+            />
+          )}
           <div className='space-y-4 md:space-y-6'>
             <div className='space-y-2'>
               <div

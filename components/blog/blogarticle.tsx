@@ -4,6 +4,9 @@ import { BlogProps } from '@/lib/contentful/api/props/blog';
 import Link from 'next/link';
 import { CategoryProps } from '@/lib/contentful/api/props/category';
 import { createRichTextOptions, BLOG_ARTICLE_STYLES } from '@/lib/contentful/rich-text-renderer';
+import { optimizeWithPreset } from '@/lib/contentful/image-utils';
+import { Lightbox } from '@/components/ui/lightbox';
+import { RecommendationCard } from '@/components/blog/recommendation-card';
 
 export const Blog = ({ blog, recommendations }: { blog: BlogProps, recommendations: BlogProps[] }) => {
   // Format the date
@@ -38,16 +41,20 @@ export const Blog = ({ blog, recommendations }: { blog: BlogProps, recommendatio
             </div>
           </div>
           <div className='space-y-8 lg:space-y-10'>
-            <Image
-              alt={blog.title}
-              className='aspect-video w-full overflow-hidden rounded-xl object-cover'
-              src={`${blog.heroImage?.url}?w=1200&fm=webp&q=85` as string}
-              width={0}
-              height={0}
-              sizes="100vw"
-              style={{ width: '100%', height: 'auto' }}
-              priority={true}
-            />
+            {blog.heroImage?.url && (
+              <Lightbox src={blog.heroImage.url} alt={blog.title}>
+                <Image
+                  alt={blog.title}
+                  className='aspect-video w-full overflow-hidden rounded-xl object-cover'
+                  src={optimizeWithPreset(blog.heroImage.url, 'hero')}
+                  width={0}
+                  height={0}
+                  sizes="100vw"
+                  style={{ width: '100%', height: 'auto' }}
+                  priority={true}
+                />
+              </Lightbox>
+            )}
             <div className='flex flex-col justify-between md:flex-row'>
               <p
                 className='max-w-[900px] text-zinc-500 md:text-2xl lg:text-3xl xl:text-4xl'
@@ -81,44 +88,12 @@ export const Blog = ({ blog, recommendations }: { blog: BlogProps, recommendatio
           { recommendationsJSX }
           <div className='space-y-12'>
             <div className='grid gap-8 md:grid-cols-2 lg:grid-cols-3'>
-              {recommendations.map((recommendation: BlogProps) => {
-                const optimizedImageUrl = recommendation?.heroImage?.url
-                  ? `${recommendation.heroImage.url}?w=700&h=526&fit=fill&fm=webp&q=80`
-                  : '';
-                
-                return (
-                <article
-                  key={recommendation.title}
-                  className='flex h-full flex-col overflow-hidden rounded-lg shadow-lg'
-                >
-                  <Link href={`/blog/${recommendation.slug}`}>
-                    <Image
-                      alt={recommendation.title}
-                      className='aspect-4/3 w-full object-cover'
-                      height='263'
-                      src={optimizedImageUrl}
-                      width='350'
-                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    />
-                  </Link>
-                  <div className='flex-1 p-6'>
-                    <Link href={`/blog/${recommendation.slug}`}>
-                      <h3 className='py-4 text-2xl font-bold leading-tight text-zinc-900'>
-                        {recommendation.title}
-                      </h3>
-                    </Link>
-                    <div className='flex justify-end'>
-                      <Link
-                        className='inline-flex h-10 items-center justify-center text-sm font-medium'
-                        href={`/blog/${recommendation.slug}`}
-                      >
-                        Read More →
-                      </Link>
-                    </div>
-                  </div>
-                </article>
-                );
-              })}
+              {recommendations.map((recommendation: BlogProps) => (
+                <RecommendationCard
+                  key={recommendation.slug}
+                  recommendation={recommendation}
+                />
+              ))}
             </div>
           </div>
         </div>

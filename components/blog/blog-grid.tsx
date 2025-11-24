@@ -1,6 +1,7 @@
 import { BlogProps } from '@/lib/contentful/api/props/blog';
 import Image from 'next/image';
 import Link from 'next/link';
+import { optimizeWithPreset } from '@/lib/contentful/image-utils';
 
 interface BlogGridProps {
   posts: BlogProps[];
@@ -30,10 +31,7 @@ export default function BlogGrid({ posts, currentPage, totalPages, basePath, tit
                 day: 'numeric'
               });
               
-              // Optimize Contentful images with size and format parameters
-              const optimizedImageUrl = blog?.heroImage?.url 
-                ? `${blog.heroImage.url}?w=700&h=526&fit=fill&fm=webp&q=80`
-                : '';
+              const optimizedImageUrl = optimizeWithPreset(blog?.heroImage?.url, 'gridThumbnail');
               
               return (
                 <article

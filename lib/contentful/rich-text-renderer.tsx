@@ -1,9 +1,9 @@
 import { Options } from '@contentful/rich-text-react-renderer';
 import { BLOCKS, INLINES, Block, Inline } from '@contentful/rich-text-types';
 import Link from 'next/link';
-import Image from 'next/image';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { LightboxImage } from '@/components/blog/lightbox-image';
 
 /**
  * Type definitions for Contentful rich-text content
@@ -158,15 +158,12 @@ export function createRichTextOptions(
       }
 
       return (
-        <Link href={asset.url}>
-          <Image
+        <div className="my-6">
+          <LightboxImage
             src={asset.url}
             alt={asset.description || asset.title || 'Embedded asset'}
-            width={800}
-            height={600}
-            className="w-full h-auto"
           />
-        </Link>
+        </div>
       );
     },
     [BLOCKS.EMBEDDED_ENTRY]: (node: Block | Inline) => {
