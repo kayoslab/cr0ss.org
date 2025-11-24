@@ -59,12 +59,12 @@ async function getRecommendations(currentBlog: BlogProps, maxRecommendations: nu
     const algoliaRecs = await getRelatedPosts(currentBlog.sys.id, maxRecommendations);
 
     if (algoliaRecs.length > 0) {
-      // Fetch full blog data for each recommendation
-      const blogPromises = algoliaRecs.map(async (rec) => {
-        // Extract slug from URL (format: /blog/slug/)
-        const slug = rec.url.replace(/^\/blog\//, '').replace(/\/$/, '');
-        return getBlog(slug) as unknown as BlogProps | null;
-      });
+      // Fetch full blog data for each recommendation using slug directly
+      const blogPromises = algoliaRecs
+        .filter((rec) => rec.slug)
+        .map(async (rec) => {
+          return getBlog(rec.slug) as unknown as BlogProps | null;
+        });
 
       const blogs = await Promise.all(blogPromises);
       const validBlogs = blogs.filter((blog): blog is BlogProps => blog !== null);

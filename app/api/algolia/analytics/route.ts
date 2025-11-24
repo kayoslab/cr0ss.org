@@ -17,20 +17,34 @@ export async function POST(request: Request) {
     }
 
     // Use viewedObjectIDs for page views (important for Algolia Recommend)
-    // Use clickedObjectIDs for search result clicks
-    if (eventType === 'click') {
-      aa('clickedObjectIDs', {
-        eventName: 'Blog Clicked',
-        index: 'www',
-        objectIDs: [objectID],
-      });
-    } else {
-      // Default to view event
-      aa('viewedObjectIDs', {
-        eventName: 'Blog Viewed',
-        index: 'www',
-        objectIDs: [objectID],
-      });
+    // Use clickedObjectIDs for search result clicks and recommendation clicks
+    switch (eventType) {
+      case 'click':
+        aa('clickedObjectIDs', {
+          eventName: 'Blog Clicked',
+          index: 'www',
+          objectIDs: [objectID],
+        });
+        break;
+
+      case 'recommendation_click':
+        // Track clicks on recommended posts - helps Algolia learn effective recommendations
+        aa('clickedObjectIDs', {
+          eventName: 'Recommendation Clicked',
+          index: 'www',
+          objectIDs: [objectID],
+        });
+        break;
+
+      case 'view':
+      default:
+        // Default to view event
+        aa('viewedObjectIDs', {
+          eventName: 'Blog Viewed',
+          index: 'www',
+          objectIDs: [objectID],
+        });
+        break;
     }
 
     return NextResponse.json({ success: true });
