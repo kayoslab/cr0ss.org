@@ -15,11 +15,7 @@ interface LightboxProps {
  */
 export function Lightbox({ src, alt, children }: LightboxProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const [mounted, setMounted] = useState(typeof window !== 'undefined');
 
   const openLightbox = useCallback(() => {
     setIsOpen(true);

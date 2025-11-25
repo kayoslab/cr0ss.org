@@ -4,6 +4,7 @@
 
 // Pagination
 export const POSTS_PER_PAGE = 9;
+export const COFFEE_PER_PAGE = 15;
 
 // Site metadata
 export const SITE_NAME = 'cr0ss.mind';
