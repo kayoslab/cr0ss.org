@@ -480,3 +480,92 @@ export async function qMonthlyGoalsObject(): Promise<Record<string, number>> {
   }
   return out;
 }
+
+// ---- Workout Queries (Multi-Type Support) ----
+
+/**
+ * Get workout heatmap for all workout types (last N days)
+ * Returns total duration for each day
+ */
+export async function qWorkoutHeatmap(days = 42) {
+  const start = new Date();
+  start.setUTCHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - (days - 1));
+  const startStr = start.toISOString().slice(0, 10);
+
+  const rows = await sql/*sql*/`
+    select to_char(date,'YYYY-MM-DD') as date,
+           coalesce(sum(duration_min), 0)::int as duration_min
+    from workouts
+    where date >= ${startStr}::date
+    group by date
+  `;
+  interface HeatmapRow {
+    date: string;
+    duration_min: number;
+  }
+
+  const byDate = new Map(rows.map((r) => {
+    const row = r as HeatmapRow;
+    return [row.date, Number(row.duration_min)] as [string, number];
+  }));
+
+  const today = new Date();
+  const out = Array.from({ length: days }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(d.getDate() - (days - 1 - i));
+    const key = d.toISOString().slice(0, 10);
+    return { date: key, duration_min: byDate.get(key) ?? 0 };
+  });
+
+  return z.array(z.object({ date: z.string(), duration_min: z.number().int().min(0) })).parse(out);
+}
+
+/**
+ * Get workout types present in the last N days
+ * Returns array of workout types that have at least one entry
+ */
+export async function qWorkoutTypesPresent(days = 42) {
+  const start = new Date();
+  start.setUTCHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - (days - 1));
+  const startStr = start.toISOString().slice(0, 10);
+
+  const rows = await sql/*sql*/`
+    select distinct workout_type
+    from workouts
+    where date >= ${startStr}::date
+    order by workout_type
+  `;
+
+  return rows.map(r => String(r.workout_type));
+}
+
+/**
+ * Get workout statistics for a specific type (last N days)
+ * Returns total count, total duration, and total distance (if applicable)
+ */
+export async function qWorkoutStatsByType(workoutType: string, days = 42) {
+  const start = new Date();
+  start.setUTCHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - (days - 1));
+  const startStr = start.toISOString().slice(0, 10);
+
+  const rows = await sql/*sql*/`
+    select
+      count(*)::int as count,
+      coalesce(sum(duration_min), 0)::int as total_duration_min,
+      coalesce(sum((details->>'distance_km')::numeric), 0)::numeric as total_distance_km
+    from workouts
+    where workout_type = ${workoutType}
+      and date >= ${startStr}::date
+  `;
+
+  const r = rows[0];
+  return {
+    workout_type: workoutType,
+    count: Number(r.count),
+    total_duration_min: Number(r.total_duration_min),
+    total_distance_km: Number(r.total_distance_km),
+  };
+}

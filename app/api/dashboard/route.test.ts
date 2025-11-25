@@ -22,6 +22,11 @@ vi.mock('next/cache', () => ({
   unstable_cache: vi.fn((fn) => fn), // Pass through the function
 }));
 
+// Mock neon database
+vi.mock('@neondatabase/serverless', () => ({
+  neon: vi.fn(() => vi.fn(() => Promise.resolve([]))),
+}));
+
 // Mock dependencies
 vi.mock('@/lib/rate/limit', () => ({
   rateLimit: vi.fn(),
@@ -41,6 +46,9 @@ vi.mock('@/lib/db/queries', () => ({
   qRunningMonthlyProgress: vi.fn(),
   qPaceLastRuns: vi.fn(),
   qRunningHeatmap: vi.fn(),
+  qWorkoutHeatmap: vi.fn(),
+  qWorkoutTypesPresent: vi.fn(),
+  qWorkoutStatsByType: vi.fn(),
   qCoffeeEventsForDayWithLookback: vi.fn(),
   qCoffeeInRange: vi.fn(),
   qSleepVsFocusScatter: vi.fn(),
@@ -77,6 +85,9 @@ import {
   qRunningMonthlyProgress,
   qPaceLastRuns,
   qRunningHeatmap,
+  qWorkoutHeatmap,
+  qWorkoutTypesPresent,
+  qWorkoutStatsByType,
   qCoffeeEventsForDayWithLookback,
   qCoffeeInRange,
   qSleepVsFocusScatter,
@@ -148,6 +159,16 @@ describe('GET /api/dashboard', () => {
     vi.mocked(qRunningHeatmap).mockResolvedValue([
       { date: '2025-01-15', km: 5.2 },
     ]);
+    vi.mocked(qWorkoutHeatmap).mockResolvedValue([
+      { date: '2025-01-15', duration_min: 45 },
+    ]);
+    vi.mocked(qWorkoutTypesPresent).mockResolvedValue(['running', 'climbing']);
+    vi.mocked(qWorkoutStatsByType).mockResolvedValue({
+      workout_type: 'running',
+      count: 5,
+      total_duration_min: 250,
+      total_distance_km: 25.5,
+    });
     vi.mocked(getBodyProfile).mockResolvedValue(mockBodyProfile);
     vi.mocked(qCoffeeEventsForDayWithLookback).mockResolvedValue([
       { timeISO: '2025-01-15T08:00:00Z', type: 'espresso', amount_ml: 38 },
@@ -157,6 +178,7 @@ describe('GET /api/dashboard', () => {
     ]);
     vi.mocked(qSleepVsFocusScatter).mockResolvedValue([
       { date: '2025-01-15', sleep_score: 85, focus_minutes: 120 },
+      { date: '2025-01-14', sleep_score: 80, focus_minutes: 100 },
     ]);
     vi.mocked(qMonthlyGoalsObject).mockResolvedValue({
       running_distance_km: 50,

@@ -64,19 +64,27 @@ type RunningProps = {
   heatmap: { date: string; km: number }[];
 };
 
-type SleepPrevCaffPoint = { date: string; sleep_score: number; prev_caffeine_mg: number };
+type WorkoutProps = {
+  heatmap: { date: string; duration_min: number }[];
+  types: string[];
+  stats: { workout_type: string; count: number; total_duration_min: number; total_distance_km: number }[];
+};
+
+type SleepPrevCaffPoint = { date: string; sleep_score: number; prev_caffeine_mg: number; prev_day_workout: boolean };
 
 export default function DashboardClient({
   travel,
   morning,
   rituals,
   running,
+  workouts,
   sleepPrevCaff,
 }: {
   travel: TravelProps;
   morning: MorningProps;
   rituals: RitualsProps;
   running: RunningProps;
+  workouts: WorkoutProps;
   sleepPrevCaff: SleepPrevCaffPoint[];
 }) {
   return (
@@ -175,50 +183,61 @@ export default function DashboardClient({
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="md:col-span-2">
             <Scatter
-              title="Sleep score vs yesterday’s caffeine"
-              data={sleepPrevCaff}
+              title="Sleep score vs yesterday's caffeine"
+              data={sleepPrevCaff.map(p => ({
+                date: p.date,
+                sleep_score: p.sleep_score,
+                prev_caffeine_mg: p.prev_caffeine_mg,
+                category: p.prev_day_workout ? "Workout day before" : "No workout day before"
+              }))}
               x="prev_caffeine_mg"
               y="sleep_score"
+              groupField="category"
+              colors={["emerald", "violet"]}
             />
             <p className="mt-2 text-xs text-neutral-500">
-              Each dot is a day (last 60). X: Estimated remaining caffeine (mg) at the end of the day. Y: sleep score for that day.
+              Each dot is a day (last 60). X: Estimated remaining caffeine (mg) at the end of the day before. Y: sleep score.
+              Green dots: no workout day before. Purple dots: workout day before.
             </p>
           </div>
         </div>
       </Section>
 
-      {/* 5) Running & Movement */}
-      <Section id="running-movement" title="5. Running & Movement" className="scroll-mt-20">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <Kpi label="This Month (km)" value={running.progress.total_km.toFixed(1)} />
-          <Kpi label="Goal (km)" value={running.progress.target_km.toFixed(1)} />
-          <Kpi label="Delta (km)" value={running.progress.delta_km.toFixed(1)} />
-        </div>
+      {/* 5) Workouts */}
+      <Section id="running-movement" title="5. Workouts" className="scroll-mt-20">
+        {/* Heatmap first - shows all workout types */}
+        <Panel title="Activity Heat (last 6 weeks)">
+          <div className="grid grid-cols-7 gap-1">
+            {(() => {
+              const max = Math.max(1, ...workouts.heatmap.map((d) => d.duration_min));
+              return workouts.heatmap.map(({ date, duration_min }, i) => {
+                const bg = duration_min === 0 ? "bg-neutral-700" : "bg-emerald-500";
+                const opacity = duration_min === 0 ? 1 : Math.max(0.2, Math.min(1, duration_min / max));
+                return (
+                  <div
+                    key={`${date}-${i}`}
+                    className={`h-4 w-4 rounded-sm ${bg}`}
+                    title={`${date}: ${duration_min} min`}
+                    style={{ opacity }}
+                  />
+                );
+              });
+            })()}
+          </div>
+        </Panel>
 
-        <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-1">
-          <Line title="Pace (min/km)" data={running.paceSeries} index="date" categories={["paceMinPerKm"]} />
-        </div>
-
-        <div className="mt-4">
-          <Panel title="Running Heat (last 6 weeks)">
-            <div className="grid grid-cols-7 gap-1">
-              {(() => {
-                const max = Math.max(1, ...running.heatmap.map((d) => d.km));
-                return running.heatmap.map(({ date, km }, i) => {
-                  const bg = km === 0 ? "bg-neutral-700" : "bg-emerald-500";
-                  const opacity = km === 0 ? 1 : Math.max(0.2, Math.min(1, km / max));
-                  return (
-                    <div
-                      key={`${date}-${i}`}
-                      className={`h-4 w-4 rounded-sm ${bg}`}
-                      title={`${date}: ${km.toFixed(2)} km`}
-                      style={{ opacity }}
-                    />
-                  );
-                });
-              })()}
-            </div>
-          </Panel>
+        {/* One KPI per workout type */}
+        <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
+          {workouts.stats.map((stat) => {
+            const typeName = stat.workout_type.charAt(0).toUpperCase() + stat.workout_type.slice(1);
+            return (
+              <Kpi
+                key={stat.workout_type}
+                label={`${typeName} Sessions`}
+                value={stat.count}
+              />
+            );
+          })}
         </div>
       </Section>
     </div>
