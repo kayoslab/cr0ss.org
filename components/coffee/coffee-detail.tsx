@@ -4,6 +4,8 @@ import { CoffeeyProps } from '@/lib/contentful/api/props/coffee';
 import { CountryProps } from '@/lib/contentful/api/props/country';
 import MapClient from '@/components/map.client';
 import Link from 'next/link';
+import Image from 'next/image';
+import { optimizeWithPreset } from '@/lib/contentful/image-utils';
 
 interface CoffeeDetailProps {
   coffee: CoffeeyProps;
@@ -56,8 +58,20 @@ export default function CoffeeDetail({ coffee, originCountry, allCountries }: Co
         Back to Coffee Collection
       </Link>
 
-      {/* Header */}
+      {/* Header with Photo */}
       <div className="mb-8">
+        {coffee.photo?.url && (
+          <div className="mb-6 rounded-xl overflow-hidden border border-neutral-200 shadow-sm">
+            <Image
+              src={optimizeWithPreset(coffee.photo.url, 'hero')}
+              alt={coffee.photo.title || coffee.name}
+              width={1200}
+              height={600}
+              className="w-full h-auto object-cover"
+              priority
+            />
+          </div>
+        )}
         <h1 className="text-4xl font-bold mb-2">{coffee.name}</h1>
         <p className="text-xl text-neutral-600">{coffee.roaster}</p>
       </div>
@@ -113,6 +127,18 @@ export default function CoffeeDetail({ coffee, originCountry, allCountries }: Co
           <div>
             <h3 className="text-lg font-semibold mb-2">Details</h3>
             <dl className="space-y-2">
+              {coffee.farmer && (
+                <div>
+                  <dt className="text-sm text-neutral-500 inline">Farmer:</dt>{' '}
+                  <dd className="text-sm inline">{coffee.farmer}</dd>
+                </div>
+              )}
+              {coffee.farm && (
+                <div>
+                  <dt className="text-sm text-neutral-500 inline">Farm:</dt>{' '}
+                  <dd className="text-sm inline">{coffee.farm}</dd>
+                </div>
+              )}
               {coffee.process && (
                 <div>
                   <dt className="text-sm text-neutral-500 inline">Process:</dt>{' '}
@@ -123,6 +149,12 @@ export default function CoffeeDetail({ coffee, originCountry, allCountries }: Co
                 <div>
                   <dt className="text-sm text-neutral-500 inline">Variety:</dt>{' '}
                   <dd className="text-sm inline">{coffee.variety}</dd>
+                </div>
+              )}
+              {coffee.scaScore && (
+                <div>
+                  <dt className="text-sm text-neutral-500 inline">SCA Score:</dt>{' '}
+                  <dd className="text-sm inline font-semibold">{coffee.scaScore}/100</dd>
                 </div>
               )}
               {coffee.decaffeinated !== null && coffee.decaffeinated !== undefined && (
@@ -151,11 +183,21 @@ export default function CoffeeDetail({ coffee, originCountry, allCountries }: Co
           )}
         </div>
 
-        {/* Placeholder for future content */}
+        {/* Brewing Recipe & Notes */}
         <div className="space-y-6">
-          <div className="p-6 border-2 border-dashed border-neutral-200 rounded-lg text-center text-neutral-400">
-            <p className="text-sm">Brewing recipe coming soon</p>
-          </div>
+          {coffee.brewingRecipe ? (
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Brewing Recipe</h3>
+              <div className="p-4 bg-neutral-50 border border-neutral-200 rounded-lg">
+                <p className="text-sm whitespace-pre-line text-neutral-700">{coffee.brewingRecipe}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="p-6 border-2 border-dashed border-neutral-200 rounded-lg text-center text-neutral-400">
+              <p className="text-sm">Brewing recipe coming soon</p>
+            </div>
+          )}
+
           <div className="p-6 border-2 border-dashed border-neutral-200 rounded-lg text-center text-neutral-400">
             <p className="text-sm">Personal notes coming soon</p>
           </div>

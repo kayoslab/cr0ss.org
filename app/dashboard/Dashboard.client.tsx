@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
+import Link from "next/link";
 import Section from "@/components/dashboard/Section";
 import { Kpi } from "@/components/dashboard/Kpi";
 import {
@@ -178,7 +179,7 @@ export default function DashboardClient({
         </div>
 
         <div className="mt-4">
-          <a
+          <Link
             href="/coffee"
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-neutral-900 bg-neutral-100 border border-neutral-200 rounded-lg hover:bg-neutral-200 hover:border-neutral-300 transition-all shadow-sm"
           >
@@ -192,7 +193,7 @@ export default function DashboardClient({
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
-          </a>
+          </Link>
         </div>
       </Section>
 
