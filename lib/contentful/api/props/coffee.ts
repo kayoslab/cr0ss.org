@@ -4,6 +4,7 @@ export interface CoffeeyProps {
     };
     name: string;
     roaster: string;
+    url?: string | null;
     photo?: {
       url: string;
       title?: string;
@@ -31,6 +32,7 @@ export interface CoffeeyProps {
     }
     name
     roaster
+    url
     photo {
       url
       title
