@@ -227,6 +227,7 @@ describe('Dashboard Zod Schemas', () => {
         date: '2025-10-23',
         sleep_score: 85,
         prev_caffeine_mg: 50,
+        prev_day_workout: false,
       };
       expect(ZSleepPrev.parse(valid)).toEqual(valid);
     });
@@ -236,6 +237,7 @@ describe('Dashboard Zod Schemas', () => {
         date: '2025-10-23',
         sleep_score: 85,
         prev_caffeine_mg: 0,
+        prev_day_workout: true,
       };
       expect(ZSleepPrev.parse(valid)).toEqual(valid);
     });
@@ -340,6 +342,17 @@ describe('Dashboard Zod Schemas', () => {
             date: '2025-10-23',
             sleep_score: 85,
             prev_caffeine_mg: 50,
+            prev_day_workout: false,
+          },
+        ],
+        workoutHeatmap: [{ date: '2025-10-23', duration_min: 30 }],
+        workoutTypes: ['running', 'cycling'],
+        workoutStats: [
+          {
+            workout_type: 'running',
+            count: 5,
+            total_duration_min: 150,
+            total_distance_km: 25,
           },
         ],
         monthlyGoals: {
@@ -383,6 +396,9 @@ describe('Dashboard Zod Schemas', () => {
         runningHeatmap: [],
         caffeineSeries: [],
         sleepPrevCaff: [],
+        workoutHeatmap: [],
+        workoutTypes: [],
+        workoutStats: [],
         monthlyGoals: {
           steps: 0,
           running_distance_km: 0,
@@ -432,6 +448,9 @@ describe('Dashboard Zod Schemas', () => {
         runningHeatmap: [],
         caffeineSeries: [],
         sleepPrevCaff: [],
+        workoutHeatmap: [],
+        workoutTypes: [],
+        workoutStats: [],
         monthlyGoals: {
           steps: 0,
           running_distance_km: 0,

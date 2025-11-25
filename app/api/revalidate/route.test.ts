@@ -324,6 +324,7 @@ describe('POST /api/revalidate', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sys: {
+            id: 'coffee-123',
             contentType: { sys: { id: 'coffee' } },
           },
         }),
@@ -332,11 +333,14 @@ describe('POST /api/revalidate', () => {
 
       expect(response.status).toBe(200);
       expect(revalidateTag).toHaveBeenCalledWith('coffee', 'max');
+      expect(revalidateTag).toHaveBeenCalledWith('coffee-123', 'max');
+      expect(revalidatePath).toHaveBeenCalledWith('/coffee');
       expect(revalidatePath).toHaveBeenCalledWith('/dashboard');
-      
+      expect(revalidatePath).toHaveBeenCalledWith('/coffee/coffee-123');
+
       const data = await response.json();
-      expect(data.tags).toEqual(['coffee']);
-      expect(data.paths).toEqual(['/dashboard']);
+      expect(data.tags).toEqual(['coffee', 'coffee-123']);
+      expect(data.paths).toEqual(['/coffee', '/dashboard', '/coffee/coffee-123']);
     });
   });
 

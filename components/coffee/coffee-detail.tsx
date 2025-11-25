@@ -189,14 +189,24 @@ export default function CoffeeDetail({ coffee, originCountry, allCountries }: Co
           {coffee.brewingRecipe ? (
             <div>
               <h3 className="text-lg font-semibold mb-2">Brewing Recipe</h3>
-              <div className="p-4 bg-neutral-50 border border-neutral-200 rounded-lg prose prose-sm prose-neutral max-w-none">
-                <Markdown
-                  components={{
-                    p: ({ children }) => <p className="mb-2">{children}</p>,
-                  }}
-                >
-                  {coffee.brewingRecipe}
-                </Markdown>
+              <div className="p-4 bg-neutral-50 border border-neutral-200 rounded-lg">
+                <div className="prose prose-sm prose-neutral max-w-none prose-p:my-2 prose-p:leading-relaxed prose-ul:my-2 prose-ol:my-2 prose-li:my-1">
+                  <Markdown
+                    components={{
+                      p: ({ children }) => <p className="my-2 leading-relaxed">{children}</p>,
+                      ul: ({ children }) => <ul className="my-2 list-disc pl-5">{children}</ul>,
+                      ol: ({ children }) => <ol className="my-2 list-decimal pl-5">{children}</ol>,
+                      li: ({ children }) => <li className="my-1">{children}</li>,
+                      strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                      em: ({ children }) => <em className="italic">{children}</em>,
+                      h1: ({ children }) => <h1 className="text-lg font-bold mt-4 mb-2">{children}</h1>,
+                      h2: ({ children }) => <h2 className="text-base font-bold mt-3 mb-2">{children}</h2>,
+                      h3: ({ children }) => <h3 className="text-sm font-bold mt-2 mb-1">{children}</h3>,
+                    }}
+                  >
+                    {coffee.brewingRecipe}
+                  </Markdown>
+                </div>
               </div>
             </div>
           ) : (
