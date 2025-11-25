@@ -13,14 +13,12 @@ interface BlogGridProps {
 
 export default function BlogGrid({ posts, currentPage, totalPages, basePath, title }: BlogGridProps) {
   return (
-    <section className='w-full pt-12 max-w-(--breakpoint-lg)'>
-      <div className='container mx-auto space-y-12 px-4 md:px-6'>
-        <div className='flex flex-col items-center justify-center space-y-4 text-center'>
-          <div className='space-y-2'>
-            <h1 className='text-3xl font-bold tracking-tighter sm:text-5xl'>
-              {title}
-            </h1>
-          </div>
+    <section className='w-full max-w-(--breakpoint-lg)'>
+      <div className='container space-y-12 px-4 md:px-6'>
+        <div className='space-y-4'>
+          <h1 className='text-4xl font-bold tracking-tighter sm:text-5xl'>
+            {title}
+          </h1>
         </div>
         <div className='space-y-12'>
           <div className='grid gap-8 md:grid-cols-2 lg:grid-cols-3'>

@@ -176,6 +176,24 @@ export default function DashboardClient({
             Intake: caffeine consumed (mg) at that time. Body: modeled remaining caffeine (mg) in body over the day.
           </p>
         </div>
+
+        <div className="mt-4">
+          <a
+            href="/coffee"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-neutral-900 bg-neutral-100 border border-neutral-200 rounded-lg hover:bg-neutral-200 hover:border-neutral-300 transition-all shadow-sm"
+          >
+            View Coffee Collection
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
+        </div>
       </Section>
 
       {/* 4) Focus & Flow */}

@@ -14,12 +14,14 @@ export default function MapClient({
   countries,
   showLocation = true,
   className,
+  labelLine,
 }: {
   lat: number | string | null | undefined;
   lon: number | string | null | undefined;
   countries: TravelCountry[];
   showLocation?: boolean;
   className?: string;
+  labelLine?: { from: { x: number; y: number }; to: { x: number; y: number }; label: string } | null;
 }) {
   // --- Normalize inputs ------------------------------------------------------
   const latNumRaw = Number(lat);
@@ -81,6 +83,27 @@ export default function MapClient({
         >
           <title>Current location</title>
         </circle>
+      )}
+
+      {/* Label line for coffee origin */}
+      {labelLine && (
+        <g>
+          <line
+            x1={labelLine.from.x}
+            y1={labelLine.from.y}
+            x2={labelLine.to.x}
+            y2={labelLine.to.y}
+            stroke="#666666"
+            strokeWidth="1"
+            strokeDasharray="3,3"
+          />
+          <circle
+            cx={labelLine.from.x}
+            cy={labelLine.from.y}
+            r="3"
+            fill="#666666"
+          />
+        </g>
       )}
     </svg>
   );

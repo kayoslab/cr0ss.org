@@ -146,9 +146,9 @@ export async function getCoffees(coffeeIds: string[]) {
 }
 
 export async function getCoffee(id: string) {
-  try {    
+  try {
     const query = `query {
-      coffeeCollection(where: { sys_id: "${id}" }, limit: 1, preview: false) {
+      coffeeCollection(where: { sys: { id: "${id}" } }, limit: 1, preview: false) {
         total
         items {
           ${COFFEE_GRAPHQL_FIELDS}
