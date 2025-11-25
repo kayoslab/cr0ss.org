@@ -111,20 +111,9 @@ export default function DashboardSkeleton() {
         </div>
       </section>
 
-      {/* 4) Focus & Flow */}
-      <section aria-busy="true">
-        <Header>4. Focus &amp; Flow</Header>
-        <div className="mt-4">
-          <SkeletonCard>
-            <Skeleton className="h-6 w-72 mb-3" />
-            <Skeleton className="h-56 w-full" />
-          </SkeletonCard>
-        </div>
-      </section>
-
       {/* 5) Running & Movement */}
       <section aria-busy="true">
-        <Header>5. Running &amp; Movement</Header>
+        <Header>4. Workout</Header>
         <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
             <SkeletonCard key={i}>

@@ -26,7 +26,16 @@ export function Message({ message }: MessageProps) {
   return (
     <div className="flex flex-col">
       <div className="prose prose-gray max-w-none break-words prose-p:my-3 prose-p:leading-relaxed prose-strong:font-semibold prose-ul:my-3 prose-li:my-1 prose-headings:mt-4 prose-headings:mb-2">
-        <Markdown>{message.content}</Markdown>
+        <Markdown
+          components={{
+            p: ({ children }) => <p className="my-3 leading-relaxed">{children}</p>,
+            ul: ({ children }) => <ul className="my-3">{children}</ul>,
+            ol: ({ children }) => <ol className="my-3">{children}</ol>,
+            li: ({ children }) => <li className="my-1">{children}</li>,
+          }}
+        >
+          {message.content}
+        </Markdown>
       </div>
 
       {hasSources && (
