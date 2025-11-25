@@ -17,6 +17,9 @@ export default function CoffeeGrid({ coffees, currentPage, totalPages, basePath,
           <h1 className='text-4xl font-bold tracking-tighter sm:text-5xl'>
             {title}
           </h1>
+          <p className='text-lg text-neutral-600 max-w-3xl'>
+            A history of specialty coffee I've been experimenting with, along with brew recipes and recommendations for fellow coffee nerds.
+          </p>
         </div>
         <div className='space-y-12'>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
