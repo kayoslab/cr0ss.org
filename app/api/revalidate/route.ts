@@ -15,6 +15,7 @@ import type { BlogProps } from '@/lib/contentful/api/props/blog';
 interface ContentfulWebhookPayload {
   sys?: {
     type?: string;
+    id?: string;
     contentType?: {
       sys?: {
         id?: string;
@@ -79,6 +80,12 @@ function getRevalidationTags(payload: ContentfulWebhookPayload): string[] {
     case 'coffee':
       // Revalidate coffee collection
       tags.push('coffee');
+
+      // Revalidate specific coffee entry if ID is available
+      const coffeeId = payload.sys?.id;
+      if (coffeeId) {
+        tags.push(coffeeId);
+      }
       break;
 
     case 'knowledgeBase':
@@ -170,8 +177,17 @@ function getRevalidationPaths(payload: ContentfulWebhookPayload): string[] {
       break;
 
     case 'coffee':
+      // Revalidate coffee list page
+      paths.push('/coffee');
+
       // Revalidate dashboard if it shows coffee data
       paths.push('/dashboard');
+
+      // Revalidate specific coffee detail page if ID is available
+      const coffeeId = payload.sys?.id;
+      if (coffeeId) {
+        paths.push(`/coffee/${coffeeId}`);
+      }
       break;
   }
 

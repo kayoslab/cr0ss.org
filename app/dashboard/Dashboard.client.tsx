@@ -178,7 +178,7 @@ export default function DashboardClient({
           </p>
         </div>
 
-        <div className="mt-4">
+        <div className="mt-4 gap-4">
           <Link
             href="/coffee"
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-neutral-900 bg-neutral-100 border border-neutral-200 rounded-lg hover:bg-neutral-200 hover:border-neutral-300 transition-all shadow-sm"
@@ -197,35 +197,10 @@ export default function DashboardClient({
         </div>
       </Section>
 
-      {/* 4) Focus & Flow */}
-      <Section id="focus-flow" title="4. Focus & Flow" className="scroll-mt-20">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className="md:col-span-2">
-            <Scatter
-              title="Sleep score vs yesterday's caffeine"
-              data={sleepPrevCaff.map(p => ({
-                date: p.date,
-                sleep_score: p.sleep_score,
-                prev_caffeine_mg: p.prev_caffeine_mg,
-                category: p.prev_day_workout ? "Workout day before" : "No workout day before"
-              }))}
-              x="prev_caffeine_mg"
-              y="sleep_score"
-              groupField="category"
-              colors={["emerald", "violet"]}
-            />
-            <p className="mt-2 text-xs text-neutral-500">
-              Each dot is a day (last 60). X: Estimated remaining caffeine (mg) at the end of the day before. Y: sleep score.
-              Green dots: no workout day before. Purple dots: workout day before.
-            </p>
-          </div>
-        </div>
-      </Section>
-
-      {/* 5) Workouts */}
-      <Section id="running-movement" title="5. Workouts" className="scroll-mt-20">
+      {/* 4) Workouts */}
+      <Section id="running-movement" title="4. Workouts (last 60 days)" className="scroll-mt-20">
         {/* Heatmap first - shows all workout types */}
-        <Panel title="Activity Heat (last 6 weeks)">
+        <Panel title="Activity Heatmap">
           <div className="grid grid-cols-7 gap-1">
             {(() => {
               const max = Math.max(1, ...workouts.heatmap.map((d) => d.duration_min));
@@ -257,6 +232,29 @@ export default function DashboardClient({
               />
             );
           })}
+        </div>
+
+        {/* Scatter showing the correlation between workouts, coffee and sleep */}
+        <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="md:col-span-2">
+            <Scatter
+              title="Caffeine &amp; Workouts and their effect on sleep score"
+              data={sleepPrevCaff.map(p => ({
+                date: p.date,
+                sleep_score: p.sleep_score,
+                prev_caffeine_mg: p.prev_caffeine_mg,
+                category: p.prev_day_workout ? "Workout day before" : "No workout day before"
+              }))}
+              x="prev_caffeine_mg"
+              y="sleep_score"
+              groupField="category"
+              colors={["emerald", "violet"]}
+            />
+            <p className="mt-2 text-xs text-neutral-500">
+              Each dot is a day — X: Estimated remaining caffeine (mg) at the end of the day before. Y: sleep score.
+              Green dots: no workout day before. Purple dots: workout day before.
+            </p>
+          </div>
         </div>
       </Section>
     </div>
