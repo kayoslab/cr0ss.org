@@ -49,6 +49,18 @@ export const ZHeat = z.object({
   km: z.number(),
 });
 
+export const ZWorkoutHeat = z.object({
+  date: z.string(),
+  duration_min: z.number(),
+});
+
+export const ZWorkoutStats = z.object({
+  workout_type: z.string(),
+  count: z.number(),
+  total_duration_min: z.number(),
+  total_distance_km: z.number(),
+});
+
 export const ZCaffeinePoint = z.object({
   timeISO: z.string(), // ISO timestamp
   intake_mg: z.number(),
@@ -59,6 +71,7 @@ export const ZSleepPrev = z.object({
   date: z.string(),
   sleep_score: z.number(),
   prev_caffeine_mg: z.number(),
+  prev_day_workout: z.boolean(),
 });
 
 export const ZMonthlyGoals = z.object({
@@ -89,6 +102,9 @@ export const ZDashboard = z.object({
   runningProgress: ZRunningProgress,
   paceSeries: z.array(ZPacePoint),
   runningHeatmap: z.array(ZHeat),
+  workoutHeatmap: z.array(ZWorkoutHeat),
+  workoutTypes: z.array(z.string()),
+  workoutStats: z.array(ZWorkoutStats),
   caffeineSeries: z.array(ZCaffeinePoint),
   sleepPrevCaff: z.array(ZSleepPrev),
   monthlyGoals: ZMonthlyGoals, // must be present

@@ -54,8 +54,11 @@ type DashboardApi = {
   runningProgress: { target_km: number; total_km: number; delta_km: number; pct: number; month: string };
   paceSeries: { date: string; avg_pace_sec_per_km: number }[];
   runningHeatmap: { date: string; km: number }[];
+  workoutHeatmap: { date: string; duration_min: number }[];
+  workoutTypes: string[];
+  workoutStats: { workout_type: string; count: number; total_duration_min: number; total_distance_km: number }[];
   caffeineSeries: { timeISO: string; intake_mg: number; body_mg: number }[];
-  sleepPrevCaff: { date: string; sleep_score: number; prev_caffeine_mg: number }[];
+  sleepPrevCaff: { date: string; sleep_score: number; prev_caffeine_mg: number; prev_day_workout: boolean }[];
   monthlyGoals: {
     steps: number;
     running_distance_km: number;
@@ -171,6 +174,12 @@ export default async function DashboardPage() {
     heatmap: api.runningHeatmap,
   };
 
+  const workouts = {
+    heatmap: api.workoutHeatmap,
+    types: api.workoutTypes,
+    stats: api.workoutStats,
+  };
+
   const sleepPrevCaff = api.sleepPrevCaff;
 
   return (
@@ -181,6 +190,7 @@ export default async function DashboardPage() {
           morning={morning}
           rituals={rituals}
           running={running}
+          workouts={workouts}
           sleepPrevCaff={sleepPrevCaff}
         />
       </section>

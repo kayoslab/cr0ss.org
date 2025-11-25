@@ -28,9 +28,15 @@ import {
   qPaceLastRuns,
   qRunningHeatmap,
   qMonthlyGoalsObject,
+  qWorkoutHeatmap,
+  qWorkoutTypesPresent,
+  qWorkoutStatsByType,
 } from "@/lib/db/queries";
 import { getBodyProfile } from "@/lib/user/profile";
 import { modelCaffeine } from "@/lib/phys/caffeine";
+import { neon } from "@neondatabase/serverless";
+
+const sql = neon(process.env.DATABASE_URL!);
 
 // Cache wrapper for dashboard data with "dashboard" tag
 const getCachedDashboardData = unstable_cache(
@@ -45,6 +51,8 @@ const getCachedDashboardData = unstable_cache(
       runningProgress,
       paceSeries,
       runningHeatmap,
+      workoutHeatmap,
+      workoutTypes,
       body,
     ] = await Promise.all([
       qCupsToday(),
@@ -56,6 +64,8 @@ const getCachedDashboardData = unstable_cache(
       qRunningMonthlyProgress(),
       qPaceLastRuns(10),
       qRunningHeatmap(42),
+      qWorkoutHeatmap(42),
+      qWorkoutTypesPresent(42),
       getBodyProfile(),
     ]);
     return {
@@ -68,6 +78,8 @@ const getCachedDashboardData = unstable_cache(
       runningProgress,
       paceSeries,
       runningHeatmap,
+      workoutHeatmap,
+      workoutTypes,
       body,
     };
   },
@@ -108,8 +120,15 @@ export const GET = createApiRoute()
       runningProgress,
       paceSeries,
       runningHeatmap,
+      workoutHeatmap,
+      workoutTypes,
       body,
     } = await getCachedDashboardData();
+
+    // Get stats for each workout type present
+    const workoutStats = await Promise.all(
+      workoutTypes.map(type => qWorkoutStatsByType(type, 42))
+    );
 
     // Caffeine model for today (00:00-24:00 Berlin time + lookback for decay calculation):
     const startISO = startOfBerlinDayISO();  // Today 00:00 Berlin (in UTC)
@@ -141,6 +160,15 @@ export const GET = createApiRoute()
 
     // Fetch all coffee events once in that range (raw UTC ISO instants)
     const allEventsInRange = await qCoffeeInRange(globalStartISO, globalEndISO);
+
+    // Fetch workouts in the range to check if there was a workout on the previous day
+    const workoutsInRange = await sql`
+      SELECT date::text as date
+      FROM workouts
+      WHERE date >= ${minYMD}::date - interval '1 day'
+        AND date <= ${maxYMD}::date
+    `;
+    const workoutDates = new Set(workoutsInRange.map((r) => String(r.date)));
 
     const sleepPrevCaff = sleepRows
   .map((row: { date: string; sleep_score: number; focus_minutes: number }) => {
@@ -197,13 +225,18 @@ export const GET = createApiRoute()
       midnightBodyMg += remaining;
     }
 
+    // Check if there was a workout on the previous day
+    const prevDate = prevBerlinDateKey(row.date);
+    const hadWorkout = workoutDates.has(prevDate);
+
     return {
       date: row.date,
       sleep_score: row.sleep_score,
       prev_caffeine_mg: Math.round(midnightBodyMg),
+      prev_day_workout: hadWorkout,
     };
   })
-  .filter((p: { date: string; sleep_score: number; prev_caffeine_mg: number }) => !(p.prev_caffeine_mg === 0 && (!p.sleep_score || p.sleep_score === 0)));
+  .filter((p: { date: string; sleep_score: number; prev_caffeine_mg: number; prev_day_workout: boolean }) => !(p.prev_caffeine_mg === 0 && (!p.sleep_score || p.sleep_score === 0)));
 
     
     const monthlyGoals = {
@@ -227,6 +260,9 @@ export const GET = createApiRoute()
       runningProgress,
       paceSeries,
       runningHeatmap,
+      workoutHeatmap,
+      workoutTypes,
+      workoutStats,
       caffeineSeries,
       sleepPrevCaff,
       monthlyGoals,
