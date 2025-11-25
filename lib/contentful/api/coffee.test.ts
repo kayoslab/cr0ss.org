@@ -249,7 +249,7 @@ describe('lib/contentful/api/coffee', () => {
       await getCoffee('test-id');
 
       expect(fetchGraphQL).toHaveBeenCalledWith(
-        expect.stringContaining('sys_id: "test-id"'),
+        expect.stringContaining('sys: { id: "test-id" }'),
         ['test-id']
       );
       expect(fetchGraphQL).toHaveBeenCalledWith(
