@@ -9,6 +9,7 @@ import {
 import { useRouter } from 'next/navigation';
 import type { AlgoliaHit, SearchAPIResponse } from '@/lib/algolia/client';
 import Link from 'next/link';
+import { SearchResult } from '@/components/search/search-result';
 
 export default function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -217,18 +218,12 @@ export default function Navigation() {
                         <div className="px-4 py-2 text-sm text-red-500">{searchError}</div>
                       ) : suggestions.length > 0 ? (
                         suggestions.map((hit, index) => (
-                          <button
+                          <SearchResult
                             key={hit.objectID}
-                            onClick={() => handleSuggestionClick(hit)}
-                            className={`block w-full text-left px-4 py-2 text-sm
-                              ${index === selectedIndex
-                                ? 'bg-gray-100'
-                                : 'hover:bg-gray-100'
-                              }
-                              text-gray-700`}
-                          >
-                            {hit.title}
-                          </button>
+                            hit={hit}
+                            onClick={handleSuggestionClick}
+                            isSelected={index === selectedIndex}
+                          />
                         ))
                       ) : (
                         <div className="px-4 py-2 text-sm text-gray-500">No results found</div>
