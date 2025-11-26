@@ -13,8 +13,8 @@ interface BlogGridProps {
 
 export default function BlogGrid({ posts, currentPage, totalPages, basePath, title }: BlogGridProps) {
   return (
-    <section className='w-full max-w-(--breakpoint-lg)'>
-      <div className='container space-y-12 px-4 md:px-6'>
+    <section className='w-full max-w-7xl mx-auto'>
+      <div className='space-y-12 px-4 md:px-6'>
         <div className='space-y-4'>
           <h1 className='text-4xl font-bold tracking-tighter sm:text-5xl'>
             {title}

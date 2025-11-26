@@ -607,7 +607,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
   };
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 space-y-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 space-y-8">
       <h1 className="text-xl font-semibold text-neutral-900">Dashboard Settings</h1>
 
       {/* status region for SR announcement */}

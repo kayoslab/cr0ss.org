@@ -11,8 +11,8 @@ export const metadata: Metadata = createListMetadata({
 export default function ChatPage() {
   return (
     <main className='flex min-h-screen flex-col items-center bg-white pb-8'>
-      <section className='w-full pt-8 max-w-(--breakpoint-lg)'>
-        <div className='container mx-auto px-4 md:px-6'>
+      <section className='w-full pt-8 max-w-7xl mx-auto'>
+        <div className='px-4 md:px-6'>
           <ChatInterface />
         </div>
       </section>

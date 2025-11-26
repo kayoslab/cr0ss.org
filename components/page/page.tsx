@@ -6,8 +6,8 @@ import { optimizeWithPreset } from '@/lib/contentful/image-utils';
 
 export const Page = ({ page }: { page: PageProps }) => {
   return (
-    <section className='w-full max-w-(--breakpoint-lg)'>
-      <div className='container space-y-12 px-4 md:px-6'>
+    <section className='w-full max-w-7xl mx-auto'>
+      <div className='space-y-12 px-4 md:px-6'>
         <div className='space-y-4'>
           <h1
             className='text-4xl font-bold tracking-tighter sm:text-5xl'
@@ -31,7 +31,7 @@ export const Page = ({ page }: { page: PageProps }) => {
           <div className='space-y-4 md:space-y-6'>
             <div className='space-y-2'>
               <div
-                className='prose max-w-[900px] text-zinc-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed'
+                className='prose prose-lg max-w-full text-zinc-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed'
               >
                 {documentToReactComponents(
                   page.details.json,

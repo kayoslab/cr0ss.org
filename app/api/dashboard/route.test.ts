@@ -160,7 +160,7 @@ describe('GET /api/dashboard', () => {
       { date: '2025-01-15', km: 5.2 },
     ]);
     vi.mocked(qWorkoutHeatmap).mockResolvedValue([
-      { date: '2025-01-15', duration_min: 45 },
+      { date: '2025-01-15', duration_min: 45, types: ['running'] },
     ]);
     vi.mocked(qWorkoutTypesPresent).mockResolvedValue(['running', 'climbing']);
     vi.mocked(qWorkoutStatsByType).mockResolvedValue({

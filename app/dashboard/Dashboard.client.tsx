@@ -66,7 +66,7 @@ type RunningProps = {
 };
 
 type WorkoutProps = {
-  heatmap: { date: string; duration_min: number }[];
+  heatmap: { date: string; duration_min: number; types: string[] }[];
   types: string[];
   stats: { workout_type: string; count: number; total_duration_min: number; total_distance_km: number }[];
 };
@@ -92,6 +92,13 @@ export default function DashboardClient({
     <div className="space-y-10">
       {/* run legend a11y upgrade once */}
       <LegendA11y />
+
+      {/* Page Title */}
+      <div className="space-y-4">
+        <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl">
+          Dashboard
+        </h1>
+      </div>
 
       {/* 1) Travel */}
       <Section id="travel" title="1. Travel" className="scroll-mt-20">
@@ -201,19 +208,43 @@ export default function DashboardClient({
       <Section id="running-movement" title="4. Workouts (last 60 days)" className="scroll-mt-20">
         {/* Heatmap first - shows all workout types */}
         <Panel title="Activity Heatmap">
-          <div className="grid grid-cols-7 gap-1">
+          <div className="grid grid-cols-10 gap-1">
             {(() => {
               const max = Math.max(1, ...workouts.heatmap.map((d) => d.duration_min));
-              return workouts.heatmap.map(({ date, duration_min }, i) => {
+              return workouts.heatmap.map(({ date, duration_min, types }, i) => {
                 const bg = duration_min === 0 ? "bg-neutral-700" : "bg-emerald-500";
                 const opacity = duration_min === 0 ? 1 : Math.max(0.2, Math.min(1, duration_min / max));
+                const safeTypes = types || [];
+
+                // Build tooltip content
+                const tooltipText = duration_min === 0
+                  ? `${date}: No workouts`
+                  : `${date}: ${duration_min} min\n${safeTypes.map(t => t.charAt(0).toUpperCase() + t.slice(1)).join(', ')}`;
+
                 return (
                   <div
                     key={`${date}-${i}`}
-                    className={`h-4 w-4 rounded-sm ${bg}`}
-                    title={`${date}: ${duration_min} min`}
+                    className={`relative h-4 w-4 rounded-sm ${bg} group cursor-pointer`}
+                    title={tooltipText}
                     style={{ opacity }}
-                  />
+                  >
+                    {/* Tooltip on hover */}
+                    {duration_min > 0 && safeTypes.length > 0 && (
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-50 pointer-events-none" style={{ opacity: 1 }}>
+                        <div className="bg-neutral-900 text-white text-xs rounded py-1.5 px-2.5 whitespace-nowrap shadow-xl border border-neutral-700">
+                          <div className="font-semibold">{date}</div>
+                          <div>{duration_min} min</div>
+                          <div className="text-white">
+                            {safeTypes.map(t => t.charAt(0).toUpperCase() + t.slice(1)).join(', ')}
+                          </div>
+                          {/* Arrow */}
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px">
+                            <div className="border-4 border-transparent border-t-neutral-900"></div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 );
               });
             })()}

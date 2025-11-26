@@ -6,8 +6,8 @@ import { Skeleton } from '@/components/ui/Skeleton';
 export default function BlogPostLoading() {
   return (
     <main className='flex min-h-screen flex-col items-center justify-between bg-white pb-24'>
-      <section className='w-full max-w-(--breakpoint-lg) mx-auto'>
-      <div className='container space-y-12 px-4 md:px-6'>
+      <section className='w-full max-w-7xl mx-auto'>
+      <div className='space-y-12 px-4 md:px-6'>
         {/* Title and metadata */}
         <div className='space-y-4'>
           {/* Title skeleton */}
@@ -29,7 +29,7 @@ export default function BlogPostLoading() {
 
           {/* Summary skeleton */}
           <div className='flex flex-col justify-between md:flex-row'>
-            <div className='max-w-[900px] space-y-3'>
+            <div className='max-w-none space-y-3'>
               <Skeleton className='h-8 w-full md:h-9 lg:h-10 xl:h-11' />
               <Skeleton className='h-8 w-full md:h-9 lg:h-10 xl:h-11' />
               <Skeleton className='h-8 w-4/5 md:h-9 lg:h-10 xl:h-11' />
@@ -38,7 +38,7 @@ export default function BlogPostLoading() {
 
           {/* Article content skeleton */}
           <div className='space-y-4 md:space-y-6'>
-            <div className='space-y-4 max-w-[900px]'>
+            <div className='space-y-4 max-w-none'>
               {/* Paragraphs */}
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className='space-y-2'>
@@ -67,7 +67,7 @@ export default function BlogPostLoading() {
 
           {/* Author quote skeleton */}
           <div className='flex flex-col justify-between md:flex-row'>
-            <div className="max-w-[900px] space-y-4">
+            <div className="max-w-none space-y-4">
               <Skeleton className='h-8 w-8' />
               <div className='space-y-2'>
                 <Skeleton className='h-7 w-full' />
@@ -78,7 +78,7 @@ export default function BlogPostLoading() {
         </div>
 
         {/* Recommendations section skeleton */}
-        <div className='container mx-auto space-y-12 px-4 md:py-24'>
+        <div className='space-y-12 px-4 md:py-24'>
           <Skeleton className='h-8 w-48' />
 
           <div className='grid gap-8 md:grid-cols-2 lg:grid-cols-3'>

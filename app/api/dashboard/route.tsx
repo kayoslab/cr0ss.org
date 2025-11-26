@@ -60,8 +60,8 @@ const getCachedDashboardData = unstable_cache(
       qRunningMonthlyProgress(),
       qPaceLastRuns(10),
       qRunningHeatmap(42),
-      qWorkoutHeatmap(42),
-      qWorkoutTypesPresent(42),
+      qWorkoutHeatmap(60),
+      qWorkoutTypesPresent(60),
       getBodyProfile(),
     ]);
     return {
@@ -124,7 +124,7 @@ export const GET = createApiRoute()
 
     // Get stats for each workout type present
     const workoutStats = await Promise.all(
-      workoutTypes.map(type => qWorkoutStatsByType(type, 42))
+      workoutTypes.map(type => qWorkoutStatsByType(type, 60))
     );
 
     // Caffeine model for today (00:00-24:00 Berlin time + lookback for decay calculation):
