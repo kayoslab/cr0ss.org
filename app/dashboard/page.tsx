@@ -1,19 +1,14 @@
 import React from "react";
-import NextDynamic from "next/dynamic";
 import { kv } from "@vercel/kv";
 import { getAllCountries, getVisitedCountries } from "@/lib/contentful/api/country";
 import { CountryProps } from "@/lib/contentful/api/props/country";
-import DashboardSkeleton from "./Dashboard.skeleton";
 import { SECRET_HEADER } from "@/lib/auth/constants";
 import { isoToBerlinDate } from "@/lib/time/berlin";
+import DashboardClient from "./Dashboard.client";
 
 // fetch settings
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
-
-const DashboardClient = NextDynamic(() => import("./Dashboard.client"), {
-  loading: () => <DashboardSkeleton />,
-});
 
 // ---- absolute URL builder + server fetcher
 function resolveBaseUrl() {

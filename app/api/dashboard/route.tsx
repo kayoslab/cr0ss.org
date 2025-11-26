@@ -39,12 +39,11 @@ import { neon } from "@neondatabase/serverless";
 const sql = neon(process.env.DATABASE_URL!);
 
 // Cache wrapper for dashboard data with "dashboard" tag
+// Note: Coffee-related queries (cups, brew methods, origins) are NOT cached
+// to ensure they show real-time data, since coffee events are fetched live anyway
 const getCachedDashboardData = unstable_cache(
   async () => {
     const [
-      cupsToday,
-      brewMethodsToday,
-      origins7d,
       habitsToday,
       consistency,
       writingVsFocus,
@@ -55,9 +54,6 @@ const getCachedDashboardData = unstable_cache(
       workoutTypes,
       body,
     ] = await Promise.all([
-      qCupsToday(),
-      qBrewMethodsToday(),
-      qCoffeeOriginThisWeek(),
       qHabitsToday(),
       qHabitConsistencyThisWeek(),
       qWritingVsFocusTrend(14),
@@ -69,9 +65,6 @@ const getCachedDashboardData = unstable_cache(
       getBodyProfile(),
     ]);
     return {
-      cupsToday,
-      brewMethodsToday,
-      origins7d,
       habitsToday,
       consistency,
       writingVsFocus,
@@ -109,11 +102,8 @@ export const GET = createApiRoute()
   .withRateLimit(RATE_LIMIT_BUCKETS.GET_DASHBOARD, { windowSec: 60, max: 10 })
   .withTrace("GET /api/dashboard")
   .handle(async () => {
-    // Get cached dashboard data
+    // Get cached dashboard data (non-coffee data)
     const {
-      cupsToday,
-      brewMethodsToday,
-      origins7d,
       habitsToday,
       consistency,
       writingVsFocus,
@@ -124,6 +114,13 @@ export const GET = createApiRoute()
       workoutTypes,
       body,
     } = await getCachedDashboardData();
+
+    // Fetch coffee data separately (not cached) for real-time updates
+    const [cupsToday, brewMethodsToday, origins7d] = await Promise.all([
+      qCupsToday(),
+      qBrewMethodsToday(),
+      qCoffeeOriginThisWeek(),
+    ]);
 
     // Get stats for each workout type present
     const workoutStats = await Promise.all(
