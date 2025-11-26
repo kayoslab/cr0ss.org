@@ -345,7 +345,7 @@ describe('Dashboard Zod Schemas', () => {
             prev_day_workout: false,
           },
         ],
-        workoutHeatmap: [{ date: '2025-10-23', duration_min: 30, types: ['running'] }],
+        workoutHeatmap: [{ date: '2025-10-23', duration_min: 30, workouts: [{ type: 'running', duration_min: 30 }] }],
         workoutTypes: ['running', 'cycling'],
         workoutStats: [
           {

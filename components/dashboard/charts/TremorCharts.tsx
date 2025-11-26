@@ -237,6 +237,7 @@ export function Scatter({
   const safe = groupField ? prepared : prepared.map((d) => ({ ...d, [category]: "all" }));
 
   // Derive category order from data so we can color legend & tooltip consistently
+  // Keep the order as it appears in the data (first occurrence wins)
   const derivedCats = Array.from(
     new Set(safe.map((d) => d?.[category]).filter((v) => v !== undefined && v !== null))
   ).map(String);
@@ -245,6 +246,18 @@ export function Scatter({
 
   // Name -> color map for legend/tooltip swatches
   const colorMap = new Map(derivedCats.map((name, i) => [name, palette[i]]));
+
+  // Map Tremor color names to actual Tailwind hex values for tooltips
+  const colorToHex: Record<string, string> = {
+    'sky': '#0ea5e9',
+    'emerald': '#10b981',
+    'violet': '#8b5cf6',
+    'amber': '#f59e0b',
+    'rose': '#f43f5e',
+  };
+
+  // Create a map of category name to hex color for tooltips
+  const categoryToHexMap = new Map(derivedCats.map((name, i) => [name, colorToHex[palette[i]] || palette[i]]));
 
   return (
     <Panel title={title}>
@@ -274,18 +287,18 @@ export function Scatter({
               const p0 = payload[0] as { payload?: Record<string, string | number>; color?: string } | undefined;
               const point = p0?.payload ?? {};
               const groupName = String(point?.[category] ?? "");
-              const swatch = (p0?.color as string) || colorMap.get(groupName) || palette[0];
+              // Use our mapped hex color, fallback to Recharts color, then black
+              const swatch = categoryToHexMap.get(groupName) || (p0?.color as string) || "#000";
 
               return (
                 <div className="rounded-md border bg-white p-2 text-sm shadow">
                   <div className="mb-1 flex items-center gap-2">
-                    {derivedCats.length > 0 && (
-                      <span className="inline-block h-3 w-3 rounded" style={{ backgroundColor: swatch }} />
-                    )}
+                    <span className="inline-block h-3 w-3 rounded" style={{ backgroundColor: swatch }} />
                     <span className="font-medium">
                       {groupField ? groupName : title}
                     </span>
                   </div>
+                  {point?.date && <div className="mb-1"><span className="opacity-70">Date:</span> {String(point.date)}</div>}
                   <div><span className="opacity-70">{x}:</span> {String(point?.[x])}</div>
                   <div><span className="opacity-70">{y}:</span> {String(point?.[y])}</div>
                 </div>
