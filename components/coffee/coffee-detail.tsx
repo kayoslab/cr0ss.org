@@ -40,8 +40,8 @@ export default function CoffeeDetail({ coffee, originCountry, allCountries }: Co
   const pathStartPoint = originCountry?.data?.path ? getPathStartPoint(originCountry.data.path) : null;
 
   return (
-    <div className="w-full max-w-(--breakpoint-lg)">
-      <div className="container space-y-12 px-4 md:px-6 py-16">
+    <div className="w-full max-w-7xl mx-auto">
+      <div className="space-y-12 px-4 md:px-6 py-16">
       {/* Back link */}
       <Link
         href="/coffee"

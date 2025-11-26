@@ -10,7 +10,7 @@ export default async function HomeContent() {
                 Not everything that you can see is real, not everything that is real can be seen.
             </blockquote>
         </div>
-        <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left pb-24">
+        <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-7xl lg:grid-cols-4 lg:text-left pb-24">
             <Link
             href="https://github.com/kayoslab"
             className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100:border-neutral-700:bg-neutral-800/30"

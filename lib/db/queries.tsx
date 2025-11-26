@@ -495,7 +495,8 @@ export async function qWorkoutHeatmap(days = 42) {
 
   const rows = await sql/*sql*/`
     select to_char(date,'YYYY-MM-DD') as date,
-           coalesce(sum(duration_min), 0)::int as duration_min
+           coalesce(sum(duration_min), 0)::int as duration_min,
+           coalesce(array_agg(distinct workout_type order by workout_type) filter (where workout_type is not null), array[]::text[]) as types
     from workouts
     where date >= ${startStr}::date
     group by date
@@ -503,11 +504,12 @@ export async function qWorkoutHeatmap(days = 42) {
   interface HeatmapRow {
     date: string;
     duration_min: number;
+    types: string[];
   }
 
   const byDate = new Map(rows.map((r) => {
     const row = r as HeatmapRow;
-    return [row.date, Number(row.duration_min)] as [string, number];
+    return [row.date, { duration_min: Number(row.duration_min), types: row.types || [] }] as [string, { duration_min: number; types: string[] }];
   }));
 
   const today = new Date();
@@ -515,10 +517,19 @@ export async function qWorkoutHeatmap(days = 42) {
     const d = new Date(today);
     d.setDate(d.getDate() - (days - 1 - i));
     const key = d.toISOString().slice(0, 10);
-    return { date: key, duration_min: byDate.get(key) ?? 0 };
+    const data = byDate.get(key);
+    return {
+      date: key,
+      duration_min: data?.duration_min ?? 0,
+      types: data?.types ?? []
+    };
   });
 
-  return z.array(z.object({ date: z.string(), duration_min: z.number().int().min(0) })).parse(out);
+  return z.array(z.object({
+    date: z.string(),
+    duration_min: z.number().int().min(0),
+    types: z.array(z.string())
+  })).parse(out);
 }
 
 /**

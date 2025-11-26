@@ -52,6 +52,7 @@ export const ZHeat = z.object({
 export const ZWorkoutHeat = z.object({
   date: z.string(),
   duration_min: z.number(),
+  types: z.array(z.string()),
 });
 
 export const ZWorkoutStats = z.object({

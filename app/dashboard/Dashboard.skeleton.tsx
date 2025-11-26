@@ -21,6 +21,11 @@ function Header({ children }: { children: React.ReactNode }) {
 export default function DashboardSkeleton() {
   return (
     <div className="space-y-10">
+      {/* Page Title */}
+      <div className="space-y-4">
+        <Skeleton className="h-12 w-48" />
+      </div>
+
       {/* 1) Travel */}
       <section aria-busy="true" aria-live="polite">
         <Header>1. Travel</Header>
