@@ -4,33 +4,122 @@ import { NextResponse } from 'next/server';
 import { env } from '@/env';
 import { rateLimit } from '@/lib/rate/limit';
 
-// Algolia hit interface - Contentful nested structure
+// Algolia hit interface - supports both flat (new) and nested (legacy) formats
 interface AlgoliaSearchHit {
   objectID: string;
-  fields: {
-    title: { 'en-US': string };
-    summary: { 'en-US': string };
-    slug: { 'en-US': string };
-    author: { 'en-US': string };
+  // Flat format (new - from revalidate/route.ts)
+  title?: string;
+  summary?: string;
+  author?: string;
+  url?: string;
+  image?: string;
+  categories?: string;
+  // Nested format (legacy - may still exist in index)
+  fields?: {
+    title?: { 'en-US': string };
+    summary?: { 'en-US': string };
+    slug?: { 'en-US': string };
+    author?: { 'en-US': string };
     heroImage?: { 'en-US': { sys: { id: string } } };
   };
 }
 
-// Fetch asset URLs from Contentful GraphQL API
-async function fetchAssetUrls(assetIds: string[]): Promise<Map<string, string>> {
-  const assetMap = new Map<string, string>();
-  if (assetIds.length === 0) return assetMap;
+// Normalized hit format
+interface NormalizedHit {
+  objectID: string;
+  title: string;
+  summary: string;
+  author: string;
+  url: string;
+  image?: string;
+  categories: string[];
+  slug?: string; // Keep slug for image fetching
+  heroImageId?: string; // Keep for image fetching
+}
+
+// Normalize hit to expected format - handles both flat and nested structures
+function normalizeHit(hit: AlgoliaSearchHit): NormalizedHit {
+  // Check if it's the flat format (new)
+  if (hit.title && hit.url) {
+    // Extract slug from URL for image fetching if needed
+    const slug = hit.url.replace(/^\/blog\//, '').replace(/\/$/, '');
+
+    return {
+      objectID: hit.objectID,
+      title: hit.title,
+      summary: hit.summary || '',
+      author: hit.author || '',
+      url: hit.url,
+      image: hit.image,
+      categories: hit.categories ? hit.categories.split(',').filter(Boolean) : [],
+      slug: slug,
+    };
+  }
+
+  // Handle nested format (legacy)
+  if (hit.fields) {
+    const slug = hit.fields.slug?.['en-US'] || '';
+    return {
+      objectID: hit.objectID,
+      title: hit.fields.title?.['en-US'] || '',
+      summary: hit.fields.summary?.['en-US'] || '',
+      author: hit.fields.author?.['en-US'] || '',
+      url: slug ? `/blog/${slug}` : '',
+      image: undefined,
+      categories: [],
+      slug: slug,
+      heroImageId: hit.fields.heroImage?.['en-US']?.sys?.id,
+    };
+  }
+
+  // Fallback for unexpected format
+  return {
+    objectID: hit.objectID,
+    title: '',
+    summary: '',
+    author: '',
+    url: '',
+    image: undefined,
+    categories: [],
+  };
+}
+
+// Fetch hero image URLs from Contentful for posts without images
+async function fetchMissingImages(hits: NormalizedHit[]): Promise<void> {
+  const hitsNeedingImages = hits.filter(hit => !hit.image && (hit.slug || hit.heroImageId));
+
+  if (hitsNeedingImages.length === 0) return;
 
   try {
-    // Build GraphQL query for multiple assets
-    const assetQueries = assetIds.map((id, i) => `
-      asset${i}: asset(id: "${id}") {
-        sys { id }
-        url
-      }
-    `).join('\n');
+    // Build GraphQL query for blog posts or assets
+    const queries: string[] = [];
+    const hitsByIndex = new Map<number, NormalizedHit>();
 
-    const query = `query { ${assetQueries} }`;
+    hitsNeedingImages.forEach((hit, i) => {
+      hitsByIndex.set(i, hit);
+
+      if (hit.heroImageId) {
+        // Fetch by asset ID
+        queries.push(`
+          asset${i}: asset(id: "${hit.heroImageId}") {
+            url
+          }
+        `);
+      } else if (hit.slug) {
+        // Fetch by blog post slug
+        queries.push(`
+          post${i}: blogPostCollection(where: { slug: "${hit.slug}" }, limit: 1) {
+            items {
+              heroImage {
+                url
+              }
+            }
+          }
+        `);
+      }
+    });
+
+    const query = `query { ${queries.join('\n')} }`;
 
     const response = await fetch(
       `https://graphql.contentful.com/content/v1/spaces/${env.CONTENTFUL_SPACE_ID}`,
@@ -44,44 +133,29 @@ async function fetchAssetUrls(assetIds: string[]): Promise<Map<string, string>> 
       }
     );
 
-    if (!response.ok) return assetMap;
+    if (!response.ok) return;
 
     const data = await response.json();
 
-    // Map asset IDs to URLs
-    assetIds.forEach((id, i) => {
-      const asset = data.data?.[`asset${i}`];
-      if (asset?.url) {
-        assetMap.set(id, asset.url);
+    // Map images back to hits
+    hitsByIndex.forEach((hit, i) => {
+      if (hit.heroImageId) {
+        const asset = data.data?.[`asset${i}`];
+        if (asset?.url) {
+          hit.image = asset.url.startsWith('//') ? `https:${asset.url}` : asset.url;
+        }
+      } else if (hit.slug) {
+        const post = data.data?.[`post${i}`];
+        const imageUrl = post?.items?.[0]?.heroImage?.url;
+        if (imageUrl) {
+          hit.image = imageUrl.startsWith('//') ? `https:${imageUrl}` : imageUrl;
+        }
       }
     });
-  } catch {
+  } catch (error) {
     // Silently fail - images are optional
+    console.error('Failed to fetch missing images:', error);
   }
-
-  return assetMap;
-}
-
-// Extract asset ID from hit
-function getAssetId(hit: AlgoliaSearchHit): string | undefined {
-  return hit.fields.heroImage?.['en-US']?.sys?.id;
-}
-
-// Normalize hit from Contentful nested structure to flat structure
-function normalizeHit(hit: AlgoliaSearchHit, assetMap: Map<string, string>) {
-  const { fields } = hit;
-  const assetId = getAssetId(hit);
-
-  return {
-    objectID: hit.objectID,
-    title: fields.title['en-US'],
-    summary: fields.summary['en-US'],
-    author: fields.author['en-US'],
-    url: `/blog/${fields.slug['en-US']}`,
-    image: assetId ? assetMap.get(assetId) : undefined,
-    // Categories are Entry links in this structure - we skip them for search suggestions
-    categories: [] as string[],
-  };
 }
 
 export async function GET(request: Request) {
@@ -150,19 +224,17 @@ export async function GET(request: Request) {
     const data = await response.json();
     const hits = (data.hits || []) as AlgoliaSearchHit[];
 
-    // Collect asset IDs from hits
-    const assetIds = hits
-      .map(hit => getAssetId(hit))
-      .filter((id): id is string => Boolean(id));
+    // Normalize hits to expected format
+    const normalizedHits = hits.map(hit => normalizeHit(hit));
 
-    // Fetch asset URLs from Contentful
-    const assetMap = await fetchAssetUrls(assetIds);
+    // Fetch missing images from Contentful
+    await fetchMissingImages(normalizedHits);
 
-    // Normalize hits to handle Contentful's nested structure
-    const normalizedHits = hits.map(hit => normalizeHit(hit, assetMap));
+    // Remove temporary fields before returning
+    const cleanedHits = normalizedHits.map(({ slug, heroImageId, ...hit }) => hit);
 
     return NextResponse.json({
-      hits: normalizedHits,
+      hits: cleanedHits,
       queryID: data.queryID || null,
     });
   } catch (error) {

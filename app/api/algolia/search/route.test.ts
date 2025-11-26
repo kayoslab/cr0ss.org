@@ -24,26 +24,23 @@ const originalFetch = global.fetch;
 // Mock global fetch
 const mockFetch = vi.fn();
 
-// Helper to create mock hit with Contentful nested structure
+// Helper to create mock hit matching actual Algolia index structure (flat)
 function createMockHit(
   objectID: string,
   title: string,
   summary: string,
   slug: string,
   author: string = 'Test Author',
-  heroImageId?: string
+  imageUrl?: string
 ) {
   return {
     objectID,
-    fields: {
-      title: { 'en-US': title },
-      summary: { 'en-US': summary },
-      slug: { 'en-US': slug },
-      author: { 'en-US': author },
-      ...(heroImageId && {
-        heroImage: { 'en-US': { sys: { id: heroImageId } } },
-      }),
-    },
+    title,
+    summary,
+    author,
+    url: `/blog/${slug}/`,
+    categories: '',
+    ...(imageUrl && { image: imageUrl }),
   };
 }
 
@@ -63,14 +60,6 @@ function createMockAlgoliaResponse(
   };
 }
 
-// Helper to create mock Contentful asset response
-function createMockContentfulAssetResponse(assets: Array<{ id: string; url: string }>) {
-  const data: Record<string, { sys: { id: string }; url: string }> = {};
-  assets.forEach((asset, i) => {
-    data[`asset${i}`] = { sys: { id: asset.id }, url: asset.url };
-  });
-  return { data };
-}
 
 describe('GET /api/algolia/search', () => {
   beforeEach(() => {
@@ -229,48 +218,39 @@ describe('GET /api/algolia/search', () => {
       });
     });
 
-    it('should normalize Contentful nested structure', async () => {
+    it('should normalize Algolia index structure', async () => {
       const mockHits = [
-        createMockHit('1', 'Nested Title', 'Nested Summary', 'nested-post', 'Test Author'),
+        createMockHit('1', 'Flat Title', 'Flat Summary', 'flat-post', 'Test Author'),
       ];
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => createMockAlgoliaResponse(mockHits, 'nested-query-id'),
+        json: async () => createMockAlgoliaResponse(mockHits, 'flat-query-id'),
       });
 
-      const request = new Request('http://localhost:3000/api/algolia/search?q=nested');
+      const request = new Request('http://localhost:3000/api/algolia/search?q=flat');
       const response = await GET(request);
 
       const data = await response.json();
       expect(data.hits[0]).toEqual({
         objectID: '1',
-        title: 'Nested Title',
-        summary: 'Nested Summary',
+        title: 'Flat Title',
+        summary: 'Flat Summary',
         author: 'Test Author',
-        url: '/blog/nested-post',
+        url: '/blog/flat-post/',
         image: undefined,
         categories: [],
       });
     });
 
-    it('should fetch image URLs from Contentful for hits with heroImage', async () => {
+    it('should include image URLs from Algolia index', async () => {
       const mockHits = [
-        createMockHit('1', 'Post with Image', 'Summary', 'post-with-image', 'Author', 'asset-123'),
+        createMockHit('1', 'Post with Image', 'Summary', 'post-with-image', 'Author', 'https://images.ctfassets.net/test/image.jpg'),
       ];
 
-      // First call: Algolia search
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => createMockAlgoliaResponse(mockHits, 'image-query-id'),
-      });
-
-      // Second call: Contentful asset lookup
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => createMockContentfulAssetResponse([
-          { id: 'asset-123', url: 'https://images.ctfassets.net/test/image.jpg' },
-        ]),
       });
 
       const request = new Request('http://localhost:3000/api/algolia/search?q=image');
@@ -279,34 +259,33 @@ describe('GET /api/algolia/search', () => {
       const data = await response.json();
       expect(data.hits[0].image).toBe('https://images.ctfassets.net/test/image.jpg');
 
-      // Verify Contentful API was called
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://graphql.contentful.com/content/v1/spaces/test-space-id',
-        expect.objectContaining({
-          method: 'POST',
-          headers: expect.objectContaining({
-            'Authorization': 'Bearer test-access-token',
-          }),
-        })
-      );
+      // Only Algolia should be called (no Contentful lookup needed)
+      expect(mockFetch).toHaveBeenCalledTimes(1);
     });
 
-    it('should not call Contentful when no hits have heroImage', async () => {
+    it('should handle hits without images', async () => {
       const mockHits = [
         createMockHit('1', 'Post without Image', 'Summary', 'no-image'),
       ];
 
+      // First call: Algolia search
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => createMockAlgoliaResponse(mockHits, 'no-image-query-id'),
+      });
+
+      // Second call: Contentful to fetch missing image
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: { post0: { items: [] } } }),
       });
 
       const request = new Request('http://localhost:3000/api/algolia/search?q=test');
       const response = await GET(request);
 
       expect(response.status).toBe(200);
-      // Only Algolia should be called, not Contentful
-      expect(mockFetch).toHaveBeenCalledTimes(1);
+      // Algolia + Contentful should be called
+      expect(mockFetch).toHaveBeenCalledTimes(2);
 
       const data = await response.json();
       expect(data.hits[0].image).toBeUndefined();
@@ -344,30 +323,27 @@ describe('GET /api/algolia/search', () => {
       expect(data.queryID).toBeNull();
     });
 
-    it('should handle Contentful API errors gracefully', async () => {
-      const mockHits = [
-        createMockHit('1', 'Post with Image', 'Summary', 'post-with-image', 'Author', 'asset-123'),
-      ];
+    it('should handle hits with categories', async () => {
+      const mockHits = [{
+        objectID: '1',
+        title: 'Post with Categories',
+        summary: 'Summary',
+        author: 'Author',
+        url: '/blog/categories-post/',
+        categories: 'Tech,JavaScript,Web Development',
+      }];
 
-      // First call: Algolia search succeeds
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => createMockAlgoliaResponse(mockHits, 'query-id'),
       });
 
-      // Second call: Contentful fails
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-      });
-
       const request = new Request('http://localhost:3000/api/algolia/search?q=test');
       const response = await GET(request);
 
-      // Should still return results, just without images
       expect(response.status).toBe(200);
       const data = await response.json();
-      expect(data.hits[0].image).toBeUndefined();
+      expect(data.hits[0].categories).toEqual(['Tech', 'JavaScript', 'Web Development']);
     });
   });
 

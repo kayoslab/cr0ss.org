@@ -49,7 +49,7 @@ type DashboardApi = {
   runningProgress: { target_km: number; total_km: number; delta_km: number; pct: number; month: string };
   paceSeries: { date: string; avg_pace_sec_per_km: number }[];
   runningHeatmap: { date: string; km: number }[];
-  workoutHeatmap: { date: string; duration_min: number; types: string[] }[];
+  workoutHeatmap: { date: string; duration_min: number; workouts: { type: string; duration_min: number }[] }[];
   workoutTypes: string[];
   workoutStats: { workout_type: string; count: number; total_duration_min: number; total_distance_km: number }[];
   caffeineSeries: { timeISO: string; intake_mg: number; body_mg: number }[];

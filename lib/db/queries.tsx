@@ -485,7 +485,7 @@ export async function qMonthlyGoalsObject(): Promise<Record<string, number>> {
 
 /**
  * Get workout heatmap for all workout types (last N days)
- * Returns total duration for each day
+ * Returns individual workout durations per type for each day
  */
 export async function qWorkoutHeatmap(days = 42) {
   const start = new Date();
@@ -495,40 +495,56 @@ export async function qWorkoutHeatmap(days = 42) {
 
   const rows = await sql/*sql*/`
     select to_char(date,'YYYY-MM-DD') as date,
-           coalesce(sum(duration_min), 0)::int as duration_min,
-           coalesce(array_agg(distinct workout_type order by workout_type) filter (where workout_type is not null), array[]::text[]) as types
+           workout_type,
+           coalesce(sum(duration_min), 0)::int as duration_min
     from workouts
     where date >= ${startStr}::date
-    group by date
+    group by date, workout_type
+    order by date, workout_type
   `;
   interface HeatmapRow {
     date: string;
+    workout_type: string;
     duration_min: number;
-    types: string[];
   }
 
-  const byDate = new Map(rows.map((r) => {
+  // Group by date, keeping individual workout types and durations
+  const byDate = new Map<string, Array<{ type: string; duration_min: number }>>();
+
+  for (const r of rows) {
     const row = r as HeatmapRow;
-    return [row.date, { duration_min: Number(row.duration_min), types: row.types || [] }] as [string, { duration_min: number; types: string[] }];
-  }));
+    const date = row.date;
+    if (!byDate.has(date)) {
+      byDate.set(date, []);
+    }
+    byDate.get(date)!.push({
+      type: String(row.workout_type),
+      duration_min: Number(row.duration_min)
+    });
+  }
 
   const today = new Date();
   const out = Array.from({ length: days }, (_, i) => {
     const d = new Date(today);
     d.setDate(d.getDate() - (days - 1 - i));
     const key = d.toISOString().slice(0, 10);
-    const data = byDate.get(key);
+    const workouts = byDate.get(key) ?? [];
+    const total_duration = workouts.reduce((sum, w) => sum + w.duration_min, 0);
+
     return {
       date: key,
-      duration_min: data?.duration_min ?? 0,
-      types: data?.types ?? []
+      duration_min: total_duration,
+      workouts: workouts
     };
   });
 
   return z.array(z.object({
     date: z.string(),
     duration_min: z.number().int().min(0),
-    types: z.array(z.string())
+    workouts: z.array(z.object({
+      type: z.string(),
+      duration_min: z.number().int().min(0)
+    }))
   })).parse(out);
 }
 
