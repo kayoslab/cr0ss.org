@@ -6,6 +6,7 @@ export interface BlogProps {
   sys: {
     id: string;
     firstPublishedAt: string;
+    publishedAt: string;
   };
   slug: string;
   title: string;
@@ -34,6 +35,7 @@ export const BLOG_GRAPHQL_FIELDS = `
   sys {
     id
     firstPublishedAt
+    publishedAt
   }
   title
   slug

@@ -2,6 +2,7 @@ export interface CoffeeyProps {
     sys: {
         id: string
     };
+    slug: string;
     name: string;
     roaster: string;
     url?: string | null;
@@ -30,6 +31,7 @@ export interface CoffeeyProps {
     sys {
       id
     }
+    slug
     name
     roaster
     url

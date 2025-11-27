@@ -26,7 +26,7 @@ export default function CoffeeGrid({ coffees, currentPage, totalPages, basePath,
             {coffees.map((coffee) => (
               <Link
                 key={coffee.sys.id}
-                href={`/coffee/${coffee.sys.id}`}
+                href={`/coffee/${coffee.slug}`}
                 className="group block p-6 bg-white border border-neutral-200 rounded-lg hover:shadow-lg transition-shadow"
               >
                 <div className="space-y-2">

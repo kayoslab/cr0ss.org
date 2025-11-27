@@ -52,6 +52,7 @@ export function createBlogMetadata({
   author,
   slug,
   publishedTime,
+  modifiedTime,
   heroImageUrl,
   category,
 }: {
@@ -61,6 +62,7 @@ export function createBlogMetadata({
   author: string;
   slug: string;
   publishedTime: string;
+  modifiedTime?: string;
   heroImageUrl?: string | null;
   category?: string;
 }): Metadata {
@@ -90,6 +92,7 @@ export function createBlogMetadata({
             ]
           : [],
       publishedTime,
+      ...(modifiedTime && { modifiedTime }),
       authors: [author],
       section: category,
     },
@@ -99,6 +102,9 @@ export function createBlogMetadata({
       description,
       images: absoluteImageUrl !== null ? [absoluteImageUrl] : undefined,
       creator: author,
+    },
+    alternates: {
+      canonical: url,
     },
     creator: author,
     publisher: SITE_AUTHOR,
@@ -163,6 +169,9 @@ export function createPageMetadata({
       description: description || SITE_DESCRIPTION,
       images: absoluteImageUrl !== null ? [absoluteImageUrl] : undefined,
     },
+    alternates: {
+      canonical: url,
+    },
     publisher: SITE_AUTHOR,
     robots: {
       index: true,
@@ -226,6 +235,7 @@ export function createBlogJsonLd({
   author,
   slug,
   publishedTime,
+  modifiedTime,
   heroImageUrl,
 }: {
   title: string;
@@ -233,6 +243,7 @@ export function createBlogJsonLd({
   author: string;
   slug: string;
   publishedTime: string;
+  modifiedTime?: string;
   heroImageUrl?: string | null;
 }) {
   const absoluteImageUrl = ensureAbsoluteUrl(heroImageUrl);
@@ -245,6 +256,7 @@ export function createBlogJsonLd({
     description,
     image: absoluteImageUrl !== null ? absoluteImageUrl : undefined,
     datePublished: publishedTime,
+    ...(modifiedTime && { dateModified: modifiedTime }),
     author: {
       '@type': 'Person',
       name: author,
@@ -258,5 +270,97 @@ export function createBlogJsonLd({
       '@type': 'WebPage',
       '@id': url,
     },
+  };
+}
+
+/**
+ * Creates breadcrumb JSON-LD for blog posts
+ */
+export function createBlogBreadcrumbJsonLd({
+  slug,
+  title,
+  category,
+}: {
+  slug: string;
+  title: string;
+  category?: string;
+}) {
+  const items = [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Home',
+      item: SITE_URL,
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Blog',
+      item: `${SITE_URL}/blog`,
+    },
+  ];
+
+  if (category) {
+    items.push({
+      '@type': 'ListItem',
+      position: 3,
+      name: category,
+      item: `${SITE_URL}/blog/category/${category.toLowerCase().replace(/\s+/g, '-')}`,
+    });
+    items.push({
+      '@type': 'ListItem',
+      position: 4,
+      name: title,
+      item: `${SITE_URL}/blog/${slug}`,
+    });
+  } else {
+    items.push({
+      '@type': 'ListItem',
+      position: 3,
+      name: title,
+      item: `${SITE_URL}/blog/${slug}`,
+    });
+  }
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: items,
+  };
+}
+
+/**
+ * Creates breadcrumb JSON-LD for coffee pages
+ */
+export function createCoffeeBreadcrumbJsonLd({
+  slug,
+  name,
+}: {
+  slug: string;
+  name: string;
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: SITE_URL,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Coffee Collection',
+        item: `${SITE_URL}/coffee`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name,
+        item: `${SITE_URL}/coffee/${slug}`,
+      },
+    ],
   };
 }
