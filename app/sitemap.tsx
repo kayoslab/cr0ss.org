@@ -2,10 +2,12 @@ import type { MetadataRoute } from 'next';
 import { getAllBlogs } from '@/lib/contentful/api/blog';
 import { getAllPages } from '@/lib/contentful/api/page';
 import { getAllCategories } from '@/lib/contentful/api/category';
+import { getAllCoffee } from '@/lib/contentful/api/coffee';
 import { SITE_URL } from '@/lib/constants';
 import type { BlogProps } from '@/lib/contentful/api/props/blog';
 import type { PageProps } from '@/lib/contentful/api/props/page';
 import type { CategoryProps } from '@/lib/contentful/api/props/category';
+import type { CoffeeyProps } from '@/lib/contentful/api/props/coffee';
 
 // Revalidate sitemap every hour
 export const revalidate = 3600;
@@ -40,6 +42,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Fetch all categories
     const categories = (await getAllCategories()) as unknown as CategoryProps[];
 
+    // Fetch all coffees
+    let allCoffees: CoffeeyProps[] = [];
+    let coffeePage = 1;
+    const coffeeLimit = 100;
+    let coffeeTotal = 0;
+
+    // Keep fetching until we get all coffees
+    while (true) {
+      const coffeeCollection = await getAllCoffee(coffeePage, coffeeLimit);
+      const coffees = coffeeCollection.items as unknown as CoffeeyProps[];
+      coffeeTotal = coffeeCollection.total;
+
+      if (coffees.length === 0) break;
+
+      allCoffees = [...allCoffees, ...coffees];
+
+      // Stop if we've fetched all coffees
+      if (allCoffees.length >= coffeeTotal) break;
+
+      coffeePage++;
+    }
+
   // Static routes
   const staticRoutes: MetadataRoute.Sitemap = [
     {
@@ -53,6 +77,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 1,
+    },
+    {
+      url: `${SITE_URL}/coffee`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
     },
   ];
 
@@ -80,7 +110,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }));
 
-    return [...staticRoutes, ...blogRoutes, ...pageRoutes, ...categoryRoutes];
+    // Coffee routes
+    const coffeeRoutes: MetadataRoute.Sitemap = allCoffees.map((coffee) => ({
+      url: `${SITE_URL}/coffee/${coffee.slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    }));
+
+    return [...staticRoutes, ...blogRoutes, ...pageRoutes, ...categoryRoutes, ...coffeeRoutes];
   } catch (error) {
     console.error('[Sitemap] Error generating sitemap:', error);
     // Return minimal sitemap on error

@@ -145,10 +145,10 @@ export async function getCoffees(coffeeIds: string[]) {
   }
 }
 
-export async function getCoffee(id: string) {
+export async function getCoffee(slug: string) {
   try {
     const query = `query {
-      coffeeCollection(where: { sys: { id: "${id}" } }, limit: 1, preview: false) {
+      coffeeCollection(where: { slug: "${slug}" }, limit: 1, preview: false) {
         total
         items {
           ${COFFEE_GRAPHQL_FIELDS}
@@ -156,7 +156,7 @@ export async function getCoffee(id: string) {
       }
     }`;
 
-    const response = await fetchGraphQL(query, [id]);
+    const response = await fetchGraphQL(query, [slug]);
     if (!response?.data?.coffeeCollection) {
       throw new Error('Invalid response structure');
     }
@@ -164,9 +164,9 @@ export async function getCoffee(id: string) {
     const collection = extractCoffeeCollection(response);
     const coffee = collection.items[0];
     if (!coffee) {
-      throw new Error(`Coffee with id ${id} not found`);
+      throw new Error(`Coffee with slug ${slug} not found`);
     }
-    
+
     return coffee;
   } catch (error) {
     console.error('Error fetching coffee:', error);

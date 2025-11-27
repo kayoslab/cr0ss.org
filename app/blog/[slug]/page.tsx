@@ -6,7 +6,7 @@ import { Blog } from '@/components/blog/blogarticle';
 import type { Metadata } from 'next'
 import { CategoryProps } from '@/lib/contentful/api/props/category';
 import { BlogViewTracker } from '@/components/blog/blog-view-tracker';
-import { createBlogMetadata, createBlogJsonLd } from '@/lib/metadata';
+import { createBlogMetadata, createBlogJsonLd, createBlogBreadcrumbJsonLd } from '@/lib/metadata';
 import { getRelatedPosts } from '@/lib/algolia/client';
 
 type Props = {
@@ -33,6 +33,7 @@ export async function generateMetadata(
       author: blog.author,
       slug: blog.slug,
       publishedTime: blog.sys.firstPublishedAt,
+      modifiedTime: blog.sys.publishedAt,
       heroImageUrl: blog.heroImage?.url,
       category: blog.categoriesCollection?.items[0]?.title,
     });
@@ -131,7 +132,14 @@ export default async function BlogContent({
       author: blog.author,
       slug: blog.slug,
       publishedTime: blog.sys.firstPublishedAt,
+      modifiedTime: blog.sys.publishedAt,
       heroImageUrl: blog.heroImage?.url,
+    });
+
+    const breadcrumbJsonLd = createBlogBreadcrumbJsonLd({
+      slug: blog.slug,
+      title: blog.title,
+      category: blog.categoriesCollection?.items[0]?.title,
     });
 
     return (
@@ -139,6 +147,10 @@ export default async function BlogContent({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
         />
         <main className='flex min-h-screen flex-col items-center justify-between bg-white pb-24'>
           <BlogViewTracker blog={blog} />
