@@ -214,4 +214,50 @@ export function trackRecommendationClick(objectID: string, userToken?: string) {
     index: env.ALGOLIA_INDEX,
     objectIDs: [objectID],
   });
+}
+
+/**
+ * Get trending blog posts using Algolia's trending-items model
+ * Shows popular content based on user interactions
+ */
+export async function getTrendingPosts(
+  maxRecommendations: number = 3
+): Promise<RecommendationHit[]> {
+  try {
+    const body = {
+      requests: [
+        {
+          indexName: env.ALGOLIA_INDEX,
+          model: 'trending-items',
+          threshold: 0,
+          maxRecommendations,
+        },
+      ],
+    };
+
+    const response = await fetch(
+      `https://${env.ALGOLIA_APP_ID}-dsn.algolia.net/1/indexes/*/recommendations`,
+      {
+        method: "POST",
+        headers: {
+          "X-Algolia-Application-Id": env.ALGOLIA_APP_ID,
+          "X-Algolia-API-Key": env.ALGOLIA_SEARCH_KEY,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+        next: { revalidate: 3600 }, // Cache for 1 hour
+      }
+    );
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+    const hits = data.results?.[0]?.hits || [];
+    return hits.map(parseRecommendationHit);
+  } catch (error) {
+    console.error("Failed to get trending posts:", error);
+    return [];
+  }
 } 

@@ -41,6 +41,14 @@ export default function Footer() {
               </li>
               <li>
                 <Link
+                  href='/coffee'
+                  className='text-sm text-gray-600 hover:text-gray-900 transition-colors'
+                >
+                  Coffee
+                </Link>
+              </li>
+              <li>
+                <Link
                   href='/dashboard'
                   className='text-sm text-gray-600 hover:text-gray-900 transition-colors'
                 >
@@ -80,6 +88,14 @@ export default function Footer() {
                   Imprint
                 </Link>
               </li>
+              <li>
+                <Link
+                  href='./cv.pdf'
+                  className='text-sm text-gray-600 hover:text-gray-900 transition-colors'
+                >
+                  Vita
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -89,14 +105,6 @@ export default function Footer() {
               Social
             </h3>
             <ul className='space-y-3'>
-              <li>
-                <Link
-                  href='https://www.linkedin.com/in/cr0ss/'
-                  className='text-sm text-gray-600 hover:text-gray-900 transition-colors'
-                >
-                  LinkedIn
-                </Link>
-              </li>
               <li>
                 <Link
                   href='https://github.com/kayoslab'
@@ -111,6 +119,14 @@ export default function Footer() {
                   className='text-sm text-gray-600 hover:text-gray-900 transition-colors'
                 >
                   Instagram
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href='https://www.linkedin.com/in/cr0ss/'
+                  className='text-sm text-gray-600 hover:text-gray-900 transition-colors'
+                >
+                  LinkedIn
                 </Link>
               </li>
             </ul>
