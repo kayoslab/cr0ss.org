@@ -74,12 +74,15 @@ export const imagePresets = {
     format: 'webp' as const,
   },
 
-  /** Grid/card thumbnails (4:3 aspect ratio) */
+  /** Grid/card thumbnails (4:3 aspect ratio)
+   * Sized for 3-column grid (max ~427px per column)
+   * 600px width covers 2x retina displays at ~85% efficiency
+   */
   gridThumbnail: {
-    width: 700,
-    height: 526,
+    width: 600,
+    height: 450,
     fit: 'fill' as const,
-    quality: 80,
+    quality: 75,
     format: 'webp' as const,
   },
 

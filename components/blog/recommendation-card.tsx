@@ -58,9 +58,9 @@ export function RecommendationCard({ recommendation }: RecommendationCardProps) 
         <Image
           alt={recommendation.title}
           className="aspect-4/3 w-full object-cover"
-          height={263}
+          height={450}
           src={optimizedImageUrl}
-          width={350}
+          width={600}
           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
       </Link>
