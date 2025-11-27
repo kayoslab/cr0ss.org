@@ -225,7 +225,7 @@ describe('lib/contentful/api/coffee', () => {
       });
 
       await expect(getCoffee('nonexistent')).rejects.toThrow(
-        'Coffee with id nonexistent not found'
+        'Coffee with slug nonexistent not found'
       );
     });
 
@@ -246,15 +246,15 @@ describe('lib/contentful/api/coffee', () => {
         },
       });
 
-      await getCoffee('test-id');
+      await getCoffee('test-slug');
 
       expect(fetchGraphQL).toHaveBeenCalledWith(
-        expect.stringContaining('sys: { id: "test-id" }'),
-        ['test-id']
+        expect.stringContaining('slug: "test-slug"'),
+        ['test-slug']
       );
       expect(fetchGraphQL).toHaveBeenCalledWith(
         expect.stringContaining('limit: 1'),
-        ['test-id']
+        ['test-slug']
       );
     });
   });
