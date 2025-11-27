@@ -74,20 +74,20 @@ export default function BlogGrid({ posts, currentPage, totalPages, basePath, tit
           <div className="flex justify-center gap-2 pt-8">
             {currentPage > 1 && (
               <Link
-                href={`${basePath}?page=${currentPage - 1}`}
+                href={`${basePath}${basePath.includes('?') ? '&' : '?'}page=${currentPage - 1}`}
                 className="px-4 py-2 text-sm font-medium text-zinc-900 bg-zinc-100 rounded-md hover:bg-zinc-200:bg-zinc-700"
               >
                 Previous
               </Link>
             )}
-            
+
             <span className="px-4 py-2 text-sm font-medium text-zinc-900">
               Page {currentPage} of {totalPages}
             </span>
 
             {currentPage < totalPages && (
               <Link
-                href={`${basePath}?page=${currentPage + 1}`}
+                href={`${basePath}${basePath.includes('?') ? '&' : '?'}page=${currentPage + 1}`}
                 className="px-4 py-2 text-sm font-medium text-zinc-900 bg-zinc-100 rounded-md hover:bg-zinc-200:bg-zinc-700"
               >
                 Next

@@ -3,7 +3,7 @@ import BlogGrid from '@/components/blog/blog-grid';
 import { env } from '@/env';
 import { algoliasearch } from "algoliasearch";
 import type { SearchResponse } from '@algolia/client-search';
-import { getBlog } from '@/lib/contentful/api/blog';
+import { getBlogById } from '@/lib/contentful/api/blog';
 import { Suspense } from 'react';
 import { POSTS_PER_PAGE } from '@/lib/constants';
 import { createListMetadata } from '@/lib/metadata';
@@ -12,11 +12,11 @@ import type { Metadata } from 'next';
 interface AlgoliaHit {
   objectID: string;
   title: string;
-  summary: string;
-  author: string;
-  categories: string[];
-  url: string;  // contains the slug
-  image: string;  // contains heroImage URL
+  summary?: string;
+  author?: string;
+  categories?: string[];
+  url?: string;
+  image?: string;
 }
 
 const client = algoliasearch(env.ALGOLIA_APP_ID, env.ALGOLIA_SEARCH_KEY);
@@ -48,7 +48,7 @@ export default async function SearchResults({ searchParams }: Props) {
   const { q, page } = await searchParams;
   const query = q || '';
   const currentPage = Number(page) || 1;
-  
+
   const { results } = await client.search<AlgoliaHit>([{
     indexName: 'www',
     params: {
@@ -74,19 +74,13 @@ export default async function SearchResults({ searchParams }: Props) {
     );
   }
 
-  // Extract slug from URL and fetch full blog posts from Contentful
+  // Fetch full blog posts from Contentful using objectID
   const posts = await Promise.all(
     hits.map(async hit => {
-      // Remove leading '/blog/' and trailing '/' from URL to get slug
-      const slug = hit.url.replace(/^\/blog\//, '').replace(/\/$/, '');
-      if (!slug) {
-        console.error('Could not extract slug from URL:', hit.url);
-        return null;
-      }
       try {
-        return await getBlog(slug) as unknown as BlogProps;
+        return await getBlogById(hit.objectID) as unknown as BlogProps;
       } catch (error) {
-        console.error(`Error fetching blog for slug ${slug}:`, error);
+        console.error(`Error fetching blog for id ${hit.objectID}:`, error);
         return null;
       }
     })
