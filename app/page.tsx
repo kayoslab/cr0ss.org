@@ -5,7 +5,16 @@ export default async function HomeContent() {
   return (
     <main className='flex min-h-screen flex-col items-center justify-between bg-white pb-24'>
         <div>
-            <Image src="/home-image.jpeg" alt="Avatar" className="mx-auto mt-6" width={1200} height={1200} priority />
+            <Image
+              src="/home-image.jpeg"
+              alt="Avatar"
+              className="mx-auto mt-6"
+              width={1200}
+              height={1200}
+              priority
+              fetchPriority="high"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
+            />
             <blockquote className="border-l-4 border-gray-300 pl-4 my-6 italic text-gray-700">
                 Not everything that you can see is real, not everything that is real can be seen.
             </blockquote>
@@ -23,7 +32,7 @@ export default async function HomeContent() {
                 -&gt;
                 </span>
             </h2>
-            <p className="m-0 max-w-[30ch] text-sm opacity-50">
+            <p className="m-0 max-w-[30ch] text-sm text-gray-600">
                 See some of my contributions on GitHub.
             </p>
             </Link>
@@ -40,7 +49,7 @@ export default async function HomeContent() {
                 -&gt;
                 </span>
             </h2>
-            <p className="m-0 max-w-[30ch] text-sm opacity-50">
+            <p className="m-0 max-w-[30ch] text-sm text-gray-600">
                 Are you looking for a professional? Check out my experience.
             </p>
             </Link>
@@ -57,7 +66,7 @@ export default async function HomeContent() {
                 -&gt;
                 </span>
             </h2>
-            <p className="m-0 max-w-[30ch] text-sm opacity-50">
+            <p className="m-0 max-w-[30ch] text-sm text-gray-600">
                 Connect with me on LinkedIn to work together.
             </p>
             </Link>
@@ -74,7 +83,7 @@ export default async function HomeContent() {
                 -&gt;
                 </span>
             </h2>
-            <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
+            <p className="m-0 max-w-[30ch] text-balance text-sm text-gray-600">
                 See what I am up to and follow me on Instagram.
             </p>
             </Link>

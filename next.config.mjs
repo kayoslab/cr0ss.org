@@ -8,8 +8,12 @@ const nextConfig = {
   transpilePackages: ['@tremor/react'],
   experimental: {
     serverActions: { bodySizeLimit: '2mb' },
+    optimizePackageImports: ['@heroicons/react'],
   },
   reactStrictMode: true,
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
   images: {
     remotePatterns: [
       {
@@ -17,6 +21,7 @@ const nextConfig = {
         hostname: 'images.ctfassets.net',
       },
     ],
+    formats: ['image/avif', 'image/webp'],
   },
   async headers() {
     return [

@@ -180,6 +180,7 @@ export default function Navigation() {
                 onClick={toggleSearch}
                 className={`p-2 text-gray-500 hover:text-gray-700 transition-opacity duration-200
                   ${showSearchBar ? 'opacity-0 absolute right-2 pointer-events-none' : 'opacity-100'}`}
+                aria-label="Open search"
               >
                 <MagnifyingGlassIcon className="h-5 w-5" />
               </button>
@@ -204,7 +205,7 @@ export default function Navigation() {
                         placeholder="Search..."
                         className="w-full pl-3 pr-10 py-1.5 rounded-md text-sm border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                       />
-                      <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2">
+                      <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2" aria-label="Search">
                         <MagnifyingGlassIcon className="h-4 w-4 text-gray-500" />
                       </button>
                     </div>
@@ -274,6 +275,7 @@ export default function Navigation() {
                     <button
                       type="submit"
                       className="absolute right-2 top-1/2 -translate-y-1/2"
+                      aria-label="Search"
                     >
                       <MagnifyingGlassIcon className="h-4 w-4 text-gray-500" />
                     </button>
