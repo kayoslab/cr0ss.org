@@ -95,7 +95,7 @@ export default function Navigation() {
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setSelectedIndex(i => 
+        setSelectedIndex(i =>
           i < suggestions.length - 1 ? i + 1 : i
         );
         break;
@@ -104,10 +104,11 @@ export default function Navigation() {
         setSelectedIndex(i => i > -1 ? i - 1 : i);
         break;
       case 'Enter':
-        e.preventDefault();
         if (selectedIndex >= 0) {
+          e.preventDefault();
           handleSuggestionClick(suggestions[selectedIndex]);
         }
+        // If no suggestion selected, allow form submission to proceed
         break;
       case 'Escape':
         setShowSuggestions(false);

@@ -109,3 +109,29 @@ export async function getBlog(slug: string) {
     throw error;
   }
 }
+
+export async function getBlogById(id: string) {
+  try {
+    const query = `query {
+      blogPost(id: "${id}", preview: false) {
+        ${BLOG_GRAPHQL_FIELDS}
+      }
+    }`;
+
+    const response = await fetchGraphQL(query, ['blogPosts', id]);
+    if (!response?.data?.blogPost) {
+      throw new Error(`Blog post with id ${id} not found`);
+    }
+
+    return response.data.blogPost;
+  } catch (error) {
+    console.error('Error fetching blog by id:', error);
+    if (error instanceof Error) {
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack
+      });
+    }
+    throw error;
+  }
+}
