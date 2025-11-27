@@ -327,20 +327,23 @@ describe('POST /api/revalidate', () => {
             id: 'coffee-123',
             contentType: { sys: { id: 'coffee' } },
           },
+          fields: {
+            slug: { 'en-US': 'test-coffee-slug' },
+          },
         }),
       });
       const response = await POST(request);
 
       expect(response.status).toBe(200);
       expect(revalidateTag).toHaveBeenCalledWith('coffee', 'max');
-      expect(revalidateTag).toHaveBeenCalledWith('coffee-123', 'max');
+      expect(revalidateTag).toHaveBeenCalledWith('test-coffee-slug', 'max');
       expect(revalidatePath).toHaveBeenCalledWith('/coffee');
       expect(revalidatePath).toHaveBeenCalledWith('/dashboard');
-      expect(revalidatePath).toHaveBeenCalledWith('/coffee/coffee-123');
+      expect(revalidatePath).toHaveBeenCalledWith('/coffee/test-coffee-slug');
 
       const data = await response.json();
-      expect(data.tags).toEqual(['coffee', 'coffee-123']);
-      expect(data.paths).toEqual(['/coffee', '/dashboard', '/coffee/coffee-123']);
+      expect(data.tags).toEqual(['coffee', 'test-coffee-slug']);
+      expect(data.paths).toEqual(['/coffee', '/dashboard', '/coffee/test-coffee-slug']);
     });
   });
 

@@ -81,10 +81,9 @@ function getRevalidationTags(payload: ContentfulWebhookPayload): string[] {
       // Revalidate coffee collection
       tags.push('coffee');
 
-      // Revalidate specific coffee entry if ID is available
-      const coffeeId = payload.sys?.id;
-      if (coffeeId) {
-        tags.push(coffeeId);
+      // Revalidate specific coffee entry if slug is available
+      if (slug) {
+        tags.push(slug);
       }
       break;
 
@@ -183,10 +182,9 @@ function getRevalidationPaths(payload: ContentfulWebhookPayload): string[] {
       // Revalidate dashboard if it shows coffee data
       paths.push('/dashboard');
 
-      // Revalidate specific coffee detail page if ID is available
-      const coffeeId = payload.sys?.id;
-      if (coffeeId) {
-        paths.push(`/coffee/${coffeeId}`);
+      // Revalidate specific coffee detail page if slug is available
+      if (slug) {
+        paths.push(`/coffee/${slug}`);
       }
       break;
   }
