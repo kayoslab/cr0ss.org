@@ -58,7 +58,23 @@ export function Donut({
     <Panel title={title}>
       <div className="h-64">
         {isLoading ? <Skeleton /> : data.length ? (
-          <DonutImpl className="h-full" data={data} index="name" category="value" colors={colors} />
+          <DonutImpl
+            className="h-full"
+            data={data}
+            index="name"
+            category="value"
+            colors={colors}
+            customTooltip={({ active, payload }) => {
+              if (!active || !payload?.length) return null;
+              const p = payload[0];
+              return (
+                <div className="rounded-md border bg-white p-2 text-sm shadow">
+                  <div className="mb-1 font-medium">{String(p.name ?? "")}</div>
+                  <div>{String(p.value)}</div>
+                </div>
+              );
+            }}
+          />
         ) : <Empty/>}
       </div>
     </Panel>

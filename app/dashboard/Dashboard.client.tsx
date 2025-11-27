@@ -229,16 +229,16 @@ export default function DashboardClient({
                     {/* Tooltip on hover - always full opacity */}
                     {duration_min > 0 && dayWorkouts.length > 0 && (
                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-50 pointer-events-none">
-                        <div className="bg-neutral-900 text-white text-xs rounded py-1.5 px-2.5 whitespace-nowrap shadow-xl border border-neutral-700">
+                        <div className="bg-white text-black text-xs rounded py-1.5 px-2.5 whitespace-nowrap shadow-xl border border-gray-200">
                           <div className="font-semibold">{date}</div>
-                          <div className="text-white">
+                          <div className="text-black">
                             {dayWorkouts.map(w =>
                               `${w.duration_min} min ${w.type.charAt(0).toUpperCase() + w.type.slice(1)}`
                             ).join(', ')}
                           </div>
                           {/* Arrow */}
                           <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px">
-                            <div className="border-4 border-transparent border-t-neutral-900"></div>
+                            <div className="border-4 border-transparent border-t-white"></div>
                           </div>
                         </div>
                       </div>
