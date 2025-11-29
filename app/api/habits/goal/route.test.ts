@@ -75,7 +75,7 @@ describe('GET /api/habits/goal', () => {
       expect(rateLimit).toHaveBeenCalledWith(
         request,
         'get-goal',
-        { windowSec: 60, max: 10 }
+        { windowSec: 60, max: 30 }
       );
     });
   });

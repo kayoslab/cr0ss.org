@@ -33,6 +33,18 @@
     background-color: rgb(var(--background-end-rgb));
   }
 
+  /* Accessible focus indicators for keyboard navigation */
+  a:focus-visible {
+    outline: 2px solid rgb(37, 99, 235); /* blue-600 */
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  button:focus-visible {
+    outline: 2px solid rgb(37, 99, 235); /* blue-600 */
+    outline-offset: 2px;
+  }
+
   /* --- Fix Tremor legend markers inflating in Chrome --- */
   .tremor-Legend-legendItem svg {
     width: 0.5rem !important;    /* 8px = Tailwind h-2/w-2 */

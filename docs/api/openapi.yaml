@@ -1,0 +1,1003 @@
+openapi: 3.0.3
+info:
+  title: CR0SS.org API
+  description: |
+    Personal website API for habit tracking, AI chat, search, and content management.
+
+    ## Authentication
+    Most endpoints require authentication via the `X-Secret` header containing your secret token.
+
+    ## Rate Limiting
+    All endpoints are rate limited. Rate limit headers are included in responses:
+    - `Retry-After`: Seconds until retry is allowed (when rate limited)
+
+    Rate limits vary by endpoint:
+    - AI Chat: 10 requests per 12 hours
+    - Search: 100 requests per 60 seconds
+    - Habits: 30 requests per 60 seconds
+    - Revalidation: 5 requests per 300 seconds (5 minutes)
+
+  version: 1.0.0
+  contact:
+    name: CR0SS
+    url: https://cr0ss.org
+
+servers:
+  - url: https://cr0ss.org/api
+    description: Production server
+  - url: http://localhost:3000/api
+    description: Development server
+
+security:
+  - SecretAuth: []
+
+tags:
+  - name: AI
+    description: AI-powered features (chat, reindexing)
+  - name: Search
+    description: Algolia-powered search and analytics
+  - name: Habits
+    description: Personal habit tracking (coffee, workouts, daily rituals, goals)
+  - name: Content
+    description: Content management and featured posts
+  - name: Dashboard
+    description: Analytics and dashboard data
+  - name: Location
+    description: Location tracking
+  - name: Auth
+    description: Authentication status
+
+paths:
+  /chat:
+    post:
+      tags: [AI]
+      summary: Chat with AI assistant
+      description: |
+        Send a message to the AI assistant powered by RAG (Retrieval Augmented Generation).
+        Uses GPT-4o-mini and retrieves context from blog posts and knowledge base.
+
+        **Rate Limit:** 10 requests per 12 hours
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                message:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+                  description: User's question or message
+                  example: "What are your thoughts on TypeScript?"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    type: string
+                    description: AI-generated response
+                  model:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        example: "gpt-4o-mini"
+                      provider:
+                        type: string
+                        example: "openai"
+                  sources:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        title:
+                          type: string
+                        url:
+                          type: string
+                  timestamp:
+                    type: integer
+                    format: int64
+                    description: Unix timestamp
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /algolia/search:
+    get:
+      tags: [Search]
+      summary: Search blog posts
+      description: |
+        Search through blog posts using Algolia.
+        Supports both text search and click tracking.
+
+        **Rate Limit:** 100 requests per 60 seconds
+      security: []
+      parameters:
+        - name: q
+          in: query
+          description: Search query
+          schema:
+            type: string
+          example: "typescript"
+        - name: objectID
+          in: query
+          description: Object ID for click tracking (when provided, tracks click instead of searching)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Search results or click tracking confirmation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    properties:
+                      hits:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/SearchHit'
+                      queryID:
+                        type: string
+                        nullable: true
+                  - type: object
+                    properties:
+                      success:
+                        type: boolean
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /algolia/analytics:
+    post:
+      tags: [Search]
+      summary: Track search analytics
+      description: Track view or click events for Algolia Insights
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [objectID]
+              properties:
+                objectID:
+                  type: string
+                  description: Algolia object ID
+                eventType:
+                  type: string
+                  enum: [view, click, recommendation_click]
+                  default: view
+                userToken:
+                  type: string
+                  description: User token for personalization
+      responses:
+        '200':
+          description: Event tracked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /habits/coffee:
+    get:
+      tags: [Habits]
+      summary: Get available coffees
+      description: |
+        Retrieve list of available coffee beans from Contentful.
+        Returns up to 20 coffee entries.
+
+        **Rate Limit:** 30 requests per 60 seconds
+      responses:
+        '200':
+          description: List of coffee beans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Coffee'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+    post:
+      tags: [Habits]
+      summary: Log coffee consumption
+      description: |
+        Log one or more coffee consumption events.
+        Accepts single object or array of objects.
+
+        **Rate Limit:** 30 requests per 60 seconds
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/CoffeeLog'
+                - type: array
+                  items:
+                    $ref: '#/components/schemas/CoffeeLog'
+      responses:
+        '200':
+          description: Coffee log created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  inserted:
+                    type: integer
+                    description: Number of entries inserted
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /habits/workout:
+    post:
+      tags: [Habits]
+      summary: Log workout
+      description: |
+        Log a workout session (running, climbing, rowing, etc.)
+
+        **Rate Limit:** 30 requests per 60 seconds
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkoutLog'
+      responses:
+        '200':
+          description: Workout logged successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  id:
+                    type: integer
+                    description: Workout ID
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /habits/day:
+    post:
+      tags: [Habits]
+      summary: Log daily habits
+      description: |
+        Log daily habits like sleep, focus, steps, reading, etc.
+
+        **Rate Limit:** 30 requests per 60 seconds
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DayLog'
+      responses:
+        '200':
+          description: Day logged successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /habits/goal:
+    get:
+      tags: [Habits]
+      summary: Get monthly goals
+      description: |
+        Retrieve goals for the current month.
+
+        **Rate Limit:** 30 requests per 60 seconds
+      responses:
+        '200':
+          description: Monthly goals
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonthlyGoals'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+    post:
+      tags: [Habits]
+      summary: Update monthly goals
+      description: |
+        Update goals for the current month.
+        Accepts partial updates.
+
+        **Rate Limit:** 30 requests per 60 seconds
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MonthlyGoals'
+      responses:
+        '200':
+          description: Goals updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /habits/body:
+    get:
+      tags: [Habits]
+      summary: Get body profile
+      description: |
+        Retrieve current body profile (weight, body fat, caffeine sensitivity, etc.)
+
+        **Rate Limit:** 30 requests per 60 seconds
+      responses:
+        '200':
+          description: Body profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BodyProfile'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+    post:
+      tags: [Habits]
+      summary: Update body profile
+      description: |
+        Update body profile measurements.
+        Accepts partial updates.
+
+        **Rate Limit:** 30 requests per 60 seconds
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BodyProfileUpdate'
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  profile:
+                    $ref: '#/components/schemas/BodyProfile'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /dashboard:
+    get:
+      tags: [Dashboard]
+      summary: Get dashboard data
+      description: |
+        Retrieve comprehensive dashboard data including habits, coffee, workouts, and analytics.
+        Most data is cached for 5 minutes.
+
+        **Rate Limit:** 10 requests per 60 seconds
+      responses:
+        '200':
+          description: Dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dashboard'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /featured-posts:
+    get:
+      tags: [Content]
+      summary: Get featured blog posts
+      description: |
+        Retrieve trending or recent blog posts.
+        Returns 3 posts based on Algolia analytics.
+        Falls back to recent posts if no trending data available.
+      security: []
+      responses:
+        '200':
+          description: Featured posts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  posts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BlogPost'
+                  isTrending:
+                    type: boolean
+                    description: Whether posts are trending (true) or recent fallback (false)
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /location:
+    post:
+      tags: [Location]
+      summary: Update location
+      description: |
+        Update current location data.
+
+        **Rate Limit:** 10 requests per 60 seconds
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [latitude, longitude]
+              properties:
+                latitude:
+                  type: number
+                  format: double
+                longitude:
+                  type: number
+                  format: double
+                accuracy:
+                  type: number
+                  format: double
+      responses:
+        '200':
+          description: Location updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /location/clear:
+    post:
+      tags: [Location]
+      summary: Clear location data
+      description: |
+        Clear stored location data.
+
+        **Rate Limit:** 10 requests per 60 seconds
+      responses:
+        '200':
+          description: Location cleared successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /revalidate:
+    post:
+      tags: [Content]
+      summary: Revalidate cache
+      description: |
+        Trigger revalidation of cached content and indexes.
+        Can revalidate dashboard, blog posts, or Algolia index.
+
+        **Rate Limit:** 5 requests per 300 seconds (5 minutes)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [target]
+              properties:
+                target:
+                  type: string
+                  enum: [dashboard, blog, algolia]
+                  description: What to revalidate
+                slug:
+                  type: string
+                  description: Blog post slug (required when target=blog)
+      responses:
+        '200':
+          description: Revalidation triggered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  message:
+                    type: string
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /ai/reindex-blog:
+    post:
+      tags: [AI]
+      summary: Reindex blog posts for AI
+      description: |
+        Reindex all blog posts into vector database for RAG.
+        This is a long-running operation (up to 60 seconds).
+
+        **Rate Limit:** 5 requests per 300 seconds (5 minutes)
+      responses:
+        '200':
+          description: Reindexing completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  indexed:
+                    type: integer
+                    description: Number of posts indexed
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /ai/reindex-knowledge:
+    post:
+      tags: [AI]
+      summary: Reindex knowledge base for AI
+      description: |
+        Reindex knowledge base entries into vector database for RAG.
+
+        **Rate Limit:** 5 requests per 300 seconds (5 minutes)
+      responses:
+        '200':
+          description: Reindexing completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  indexed:
+                    type: integer
+                    description: Number of entries indexed
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /auth/check:
+    get:
+      tags: [Auth]
+      summary: Check authentication status
+      description: Verify if the provided secret is valid
+      responses:
+        '200':
+          description: Authentication valid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+components:
+  securitySchemes:
+    SecretAuth:
+      type: apiKey
+      in: header
+      name: X-Secret
+      description: Secret token for authentication
+
+  schemas:
+    SearchHit:
+      type: object
+      properties:
+        objectID:
+          type: string
+        title:
+          type: string
+        summary:
+          type: string
+        author:
+          type: string
+        url:
+          type: string
+        image:
+          type: string
+          nullable: true
+        categories:
+          type: array
+          items:
+            type: string
+
+    Coffee:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        roaster:
+          type: string
+        origin:
+          type: object
+          properties:
+            name:
+              type: string
+            id:
+              type: string
+        process:
+          type: string
+        roastLevel:
+          type: string
+
+    CoffeeLog:
+      type: object
+      required: [date, type]
+      properties:
+        date:
+          type: string
+          format: date
+          example: "2025-01-15"
+        time:
+          type: string
+          description: Berlin time (HH:MM) or full ISO timestamp
+          example: "14:30"
+        type:
+          type: string
+          enum: [espresso, v60, chemex, moka, aero, cold_brew, other]
+        amount_ml:
+          type: integer
+          minimum: 0
+          example: 250
+        coffee_cf_id:
+          type: string
+          description: Contentful Entry ID of the coffee bean
+
+    WorkoutLog:
+      type: object
+      required: [date, workout_type, duration_min]
+      properties:
+        date:
+          type: string
+          format: date
+          example: "2025-01-15"
+        workout_type:
+          type: string
+          enum: [running, climbing, bouldering, rowing, cycling, hiking, strength, other]
+        duration_min:
+          type: integer
+          minimum: 1
+          example: 45
+        intensity:
+          type: string
+          enum: [low, moderate, high, max]
+        perceived_effort:
+          type: integer
+          minimum: 1
+          maximum: 10
+          description: RPE scale 1-10
+        details:
+          type: object
+          description: Workout-specific details (distance_km for running, routes for climbing, etc.)
+          additionalProperties: true
+        notes:
+          type: string
+
+    DayLog:
+      type: object
+      required: [date]
+      properties:
+        date:
+          type: string
+          format: date
+        sleep_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        focus_minutes:
+          type: integer
+          minimum: 0
+        steps:
+          type: integer
+          minimum: 0
+        reading_minutes:
+          type: integer
+          minimum: 0
+        outdoor_minutes:
+          type: integer
+          minimum: 0
+        writing_minutes:
+          type: integer
+          minimum: 0
+        coding_minutes:
+          type: integer
+          minimum: 0
+        journaled:
+          type: boolean
+        extras:
+          type: object
+          additionalProperties:
+            type: number
+
+    MonthlyGoals:
+      type: object
+      properties:
+        running_distance_km:
+          type: number
+          minimum: 0
+        steps:
+          type: number
+          minimum: 0
+        reading_minutes:
+          type: number
+          minimum: 0
+        outdoor_minutes:
+          type: number
+          minimum: 0
+        writing_minutes:
+          type: number
+          minimum: 0
+        coding_minutes:
+          type: number
+          minimum: 0
+        focus_minutes:
+          type: number
+          minimum: 0
+
+    BodyProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+        measured_at:
+          type: string
+          format: date-time
+        weight_kg:
+          type: number
+          format: double
+        body_fat_pct:
+          type: number
+          format: double
+        muscle_mass_kg:
+          type: number
+          format: double
+        caffeine_sensitivity:
+          type: number
+          format: double
+          description: Sensitivity multiplier (default 1.0)
+        half_life_hours:
+          type: number
+          format: double
+          description: Caffeine half-life in hours (default 5.0)
+        bioavailability:
+          type: number
+          format: double
+          description: Caffeine bioavailability (default 0.9)
+        created_at:
+          type: string
+          format: date-time
+
+    BodyProfileUpdate:
+      type: object
+      properties:
+        measured_at:
+          type: string
+          format: date-time
+        weight_kg:
+          type: number
+          format: double
+        body_fat_pct:
+          type: number
+          format: double
+        muscle_mass_kg:
+          type: number
+          format: double
+        caffeine_sensitivity:
+          type: number
+          format: double
+        half_life_hours:
+          type: number
+          format: double
+        bioavailability:
+          type: number
+          format: double
+
+    Dashboard:
+      type: object
+      description: Comprehensive dashboard data (schema simplified for brevity)
+      properties:
+        cupsToday:
+          type: integer
+        brewMethodsToday:
+          type: object
+          additionalProperties:
+            type: integer
+        coffeeOriginThisWeek:
+          type: object
+          additionalProperties:
+            type: integer
+        habitsToday:
+          type: object
+        habitsConsistency:
+          type: array
+          items:
+            type: object
+        caffeineSeries:
+          type: array
+          items:
+            type: object
+        monthlyGoals:
+          $ref: '#/components/schemas/MonthlyGoals'
+
+    BlogPost:
+      type: object
+      properties:
+        slug:
+          type: string
+        title:
+          type: string
+        summary:
+          type: string
+        author:
+          type: string
+        publishedAt:
+          type: string
+          format: date-time
+        heroImage:
+          type: string
+        categories:
+          type: array
+          items:
+            type: string
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        code:
+          type: string
+          description: Error code
+        details:
+          description: Additional error details
+        timestamp:
+          type: integer
+          format: int64
+
+  responses:
+    UnauthorizedError:
+      description: Authentication required or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Unauthorized"
+            code: "UNAUTHORIZED"
+            timestamp: 1706184000000
+
+    ValidationError:
+      description: Invalid request data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Invalid request"
+            code: "VALIDATION_ERROR"
+            details:
+              fieldErrors:
+                message: ["String must contain at least 1 character(s)"]
+            timestamp: 1706184000000
+
+    RateLimitError:
+      description: Rate limit exceeded
+      headers:
+        Retry-After:
+          description: Seconds until retry is allowed
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Too many requests"
+            code: "RATE_LIMIT_EXCEEDED"
+            details:
+              retryAfterSec: 300
+              limit: 10
+              windowHours: 12
+            timestamp: 1706184000000
+
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Internal server error"
+            code: "INTERNAL_ERROR"
+            timestamp: 1706184000000

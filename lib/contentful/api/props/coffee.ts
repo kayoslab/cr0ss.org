@@ -1,4 +1,4 @@
-export interface CoffeeyProps {
+export interface CoffeeProps {
     sys: {
         id: string
     };

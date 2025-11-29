@@ -84,7 +84,7 @@ describe('GET /api/habits/body', () => {
       expect(rateLimit).toHaveBeenCalledWith(
         request,
         'get-body',
-        { windowSec: 60, max: 10 }
+        { windowSec: 60, max: 30 }
       );
     });
   });

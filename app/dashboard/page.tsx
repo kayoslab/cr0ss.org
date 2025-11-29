@@ -4,7 +4,7 @@ import { getAllCountries, getVisitedCountries } from "@/lib/contentful/api/count
 import { CountryProps } from "@/lib/contentful/api/props/country";
 import { SECRET_HEADER } from "@/lib/auth/constants";
 import { isoToBerlinDate } from "@/lib/time/berlin";
-import DashboardClient from "./Dashboard.client";
+import DashboardClient from "./dashboard.client";
 
 // fetch settings
 export const dynamic = "force-dynamic";

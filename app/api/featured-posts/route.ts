@@ -5,6 +5,7 @@ import { getBlog, getAllBlogs } from '@/lib/contentful/api/blog';
 import { BlogProps } from '@/lib/contentful/api/props/blog';
 import { NextResponse } from 'next/server';
 import { wrapTrace } from '@/lib/obs/trace';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export const GET = wrapTrace('GET /api/featured-posts', async () => {
   try {
@@ -56,7 +57,7 @@ export const GET = wrapTrace('GET /api/featured-posts', async () => {
     return NextResponse.json(
       { posts: [], error: 'Failed to fetch featured posts' },
       {
-        status: 500,
+        status: HTTP_STATUS.INTERNAL_SERVER_ERROR,
         headers: {
           'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
         },

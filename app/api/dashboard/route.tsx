@@ -7,6 +7,8 @@ import { unstable_cache } from "next/cache";
 import { createApiRoute } from "@/lib/api/middleware";
 import { CACHE_TAGS, CACHE_KEYS } from "@/lib/constants/cache";
 import { RATE_LIMIT_BUCKETS } from "@/lib/constants/rate-limits";
+import { HTTP_STATUS } from "@/lib/constants/http";
+import { RATE_LIMITS } from "@/lib/rate/config";
 
 import {
   startOfBerlinDayISO,
@@ -268,8 +270,8 @@ export const GET = createApiRoute()
     const parsed = ZDashboard.safeParse(payload);
     if (!parsed.success) {
       console.error("[/api/dashboard] schema validation failed", parsed.error.flatten());
-      return NextResponse.json({ message: "Schema validation failed" }, { status: 500 });
+      return NextResponse.json({ message: "Schema validation failed" }, { status: HTTP_STATUS.INTERNAL_SERVER_ERROR });
     }
 
-    return NextResponse.json(parsed.data, { status: 200 });
+    return NextResponse.json(parsed.data, { status: HTTP_STATUS.OK });
   });

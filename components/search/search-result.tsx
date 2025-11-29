@@ -2,6 +2,7 @@
 import Image from 'next/image';
 import { AlgoliaHit } from '@/lib/algolia/client';
 import { optimizeWithPreset } from '@/lib/contentful/image-utils';
+import { Badge } from '@/components/ui';
 
 interface Props {
   hit: AlgoliaHit;
@@ -24,7 +25,7 @@ export function SearchResult({ hit, onClick, isSelected }: Props) {
         <div className="shrink-0 overflow-hidden rounded">
           <Image
             src={thumbnailUrl}
-            alt=""
+            alt={hit.title ? `${hit.title} thumbnail` : 'Blog post thumbnail'}
             width={48}
             height={36}
             className="object-cover"
@@ -45,13 +46,14 @@ export function SearchResult({ hit, onClick, isSelected }: Props) {
         {hit.categories && hit.categories.length > 0 && (
           <div className="mt-1 flex flex-wrap gap-1">
             {hit.categories.slice(0, 2).map(category => (
-              <span
+              <Badge
                 key={category}
-                className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium
-                  ${isSelected ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}
+                variant={isSelected ? 'primary' : 'default'}
+                size="sm"
+                className="text-[10px]"
               >
                 {category}
-              </span>
+              </Badge>
             ))}
             {hit.categories.length > 2 && (
               <span className="text-[10px] text-gray-400">

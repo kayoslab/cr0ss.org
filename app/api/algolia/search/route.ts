@@ -3,6 +3,8 @@ export const runtime = "edge";
 import { NextResponse } from 'next/server';
 import { env } from '@/env';
 import { rateLimit } from '@/lib/rate/limit';
+import { HTTP_STATUS } from '@/lib/constants/http';
+import { RATE_LIMITS } from '@/lib/rate/config';
 
 // Algolia hit interface - supports both flat (new) and nested (legacy) formats
 interface AlgoliaSearchHit {
@@ -159,11 +161,11 @@ async function fetchMissingImages(hits: NormalizedHit[]): Promise<void> {
 }
 
 export async function GET(request: Request) {
-  const rl = await rateLimit(request, "algolia-search", { windowSec: 60, max: 10 });
+  const rl = await rateLimit(request, "algolia-search", RATE_LIMITS.SEARCH);
   if (!rl.ok) {
     return NextResponse.json(
       { error: 'Too many requests' },
-      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } }
+      { status: HTTP_STATUS.TOO_MANY_REQUESTS, headers: { "Retry-After": String(rl.retryAfterSec) } }
     );
   }
   const { searchParams } = new URL(request.url);
@@ -239,6 +241,6 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error('Search error:', error);
-    return NextResponse.json({ hits: [], queryID: null }, { status: 500 });
+    return NextResponse.json({ hits: [], queryID: null }, { status: HTTP_STATUS.INTERNAL_SERVER_ERROR });
   }
 } 

@@ -7,7 +7,7 @@ import { SITE_URL } from '@/lib/constants';
 import type { BlogProps } from '@/lib/contentful/api/props/blog';
 import type { PageProps } from '@/lib/contentful/api/props/page';
 import type { CategoryProps } from '@/lib/contentful/api/props/category';
-import type { CoffeeyProps } from '@/lib/contentful/api/props/coffee';
+import type { CoffeeProps } from '@/lib/contentful/api/props/coffee';
 
 // Revalidate sitemap every hour
 export const revalidate = 3600;
@@ -43,7 +43,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const categories = (await getAllCategories()) as unknown as CategoryProps[];
 
     // Fetch all coffees
-    let allCoffees: CoffeeyProps[] = [];
+    let allCoffees: CoffeeProps[] = [];
     let coffeePage = 1;
     const coffeeLimit = 100;
     let coffeeTotal = 0;
@@ -51,7 +51,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Keep fetching until we get all coffees
     while (true) {
       const coffeeCollection = await getAllCoffee(coffeePage, coffeeLimit);
-      const coffees = coffeeCollection.items as unknown as CoffeeyProps[];
+      const coffees = coffeeCollection.items as unknown as CoffeeProps[];
       coffeeTotal = coffeeCollection.total;
 
       if (coffees.length === 0) break;
