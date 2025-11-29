@@ -2,8 +2,8 @@
 
 import React, { useEffect } from "react";
 import Link from "next/link";
-import Section from "@/components/dashboard/Section";
-import { Kpi } from "@/components/dashboard/Kpi";
+import Section from "@/components/dashboard/section";
+import { Kpi } from "@/components/dashboard/kpi";
 import {
   Donut,
   Line,
@@ -12,7 +12,7 @@ import {
   Progress,
   Panel,
   Scatter,
-} from "@/components/dashboard/charts/TremorCharts";
+} from "@/components/dashboard/charts/tremor-charts";
 import MapClient, { TravelCountry } from "@/components/map.client";
 
 /** Make Tremor legends screen-reader friendly and keyboard sane */

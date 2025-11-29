@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
-import { Kpi } from './Kpi';
+import { Kpi } from './kpi';
 
 describe('Kpi', () => {
   it('should render label and numeric value', () => {

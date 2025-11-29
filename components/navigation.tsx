@@ -191,7 +191,7 @@ export default function Navigation() {
                   <form onSubmit={handleSearch} className="flex items-center">
                     <div className="relative w-full">
                       <input
-                        id="search-input"
+                        id="search-input-desktop"
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -205,12 +205,27 @@ export default function Navigation() {
                         onKeyDown={handleKeyDown}
                         placeholder="Search..."
                         className="w-full pl-3 pr-10 py-1.5 rounded-md text-sm border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                        aria-label="Search blog posts"
                       />
                       <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2" aria-label="Search">
                         <MagnifyingGlassIcon className="h-4 w-4 text-gray-500" />
                       </button>
                     </div>
                   </form>
+
+                  {/* Screen reader announcements */}
+                  <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+                    {isLoading
+                      ? 'Searching...'
+                      : searchError
+                      ? `Search error: ${searchError}`
+                      : showSuggestions && suggestions.length > 0
+                      ? `Found ${suggestions.length} result${suggestions.length === 1 ? '' : 's'}`
+                      : showSuggestions && searchQuery
+                      ? 'No results found'
+                      : ''
+                    }
+                  </div>
 
                   {showSuggestions && (
                     <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-md shadow-lg border border-gray-200 z-100">
@@ -266,12 +281,13 @@ export default function Navigation() {
                 <form onSubmit={handleSearch} className="mb-4">
                   <div className="relative">
                     <input
-                      id="search-input"
+                      id="search-input-mobile"
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search..."
                       className="w-full pl-3 pr-10 py-2 rounded-md text-sm border border-gray-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
+                      aria-label="Search blog posts"
                     />
                     <button
                       type="submit"

@@ -1,8 +1,8 @@
 import Link from 'next/link';
-import { CoffeeyProps } from '@/lib/contentful/api/props/coffee';
+import { CoffeeProps } from '@/lib/contentful/api/props/coffee';
 
 interface CoffeeGridProps {
-  coffees: CoffeeyProps[];
+  coffees: CoffeeProps[];
   currentPage: number;
   totalPages: number;
   basePath: string;

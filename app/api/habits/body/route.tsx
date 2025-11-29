@@ -7,25 +7,27 @@ import { ZBodyProfileUpsert } from "@/lib/db/validation";
 import { getBodyProfileDB, upsertBodyProfileDB } from "@/lib/db/profile";
 import { revalidateDashboard } from "@/lib/cache/revalidate";
 import { assertSecret } from "@/lib/auth/secret";
+import { HTTP_STATUS } from "@/lib/constants/http";
+import { RATE_LIMITS } from "@/lib/rate/config";
 
 // GET current body profile
 export const GET = wrapTrace("GET /api/habits/body", async (req: Request) => {
   try {
     assertSecret(req);
 
-    const rl = await rateLimit(req, "get-body", { windowSec: 60, max: 10 });
+    const rl = await rateLimit(req, "get-body", RATE_LIMITS.HABITS);
     if (!rl.ok) {
       return new Response("Too many requests", {
-        status: 429,
+        status: HTTP_STATUS.TOO_MANY_REQUESTS,
         headers: { "Retry-After": String(rl.retryAfterSec) },
       });
     }
 
     const p = await getBodyProfileDB();
-    return NextResponse.json(p, { status: 200 });
+    return NextResponse.json(p, { status: HTTP_STATUS.OK });
   } catch (e: unknown) {
     const error = e as { message?: string };
-    return NextResponse.json({ message: error?.message ?? "Failed" }, { status: 500 });
+    return NextResponse.json({ message: error?.message ?? "Failed" }, { status: HTTP_STATUS.INTERNAL_SERVER_ERROR });
   }
 });
 
@@ -34,10 +36,10 @@ export const POST = wrapTrace("POST /api/habits/body", async (req: Request) => {
   try {
     assertSecret(req);
 
-    const rl = await rateLimit(req, "post-body", { windowSec: 60, max: 10 });
+    const rl = await rateLimit(req, "post-body", RATE_LIMITS.HABITS);
     if (!rl.ok) {
       return new Response("Too many requests", {
-        status: 429,
+        status: HTTP_STATUS.TOO_MANY_REQUESTS,
         headers: { "Retry-After": String(rl.retryAfterSec) },
       });
     }
@@ -48,16 +50,16 @@ export const POST = wrapTrace("POST /api/habits/body", async (req: Request) => {
     if (!result.success) {
       return NextResponse.json(
         { message: "Validation failed", errors: result.error.flatten() },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
     const updated = await upsertBodyProfileDB(result.data);
     revalidateDashboard();
-    return NextResponse.json({ ok: true, profile: updated }, { status: 200 });
+    return NextResponse.json({ ok: true, profile: updated }, { status: HTTP_STATUS.OK });
   } catch (e: unknown) {
     const error = e as { status?: number; message?: string };
-    const status = error?.status ?? 400;
+    const status = error?.status ?? HTTP_STATUS.BAD_REQUEST;
     try {
       const msg = typeof e === "object" && error?.message ? error.message : String(e);
       return NextResponse.json({ message: msg }, { status });

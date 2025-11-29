@@ -7,16 +7,18 @@ import { sql } from "@/lib/db/client";
 import { revalidateDashboard } from "@/lib/cache/revalidate";
 import { assertSecret } from "@/lib/auth/secret";
 import { ZMonthlyGoalsUpsert } from "@/lib/db/validation";
+import { HTTP_STATUS } from "@/lib/constants/http";
+import { RATE_LIMITS } from "@/lib/rate/config";
 
 // GET current-month goals
 export const GET = wrapTrace("GET /api/habits/goal", async (req: Request) => {
   try {
     assertSecret(req);
 
-    const rl = await rateLimit(req, "get-goal", { windowSec: 60, max: 10 });
+    const rl = await rateLimit(req, "get-goal", RATE_LIMITS.HABITS);
     if (!rl.ok) {
       return new Response("Too many requests", {
-        status: 429,
+        status: HTTP_STATUS.TOO_MANY_REQUESTS,
         headers: { "Retry-After": String(rl.retryAfterSec) },
       });
     }
@@ -44,10 +46,10 @@ export const GET = wrapTrace("GET /api/habits/goal", async (req: Request) => {
       const v = Number(r.target);
       if (k in out) out[k] = v;
     }
-    return NextResponse.json(out, { status: 200 });
+    return NextResponse.json(out, { status: HTTP_STATUS.OK });
   } catch (e: unknown) {
     const error = e as { status?: number; message?: string };
-    const status = error?.status ?? 500;
+    const status = error?.status ?? HTTP_STATUS.INTERNAL_SERVER_ERROR;
     return NextResponse.json({ message: error?.message ?? "Failed" }, { status });
   }
 });
@@ -57,10 +59,10 @@ export const POST = wrapTrace("POST /api/habits/goal", async (req: Request) => {
   try {
     assertSecret(req);
 
-    const rl = await rateLimit(req, "post-goal", { windowSec: 60, max: 10 });
+    const rl = await rateLimit(req, "post-goal", RATE_LIMITS.HABITS);
     if (!rl.ok) {
       return new Response("Too many requests", {
-        status: 429,
+        status: HTTP_STATUS.TOO_MANY_REQUESTS,
         headers: { "Retry-After": String(rl.retryAfterSec) },
       });
     }
@@ -71,7 +73,7 @@ export const POST = wrapTrace("POST /api/habits/goal", async (req: Request) => {
     if (!result.success) {
       return NextResponse.json(
         { message: "Validation failed", errors: result.error.flatten() },
-        { status: 400 }
+        { status: HTTP_STATUS.BAD_REQUEST }
       );
     }
 
@@ -100,10 +102,10 @@ export const POST = wrapTrace("POST /api/habits/goal", async (req: Request) => {
     }
 
     revalidateDashboard();
-    return NextResponse.json({ ok: true }, { status: 200 });
+    return NextResponse.json({ ok: true }, { status: HTTP_STATUS.OK });
   } catch (e: unknown) {
     const error = e as { status?: number; message?: string };
-    const status = error?.status ?? 500;
+    const status = error?.status ?? HTTP_STATUS.INTERNAL_SERVER_ERROR;
     return NextResponse.json({ message: error?.message ?? "Failed" }, { status });
   }
 });

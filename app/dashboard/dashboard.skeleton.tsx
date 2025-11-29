@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Skeleton, SkeletonCard } from "@/components/ui/Skeleton";
+import { Skeleton, SkeletonCard } from "@/components/ui/skeleton";
 
 // Small helper that mimics your Section header styling
 function Header({ children }: { children: React.ReactNode }) {

@@ -1,5 +1,5 @@
 import { getAllCoffee } from '@/lib/contentful/api/coffee';
-import { CoffeeyProps } from '@/lib/contentful/api/props/coffee';
+import { CoffeeProps } from '@/lib/contentful/api/props/coffee';
 import CoffeeGrid from '@/components/coffee/coffee-grid';
 import { COFFEE_PER_PAGE } from '@/lib/constants';
 import { createListMetadata } from '@/lib/metadata';
@@ -25,7 +25,7 @@ export default async function CoffeePage({
 
   const totalCoffees = coffeeCollection.total;
   const totalPages = Math.ceil(totalCoffees / COFFEE_PER_PAGE);
-  const coffees = coffeeCollection.items as unknown as CoffeeyProps[];
+  const coffees = coffeeCollection.items as unknown as CoffeeProps[];
 
   return (
     <main className='flex min-h-screen flex-col items-center justify-between bg-white pb-24'>

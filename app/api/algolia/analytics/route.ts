@@ -2,13 +2,14 @@ export const runtime = "edge";
 
 import { NextResponse } from 'next/server';
 import { aa } from '@/lib/algolia/client';
+import { HTTP_STATUS, HTTP_MESSAGES } from '@/lib/constants/http';
 
 export async function POST(request: Request) {
   try {
     const { objectID, eventType, userToken } = await request.json();
 
     if (!objectID) {
-      return NextResponse.json({ error: 'objectID is required' }, { status: 400 });
+      return NextResponse.json({ error: 'objectID is required' }, { status: HTTP_STATUS.BAD_REQUEST });
     }
 
     // Set user token for personalization (important for Algolia Recommend)
@@ -50,6 +51,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error tracking view:', error);
-    return NextResponse.json({ error: 'Failed to track view' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to track view' }, { status: HTTP_STATUS.INTERNAL_SERVER_ERROR });
   }
 } 

@@ -153,14 +153,26 @@ export function SearchBar() {
                     aria-controls="search-suggestions"
                     aria-activedescendant={selectedIndex >= 0 ? `suggestion-${suggestions[selectedIndex].objectID}` : undefined}
                   />
-                  <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2">
-                    <MagnifyingGlassIcon className="h-4 w-4 text-gray-500" />
+                  <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2" aria-label="Search">
+                    <MagnifyingGlassIcon className="h-4 w-4 text-gray-500" aria-hidden="true" />
                   </button>
                 </div>
               </form>
 
+              {/* Screen reader announcements */}
+              <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+                {isLoading
+                  ? 'Searching...'
+                  : showSuggestions && suggestions.length > 0
+                  ? `Found ${suggestions.length} result${suggestions.length === 1 ? '' : 's'}`
+                  : showSuggestions && searchQuery
+                  ? 'No results found'
+                  : ''
+                }
+              </div>
+
               {showSuggestions && (
-                <div 
+                <div
                   id="search-suggestions"
                   role="listbox"
                   className="absolute top-full left-0 right-0 mt-2 bg-white rounded-md shadow-lg border border-gray-200 z-100"

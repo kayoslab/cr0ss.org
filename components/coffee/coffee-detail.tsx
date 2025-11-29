@@ -1,6 +1,6 @@
 'use client';
 
-import { CoffeeyProps } from '@/lib/contentful/api/props/coffee';
+import { CoffeeProps } from '@/lib/contentful/api/props/coffee';
 import { CountryProps } from '@/lib/contentful/api/props/country';
 import MapClient from '@/components/map.client';
 import Link from 'next/link';
@@ -9,7 +9,7 @@ import Markdown from 'react-markdown';
 import { optimizeWithPreset } from '@/lib/contentful/image-utils';
 
 interface CoffeeDetailProps {
-  coffee: CoffeeyProps;
+  coffee: CoffeeProps;
   originCountry: CountryProps | null;
   allCountries: CountryProps[];
 }

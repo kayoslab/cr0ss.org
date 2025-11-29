@@ -102,7 +102,7 @@ describe('GET /api/algolia/search', () => {
       expect(rateLimit).toHaveBeenCalledWith(
         request,
         'algolia-search',
-        { windowSec: 60, max: 10 }
+        { windowSec: 60, max: 100 }
       );
     });
   });

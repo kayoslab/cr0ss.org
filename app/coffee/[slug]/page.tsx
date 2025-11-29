@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getAllCoffee, getCoffee } from '@/lib/contentful/api/coffee';
-import { CoffeeyProps } from '@/lib/contentful/api/props/coffee';
+import { CoffeeProps } from '@/lib/contentful/api/props/coffee';
 import { getAllCountries } from '@/lib/contentful/api/country';
 import { CountryProps } from '@/lib/contentful/api/props/country';
 import CoffeeDetail from '@/components/coffee/coffee-detail';
@@ -14,7 +14,7 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const { slug } = await params;
-    const coffee = (await getCoffee(slug)) as unknown as CoffeeyProps;
+    const coffee = (await getCoffee(slug)) as unknown as CoffeeProps;
     if (!coffee) {
       return {
         title: 'Coffee Not Found',
@@ -113,7 +113,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 // At build time, fetch all slugs to build the coffee pages so they are static and cached
 export async function generateStaticParams() {
   const allCoffees = await getAllCoffee(1, 100);
-  return (allCoffees.items as unknown as CoffeeyProps[]).map((coffee: CoffeeyProps) => ({
+  return (allCoffees.items as unknown as CoffeeProps[]).map((coffee: CoffeeProps) => ({
     slug: coffee.slug,
   }));
 }
@@ -121,7 +121,7 @@ export async function generateStaticParams() {
 export default async function CoffeeDetailPage({ params }: Props) {
   try {
     const { slug } = await params;
-    const coffee = (await getCoffee(slug)) as unknown as CoffeeyProps;
+    const coffee = (await getCoffee(slug)) as unknown as CoffeeProps;
     if (!coffee) {
       notFound();
     }

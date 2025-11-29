@@ -51,6 +51,7 @@
     "rss": "^1.2.2",
     "search-insights": "^2.17.3",
     "sharp": "^0.34.5",
+    "tailwind-merge": "^3.4.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {
