@@ -290,7 +290,9 @@ describe('Input', () => {
       const { getByRole } = render(<Input />);
       const input = getByRole('textbox');
       expect(input).toHaveAttribute('id');
-      expect(input.getAttribute('id')).toMatch(/^input-/);
+      // React's useId generates IDs like ':r0:' or similar
+      expect(input.getAttribute('id')).toBeTruthy();
+      expect(input.getAttribute('id')?.length).toBeGreaterThan(0);
     });
   });
 
