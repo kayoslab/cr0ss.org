@@ -10,25 +10,27 @@ import {
   berlinDateTimeToUTCISO,
 } from "@/lib/time/berlin";
 import { getAllCoffeeDTO } from "@/lib/contentful/api/coffee";
+import { HTTP_STATUS } from "@/lib/constants/http";
+import { RATE_LIMITS } from "@/lib/rate/config";
 
 // GET all coffees from Contentful (up to 100)
 export const GET = wrapTrace("GET /api/habits/coffee", async (req: Request) => {
   try {
     assertSecret(req);
 
-    const rl = await rateLimit(req, "get-coffees", { windowSec: 60, max: 10 });
+    const rl = await rateLimit(req, "get-coffees", RATE_LIMITS.HABITS);
     if (!rl.ok) {
       return new Response("Too many requests", {
-        status: 429,
+        status: HTTP_STATUS.TOO_MANY_REQUESTS,
         headers: { "Retry-After": String(rl.retryAfterSec) },
       });
     }
 
     const { items } = await getAllCoffeeDTO(1, 20);
-    return new Response(JSON.stringify(items), { status: 200 });
+    return new Response(JSON.stringify(items), { status: HTTP_STATUS.OK });
   } catch (err: unknown) {
     const error = err as { message?: string; status?: number };
-    return new Response(error?.message ?? "Bad Request", { status: error?.status ?? 400 });
+    return new Response(error?.message ?? "Bad Request", { status: error?.status ?? HTTP_STATUS.BAD_REQUEST });
   }
 });
 
@@ -37,10 +39,10 @@ export const POST = wrapTrace("POST /api/habits/coffee", async (req: Request) =>
   try {
     assertSecret(req);
 
-    const rl = await rateLimit(req, "post-coffee", { windowSec: 60, max: 10 });
+    const rl = await rateLimit(req, "post-coffee", RATE_LIMITS.HABITS);
     if (!rl.ok) {
       return new Response("Too many requests", {
-        status: 429,
+        status: HTTP_STATUS.TOO_MANY_REQUESTS,
         headers: { "Retry-After": String(rl.retryAfterSec) },
       });
     }
@@ -54,7 +56,7 @@ export const POST = wrapTrace("POST /api/habits/coffee", async (req: Request) =>
       if (!result.success) {
         return new Response(
           JSON.stringify({ message: "Validation failed", errors: result.error.flatten() }),
-          { status: 400 }
+          { status: HTTP_STATUS.BAD_REQUEST }
         );
       }
       parsed.push(result.data);
@@ -84,9 +86,9 @@ export const POST = wrapTrace("POST /api/habits/coffee", async (req: Request) =>
     }
 
     revalidateDashboard();
-    return new Response(JSON.stringify({ ok: true, inserted: parsed.length }), { status: 200 });
+    return new Response(JSON.stringify({ ok: true, inserted: parsed.length }), { status: HTTP_STATUS.OK });
   } catch (err: unknown) {
     const error = err as { message?: string; status?: number };
-    return new Response(error?.message ?? "Bad Request", { status: error?.status ?? 400 });
+    return new Response(error?.message ?? "Bad Request", { status: error?.status ?? HTTP_STATUS.BAD_REQUEST });
   }
 });

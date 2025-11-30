@@ -80,7 +80,7 @@ describe('GET /api/habits/day', () => {
       expect(rateLimit).toHaveBeenCalledWith(
         request,
         'get-day',
-        { windowSec: 60, max: 10 }
+        { windowSec: 60, max: 30 }
       );
     });
   });

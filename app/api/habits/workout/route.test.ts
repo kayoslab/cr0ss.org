@@ -78,7 +78,7 @@ describe('GET /api/habits/workout', () => {
       expect(rateLimit).toHaveBeenCalledWith(
         request,
         'get-workout',
-        { windowSec: 60, max: 10 }
+        { windowSec: 60, max: 30 }
       );
     });
   });

@@ -83,7 +83,7 @@ describe('GET /api/habits/coffee', () => {
       expect(rateLimit).toHaveBeenCalledWith(
         request,
         'get-coffees',
-        { windowSec: 60, max: 10 }
+        { windowSec: 60, max: 30 }
       );
     });
   });
