@@ -6,15 +6,17 @@ import { sql } from "@/lib/db/client";
 import { ZRun } from "@/lib/db/validation";
 import { revalidateDashboard } from "@/lib/cache/revalidate";
 import { assertSecret } from "@/lib/auth/secret";
+import { HTTP_STATUS } from "@/lib/constants/http";
+import { RATE_LIMITS } from "@/lib/rate/config";
 
 export const GET = wrapTrace("GET /api/habits/run", async (req: Request) => {
   try {
     assertSecret(req);
 
-    const rl = await rateLimit(req, "get-run", { windowSec: 60, max: 10 });
+    const rl = await rateLimit(req, "get-run", RATE_LIMITS.HABITS);
     if (!rl.ok) {
       return new Response("Too many requests", {
-        status: 429,
+        status: HTTP_STATUS.TOO_MANY_REQUESTS,
         headers: { "Retry-After": String(rl.retryAfterSec) },
       });
     }
@@ -30,10 +32,10 @@ export const GET = wrapTrace("GET /api/habits/run", async (req: Request) => {
       ORDER BY date DESC
       LIMIT 50
     `;
-    return new Response(JSON.stringify(rows), { status: 200 });
+    return new Response(JSON.stringify(rows), { status: HTTP_STATUS.OK });
   } catch (err: unknown) {
     const error = err as { message?: string; status?: number };
-    return new Response(error?.message ?? "Bad Request", { status: error?.status ?? 400 });
+    return new Response(error?.message ?? "Bad Request", { status: error?.status ?? HTTP_STATUS.BAD_REQUEST });
   }
 });
 
@@ -42,10 +44,10 @@ export const POST = wrapTrace("POST /api/habits/run", async (req: Request) => {
   try {
     assertSecret(req);
 
-    const rl = await rateLimit(req, "post-run", { windowSec: 60, max: 10 });
+    const rl = await rateLimit(req, "post-run", RATE_LIMITS.HABITS);
     if (!rl.ok) {
       return new Response("Too many requests", {
-        status: 429,
+        status: HTTP_STATUS.TOO_MANY_REQUESTS,
         headers: { "Retry-After": String(rl.retryAfterSec) },
       });
     }
@@ -59,7 +61,7 @@ export const POST = wrapTrace("POST /api/habits/run", async (req: Request) => {
       if (!result.success) {
         return new Response(
           JSON.stringify({ message: "Validation failed", errors: result.error.flatten() }),
-          { status: 400 }
+          { status: HTTP_STATUS.BAD_REQUEST }
         );
       }
       parsed.push(result.data);
@@ -73,9 +75,9 @@ export const POST = wrapTrace("POST /api/habits/run", async (req: Request) => {
     }
 
     revalidateDashboard();
-    return new Response(JSON.stringify({ ok: true, inserted: parsed.length }), { status: 200 });
+    return new Response(JSON.stringify({ ok: true, inserted: parsed.length }), { status: HTTP_STATUS.OK });
   } catch (err: unknown) {
     const error = err as { message?: string; status?: number };
-    return new Response(error?.message ?? "Bad Request", { status: error?.status ?? 400 });
+    return new Response(error?.message ?? "Bad Request", { status: error?.status ?? HTTP_STATUS.BAD_REQUEST });
   }
 });

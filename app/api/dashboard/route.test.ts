@@ -234,7 +234,7 @@ describe('GET /api/dashboard', () => {
 
       expect(rateLimit).toHaveBeenCalledWith(request, 'get-dashboard', {
         windowSec: 60,
-        max: 10,
+        max: 30,
       });
     });
   });

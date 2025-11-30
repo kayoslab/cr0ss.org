@@ -101,7 +101,7 @@ function eventsBetween(events: Array<{ time: string, type: string, amount_ml: nu
 
 export const GET = createApiRoute()
   .withAuth()
-  .withRateLimit(RATE_LIMIT_BUCKETS.GET_DASHBOARD, { windowSec: 60, max: 10 })
+  .withRateLimit(RATE_LIMIT_BUCKETS.GET_DASHBOARD, RATE_LIMITS.DEFAULT)
   .withTrace("GET /api/dashboard")
   .handle(async () => {
     // Get cached dashboard data (non-coffee data)

@@ -74,7 +74,7 @@ describe('GET /api/habits/run', () => {
       expect(rateLimit).toHaveBeenCalledWith(
         request,
         'get-run',
-        { windowSec: 60, max: 10 }
+        { windowSec: 60, max: 30 }
       );
     });
   });

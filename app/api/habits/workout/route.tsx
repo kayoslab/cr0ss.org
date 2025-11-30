@@ -7,12 +7,13 @@ import { ZWorkoutUpsert } from "@/lib/db/validation";
 import { revalidateDashboard } from "@/lib/cache/revalidate";
 import { assertSecret } from "@/lib/auth/secret";
 import { insertWorkoutDB, getRecentWorkoutsDB, getWorkoutsByTypeDB } from "@/lib/db/workouts";
+import { RATE_LIMITS } from "@/lib/rate/config";
 
 export const GET = wrapTrace("GET /api/habits/workout", async (req: Request) => {
   try {
     assertSecret(req);
 
-    const rl = await rateLimit(req, "get-workout", { windowSec: 60, max: 10 });
+    const rl = await rateLimit(req, "get-workout", RATE_LIMITS.HABITS);
     if (!rl.ok) {
       return createErrorResponse(
         "Too many requests",
@@ -51,7 +52,7 @@ export const POST = wrapTrace("POST /api/habits/workout", async (req: Request) =
   try {
     assertSecret(req);
 
-    const rl = await rateLimit(req, "post-workout", { windowSec: 60, max: 10 });
+    const rl = await rateLimit(req, "post-workout", RATE_LIMITS.HABITS);
     if (!rl.ok) {
       return createErrorResponse(
         "Too many requests",
