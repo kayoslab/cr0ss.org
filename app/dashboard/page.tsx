@@ -18,16 +18,16 @@ export const revalidate = 0; // Never use cache
 
 // ---- absolute URL builder + server fetcher
 function resolveBaseUrl() {
-  // In production/preview on Vercel, prefer the public site URL
-  const pub = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
-  if (pub) return pub;
-
-  // For Vercel deployments, use the deployment URL
+  // On Vercel, VERCEL_URL contains the actual deployment domain (www.cr0ss.org in production)
+  // This avoids redirect issues when NEXT_PUBLIC_SITE_URL points to preview deployments
   const vercel = process.env.VERCEL_URL?.replace(/\/$/, "");
   if (vercel) {
-    // Always use https for Vercel URLs
     return vercel.startsWith('http') ? vercel : `https://${vercel}`;
   }
+
+  // Fallback to public site URL (for local dev or other environments)
+  const pub = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+  if (pub) return pub;
 
   return "http://localhost:3000";
 }

@@ -79,6 +79,7 @@
     "@vitest/coverage-v8": "^4.0.9",
     "@vitest/ui": "^4.0.9",
     "autoprefixer": "^10.4.22",
+    "baseline-browser-mapping": "^2.8.32",
     "contentful-import": "^9.4.128",
     "dotenv": "^17.2.3",
     "eslint": "^9.39.1",
