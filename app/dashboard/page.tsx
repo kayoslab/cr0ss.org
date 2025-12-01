@@ -31,7 +31,7 @@ function resolveBaseUrl() {
   return "http://localhost:3000";
 }
 
-type JRes<T> = { ok: true; data: T } | { ok: false; status: number };
+type JRes<T> = { ok: true; data: T } | { ok: false; status: number; error?: string };
 async function jfetchServer<T>(path: string, retries = 2): Promise<JRes<T>> {
   const base = resolveBaseUrl();
   const url = path.startsWith("http") ? path : `${base}${path}`;
@@ -39,67 +39,33 @@ async function jfetchServer<T>(path: string, retries = 2): Promise<JRes<T>> {
   const secret = process.env.DASHBOARD_API_SECRET as string;
   headers.set(SECRET_HEADER, secret);
 
-  // Log outgoing request details
-  console.log('[Dashboard] Making fetch request:', {
-    url,
-    hasSecret: !!secret,
-    secretPrefix: secret?.slice(0, 4),
-    secretSuffix: secret?.slice(-4),
-    headerName: SECRET_HEADER,
-    headerValue: headers.get(SECRET_HEADER)?.slice(0, 4) + '...' + headers.get(SECRET_HEADER)?.slice(-4),
-    allHeaders: Array.from(headers.keys()),
-  });
-
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
-      console.log(`[Dashboard] Attempt ${attempt + 1}: Calling fetch with`, {
-        url,
-        method: 'GET',
-        hasHeaders: !!headers,
-        headerKeys: Array.from(headers.keys()),
-        secretHeaderValue: headers.get(SECRET_HEADER),
-      });
-
       const res = await fetch(url, { headers, cache: "no-store" });
-
-      console.log(`[Dashboard] Attempt ${attempt + 1}: Response received`, {
-        status: res.status,
-        statusText: res.statusText,
-        ok: res.ok,
-      });
 
       if (res.ok) {
         return { ok: true, data: (await res.json()) as T };
       }
 
-      // If it's a 401, log details and retry if possible
-      if (res.status === 401) {
-        const errorBody = await res.text();
-        console.error(`[Dashboard] 401 Unauthorized (attempt ${attempt + 1}/${retries + 1}):`, {
-          url,
-          hasSecret: !!secret,
-          secretLength: secret?.length,
-          errorBody,
-          responseHeaders: Array.from(res.headers.keys()),
-        });
+      // Capture error body for any non-OK response
+      const errorBody = await res.text();
 
-        if (attempt < retries) {
-          await new Promise(resolve => setTimeout(resolve, 100 * (attempt + 1)));
-          continue;
-        }
+      // If it's a 401 and we have retries left, retry
+      if (res.status === 401 && attempt < retries) {
+        await new Promise(resolve => setTimeout(resolve, 100 * (attempt + 1)));
+        continue;
       }
 
-      return { ok: false, status: res.status };
+      return { ok: false, status: res.status, error: errorBody };
     } catch (error) {
       if (attempt === retries) {
-        console.error('[Dashboard] Fetch error:', error);
-        return { ok: false, status: 500 };
+        return { ok: false, status: 500, error: error instanceof Error ? error.message : 'Network error' };
       }
       await new Promise(resolve => setTimeout(resolve, 100 * (attempt + 1)));
     }
   }
 
-  return { ok: false, status: 500 };
+  return { ok: false, status: 500, error: 'Max retries exceeded' };
 }
 
 
@@ -137,19 +103,6 @@ type DashboardApi = {
 };
 
 export default async function DashboardPage() {
-  // Early check - throw error with details if secret is missing
-  if (!process.env.DASHBOARD_API_SECRET) {
-    throw new Error(`DASHBOARD_API_SECRET is not defined. Available env vars: ${Object.keys(process.env).filter(k => k.includes('DASHBOARD') || k.includes('SECRET')).join(', ')}`);
-  }
-
-  // Debug logging for Vercel
-  console.log('[Dashboard] Environment check:', {
-    hasPublicUrl: !!process.env.NEXT_PUBLIC_SITE_URL,
-    hasVercelUrl: !!process.env.VERCEL_URL,
-    hasDashboardSecret: !!process.env.DASHBOARD_API_SECRET,
-    secretLength: process.env.DASHBOARD_API_SECRET?.length,
-    resolvedBase: resolveBaseUrl(),
-  });
 
   // live location (KV)
   const storedLocation = await kv.get<{ lat: number; lon: number }>("GEOLOCATION");
@@ -166,21 +119,9 @@ export default async function DashboardPage() {
   }));
 
   // usage
-  console.error('[Dashboard] About to call jfetchServer');
   const apiRes = await jfetchServer<DashboardApi>("/api/dashboard");
-  console.error('[Dashboard] jfetchServer returned', { ok: apiRes.ok, status: 'status' in apiRes ? apiRes.status : 'N/A' });
-
   if (!apiRes.ok) {
-    const errorDetails = {
-      status: apiRes.status,
-      hasSecret: !!process.env.DASHBOARD_API_SECRET,
-      secretPrefix: process.env.DASHBOARD_API_SECRET?.slice(0, 4),
-      secretSuffix: process.env.DASHBOARD_API_SECRET?.slice(-4),
-      baseUrl: resolveBaseUrl(),
-      vercelUrl: process.env.VERCEL_URL,
-      timestamp: new Date().toISOString(),
-    };
-    throw new Error(`Failed to load dashboard data (HTTP ${apiRes.status}). Secret: ${errorDetails.hasSecret ? `${errorDetails.secretPrefix}...${errorDetails.secretSuffix}` : 'MISSING'}, BaseURL: ${errorDetails.baseUrl}`);
+    throw new Error(`Failed to load dashboard data (HTTP ${apiRes.status}): ${apiRes.error || 'Unknown error'}`);
   }
   const api = apiRes.data;
 
