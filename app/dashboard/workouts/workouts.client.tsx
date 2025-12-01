@@ -3,6 +3,7 @@
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Kpi } from "@/components/dashboard/kpi";
 import { Panel } from "@/components/dashboard/charts/shadcn-charts";
 
@@ -40,6 +41,15 @@ export default function WorkoutsClient({
   longestStreak = 0,
   personalRecords,
 }: WorkoutsClientProps) {
+  // Check for recovery needs
+  const recentWorkouts = workoutHeatmap.slice(0, 7); // Last 7 days
+  const totalRecentMinutes = recentWorkouts.reduce((sum, day) => sum + day.duration_min, 0);
+  const avgDailyMinutes = totalRecentMinutes / 7;
+  const daysWithWorkouts = recentWorkouts.filter(day => day.duration_min > 0).length;
+
+  const needsRecovery = daysWithWorkouts >= 6 && avgDailyMinutes > 60;
+  const needsMotivation = daysWithWorkouts <= 2;
+
   // Get all workout types for tabs
   const allTypes = ["all", ...workoutTypes];
 
@@ -64,6 +74,34 @@ export default function WorkoutsClient({
 
   return (
     <div className="space-y-6">
+      {/* Recovery & Motivation Alerts */}
+      {(needsRecovery || needsMotivation) && (
+        <div className="space-y-3">
+          {needsRecovery && (
+            <Alert variant="warning">
+              <AlertTitle className="flex items-center gap-2">
+                💪 Recovery Recommendation
+                <Badge variant="warning">High Activity</Badge>
+              </AlertTitle>
+              <AlertDescription>
+                You've worked out {daysWithWorkouts} days this week with an average of {Math.round(avgDailyMinutes)} minutes per day.
+                Great dedication! Consider taking a rest day to allow your body to recover and prevent overtraining.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {needsMotivation && currentStreak === 0 && (
+            <Alert variant="default">
+              <AlertTitle>🎯 Time to Get Moving!</AlertTitle>
+              <AlertDescription>
+                You've only worked out {daysWithWorkouts} {daysWithWorkouts === 1 ? "day" : "days"} this week.
+                Even a short 20-minute session can make a big difference. Start a new streak today!
+              </AlertDescription>
+            </Alert>
+          )}
+        </div>
+      )}
+
       {/* Streaks and Records Section */}
       {(currentStreak > 0 || personalRecords) && (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
