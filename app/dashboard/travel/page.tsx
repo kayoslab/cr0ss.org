@@ -2,7 +2,7 @@ import React from "react";
 import { kv } from "@vercel/kv";
 import { getAllCountries, getVisitedCountries } from "@/lib/contentful/api/country";
 import { CountryProps } from "@/lib/contentful/api/props/country";
-import DashboardClient from "../dashboard.client";
+import TravelClient from "./travel.client";
 
 // Use edge runtime to match other dashboard pages
 export const runtime = "edge";
@@ -50,13 +50,14 @@ export default async function TravelPage() {
         </p>
       </div>
 
-      <DashboardClient
-        travel={travel}
-        morning={null}
-        rituals={null}
-        running={null}
-        workouts={null}
-        sleepPrevCaff={[]}
+      <TravelClient
+        totalCountries={travel.totalCountries}
+        visitedCount={travel.visitedCount}
+        recentVisited={travel.recentVisited}
+        countries={travel.countries}
+        lat={travel.lat}
+        lon={travel.lon}
+        hasLocation={travel.hasLocation}
       />
     </div>
   );

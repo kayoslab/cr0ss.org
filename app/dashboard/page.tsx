@@ -5,7 +5,6 @@ import { getAllCountries, getVisitedCountries } from "@/lib/contentful/api/count
 import { CountryProps } from "@/lib/contentful/api/props/country";
 import { SECRET_HEADER } from "@/lib/auth/constants";
 import { isoToBerlinDate } from "@/lib/time/berlin";
-import DashboardClient from "./dashboard.client";
 
 // Use edge runtime to match the API route
 export const runtime = "edge";
