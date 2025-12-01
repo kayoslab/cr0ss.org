@@ -5,7 +5,6 @@ import { getAllCountries, getVisitedCountries } from "@/lib/contentful/api/count
 import { CountryProps } from "@/lib/contentful/api/props/country";
 import { SECRET_HEADER } from "@/lib/auth/constants";
 import { isoToBerlinDate } from "@/lib/time/berlin";
-import { env } from "@/env";
 import DashboardClient from "./dashboard.client";
 
 // Use edge runtime to match the API route
@@ -37,7 +36,7 @@ async function jfetchServer<T>(path: string, retries = 2): Promise<JRes<T>> {
   const base = resolveBaseUrl();
   const url = path.startsWith("http") ? path : `${base}${path}`;
   const headers = new Headers({ accept: "application/json" });
-  const secret = env.DASHBOARD_API_SECRET;
+  const secret = process.env.DASHBOARD_API_SECRET;
   headers.set(SECRET_HEADER, secret);
 
   // Log outgoing request details
@@ -149,7 +148,7 @@ export default async function DashboardPage() {
   if (!apiRes.ok) {
     console.error('[Dashboard] API fetch failed:', {
       status: apiRes.status,
-      hasSecret: !!env.DASHBOARD_API_SECRET,
+      hasSecret: !!process.env.DASHBOARD_API_SECRET,
       baseUrl: resolveBaseUrl(),
     });
     throw new Error(`Failed to load dashboard data (HTTP ${apiRes.status})`);
