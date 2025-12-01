@@ -5,6 +5,7 @@ import { getAllCountries, getVisitedCountries } from "@/lib/contentful/api/count
 import { CountryProps } from "@/lib/contentful/api/props/country";
 import { SECRET_HEADER } from "@/lib/auth/constants";
 import { isoToBerlinDate } from "@/lib/time/berlin";
+import { env } from "@/env";
 import DashboardClient from "./dashboard.client";
 
 // fetch settings
@@ -25,8 +26,8 @@ async function jfetchServer<T>(path: string): Promise<JRes<T>> {
   const base = resolveBaseUrl();
   const url = path.startsWith("http") ? path : `${base}${path}`;
   const headers = new Headers({ accept: "application/json" });
-  const secret = process.env.DASHBOARD_API_SECRET || "";
-  if (secret) headers.set(SECRET_HEADER, secret);
+  const secret = env.DASHBOARD_API_SECRET;
+  headers.set(SECRET_HEADER, secret);
   const res = await fetch(url, { headers, cache: "no-store" });
   if (!res.ok) return { ok: false, status: res.status };
   return { ok: true, data: (await res.json()) as T };
@@ -265,16 +266,6 @@ export default async function DashboardPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
           </svg>
           <span className="font-medium">Insights</span>
-        </Link>
-
-        <Link
-          href="/coffee"
-          className="flex flex-col items-center gap-2 rounded-xl border border-neutral-200/60 bg-white p-6 shadow-sm hover:bg-neutral-50 transition-colors"
-        >
-          <svg className="w-8 h-8 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-          </svg>
-          <span className="font-medium">Collection</span>
         </Link>
       </div>
     </div>

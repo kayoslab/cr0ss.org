@@ -6,7 +6,7 @@
  */
 
 import { Badge } from "@/components/ui/badge";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { DiscoveredCorrelation } from "@/lib/insights/correlation-discovery";
 import { ArrowRight, TrendingUp, TrendingDown, Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -85,7 +85,7 @@ export function CorrelationCard({ correlation, onClick }: CorrelationCardProps) 
         </div>
       </CardHeader>
 
-      <CardBody>
+      <CardContent>
         <p className="text-sm text-muted-foreground mb-3">
           {interpretation}
         </p>
@@ -103,7 +103,7 @@ export function CorrelationCard({ correlation, onClick }: CorrelationCardProps) 
             {correlation.dateRange.start} to {correlation.dateRange.end}
           </span>
         </div>
-      </CardBody>
+      </CardContent>
     </Card>
   );
 }

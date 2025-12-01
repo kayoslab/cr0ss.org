@@ -9,7 +9,9 @@ export { Input } from './input';
 export {
   Card,
   CardHeader,
-  CardBody,
+  CardContent,
   CardFooter,
+  CardTitle,
+  CardDescription,
 } from './card';
 export { Skeleton } from './skeleton';

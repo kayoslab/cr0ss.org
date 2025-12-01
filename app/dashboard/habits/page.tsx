@@ -1,5 +1,6 @@
 import React from "react";
 import { SECRET_HEADER } from "@/lib/auth/constants";
+import { env } from "@/env";
 import HabitsClient from "./habits.client";
 
 // fetch settings
@@ -25,8 +26,8 @@ async function jfetchServer<T>(path: string): Promise<JRes<T>> {
   const base = resolveBaseUrl();
   const url = path.startsWith("http") ? path : `${base}${path}`;
   const headers = new Headers({ accept: "application/json" });
-  const secret = process.env.DASHBOARD_API_SECRET || "";
-  if (secret) headers.set(SECRET_HEADER, secret);
+  const secret = env.DASHBOARD_API_SECRET;
+  headers.set(SECRET_HEADER, secret);
   const res = await fetch(url, { headers, cache: "no-store" });
   if (!res.ok) return { ok: false, status: res.status };
   return { ok: true, data: (await res.json()) as T };
@@ -52,6 +53,7 @@ type DashboardApi = {
     coding_minutes: number;
     focus_minutes: number;
   };
+  sleepPrevCaff: { date: string; sleep_score: number; prev_caffeine_mg: number; prev_day_workout: boolean }[];
 };
 
 export default async function HabitsPage() {
@@ -128,6 +130,7 @@ export default async function HabitsPage() {
         consistencyBars={consistencyBars}
         rhythmTrend={rhythmTrend}
         streaks={streaks}
+        sleepPrevCaff={api.sleepPrevCaff}
       />
     </div>
   );

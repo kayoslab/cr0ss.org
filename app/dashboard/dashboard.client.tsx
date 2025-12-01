@@ -74,7 +74,7 @@ export default function DashboardClient({
 
       {/* 1) Travel */}
       {travel && (
-      <Section title="Travel" id="travel" className="scroll-mt-20">
+      <div id="travel" className="scroll-mt-20">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {/* Map card */}
           <div className="md:col-span-3">
@@ -113,7 +113,7 @@ export default function DashboardClient({
             ]}
           />
         </div>
-      </Section>
+      </div>
       )}
 
       {/* 2) Daily Rituals */}

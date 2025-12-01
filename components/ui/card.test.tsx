@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, fireEvent } from '@testing-library/react';
-import { Card, CardHeader, CardBody, CardFooter } from './card';
+import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from './card';
 
 describe('Card', () => {
   describe('rendering', () => {
@@ -171,15 +171,15 @@ describe('CardHeader', () => {
   });
 });
 
-describe('CardBody', () => {
+describe('CardContent', () => {
   it('should render children', () => {
-    const { getByText } = render(<CardBody>Body content</CardBody>);
+    const { getByText } = render(<CardContent>Body content</CardContent>);
     expect(getByText('Body content')).toBeInTheDocument();
   });
 
   it('should merge custom className', () => {
     const { container } = render(
-      <CardBody className="custom-body">Body</CardBody>
+      <CardContent className="custom-body">Body</CardContent>
     );
 
     expect(container.firstChild).toHaveClass('custom-body');
@@ -187,7 +187,7 @@ describe('CardBody', () => {
 
   it('should forward ref', () => {
     const ref = { current: null as HTMLDivElement | null };
-    render(<CardBody ref={ref}>Body</CardBody>);
+    render(<CardContent ref={ref}>Body</CardContent>);
 
     expect(ref.current).toBeInstanceOf(HTMLDivElement);
   });
@@ -233,9 +233,9 @@ describe('Card composition', () => {
         <CardHeader>
           <h3>Title</h3>
         </CardHeader>
-        <CardBody>
+        <CardContent>
           <p>Content</p>
-        </CardBody>
+        </CardContent>
         <CardFooter>
           <button>Action</button>
         </CardFooter>
