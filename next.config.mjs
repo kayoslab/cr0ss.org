@@ -12,7 +12,8 @@ const nextConfig = {
   },
   reactStrictMode: true,
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
+    // Temporarily disabled to debug 401 errors
+    // removeConsole: process.env.NODE_ENV === 'production',
   },
   images: {
     remotePatterns: [
