@@ -3,6 +3,9 @@ import { SECRET_HEADER } from "@/lib/auth/constants";
 import { env } from "@/env";
 import HabitsClient from "./habits.client";
 
+// Use edge runtime to match the API route
+export const runtime = "edge";
+
 // fetch settings
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";

@@ -8,16 +8,27 @@ import { isoToBerlinDate } from "@/lib/time/berlin";
 import { env } from "@/env";
 import DashboardClient from "./dashboard.client";
 
-// fetch settings
+// Use edge runtime to match the API route
+export const runtime = "edge";
+
+// fetch settings - force runtime rendering, no static generation
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
+export const revalidate = 0; // Never use cache
 
 // ---- absolute URL builder + server fetcher
 function resolveBaseUrl() {
+  // In production/preview on Vercel, prefer the public site URL
   const pub = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
   if (pub) return pub;
+
+  // For Vercel deployments, use the deployment URL
   const vercel = process.env.VERCEL_URL?.replace(/\/$/, "");
-  if (vercel) return `https://${vercel}`;
+  if (vercel) {
+    // Always use https for Vercel URLs
+    return vercel.startsWith('http') ? vercel : `https://${vercel}`;
+  }
+
   return "http://localhost:3000";
 }
 
@@ -100,6 +111,14 @@ type DashboardApi = {
 };
 
 export default async function DashboardPage() {
+  // Debug logging for Vercel
+  console.log('[Dashboard] Environment check:', {
+    hasPublicUrl: !!process.env.NEXT_PUBLIC_SITE_URL,
+    hasVercelUrl: !!process.env.VERCEL_URL,
+    hasDashboardSecret: !!env.DASHBOARD_API_SECRET,
+    resolvedBase: resolveBaseUrl(),
+  });
+
   // live location (KV)
   const storedLocation = await kv.get<{ lat: number; lon: number }>("GEOLOCATION");
   const lat = storedLocation?.lat ?? 0;

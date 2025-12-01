@@ -4,6 +4,9 @@ import { getAllCountries, getVisitedCountries } from "@/lib/contentful/api/count
 import { CountryProps } from "@/lib/contentful/api/props/country";
 import DashboardClient from "../dashboard.client";
 
+// Use edge runtime to match other dashboard pages
+export const runtime = "edge";
+
 // fetch settings
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
