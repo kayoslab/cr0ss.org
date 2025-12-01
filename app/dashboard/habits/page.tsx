@@ -35,7 +35,7 @@ async function jfetchServer<T>(path: string, retries = 2): Promise<JRes<T>> {
   const base = resolveBaseUrl();
   const url = path.startsWith("http") ? path : `${base}${path}`;
   const headers = new Headers({ accept: "application/json" });
-  const secret = process.env.DASHBOARD_API_SECRET;
+  const secret = process.env.DASHBOARD_API_SECRET as string;
   headers.set(SECRET_HEADER, secret);
 
   // Log outgoing request details
