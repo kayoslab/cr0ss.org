@@ -44,10 +44,10 @@ export async function fetchWeather(
   latitude: number,
   longitude: number
 ): Promise<WeatherData | null> {
-  const apiKey = process.env.OPENWEATHERMAP_API_KEY;
+  const apiKey = process.env.OPENWEATHER_API_KEY;
 
   if (!apiKey) {
-    console.error("OPENWEATHERMAP_API_KEY is not configured");
+    console.error("OPENWEATHER_API_KEY is not configured");
     return null;
   }
 

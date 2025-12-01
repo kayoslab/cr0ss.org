@@ -81,11 +81,11 @@ export default function DashboardClient({
   workouts,
   sleepPrevCaff,
 }: {
-  travel: TravelProps;
-  morning: MorningProps;
-  rituals: RitualsProps;
-  running: RunningProps;
-  workouts: WorkoutProps;
+  travel: TravelProps | null;
+  morning: MorningProps | null;
+  rituals: RitualsProps | null;
+  running: RunningProps | null;
+  workouts: WorkoutProps | null;
   sleepPrevCaff: SleepPrevCaffPoint[];
 }) {
   return (
@@ -93,15 +93,9 @@ export default function DashboardClient({
       {/* run legend a11y upgrade once */}
       <LegendA11y />
 
-      {/* Page Title */}
-      <div className="space-y-4">
-        <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl">
-          Dashboard
-        </h1>
-      </div>
-
       {/* 1) Travel */}
-      <Section id="travel" title="1. Travel" className="scroll-mt-20">
+      {travel && (
+      <Section id="travel" className="scroll-mt-20">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {/* Map card */}
           <div className="md:col-span-3">
@@ -141,9 +135,11 @@ export default function DashboardClient({
           />
         </div>
       </Section>
+      )}
 
       {/* 2) Daily Rituals */}
-      <Section id="daily-rituals" title="2. Daily Rituals" className="scroll-mt-20">
+      {rituals && (
+      <Section id="daily-rituals" className="scroll-mt-20">
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
           {rituals.progressToday.map((p) => (
             <Progress key={p.name} title={`${p.name} Goal Progress`} value={p.value} target={p.target} />
@@ -163,9 +159,11 @@ export default function DashboardClient({
           </div>
         </div>
       </Section>
+      )}
 
       {/* 3) Morning Brew */}
-      <Section id="morning-brew" title="3. Morning Brew" className="scroll-mt-20">
+      {morning && (
+      <Section id="morning-brew" className="scroll-mt-20">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <Kpi label="Cups Today" value={morning.cupsToday} />
           <Bars title="Brew methods today" items={morning.methodsBar} />
@@ -203,9 +201,11 @@ export default function DashboardClient({
           </Link>
         </div>
       </Section>
+      )}
 
       {/* 4) Workouts */}
-      <Section id="running-movement" title="4. Workouts (last 60 days)" className="scroll-mt-20">
+      {(running || workouts) && (
+      <Section id="running-movement" className="scroll-mt-20">
         {/* Heatmap first - shows all workout types */}
         <Panel title="Activity Heatmap">
           <div className="grid grid-cols-10 gap-1">
@@ -287,6 +287,7 @@ export default function DashboardClient({
           </div>
         </div>
       </Section>
+      )}
     </div>
   );
 }
