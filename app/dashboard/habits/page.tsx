@@ -17,10 +17,17 @@ export const metadata = {
 
 // ---- absolute URL builder + server fetcher
 function resolveBaseUrl() {
+  // On Vercel, VERCEL_URL contains the actual deployment domain (www.cr0ss.org in production)
+  // This avoids redirect issues when NEXT_PUBLIC_SITE_URL points to preview deployments
+  const vercel = process.env.VERCEL_URL?.replace(/\/$/, "");
+  if (vercel) {
+    return vercel.startsWith('http') ? vercel : `https://${vercel}`;
+  }
+
+  // Fallback to public site URL (for local dev or other environments)
   const pub = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
   if (pub) return pub;
-  const vercel = process.env.VERCEL_URL?.replace(/\/$/, "");
-  if (vercel) return `https://${vercel}`;
+
   return "http://localhost:3000";
 }
 
