@@ -36,9 +36,7 @@ import {
 } from "@/lib/db/queries";
 import { getBodyProfile } from "@/lib/user/profile";
 import { modelCaffeine } from "@/lib/phys/caffeine";
-import { neon } from "@neondatabase/serverless";
-
-const sql = neon(process.env.DATABASE_URL!);
+import { sql } from "@/lib/db/client";
 
 // Cache wrapper for dashboard data with "dashboard" tag
 // Note: Coffee-related queries (cups, brew methods, origins) are NOT cached

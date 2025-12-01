@@ -1,4 +1,4 @@
-import { neon } from "@neondatabase/serverless";
+import { sql } from "@/lib/db/client";
 import { z } from "zod";
 import {
   ZBrewMethodsToday, ZConsistency,
@@ -6,8 +6,6 @@ import {
   ZDayHabits,
 } from "./models";
 import { getCoffees } from "../contentful/api/coffee";
-
-const sql = neon(process.env.DATABASE_URL!);
 
 // ---- Morning Brew
 export async function qBrewMethodsToday() {
