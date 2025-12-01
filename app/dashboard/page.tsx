@@ -125,7 +125,7 @@ export default async function DashboardPage() {
   console.log('[Dashboard] Environment check:', {
     hasPublicUrl: !!process.env.NEXT_PUBLIC_SITE_URL,
     hasVercelUrl: !!process.env.VERCEL_URL,
-    hasDashboardSecret: !!env.DASHBOARD_API_SECRET,
+    hasDashboardSecret: !!process.env.DASHBOARD_API_SECRET,
     resolvedBase: resolveBaseUrl(),
   });
 
