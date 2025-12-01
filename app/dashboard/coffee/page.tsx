@@ -1,7 +1,7 @@
 import React from "react";
 import { SECRET_HEADER } from "@/lib/auth/constants";
 import { isoToBerlinDate } from "@/lib/time/berlin";
-import DashboardClient from "../dashboard.client";
+import CoffeeClient from "./coffee.client";
 
 // fetch settings
 export const dynamic = "force-dynamic";
@@ -53,13 +53,6 @@ export default async function CoffeePage() {
     body_mg: p.body_mg,
   }));
 
-  const morning = {
-    cupsToday: api.cupsToday,
-    methodsBar: api.brewMethodsToday.map((b) => ({ name: b.type, value: b.count })),
-    originsDonut: api.coffeeOriginThisWeek,
-    caffeineDual,
-  };
-
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6">
       <div>
@@ -69,13 +62,11 @@ export default async function CoffeePage() {
         </p>
       </div>
 
-      <DashboardClient
-        travel={null}
-        morning={morning}
-        rituals={null}
-        running={null}
-        workouts={null}
-        sleepPrevCaff={[]}
+      <CoffeeClient
+        cupsToday={api.cupsToday}
+        methodsBar={api.brewMethodsToday.map((b) => ({ name: b.type, value: b.count }))}
+        originsDonut={api.coffeeOriginThisWeek}
+        caffeineDual={caffeineDual}
       />
     </div>
   );
