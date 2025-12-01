@@ -1,7 +1,5 @@
-import { neon } from "@neondatabase/serverless";
+import { sql } from "@/lib/db/client";
 import { ZWorkout, ZWorkoutUpsert, type WorkoutUpsert } from "@/lib/db/validation";
-
-const sql = neon(process.env.DATABASE_URL!);
 
 /**
  * Get workouts within a date range, optionally filtered by type

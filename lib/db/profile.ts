@@ -1,8 +1,6 @@
-import { neon } from "@neondatabase/serverless";
+import { sql } from "@/lib/db/client";
 import { ZBodyProfileRow, ZBodyProfileUpsert } from "@/lib/db/validation";
 import { z } from "zod";
-
-const sql = neon(process.env.DATABASE_URL!);
 
 /**
  * Get the most recent body profile entry
