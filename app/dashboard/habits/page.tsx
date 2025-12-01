@@ -1,6 +1,5 @@
 import React from "react";
 import { SECRET_HEADER } from "@/lib/auth/constants";
-import { env } from "@/env";
 import HabitsClient from "./habits.client";
 
 // Use edge runtime to match the API route
@@ -36,7 +35,7 @@ async function jfetchServer<T>(path: string, retries = 2): Promise<JRes<T>> {
   const base = resolveBaseUrl();
   const url = path.startsWith("http") ? path : `${base}${path}`;
   const headers = new Headers({ accept: "application/json" });
-  const secret = env.DASHBOARD_API_SECRET;
+  const secret = process.env.DASHBOARD_API_SECRET;
   headers.set(SECRET_HEADER, secret);
 
   // Log outgoing request details
