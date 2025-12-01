@@ -40,6 +40,17 @@ async function jfetchServer<T>(path: string, retries = 2): Promise<JRes<T>> {
   const secret = env.DASHBOARD_API_SECRET;
   headers.set(SECRET_HEADER, secret);
 
+  // Log outgoing request details
+  console.log('[Dashboard] Making fetch request:', {
+    url,
+    hasSecret: !!secret,
+    secretPrefix: secret?.slice(0, 4),
+    secretSuffix: secret?.slice(-4),
+    headerName: SECRET_HEADER,
+    headerValue: headers.get(SECRET_HEADER)?.slice(0, 4) + '...' + headers.get(SECRET_HEADER)?.slice(-4),
+    allHeaders: Array.from(headers.keys()),
+  });
+
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const res = await fetch(url, { headers, cache: "no-store" });

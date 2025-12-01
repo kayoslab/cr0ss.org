@@ -39,6 +39,17 @@ async function jfetchServer<T>(path: string, retries = 2): Promise<JRes<T>> {
   const secret = env.DASHBOARD_API_SECRET;
   headers.set(SECRET_HEADER, secret);
 
+  // Log outgoing request details
+  console.log('[Habits] Making fetch request:', {
+    url,
+    hasSecret: !!secret,
+    secretPrefix: secret?.slice(0, 4),
+    secretSuffix: secret?.slice(-4),
+    headerName: SECRET_HEADER,
+    headerValue: headers.get(SECRET_HEADER)?.slice(0, 4) + '...' + headers.get(SECRET_HEADER)?.slice(-4),
+    allHeaders: Array.from(headers.keys()),
+  });
+
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const res = await fetch(url, { headers, cache: "no-store" });
@@ -46,10 +57,20 @@ async function jfetchServer<T>(path: string, retries = 2): Promise<JRes<T>> {
         return { ok: true, data: (await res.json()) as T };
       }
 
-      // If it's a 401 and we have retries left, wait and retry
-      if (res.status === 401 && attempt < retries) {
-        await new Promise(resolve => setTimeout(resolve, 100 * (attempt + 1)));
-        continue;
+      // If it's a 401, log details and retry if possible
+      if (res.status === 401) {
+        const errorBody = await res.text();
+        console.error(`[Habits] 401 Unauthorized (attempt ${attempt + 1}/${retries + 1}):`, {
+          url,
+          hasSecret: !!secret,
+          secretLength: secret?.length,
+          errorBody,
+        });
+
+        if (attempt < retries) {
+          await new Promise(resolve => setTimeout(resolve, 100 * (attempt + 1)));
+          continue;
+        }
       }
 
       return { ok: false, status: res.status };
