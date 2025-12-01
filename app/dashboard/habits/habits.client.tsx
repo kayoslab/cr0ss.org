@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Progress, Bars, Area, Scatter } from "@/components/dashboard/charts/shadcn-charts";
 
 type SleepCaffData = {
@@ -32,8 +33,44 @@ export default function HabitsClient({
   streaks,
   sleepPrevCaff,
 }: HabitsClientProps) {
+  // Check for milestone achievements
+  const milestoneStreaks = streaks ? Object.entries(streaks).filter(([_, data]) =>
+    data.current === 7 || data.current === 30 || data.current === 100
+  ) : [];
+
   return (
     <div className="space-y-6">
+      {/* Milestone Celebrations */}
+      {milestoneStreaks.length > 0 && (
+        <div className="space-y-3">
+          {milestoneStreaks.map(([habit, data]) => {
+            const isWeek = data.current === 7;
+            const isMonth = data.current === 30;
+            const is100Days = data.current === 100;
+
+            return (
+              <Alert key={habit} variant="default">
+                <AlertTitle className="flex items-center gap-2">
+                  {is100Days && "🎉"}
+                  {isMonth && "🎊"}
+                  {isWeek && "🔥"}
+                  {" "}
+                  {is100Days ? "Amazing! 100-Day Streak!" : isMonth ? "Fantastic! 30-Day Streak!" : "Great! Week Streak!"}
+                  <Badge variant={is100Days ? "success" : isMonth ? "primary" : "default"}>
+                    {habit.charAt(0).toUpperCase() + habit.slice(1)}
+                  </Badge>
+                </AlertTitle>
+                <AlertDescription>
+                  {is100Days && `Incredible dedication! You've maintained your ${habit} habit for 100 days straight. You're unstoppable!`}
+                  {isMonth && `Outstanding work! You've kept up your ${habit} habit for an entire month. Keep the momentum going!`}
+                  {isWeek && `You're on fire! You've maintained your ${habit} habit for a full week. Can you make it to 30 days?`}
+                </AlertDescription>
+              </Alert>
+            );
+          })}
+        </div>
+      )}
+
       {/* Habit Streaks Section */}
       {streaks && (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
