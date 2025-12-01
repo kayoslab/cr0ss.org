@@ -1,9 +1,9 @@
-export const runtime = "edge";
-
 import { kv } from "@vercel/kv";
 import { assertSecret } from '@/lib/auth/secret';
 import { revalidateDashboard } from '@/lib/cache/revalidate';
 import { apiSuccess, validationError } from '@/lib/api/responses';
+import { fetchWeather } from '@/lib/services/openweathermap';
+import { insertLocationHistory, getLatestLocation } from '@/lib/db/location';
 
 const LOCATION_KEY = 'GEOLOCATION';
 const LOCATION_THRESHOLD_KM = 150;
@@ -28,10 +28,16 @@ export async function POST(request: Request) {
 
     const currentLocation = { lat, lon };
 
+    // Fetch weather data for the current location
+    const weather = await fetchWeather(lat, lon);
+
+    // Always store location with weather in database for history
+    await insertLocationHistory(lat, lon, weather);
+
     if (!storedLocation) {
       await kv.set(LOCATION_KEY, currentLocation);
       revalidateDashboard();
-      return apiSuccess({ revalidated: true, now: Date.now() });
+      return apiSuccess({ revalidated: true, now: Date.now(), weather: weather ? 'fetched' : 'unavailable' });
     }
 
     const distance = distanceInKmBetweenEarthCoordinates(
@@ -44,10 +50,10 @@ export async function POST(request: Request) {
     if (distance > LOCATION_THRESHOLD_KM) {
       await kv.set(LOCATION_KEY, currentLocation);
       revalidateDashboard();
-      return apiSuccess({ revalidated: true, now: Date.now(), distance });
+      return apiSuccess({ revalidated: true, now: Date.now(), distance, weather: weather ? 'fetched' : 'unavailable' });
     }
 
-    return apiSuccess({ revalidated: false, now: Date.now(), distance });
+    return apiSuccess({ revalidated: false, now: Date.now(), distance, weather: weather ? 'fetched' : 'unavailable' });
   } catch (error) {
     // assertSecret throws a Response on auth failure
     if (error instanceof Response) {
