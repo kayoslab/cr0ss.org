@@ -166,14 +166,21 @@ export default async function DashboardPage() {
   }));
 
   // usage
+  console.error('[Dashboard] About to call jfetchServer');
   const apiRes = await jfetchServer<DashboardApi>("/api/dashboard");
+  console.error('[Dashboard] jfetchServer returned', { ok: apiRes.ok, status: 'status' in apiRes ? apiRes.status : 'N/A' });
+
   if (!apiRes.ok) {
-    console.error('[Dashboard] API fetch failed:', {
+    const errorDetails = {
       status: apiRes.status,
       hasSecret: !!process.env.DASHBOARD_API_SECRET,
+      secretPrefix: process.env.DASHBOARD_API_SECRET?.slice(0, 4),
+      secretSuffix: process.env.DASHBOARD_API_SECRET?.slice(-4),
       baseUrl: resolveBaseUrl(),
-    });
-    throw new Error(`Failed to load dashboard data (HTTP ${apiRes.status})`);
+      vercelUrl: process.env.VERCEL_URL,
+      timestamp: new Date().toISOString(),
+    };
+    throw new Error(`Failed to load dashboard data (HTTP ${apiRes.status}). Secret: ${errorDetails.hasSecret ? `${errorDetails.secretPrefix}...${errorDetails.secretSuffix}` : 'MISSING'}, BaseURL: ${errorDetails.baseUrl}`);
   }
   const api = apiRes.data;
 
