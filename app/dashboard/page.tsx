@@ -52,7 +52,22 @@ async function jfetchServer<T>(path: string, retries = 2): Promise<JRes<T>> {
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
+      console.log(`[Dashboard] Attempt ${attempt + 1}: Calling fetch with`, {
+        url,
+        method: 'GET',
+        hasHeaders: !!headers,
+        headerKeys: Array.from(headers.keys()),
+        secretHeaderValue: headers.get(SECRET_HEADER),
+      });
+
       const res = await fetch(url, { headers, cache: "no-store" });
+
+      console.log(`[Dashboard] Attempt ${attempt + 1}: Response received`, {
+        status: res.status,
+        statusText: res.statusText,
+        ok: res.ok,
+      });
+
       if (res.ok) {
         return { ok: true, data: (await res.json()) as T };
       }
@@ -65,6 +80,7 @@ async function jfetchServer<T>(path: string, retries = 2): Promise<JRes<T>> {
           hasSecret: !!secret,
           secretLength: secret?.length,
           errorBody,
+          responseHeaders: Array.from(res.headers.keys()),
         });
 
         if (attempt < retries) {
@@ -121,11 +137,17 @@ type DashboardApi = {
 };
 
 export default async function DashboardPage() {
+  // Early check - throw error with details if secret is missing
+  if (!process.env.DASHBOARD_API_SECRET) {
+    throw new Error(`DASHBOARD_API_SECRET is not defined. Available env vars: ${Object.keys(process.env).filter(k => k.includes('DASHBOARD') || k.includes('SECRET')).join(', ')}`);
+  }
+
   // Debug logging for Vercel
   console.log('[Dashboard] Environment check:', {
     hasPublicUrl: !!process.env.NEXT_PUBLIC_SITE_URL,
     hasVercelUrl: !!process.env.VERCEL_URL,
     hasDashboardSecret: !!process.env.DASHBOARD_API_SECRET,
+    secretLength: process.env.DASHBOARD_API_SECRET?.length,
     resolvedBase: resolveBaseUrl(),
   });
 
