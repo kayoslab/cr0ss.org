@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import Link from "next/link";
 import Section from "@/components/dashboard/section";
 import { Kpi } from "@/components/dashboard/kpi";
@@ -12,29 +12,10 @@ import {
   Progress,
   Panel,
   Scatter,
-} from "@/components/dashboard/charts/tremor-charts";
+} from "@/components/dashboard/charts/shadcn-charts";
 import MapClient, { TravelCountry } from "@/components/map.client";
 
-/** Make Tremor legends screen-reader friendly and keyboard sane */
-function LegendA11y() {
-  useEffect(() => {
-    const containers = document.querySelectorAll<HTMLElement>('[data-testid="tremor-legend"]');
-    containers.forEach((c) => {
-      // container should be a list
-      c.setAttribute("role", "list");
-      // each item should be a listitem; its icon is decorative
-      c.querySelectorAll("li").forEach((li) => {
-        li.setAttribute("role", "listitem");
-        const icon = li.querySelector("svg");
-        if (icon) {
-          icon.setAttribute("aria-hidden", "true");
-          icon.setAttribute("focusable", "false");
-        }
-      });
-    });
-  }, []);
-  return null;
-}
+// Removed LegendA11y - shadcn charts have proper accessibility built in
 
 type TravelProps = {
   totalCountries: number;
@@ -90,12 +71,10 @@ export default function DashboardClient({
 }) {
   return (
     <div className="space-y-10">
-      {/* run legend a11y upgrade once */}
-      <LegendA11y />
 
       {/* 1) Travel */}
       {travel && (
-      <Section id="travel" className="scroll-mt-20">
+      <Section title="Travel" id="travel" className="scroll-mt-20">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {/* Map card */}
           <div className="md:col-span-3">
@@ -139,7 +118,7 @@ export default function DashboardClient({
 
       {/* 2) Daily Rituals */}
       {rituals && (
-      <Section id="daily-rituals" className="scroll-mt-20">
+      <Section title="Daily Rituals" id="daily-rituals" className="scroll-mt-20">
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
           {rituals.progressToday.map((p) => (
             <Progress key={p.name} title={`${p.name} Goal Progress`} value={p.value} target={p.target} />
@@ -163,7 +142,7 @@ export default function DashboardClient({
 
       {/* 3) Morning Brew */}
       {morning && (
-      <Section id="morning-brew" className="scroll-mt-20">
+      <Section title="Morning Brew" id="morning-brew" className="scroll-mt-20">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <Kpi label="Cups Today" value={morning.cupsToday} />
           <Bars title="Brew methods today" items={morning.methodsBar} />
@@ -205,11 +184,12 @@ export default function DashboardClient({
 
       {/* 4) Workouts */}
       {(running || workouts) && (
-      <Section id="running-movement" className="scroll-mt-20">
+      <Section title="Running & Movement" id="running-movement" className="scroll-mt-20">
         {/* Heatmap first - shows all workout types */}
         <Panel title="Activity Heatmap">
           <div className="grid grid-cols-10 gap-1">
             {(() => {
+              if (!workouts) return null;
               const max = Math.max(1, ...workouts.heatmap.map((d) => d.duration_min));
               return workouts.heatmap.map(({ date, duration_min, workouts: dayWorkouts }, i) => {
                 const bg = duration_min === 0 ? "bg-neutral-700" : "bg-emerald-500";
@@ -252,7 +232,7 @@ export default function DashboardClient({
 
         {/* One KPI per workout type */}
         <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
-          {workouts.stats.map((stat) => {
+          {workouts?.stats.map((stat) => {
             const typeName = stat.workout_type.charAt(0).toUpperCase() + stat.workout_type.slice(1);
             return (
               <Kpi

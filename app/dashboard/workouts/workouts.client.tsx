@@ -4,7 +4,7 @@ import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Kpi } from "@/components/dashboard/kpi";
-import { Panel, Scatter } from "@/components/dashboard/charts/tremor-charts";
+import { Panel, Scatter } from "@/components/dashboard/charts/shadcn-charts";
 
 type WorkoutStats = {
   workout_type: string;

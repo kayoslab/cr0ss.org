@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Kpi } from "@/components/dashboard/kpi";
-import { Donut, Line, Bars } from "@/components/dashboard/charts/tremor-charts";
+import { Donut, Line, Bars } from "@/components/dashboard/charts/shadcn-charts";
 
 type CoffeeClientProps = {
   cupsToday: number;

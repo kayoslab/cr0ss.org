@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Badge } from "@/components/ui/badge";
-import { Progress, Bars, Area } from "@/components/dashboard/charts/tremor-charts";
+import { Progress, Bars, Area } from "@/components/dashboard/charts/shadcn-charts";
 
 type HabitsClientProps = {
   progressToday: { name: string; value: number; target: number }[];
