@@ -159,7 +159,7 @@ ALTER TABLE days ADD COLUMN IF NOT EXISTS coding_minutes INTEGER DEFAULT 0 CHECK
 
 **Environment Variables:**
 ```env
-OPENWEATHER_API_KEY=6996199716009c4646b0c0e706dac44d
+OPENWEATHER_API_KEY=xxxxx
 ```
 
 **New File: `lib/weather/openweathermap.ts`**

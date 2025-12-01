@@ -1,36 +1,13 @@
-import React from "react";
-import clsx from "clsx";
+import { cn } from "@/lib/utils"
 
-export function Skeleton({
-  className,
-}: {
-  className?: string;
-}) {
+function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      className={clsx(
-        "animate-pulse rounded-md bg-neutral-200/70",
-        className
-      )}
+      data-slot="skeleton"
+      className={cn("bg-accent animate-pulse rounded-md", className)}
+      {...props}
     />
-  );
+  )
 }
 
-export function SkeletonCard({
-  className,
-  children,
-}: {
-  className?: string;
-  children?: React.ReactNode;
-}) {
-  return (
-    <div
-      className={clsx(
-        "rounded-xl border border-neutral-200/60 shadow-sm p-4",
-        className
-      )}
-    >
-      {children}
-    </div>
-  );
-}
+export { Skeleton }

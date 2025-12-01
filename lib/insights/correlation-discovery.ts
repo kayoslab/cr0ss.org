@@ -93,6 +93,24 @@ export async function discoverCorrelations(
         continue;
       }
 
+      // Skip obvious/trivial correlations that are directly related
+      const obviousCorrelations = [
+        ["totalCaffeineMg", "coffeeCount"], // Caffeine is calculated from coffee
+        ["runDistanceKm", "runDurationMin"], // Distance and duration are directly related
+        ["outdoorMinutes", "runDurationMin"], // Running is outdoor activity
+        ["outdoorMinutes", "runDistanceKm"], // Running is outdoor activity
+      ];
+
+      const isObvious = obviousCorrelations.some(
+        ([a, b]) =>
+          (metricA.key === a && metricB.key === b) ||
+          (metricA.key === b && metricB.key === a)
+      );
+
+      if (isObvious) {
+        continue;
+      }
+
       const { values: valuesA } = extractMetricValues(
         dailyMetrics,
         metricA.key

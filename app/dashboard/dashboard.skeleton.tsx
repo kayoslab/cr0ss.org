@@ -1,7 +1,16 @@
 "use client";
 
 import React from "react";
-import { Skeleton, SkeletonCard } from "@/components/ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Simple card wrapper for skeleton content
+function SkeletonCard({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="rounded-lg border bg-card p-6">
+      {children}
+    </div>
+  );
+}
 
 // Small helper that mimics your Section header styling
 function Header({ children }: { children: React.ReactNode }) {
@@ -28,8 +37,7 @@ export default function DashboardSkeleton() {
 
       {/* 1) Travel */}
       <section aria-busy="true" aria-live="polite">
-        <Header>1. Travel</Header>
-        <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div className="md:col-span-3">
             <SkeletonCard>
               <Skeleton className="h-[220px] w-full md:h-[320px]" />
@@ -61,8 +69,7 @@ export default function DashboardSkeleton() {
 
       {/* 3) Daily Rituals */}
       <section aria-busy="true">
-        <Header>3. Daily Rituals</Header>
-        <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <SkeletonCard key={i}>
               <Skeleton className="h-6 w-40 mb-3" />
@@ -88,8 +95,7 @@ export default function DashboardSkeleton() {
 
       {/* 3) Morning Brew */}
       <section aria-busy="true">
-        <Header>3. Morning Brew</Header>
-        <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <SkeletonCard>
             <Skeleton className="h-6 w-28 mb-3" />
             <Skeleton className="h-10 w-24" />
@@ -118,8 +124,7 @@ export default function DashboardSkeleton() {
 
       {/* 5) Running & Movement */}
       <section aria-busy="true">
-        <Header>4. Workout</Header>
-        <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
             <SkeletonCard key={i}>
               <Skeleton className="h-6 w-36 mb-3" />
