@@ -27,14 +27,26 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { Progress as ProgressBar } from "@/components/ui/progress";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
-/** Panel matches the existing Panel component from tremor-charts */
+/** Panel wrapper using shadcn Card components */
 export function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-lg border border-neutral-200/60 shadow-sm p-4 h-full">
-      <div className="uppercase tracking-wider text-neutral-400 text-xs mb-3">{title}</div>
-      {children}
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="pb-4">
+        {children}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -450,7 +462,7 @@ export function Bars({
         <BarChart
           data={items}
           layout="vertical"
-          margin={{ top: 5, right: 10, left: 10, bottom: 5 }}
+          margin={{ top: 5, right: 5, left: 0, bottom: 5 }}
         >
           <XAxis type="number" hide />
           <YAxis
@@ -458,9 +470,9 @@ export function Bars({
             type="category"
             tickLine={false}
             axisLine={false}
-            tickMargin={8}
+            tickMargin={4}
             className="text-xs"
-            width={80}
+            width={100}
           />
           <ChartTooltip content={<ChartTooltipContent />} />
           <Bar dataKey="value" fill={getChartColor("emerald")} radius={4} />

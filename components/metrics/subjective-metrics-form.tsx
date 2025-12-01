@@ -7,7 +7,7 @@
  */
 
 import { useState } from "react";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -81,7 +81,7 @@ export function SubjectiveMetricsForm({ date, onSuccess }: SubjectiveMetricsForm
           How are you feeling today? (1-10 scale)
         </p>
       </CardHeader>
-      <CardBody>
+      <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             {/* Mood */}
@@ -185,7 +185,7 @@ export function SubjectiveMetricsForm({ date, onSuccess }: SubjectiveMetricsForm
             {isSubmitting ? "Saving..." : "Save Metrics"}
           </Button>
         </form>
-      </CardBody>
+      </CardContent>
     </Card>
   );
 }

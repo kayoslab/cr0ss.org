@@ -2,7 +2,14 @@
 
 import React from "react";
 import { Badge } from "@/components/ui/badge";
-import { Progress, Bars, Area } from "@/components/dashboard/charts/shadcn-charts";
+import { Progress, Bars, Area, Scatter } from "@/components/dashboard/charts/shadcn-charts";
+
+type SleepCaffData = {
+  date: string;
+  sleep_score: number;
+  prev_caffeine_mg: number;
+  prev_day_workout: boolean;
+};
 
 type HabitsClientProps = {
   progressToday: { name: string; value: number; target: number }[];
@@ -15,6 +22,7 @@ type HabitsClientProps = {
     coding: { current: number; longest: number };
     steps: { current: number; longest: number };
   };
+  sleepPrevCaff: SleepCaffData[];
 };
 
 export default function HabitsClient({
@@ -22,6 +30,7 @@ export default function HabitsClient({
   consistencyBars,
   rhythmTrend,
   streaks,
+  sleepPrevCaff,
 }: HabitsClientProps) {
   return (
     <div className="space-y-6">
@@ -82,6 +91,29 @@ export default function HabitsClient({
             categories={["Writing (min)", "Focus (min)"]}
             colors={["sky", "rose"]}
           />
+        </div>
+      </div>
+
+      {/* Sleep Quality: Caffeine & Workout Impact */}
+      <div className="grid grid-cols-1 gap-4">
+        <div>
+          <Scatter
+            title="Sleep Quality: Caffeine & Workout Impact"
+            data={sleepPrevCaff.map(p => ({
+              date: p.date,
+              sleep_score: p.sleep_score,
+              prev_caffeine_mg: p.prev_caffeine_mg,
+              category: p.prev_day_workout ? "Workout day before" : "No workout day before"
+            }))}
+            x="prev_caffeine_mg"
+            y="sleep_score"
+            groupField="category"
+            colors={["emerald", "violet"]}
+          />
+          <p className="mt-2 text-xs text-neutral-500">
+            Each dot is a day — X: Estimated remaining caffeine (mg) at the end of the day before. Y: sleep score.
+            Green dots: no workout day before. Purple dots: workout day before.
+          </p>
         </div>
       </div>
     </div>

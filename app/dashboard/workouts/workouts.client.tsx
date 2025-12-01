@@ -4,7 +4,7 @@ import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Kpi } from "@/components/dashboard/kpi";
-import { Panel, Scatter } from "@/components/dashboard/charts/shadcn-charts";
+import { Panel } from "@/components/dashboard/charts/shadcn-charts";
 
 type WorkoutStats = {
   workout_type: string;
@@ -19,18 +19,10 @@ type WorkoutHeatmapDay = {
   workouts: { type: string; duration_min: number }[];
 };
 
-type SleepCaffData = {
-  date: string;
-  sleep_score: number;
-  prev_caffeine_mg: number;
-  prev_day_workout: boolean;
-};
-
 type WorkoutsClientProps = {
   workoutTypes: string[];
   workoutStats: WorkoutStats[];
   workoutHeatmap: WorkoutHeatmapDay[];
-  sleepPrevCaff: SleepCaffData[];
   currentStreak?: number;
   longestStreak?: number;
   personalRecords?: {
@@ -44,7 +36,6 @@ export default function WorkoutsClient({
   workoutTypes,
   workoutStats,
   workoutHeatmap,
-  sleepPrevCaff,
   currentStreak = 0,
   longestStreak = 0,
   personalRecords,
@@ -213,29 +204,6 @@ export default function WorkoutsClient({
           );
         })}
       </Tabs>
-
-      {/* Sleep/Caffeine/Workout Correlation - Always show for all workouts */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div className="md:col-span-2">
-          <Scatter
-            title="Caffeine & Workouts and their effect on sleep score"
-            data={sleepPrevCaff.map(p => ({
-              date: p.date,
-              sleep_score: p.sleep_score,
-              prev_caffeine_mg: p.prev_caffeine_mg,
-              category: p.prev_day_workout ? "Workout day before" : "No workout day before"
-            }))}
-            x="prev_caffeine_mg"
-            y="sleep_score"
-            groupField="category"
-            colors={["emerald", "violet"]}
-          />
-          <p className="mt-2 text-xs text-neutral-500">
-            Each dot is a day — X: Estimated remaining caffeine (mg) at the end of the day before. Y: sleep score.
-            Green dots: no workout day before. Purple dots: workout day before.
-          </p>
-        </div>
-      </div>
     </div>
   );
 }

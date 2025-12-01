@@ -7,7 +7,7 @@
 
 import { Suspense } from "react";
 import { InsightsList } from "@/components/insights/insights-list";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const metadata = {
@@ -27,15 +27,15 @@ function InsightsLoading() {
 
 export default function InsightsPage() {
   return (
-    <div className="container mx-auto py-8 px-4 max-w-6xl">
+    <div className="w-full max-w-7xl mx-auto space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight">Insights</h2>
+        <p className="text-muted-foreground">
+          Discover statistically significant correlations in your quantified self data
+        </p>
+      </div>
+
       <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Insights</h1>
-          <p className="text-muted-foreground mt-2">
-            Discover statistically significant correlations in your quantified self data
-          </p>
-        </div>
 
         {/* Info Card */}
         <Card>
@@ -45,7 +45,7 @@ export default function InsightsPage() {
               This correlation engine analyzes your daily metrics to find meaningful patterns.
             </p>
           </CardHeader>
-          <CardBody className="space-y-2 text-sm">
+          <CardContent className="space-y-2 text-sm">
             <p>
               <strong>Statistical Analysis:</strong> Uses Pearson correlation coefficient (r)
               to measure the strength and direction of relationships between metrics.
@@ -62,7 +62,7 @@ export default function InsightsPage() {
               Correlation does not imply causation. These insights show <em>associations</em>
               between metrics, not cause-and-effect relationships.
             </p>
-          </CardBody>
+          </CardContent>
         </Card>
 
         {/* Insights List */}

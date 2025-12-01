@@ -102,7 +102,6 @@ export default async function WorkoutsPage() {
         workoutTypes={api.workoutTypes}
         workoutStats={api.workoutStats}
         workoutHeatmap={api.workoutHeatmap}
-        sleepPrevCaff={api.sleepPrevCaff}
         currentStreak={streaks.current}
         longestStreak={streaks.longest}
         personalRecords={personalRecords}
