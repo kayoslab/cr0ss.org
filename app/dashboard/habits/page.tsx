@@ -1,6 +1,6 @@
 import React from "react";
 import { SECRET_HEADER } from "@/lib/auth/constants";
-import DashboardClient from "../dashboard.client";
+import HabitsClient from "./habits.client";
 
 // fetch settings
 export const dynamic = "force-dynamic";
@@ -70,39 +70,48 @@ export default async function HabitsPage() {
     focus_minutes: 0,
   };
 
-  const rituals = {
-    progressToday: [
-      {
-        name: "Steps",
-        value: api.habitsToday.steps,
-        target: goals.steps
-      }, {
-        name: "Reading",
-        value: api.habitsToday.reading_minutes,
-        target: goals.reading_minutes
-      }, {
-        name: "Outdoor",
-        value: api.habitsToday.outdoor_minutes,
-        target: goals.outdoor_minutes
-      }, {
-        name: "Writing",
-        value: api.habitsToday.writing_minutes,
-        target: goals.writing_minutes
-      }, {
-        name: "Coding",
-        value: api.habitsToday.coding_minutes,
-        target: goals.coding_minutes
-      },
-    ],
-    consistencyBars: api.habitsConsistency.map((r) => ({
-      name: r.name,
-      value: Math.round((r.kept / Math.max(1, r.total)) * 100),
-    })),
-    rhythmTrend: api.writingVsFocus.map((d) => ({
-      date: d.date,
-      "Writing (min)": d.writing_minutes,
-      "Focus (min)": d.focus_minutes,
-    })),
+  const progressToday = [
+    {
+      name: "Steps",
+      value: api.habitsToday.steps,
+      target: goals.steps
+    }, {
+      name: "Reading",
+      value: api.habitsToday.reading_minutes,
+      target: goals.reading_minutes
+    }, {
+      name: "Outdoor",
+      value: api.habitsToday.outdoor_minutes,
+      target: goals.outdoor_minutes
+    }, {
+      name: "Writing",
+      value: api.habitsToday.writing_minutes,
+      target: goals.writing_minutes
+    }, {
+      name: "Coding",
+      value: api.habitsToday.coding_minutes,
+      target: goals.coding_minutes
+    },
+  ];
+
+  const consistencyBars = api.habitsConsistency.map((r) => ({
+    name: r.name,
+    value: Math.round((r.kept / Math.max(1, r.total)) * 100),
+  }));
+
+  const rhythmTrend = api.writingVsFocus.map((d) => ({
+    date: d.date,
+    "Writing (min)": d.writing_minutes,
+    "Focus (min)": d.focus_minutes,
+  }));
+
+  // Calculate habit streaks (simplified - mock data for now)
+  const streaks = {
+    reading: { current: 5, longest: 12 },
+    outdoor: { current: 3, longest: 8 },
+    writing: { current: 7, longest: 15 },
+    coding: { current: 0, longest: 10 },
+    steps: { current: 14, longest: 21 },
   };
 
   return (
@@ -110,17 +119,15 @@ export default async function HabitsPage() {
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Habits & Productivity</h2>
         <p className="text-muted-foreground">
-          Track your daily habits, productivity metrics, and reading/writing/coding time.
+          Track your daily habits, productivity metrics, streaks, and consistency.
         </p>
       </div>
 
-      <DashboardClient
-        travel={null}
-        morning={null}
-        rituals={rituals}
-        running={null}
-        workouts={null}
-        sleepPrevCaff={[]}
+      <HabitsClient
+        progressToday={progressToday}
+        consistencyBars={consistencyBars}
+        rhythmTrend={rhythmTrend}
+        streaks={streaks}
       />
     </div>
   );
