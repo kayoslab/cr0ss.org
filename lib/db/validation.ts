@@ -95,6 +95,17 @@ export const ZGoal = z.object({
   target: z.coerce.number().min(0),
 });
 
+export const ZSubjectiveMetrics = z.object({
+  date: z.coerce.date(),
+  mood: z.coerce.number().int().min(1).max(10).optional(),
+  energy: z.coerce.number().int().min(1).max(10).optional(),
+  stress: z.coerce.number().int().min(1).max(10).optional(),
+  focus_quality: z.coerce.number().int().min(1).max(10).optional(),
+  notes: z.string().optional(),
+});
+
+export type SubjectiveMetrics = z.infer<typeof ZSubjectiveMetrics>;
+
 export const ZBodyProfileRow = z.object({
   id: z.number().int(),
   measured_at: z.string(),
