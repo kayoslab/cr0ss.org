@@ -252,6 +252,117 @@ function classifyStrength(
 }
 
 /**
+ * Calculate point-biserial correlation between a binary variable and a continuous variable
+ * This is used to correlate boolean events (e.g., "did workout") with continuous metrics (e.g., caffeine intake)
+ *
+ * Point-biserial correlation is mathematically equivalent to Pearson correlation
+ * when one variable is dichotomous (0/1).
+ *
+ * @param binary Binary variable values (boolean or 0/1)
+ * @param continuous Continuous variable values
+ * @returns Correlation result with r, p-value, and interpretation
+ */
+export function calculatePointBiserialCorrelation(
+  binary: (boolean | number)[],
+  continuous: number[]
+): CorrelationResult {
+  if (binary.length !== continuous.length) {
+    throw new Error("Arrays must have equal length");
+  }
+
+  const n = binary.length;
+
+  if (n < 3) {
+    return {
+      r: 0,
+      pValue: 1,
+      n,
+      confidence: "none",
+      strength: "none",
+    };
+  }
+
+  // Convert binary to 0/1 if boolean
+  const binaryNumeric = binary.map(v => typeof v === 'boolean' ? (v ? 1 : 0) : v);
+
+  // Check if binary variable has both values (need variation)
+  const uniqueValues = new Set(binaryNumeric);
+  if (uniqueValues.size < 2) {
+    // No variation in binary variable
+    return {
+      r: 0,
+      pValue: 1,
+      n,
+      confidence: "none",
+      strength: "none",
+    };
+  }
+
+  // Separate continuous values by binary group
+  const group0: number[] = [];
+  const group1: number[] = [];
+
+  for (let i = 0; i < n; i++) {
+    if (binaryNumeric[i] === 0) {
+      group0.push(continuous[i]);
+    } else {
+      group1.push(continuous[i]);
+    }
+  }
+
+  const n0 = group0.length;
+  const n1 = group1.length;
+
+  if (n0 === 0 || n1 === 0) {
+    return {
+      r: 0,
+      pValue: 1,
+      n,
+      confidence: "none",
+      strength: "none",
+    };
+  }
+
+  // Calculate means
+  const mean0 = mean(group0);
+  const mean1 = mean(group1);
+  const meanTotal = mean(continuous);
+
+  // Calculate standard deviation of continuous variable
+  const variance = continuous.reduce((sum, val) => sum + Math.pow(val - meanTotal, 2), 0) / n;
+  const sd = Math.sqrt(variance);
+
+  if (sd === 0) {
+    // No variance in continuous variable
+    return {
+      r: 0,
+      pValue: 1,
+      n,
+      confidence: "none",
+      strength: "none",
+    };
+  }
+
+  // Calculate point-biserial correlation coefficient
+  // r_pb = (M1 - M0) / S * sqrt(p * q)
+  // where p = n1/n, q = n0/n
+  const p = n1 / n;
+  const q = n0 / n;
+  const r = ((mean1 - mean0) / sd) * Math.sqrt(p * q);
+
+  // Calculate p-value using t-distribution (same as Pearson)
+  const pValue = calculatePValue(r, n);
+
+  return {
+    r,
+    pValue,
+    n,
+    confidence: classifyConfidence(pValue),
+    strength: classifyStrength(r),
+  };
+}
+
+/**
  * Helper function to check if correlation is statistically significant
  */
 export function isSignificant(result: CorrelationResult): boolean {

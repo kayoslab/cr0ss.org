@@ -594,3 +594,218 @@ export async function qWorkoutStatsByType(workoutType: string, days = 42) {
     total_distance_km: Number(r.total_distance_km),
   };
 }
+
+/**
+ * Calculate habit streaks for all tracked habits
+ * Returns current and longest streaks for each habit
+ */
+export async function qHabitStreaks() {
+  // Get the last 365 days of data to calculate streaks
+  const rows = await sql/*sql*/`
+    select
+      date,
+      steps,
+      reading_minutes,
+      outdoor_minutes,
+      writing_minutes,
+      coding_minutes
+    from days
+    where date >= current_date - interval '365 days'
+    order by date desc
+  `;
+
+  interface HabitRow {
+    date: Date;
+    steps: number | null;
+    reading_minutes: number | null;
+    outdoor_minutes: number | null;
+    writing_minutes: number | null;
+    coding_minutes: number | null;
+  }
+
+  // Define thresholds for each habit
+  const thresholds = {
+    steps: 8000,
+    reading: 30,
+    outdoor: 30,
+    writing: 30,
+    coding: 30,
+  };
+
+  const calculateStreak = (data: boolean[]) => {
+    let current = 0;
+    let longest = 0;
+    let streak = 0;
+
+    for (let i = 0; i < data.length; i++) {
+      if (data[i]) {
+        streak++;
+        if (i === 0) current = streak; // First day is today
+        longest = Math.max(longest, streak);
+      } else {
+        if (i === 0) current = 0; // Broke streak today
+        streak = 0;
+      }
+    }
+
+    return { current, longest };
+  };
+
+  const habitData = rows.map(r => r as HabitRow);
+
+  return {
+    reading: calculateStreak(habitData.map(d => (d.reading_minutes || 0) >= thresholds.reading)),
+    outdoor: calculateStreak(habitData.map(d => (d.outdoor_minutes || 0) >= thresholds.outdoor)),
+    writing: calculateStreak(habitData.map(d => (d.writing_minutes || 0) >= thresholds.writing)),
+    coding: calculateStreak(habitData.map(d => (d.coding_minutes || 0) >= thresholds.coding)),
+    steps: calculateStreak(habitData.map(d => (d.steps || 0) >= thresholds.steps)),
+  };
+}
+
+/**
+ * Calculate workout streaks
+ * Returns current and longest streaks for workouts
+ */
+export async function qWorkoutStreaks(days = 365) {
+  const start = new Date();
+  start.setUTCHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - (days - 1));
+  const startStr = start.toISOString().slice(0, 10);
+
+  // Get all dates with workouts
+  const rows = await sql/*sql*/`
+    select date, sum(duration_min)::int as total_duration
+    from workouts
+    where date >= ${startStr}::date
+    group by date
+    order by date desc
+  `;
+
+  interface WorkoutRow {
+    date: Date;
+    total_duration: number;
+  }
+
+  const workoutDates = new Set(rows.map(r => (r as WorkoutRow).date.toISOString().slice(0, 10)));
+
+  // Generate all dates in range
+  const allDates: string[] = [];
+  for (let i = 0; i < days; i++) {
+    const d = new Date();
+    d.setUTCHours(0, 0, 0, 0);
+    d.setDate(d.getDate() - i);
+    allDates.push(d.toISOString().slice(0, 10));
+  }
+
+  let current = 0;
+  let longest = 0;
+  let streak = 0;
+
+  for (let i = 0; i < allDates.length; i++) {
+    if (workoutDates.has(allDates[i])) {
+      streak++;
+      if (i === 0) current = streak;
+      longest = Math.max(longest, streak);
+    } else {
+      if (i === 0) current = 0;
+      streak = 0;
+    }
+  }
+
+  return { current, longest };
+}
+
+/**
+ * Get personal records for running
+ * Returns longest run, fastest pace, and most recent achievements
+ */
+export async function qRunningPersonalRecords() {
+  // Get all running workouts with distance and duration
+  const rows = await sql/*sql*/`
+    select
+      date,
+      duration_min,
+      (details->>'distance_km')::numeric as distance_km,
+      (details->>'avg_pace_sec_per_km')::numeric as avg_pace_sec_per_km
+    from workouts
+    where workout_type = 'running'
+      and details->>'distance_km' is not null
+      and (details->>'distance_km')::numeric > 0
+    order by date desc
+  `;
+
+  interface RunningRow {
+    date: Date;
+    duration_min: number;
+    distance_km: number;
+    avg_pace_sec_per_km: number | null;
+  }
+
+  if (rows.length === 0) {
+    return null;
+  }
+
+  const runs = rows.map(r => r as RunningRow);
+
+  // Find longest run
+  const longestRun = runs.reduce((max, run) =>
+    run.distance_km > max.distance_km ? run : max
+  );
+
+  // Find fastest pace (lowest sec/km)
+  const runsWithPace = runs.filter(r => r.avg_pace_sec_per_km && r.avg_pace_sec_per_km > 0);
+  const fastestPace = runsWithPace.length > 0
+    ? runsWithPace.reduce((min, run) =>
+        run.avg_pace_sec_per_km! < min.avg_pace_sec_per_km! ? run : min
+      )
+    : null;
+
+  return {
+    longestRun: {
+      distance_km: Number(longestRun.distance_km),
+      date: longestRun.date.toISOString().slice(0, 10),
+      duration_min: Number(longestRun.duration_min),
+    },
+    fastestPace: fastestPace ? {
+      pace_min_per_km: Number(fastestPace.avg_pace_sec_per_km) / 60,
+      pace_sec_per_km: Number(fastestPace.avg_pace_sec_per_km),
+      date: fastestPace.date.toISOString().slice(0, 10),
+      distance_km: Number(fastestPace.distance_km),
+    } : null,
+  };
+}
+
+/**
+ * Get coffee consumption patterns by day of week
+ * Shows which days you drink the most coffee
+ */
+export async function qCoffeeWeeklyRhythm(weeks = 12) {
+  const rows = await sql/*sql*/`
+    select
+      extract(dow from date)::int as day_of_week,
+      count(*)::int as cup_count,
+      avg(extract(hour from time))::numeric as avg_hour
+    from coffee_log
+    where date >= current_date - interval '1 week' * ${weeks}
+    group by day_of_week
+    order by day_of_week
+  `;
+
+  interface RhythmRow {
+    day_of_week: number; // 0 = Sunday, 6 = Saturday
+    cup_count: number;
+    avg_hour: number;
+  }
+
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+  return rows.map(r => {
+    const row = r as RhythmRow;
+    return {
+      day: dayNames[row.day_of_week],
+      day_num: row.day_of_week,
+      cups: Number(row.cup_count),
+      avg_hour: Number(row.avg_hour).toFixed(1),
+    };
+  });
+}
