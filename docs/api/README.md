@@ -51,7 +51,7 @@ npx @redocly/cli preview-docs openapi.yaml
 
 Most endpoints require the `X-Secret` header:
 ```bash
-curl -H "X-Secret: your-secret-token" https://cr0ss.org/api/dashboard
+curl -H "X-Secret: your-secret-token" https://cr0ss.org/api/habits/coffee
 ```
 
 Public endpoints (no auth required):
@@ -69,7 +69,6 @@ Public endpoints (no auth required):
 | Habits (coffee, workouts, goals) | 30 requests | 60 seconds |
 | Revalidation | 5 requests | 5 minutes |
 | Location | 10 requests | 60 seconds |
-| Dashboard | 10 requests | 60 seconds |
 
 When rate limited, the `Retry-After` header indicates seconds until retry.
 
@@ -95,12 +94,8 @@ When rate limited, the `Retry-After` header indicates seconds until retry.
 - `GET /featured-posts` - Get trending/recent posts
 - `POST /revalidate` - Trigger cache revalidation
 
-### 📈 Dashboard
-- `GET /dashboard` - Comprehensive analytics data
-
 ### 📍 Location
 - `POST /location` - Update location
-- `POST /location/clear` - Clear location
 
 ### 🔐 Auth
 - `GET /auth/check` - Verify authentication
@@ -158,11 +153,6 @@ curl -X POST https://cr0ss.org/api/habits/goal \
   }'
 ```
 
-### Get Dashboard Data
-```bash
-curl -H "X-Secret: your-secret" https://cr0ss.org/api/dashboard
-```
-
 ## Error Handling
 
 All endpoints return errors in a consistent format:
@@ -188,9 +178,8 @@ The API uses Zod schemas for validation. See the OpenAPI spec for detailed field
 
 ## Caching
 
-- **Dashboard data**: Cached for 5 minutes
 - **Featured posts**: Cached with CDN (3600s max-age, 7200s stale-while-revalidate)
-- **Coffee data**: NOT cached (real-time)
+- **Habit data**: NOT cached (real-time)
 
 ## Contributing
 

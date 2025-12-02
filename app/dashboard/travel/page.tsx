@@ -1,7 +1,7 @@
 import React from "react";
-import { kv } from "@vercel/kv";
 import { getAllCountries, getVisitedCountries } from "@/lib/contentful/api/country";
 import { CountryProps } from "@/lib/contentful/api/props/country";
+import { getCurrentLocation } from "@/lib/db/location";
 import TravelClient from "./travel.client";
 
 // Use edge runtime to match other dashboard pages
@@ -17,11 +17,11 @@ export const metadata = {
 };
 
 export default async function TravelPage() {
-  // live location (KV)
-  const storedLocation = await kv.get<{ lat: number; lon: number }>("GEOLOCATION");
-  const lat = storedLocation?.lat ?? 0;
-  const lon = storedLocation?.lon ?? 0;
-  const hasLocation = storedLocation != null;
+  // Get current location from database view
+  const currentLocation = await getCurrentLocation();
+  const lat = currentLocation?.latitude ?? 0;
+  const lon = currentLocation?.longitude ?? 0;
+  const hasLocation = currentLocation != null;
 
   // Contentful
   const [countries = [], visited = []] = await Promise.all([getAllCountries(), getVisitedCountries(true)]);

@@ -428,29 +428,6 @@ paths:
         '429':
           $ref: '#/components/responses/RateLimitError'
 
-  /dashboard:
-    get:
-      tags: [Dashboard]
-      summary: Get dashboard data
-      description: |
-        Retrieve comprehensive dashboard data including habits, coffee, workouts, and analytics.
-        Most data is cached for 5 minutes.
-
-        **Rate Limit:** 10 requests per 60 seconds
-      responses:
-        '200':
-          description: Dashboard data
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Dashboard'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '429':
-          $ref: '#/components/responses/RateLimitError'
-        '500':
-          $ref: '#/components/responses/ServerError'
-
   /featured-posts:
     get:
       tags: [Content]
@@ -506,29 +483,6 @@ paths:
       responses:
         '200':
           description: Location updated successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  ok:
-                    type: boolean
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '429':
-          $ref: '#/components/responses/RateLimitError'
-
-  /location/clear:
-    post:
-      tags: [Location]
-      summary: Clear location data
-      description: |
-        Clear stored location data.
-
-        **Rate Limit:** 10 requests per 60 seconds
-      responses:
-        '200':
-          description: Location cleared successfully
           content:
             application/json:
               schema:
@@ -881,33 +835,6 @@ components:
         bioavailability:
           type: number
           format: double
-
-    Dashboard:
-      type: object
-      description: Comprehensive dashboard data (schema simplified for brevity)
-      properties:
-        cupsToday:
-          type: integer
-        brewMethodsToday:
-          type: object
-          additionalProperties:
-            type: integer
-        coffeeOriginThisWeek:
-          type: object
-          additionalProperties:
-            type: integer
-        habitsToday:
-          type: object
-        habitsConsistency:
-          type: array
-          items:
-            type: object
-        caffeineSeries:
-          type: array
-          items:
-            type: object
-        monthlyGoals:
-          $ref: '#/components/schemas/MonthlyGoals'
 
     BlogPost:
       type: object
