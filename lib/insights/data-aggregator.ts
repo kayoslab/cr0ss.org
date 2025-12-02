@@ -42,6 +42,14 @@ export interface DailyMetrics {
   energy: number | null;
   stress: number | null;
   focusQuality: number | null;
+
+  // Lagged metrics (previous day values) for correlation analysis
+  prevDayWorkout: boolean | null; // Did workout yesterday
+  prevDayWorkoutDuration: number | null; // Workout duration yesterday
+  prevDayRunning: boolean | null; // Ran yesterday
+  prevDayRunDistance: number | null; // Running distance yesterday
+  prevDaySleepScore: number | null; // Sleep score yesterday
+  prevDayCoffeeCount: number | null; // Coffee cups yesterday
 }
 
 export interface MetricDefinition {
@@ -74,6 +82,13 @@ export const AVAILABLE_METRICS: MetricDefinition[] = [
   { key: "energy", label: "Energy", description: "Daily energy level (1-10)", unit: "score" },
   { key: "stress", label: "Stress", description: "Daily stress level (1-10)", unit: "score" },
   { key: "focusQuality", label: "Focus Quality", description: "Subjective focus quality (1-10)", unit: "score" },
+  // Lagged metrics for cross-day correlations
+  { key: "prevDayWorkout", label: "Previous Day Workout", description: "Whether you worked out yesterday", unit: "boolean" },
+  { key: "prevDayWorkoutDuration", label: "Previous Day Workout Duration", description: "Workout duration yesterday", unit: "minutes" },
+  { key: "prevDayRunning", label: "Previous Day Running", description: "Whether you ran yesterday", unit: "boolean" },
+  { key: "prevDayRunDistance", label: "Previous Day Run Distance", description: "Running distance yesterday", unit: "km" },
+  { key: "prevDaySleepScore", label: "Previous Day Sleep", description: "Sleep score yesterday", unit: "points" },
+  { key: "prevDayCoffeeCount", label: "Previous Day Coffee", description: "Coffee cups yesterday", unit: "cups" },
 ];
 
 /**
@@ -187,7 +202,14 @@ export async function fetchDailyMetrics(
       sm.mood,
       sm.energy,
       sm.stress,
-      sm.focus_quality
+      sm.focus_quality,
+      -- Lagged metrics (previous day values using LAG window function)
+      LAG(CASE WHEN w.workout_count > 0 THEN true ELSE false END) OVER (ORDER BY dr.date) as prev_day_workout,
+      LAG(w.workout_duration_min) OVER (ORDER BY dr.date) as prev_day_workout_duration,
+      LAG(CASE WHEN ru.run_duration_min > 0 THEN true ELSE false END) OVER (ORDER BY dr.date) as prev_day_running,
+      LAG(ru.run_distance_km) OVER (ORDER BY dr.date) as prev_day_run_distance,
+      LAG(d.sleep_score) OVER (ORDER BY dr.date) as prev_day_sleep_score,
+      LAG(c.coffee_count) OVER (ORDER BY dr.date) as prev_day_coffee_count
     FROM date_range dr
     LEFT JOIN days d ON d.date = dr.date
     LEFT JOIN coffee_daily c ON c.date = dr.date
@@ -219,6 +241,12 @@ export async function fetchDailyMetrics(
     energy: number | null;
     stress: number | null;
     focus_quality: number | null;
+    prev_day_workout: boolean | null;
+    prev_day_workout_duration: number | null;
+    prev_day_running: boolean | null;
+    prev_day_run_distance: number | null;
+    prev_day_sleep_score: number | null;
+    prev_day_coffee_count: number | null;
   }
 
   return rows.map((row) => {
@@ -244,6 +272,13 @@ export async function fetchDailyMetrics(
       energy: r.energy,
       stress: r.stress,
       focusQuality: r.focus_quality,
+      // Lagged metrics
+      prevDayWorkout: r.prev_day_workout,
+      prevDayWorkoutDuration: r.prev_day_workout_duration ? Number(r.prev_day_workout_duration) : null,
+      prevDayRunning: r.prev_day_running,
+      prevDayRunDistance: r.prev_day_run_distance ? Number(r.prev_day_run_distance) : null,
+      prevDaySleepScore: r.prev_day_sleep_score,
+      prevDayCoffeeCount: Number(r.prev_day_coffee_count) || null,
     };
   });
 }

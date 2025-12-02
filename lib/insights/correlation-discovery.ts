@@ -15,6 +15,7 @@ import {
 } from "./data-aggregator";
 import {
   calculatePearsonCorrelation,
+  calculatePointBiserialCorrelation,
   type CorrelationResult,
 } from "../stats/correlation";
 
@@ -88,8 +89,13 @@ export async function discoverCorrelations(
       const metricA = metricsToTest[i];
       const metricB = metricsToTest[j];
 
-      // Skip boolean metrics (like sunnyDay) for Pearson correlation
-      if (metricA.unit === "boolean" || metricB.unit === "boolean") {
+      // Determine if we have a binary×continuous pair (use point-biserial)
+      // or continuous×continuous pair (use Pearson)
+      const aIsBoolean = metricA.unit === "boolean";
+      const bIsBoolean = metricB.unit === "boolean";
+
+      // Skip if both are boolean (no meaningful correlation)
+      if (aIsBoolean && bIsBoolean) {
         continue;
       }
 
@@ -99,6 +105,9 @@ export async function discoverCorrelations(
         ["runDistanceKm", "runDurationMin"], // Distance and duration are directly related
         ["outdoorMinutes", "runDurationMin"], // Running is outdoor activity
         ["outdoorMinutes", "runDistanceKm"], // Running is outdoor activity
+        ["workoutCount", "workoutDurationMin"], // Duration depends on count
+        ["prevDayWorkout", "prevDayWorkoutDuration"], // Workout implies duration
+        ["prevDayRunning", "prevDayRunDistance"], // Running implies distance
       ];
 
       const isObvious = obviousCorrelations.some(
@@ -111,17 +120,8 @@ export async function discoverCorrelations(
         continue;
       }
 
-      const { values: valuesA } = extractMetricValues(
-        dailyMetrics,
-        metricA.key
-      );
-      const { values: valuesB } = extractMetricValues(
-        dailyMetrics,
-        metricB.key
-      );
-
-      // Need matching dates for correlation
-      const alignedData = alignMetricsByDate(
+      // Align data by date, handling both numeric and boolean values
+      const alignedData = alignMetricsByDateFlexible(
         dailyMetrics,
         metricA.key,
         metricB.key
@@ -131,10 +131,29 @@ export async function discoverCorrelations(
         continue; // Not enough data points
       }
 
-      const correlation = calculatePearsonCorrelation(
-        alignedData.map((d) => d.valueA),
-        alignedData.map((d) => d.valueB)
-      );
+      let correlation: CorrelationResult;
+
+      // Choose correlation method based on metric types
+      if (aIsBoolean || bIsBoolean) {
+        // Point-biserial correlation for binary×continuous
+        const binaryValues = aIsBoolean
+          ? alignedData.map((d) => d.valueA as boolean)
+          : alignedData.map((d) => d.valueB as boolean);
+        const continuousValues = aIsBoolean
+          ? alignedData.map((d) => d.valueB as number)
+          : alignedData.map((d) => d.valueA as number);
+
+        correlation = calculatePointBiserialCorrelation(
+          binaryValues,
+          continuousValues
+        );
+      } else {
+        // Pearson correlation for continuous×continuous
+        correlation = calculatePearsonCorrelation(
+          alignedData.map((d) => d.valueA as number),
+          alignedData.map((d) => d.valueB as number)
+        );
+      }
 
       // Filter by significance and strength
       if (
@@ -167,6 +186,7 @@ export async function discoverCorrelations(
 
 /**
  * Align two metrics by date, keeping only days where both have values
+ * Legacy function for backward compatibility (numeric only)
  */
 function alignMetricsByDate(
   data: DailyMetrics[],
@@ -202,18 +222,106 @@ function alignMetricsByDate(
 }
 
 /**
+ * Align two metrics by date, supporting both boolean and numeric values
+ * Used for point-biserial correlation (boolean×continuous) and Pearson (continuous×continuous)
+ */
+function alignMetricsByDateFlexible(
+  data: DailyMetrics[],
+  metricA: keyof DailyMetrics,
+  metricB: keyof DailyMetrics
+): Array<{ date: string; valueA: number | boolean; valueB: number | boolean }> {
+  const aligned: Array<{ date: string; valueA: number | boolean; valueB: number | boolean }> = [];
+
+  for (const day of data) {
+    const valA = day[metricA];
+    const valB = day[metricB];
+
+    // Skip if either value is null/undefined
+    if (valA === null || valA === undefined || valB === null || valB === undefined) {
+      continue;
+    }
+
+    aligned.push({
+      date: day.date,
+      valueA: typeof valA === "boolean" ? valA : Number(valA),
+      valueB: typeof valB === "boolean" ? valB : Number(valB),
+    });
+  }
+
+  return aligned;
+}
+
+/**
  * Generate human-readable interpretation of correlation
+ * Ensures proper time ordering: previous day events → next day outcomes
  */
 function generateInterpretation(
   metricA: MetricDefinition,
   metricB: MetricDefinition,
   correlation: CorrelationResult
 ): string {
-  const direction = correlation.r > 0 ? "increases" : "decreases";
   const strength = correlation.strength;
   const confidence = correlation.confidence;
 
-  let interpretation = `When ${metricA.label} goes up, ${metricB.label} tends to ${direction}.`;
+  // Check if either metric is binary (boolean unit)
+  const aIsBoolean = metricA.unit === "boolean";
+  const bIsBoolean = metricB.unit === "boolean";
+
+  // Check if either metric is lagged (previous day)
+  const aIsLagged = metricA.key.toString().startsWith('prevDay');
+  const bIsLagged = metricB.key.toString().startsWith('prevDay');
+
+  let interpretation: string;
+
+  if (aIsBoolean || bIsBoolean) {
+    // Point-biserial interpretation (binary event × continuous metric)
+
+    if (aIsBoolean && aIsLagged) {
+      // metricA is previous day boolean, metricB is today continuous
+      // Proper time order: yesterday's event → today's outcome
+      const event = metricA.label.replace('Previous Day ', '');
+      const direction = correlation.r > 0 ? "higher" : "lower";
+      interpretation = `On days after ${event}, ${metricB.label} tends to be ${direction}.`;
+    } else if (bIsBoolean && bIsLagged) {
+      // metricB is previous day boolean, metricA is today continuous
+      // Proper time order: yesterday's event → today's outcome
+      const event = metricB.label.replace('Previous Day ', '');
+      // Need to flip direction since we're describing B→A relationship
+      const direction = correlation.r > 0 ? "higher" : "lower";
+      interpretation = `On days after ${event}, ${metricA.label} tends to be ${direction}.`;
+    } else {
+      // Same-day interpretation
+      const binaryMetric = aIsBoolean ? metricA : metricB;
+      const continuousMetric = aIsBoolean ? metricB : metricA;
+      const direction = correlation.r > 0 ? "higher" : "lower";
+      interpretation = `On days when ${binaryMetric.description}, ${continuousMetric.label} tends to be ${direction}.`;
+    }
+  } else {
+    // Pearson interpretation (continuous × continuous)
+
+    if (aIsLagged && !bIsLagged) {
+      // metricA is previous day, metricB is today
+      // Proper time order: yesterday's value → today's outcome
+      const event = metricA.label.replace('Previous Day ', '');
+      const direction = correlation.r > 0 ? "increases" : "decreases";
+      interpretation = `When ${event} goes up, next day's ${metricB.label} tends to ${direction}.`;
+    } else if (bIsLagged && !aIsLagged) {
+      // metricB is previous day, metricA is today
+      // Proper time order: yesterday's value → today's outcome
+      const event = metricB.label.replace('Previous Day ', '');
+      const direction = correlation.r > 0 ? "increases" : "decreases";
+      interpretation = `When ${event} goes up, next day's ${metricA.label} tends to ${direction}.`;
+    } else if (aIsLagged && bIsLagged) {
+      // Both are lagged - unusual but handle gracefully
+      // Just describe as regular correlation
+      const direction = correlation.r > 0 ? "increases" : "decreases";
+      interpretation = `When ${metricA.label} goes up, ${metricB.label} tends to ${direction}.`;
+    } else {
+      // Neither is lagged - same-day correlation
+      const direction = correlation.r > 0 ? "increases" : "decreases";
+      interpretation = `When ${metricA.label} goes up, ${metricB.label} tends to ${direction}.`;
+    }
+  }
 
   if (strength === "very strong" || strength === "strong") {
     interpretation += ` This is a ${strength} relationship.`;

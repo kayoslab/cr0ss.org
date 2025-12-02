@@ -67,14 +67,8 @@ export default async function HabitsPage() {
     "Focus (min)": d.focus_minutes,
   }));
 
-  // Calculate habit streaks (simplified - mock data for now)
-  const streaks = {
-    reading: { current: 5, longest: 12 },
-    outdoor: { current: 3, longest: 8 },
-    writing: { current: 7, longest: 15 },
-    coding: { current: 0, longest: 10 },
-    steps: { current: 14, longest: 21 },
-  };
+  // Use real streak data from database
+  const streaks = dashboardData.habitStreaks;
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6">

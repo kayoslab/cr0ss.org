@@ -12,6 +12,7 @@ type CoffeeClientProps = {
   methodsBar: { name: string; value: number }[];
   originsDonut: { name: string; value: number }[];
   caffeineDual: { time: string; intake_mg: number; body_mg: number }[];
+  weeklyRhythm?: { day: string; cups: number; avg_hour: string }[];
 };
 
 export default function CoffeeClient({
@@ -19,6 +20,7 @@ export default function CoffeeClient({
   methodsBar,
   originsDonut,
   caffeineDual,
+  weeklyRhythm = [],
 }: CoffeeClientProps) {
   // Check for late caffeine (after 6 PM = 18:00)
   const lateCaffeineData = caffeineDual.filter(point => {
@@ -92,6 +94,23 @@ export default function CoffeeClient({
           Intake: caffeine consumed (mg) at that time. Body: modeled remaining caffeine (mg) in body over the day.
         </p>
       </div>
+
+      {/* Weekly Rhythm */}
+      {weeklyRhythm.length > 0 && (
+        <div>
+          <Bars
+            title="Weekly coffee rhythm (last 12 weeks)"
+            items={weeklyRhythm.map(d => ({
+              name: d.day.slice(0, 3), // Mon, Tue, etc.
+              value: d.cups
+            }))}
+          />
+          <p className="mt-2 text-xs text-neutral-500">
+            Average cups per day of the week. Most coffee on{' '}
+            {weeklyRhythm.reduce((max, d) => d.cups > max.cups ? d : max).day}.
+          </p>
+        </div>
+      )}
 
       {/* Link to Collection */}
       <div className="gap-4">
