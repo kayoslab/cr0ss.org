@@ -74,6 +74,18 @@ export async function getLatestLocation(): Promise<LocationHistoryRecord | null>
 }
 
 /**
+ * Get the current location from the view
+ * This is the recommended way to get the current location for display
+ */
+export async function getCurrentLocation(): Promise<LocationHistoryRecord | null> {
+  const rows = await sql`
+    SELECT * FROM current_location
+  `;
+
+  return (rows[0] as LocationHistoryRecord) || null;
+}
+
+/**
  * Get location history within a date range
  */
 export async function getLocationHistory(

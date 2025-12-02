@@ -1,8 +1,8 @@
 import React from "react";
-import { SECRET_HEADER } from "@/lib/auth/constants";
+import { getDashboardData } from "@/lib/db/dashboard";
 import WorkoutsClient from "./workouts.client";
 
-// Use edge runtime to match the API route
+// Use edge runtime for better performance
 export const runtime = "edge";
 
 // fetch settings
@@ -14,76 +14,12 @@ export const metadata = {
   description: "Track your workouts and running activity",
 };
 
-// ---- absolute URL builder + server fetcher
-function resolveBaseUrl() {
-  // On Vercel, VERCEL_URL contains the actual deployment domain (www.cr0ss.org in production)
-  // This avoids redirect issues when NEXT_PUBLIC_SITE_URL points to preview deployments
-  const vercel = process.env.VERCEL_URL?.replace(/\/$/, "");
-  if (vercel) {
-    return vercel.startsWith('http') ? vercel : `https://${vercel}`;
-  }
-
-  // Fallback to public site URL (for local dev or other environments)
-  const pub = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
-  if (pub) return pub;
-
-  return "http://localhost:3000";
-}
-
-type JRes<T> = { ok: true; data: T } | { ok: false; status: number; error?: string };
-async function jfetchServer<T>(path: string, retries = 2): Promise<JRes<T>> {
-  const base = resolveBaseUrl();
-  const url = path.startsWith("http") ? path : `${base}${path}`;
-  const headers = new Headers({ accept: "application/json" });
-  const secret = process.env.DASHBOARD_API_SECRET as string;
-  headers.set(SECRET_HEADER, secret);
-
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    try {
-      const res = await fetch(url, { headers, cache: "no-store" });
-
-      if (res.ok) {
-        return { ok: true, data: (await res.json()) as T };
-      }
-
-      const errorBody = await res.text();
-
-      if (res.status === 401 && attempt < retries) {
-        await new Promise(resolve => setTimeout(resolve, 100 * (attempt + 1)));
-        continue;
-      }
-
-      return { ok: false, status: res.status, error: errorBody };
-    } catch (error) {
-      if (attempt === retries) {
-        return { ok: false, status: 500, error: error instanceof Error ? error.message : 'Network error' };
-      }
-      await new Promise(resolve => setTimeout(resolve, 100 * (attempt + 1)));
-    }
-  }
-
-  return { ok: false, status: 500, error: 'Max retries exceeded' };
-}
-
-type DashboardApi = {
-  runningProgress: { target_km: number; total_km: number; delta_km: number; pct: number; month: string };
-  paceSeries: { date: string; avg_pace_sec_per_km: number }[];
-  runningHeatmap: { date: string; km: number }[];
-  workoutHeatmap: { date: string; duration_min: number; workouts: { type: string; duration_min: number }[] }[];
-  workoutTypes: string[];
-  workoutStats: { workout_type: string; count: number; total_duration_min: number; total_distance_km: number }[];
-  sleepPrevCaff: { date: string; sleep_score: number; prev_caffeine_mg: number; prev_day_workout: boolean }[];
-};
-
 export default async function WorkoutsPage() {
-  const apiRes = await jfetchServer<DashboardApi>("/api/dashboard");
-  if (!apiRes.ok) {
-    throw new Error(`Failed to load dashboard data (HTTP ${apiRes.status}): ${apiRes.error || 'Unknown error'}`);
-  }
-  const api = apiRes.data;
+  // Fetch dashboard data directly from database
+  const dashboardData = await getDashboardData();
 
   // Calculate workout streak (simplified - could be moved to API)
-  const calculateStreak = (heatmap: typeof api.workoutHeatmap) => {
+  const calculateStreak = (heatmap: typeof dashboardData.workoutHeatmap) => {
     let current = 0;
     let longest = 0;
     let streak = 0;
@@ -107,9 +43,9 @@ export default async function WorkoutsPage() {
 
   // Calculate personal records (simplified)
   const calculatePersonalRecords = () => {
-    const runningWorkouts = api.workoutHeatmap
-      .flatMap(day => day.workouts.filter(w => w.type === 'running'))
-      .filter(w => w.duration_min > 0);
+    const runningWorkouts = dashboardData.workoutHeatmap
+      .flatMap((day) => day.workouts.filter((w) => w.type === "running"))
+      .filter((w) => w.duration_min > 0);
 
     if (runningWorkouts.length === 0) return undefined;
 
@@ -120,7 +56,7 @@ export default async function WorkoutsPage() {
     };
   };
 
-  const streaks = calculateStreak(api.workoutHeatmap);
+  const streaks = calculateStreak(dashboardData.workoutHeatmap);
   const personalRecords = calculatePersonalRecords();
 
   return (
@@ -133,9 +69,9 @@ export default async function WorkoutsPage() {
       </div>
 
       <WorkoutsClient
-        workoutTypes={api.workoutTypes}
-        workoutStats={api.workoutStats}
-        workoutHeatmap={api.workoutHeatmap}
+        workoutTypes={dashboardData.workoutTypes}
+        workoutStats={dashboardData.workoutStats}
+        workoutHeatmap={dashboardData.workoutHeatmap}
         currentStreak={streaks.current}
         longestStreak={streaks.longest}
         personalRecords={personalRecords}

@@ -10,12 +10,10 @@ vi.mock('@/lib/constants', () => ({
   },
 }));
 
-// Mock @vercel/kv - must be before imports
-vi.mock('@vercel/kv', () => ({
-  kv: {
-    get: vi.fn(),
-    set: vi.fn(),
-  },
+// Mock database location functions
+vi.mock('@/lib/db/location', () => ({
+  getLatestLocation: vi.fn(),
+  insertLocationHistory: vi.fn(),
 }));
 
 // Mock env - now using standard auth
@@ -26,13 +24,27 @@ vi.mock('@/env', () => ({
 }));
 
 import { POST } from './route';
-import { kv } from '@vercel/kv';
+import { getLatestLocation, insertLocationHistory } from '@/lib/db/location';
 
 describe('POST /api/location', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(kv.get).mockResolvedValue(null);
-    vi.mocked(kv.set).mockResolvedValue('OK');
+    vi.mocked(getLatestLocation).mockResolvedValue(null);
+    vi.mocked(insertLocationHistory).mockResolvedValue({
+      id: 1,
+      logged_at: new Date(),
+      latitude: 52.52,
+      longitude: 13.405,
+      temp_celsius: null,
+      feels_like_celsius: null,
+      humidity: null,
+      weather_main: null,
+      weather_description: null,
+      wind_speed_mps: null,
+      cloudiness: null,
+      weather_raw: null,
+      created_at: new Date(),
+    });
   });
 
   describe('authentication', () => {
@@ -194,7 +206,7 @@ describe('POST /api/location', () => {
 
   describe('first location update', () => {
     it('should store location when no previous location exists', async () => {
-      vi.mocked(kv.get).mockResolvedValue(null);
+      vi.mocked(getLatestLocation).mockResolvedValue(null);
 
       const request = new Request('http://localhost:3000/api/location', {
         method: 'POST',
@@ -212,17 +224,28 @@ describe('POST /api/location', () => {
       expect(data).toMatchObject({ revalidated: true });
       expect(data.now).toBeDefined();
 
-      expect(kv.set).toHaveBeenCalledWith('GEOLOCATION', {
-        lat: 52.52,
-        lon: 13.405,
-      });
+      expect(insertLocationHistory).toHaveBeenCalledWith(52.52, 13.405, null);
     });
   });
 
   describe('location distance check', () => {
     it('should update when distance exceeds threshold (150km)', async () => {
       // Berlin coordinates
-      vi.mocked(kv.get).mockResolvedValue({ lat: 52.52, lon: 13.405 });
+      vi.mocked(getLatestLocation).mockResolvedValue({
+        id: 1,
+        logged_at: new Date(),
+        latitude: 52.52,
+        longitude: 13.405,
+        temp_celsius: null,
+        feels_like_celsius: null,
+        humidity: null,
+        weather_main: null,
+        weather_description: null,
+        wind_speed_mps: null,
+        cloudiness: null,
+        weather_raw: null,
+        created_at: new Date(),
+      });
 
       // Munich coordinates (~504km from Berlin)
       const request = new Request('http://localhost:3000/api/location', {
@@ -240,15 +263,26 @@ describe('POST /api/location', () => {
       expect(response.status).toBe(200);
       expect(data.revalidated).toBe(true);
 
-      expect(kv.set).toHaveBeenCalledWith('GEOLOCATION', {
-        lat: 48.1351,
-        lon: 11.582,
-      });
+      expect(insertLocationHistory).toHaveBeenCalledWith(48.1351, 11.582, null);
     });
 
     it('should not update when distance is within threshold', async () => {
       // Berlin coordinates
-      vi.mocked(kv.get).mockResolvedValue({ lat: 52.52, lon: 13.405 });
+      vi.mocked(getLatestLocation).mockResolvedValue({
+        id: 1,
+        logged_at: new Date(),
+        latitude: 52.52,
+        longitude: 13.405,
+        temp_celsius: null,
+        feels_like_celsius: null,
+        humidity: null,
+        weather_main: null,
+        weather_description: null,
+        wind_speed_mps: null,
+        cloudiness: null,
+        weather_raw: null,
+        created_at: new Date(),
+      });
 
       // Very close to Berlin (same location)
       const request = new Request('http://localhost:3000/api/location', {
@@ -266,12 +300,27 @@ describe('POST /api/location', () => {
       expect(response.status).toBe(200);
       expect(data.revalidated).toBe(false);
 
-      expect(kv.set).not.toHaveBeenCalled();
+      // Location is still inserted into history, but dashboard is not revalidated
+      expect(insertLocationHistory).toHaveBeenCalledWith(52.52, 13.405, null);
     });
 
     it('should not update when distance is just under threshold', async () => {
       // Berlin
-      vi.mocked(kv.get).mockResolvedValue({ lat: 52.52, lon: 13.405 });
+      vi.mocked(getLatestLocation).mockResolvedValue({
+        id: 1,
+        logged_at: new Date(),
+        latitude: 52.52,
+        longitude: 13.405,
+        temp_celsius: null,
+        feels_like_celsius: null,
+        humidity: null,
+        weather_main: null,
+        weather_description: null,
+        wind_speed_mps: null,
+        cloudiness: null,
+        weather_raw: null,
+        created_at: new Date(),
+      });
 
       // Potsdam (~30km from Berlin center)
       const request = new Request('http://localhost:3000/api/location', {
@@ -289,7 +338,8 @@ describe('POST /api/location', () => {
       expect(response.status).toBe(200);
       expect(data.revalidated).toBe(false);
 
-      expect(kv.set).not.toHaveBeenCalled();
+      // Location is still inserted into history, but dashboard is not revalidated
+      expect(insertLocationHistory).toHaveBeenCalledWith(52.4, 13.06, null);
     });
   });
 
@@ -333,7 +383,21 @@ describe('POST /api/location', () => {
 
   describe('edge cases', () => {
     it('should handle coordinates at equator (lat = 0)', async () => {
-      vi.mocked(kv.get).mockResolvedValue({ lat: 0, lon: 100 });
+      vi.mocked(getLatestLocation).mockResolvedValue({
+        id: 1,
+        logged_at: new Date(),
+        latitude: 0,
+        longitude: 100,
+        temp_celsius: null,
+        feels_like_celsius: null,
+        humidity: null,
+        weather_main: null,
+        weather_description: null,
+        wind_speed_mps: null,
+        cloudiness: null,
+        weather_raw: null,
+        created_at: new Date(),
+      });
 
       const request = new Request('http://localhost:3000/api/location', {
         method: 'POST',
@@ -352,7 +416,21 @@ describe('POST /api/location', () => {
     });
 
     it('should handle coordinates at prime meridian (lon = 0)', async () => {
-      vi.mocked(kv.get).mockResolvedValue({ lat: 51.5, lon: 0 });
+      vi.mocked(getLatestLocation).mockResolvedValue({
+        id: 1,
+        logged_at: new Date(),
+        latitude: 51.5,
+        longitude: 0,
+        temp_celsius: null,
+        feels_like_celsius: null,
+        humidity: null,
+        weather_main: null,
+        weather_description: null,
+        wind_speed_mps: null,
+        cloudiness: null,
+        weather_raw: null,
+        created_at: new Date(),
+      });
 
       const request = new Request('http://localhost:3000/api/location', {
         method: 'POST',
@@ -371,7 +449,7 @@ describe('POST /api/location', () => {
     });
 
     it('should handle Null Island coordinates (0, 0)', async () => {
-      vi.mocked(kv.get).mockResolvedValue(null);
+      vi.mocked(getLatestLocation).mockResolvedValue(null);
 
       const request = new Request('http://localhost:3000/api/location', {
         method: 'POST',
@@ -387,11 +465,25 @@ describe('POST /api/location', () => {
 
       expect(response.status).toBe(200);
       expect(data.revalidated).toBe(true);
-      expect(kv.set).toHaveBeenCalledWith('GEOLOCATION', { lat: 0, lon: 0 });
+      expect(insertLocationHistory).toHaveBeenCalledWith(0, 0, null);
     });
 
     it('should handle negative coordinates', async () => {
-      vi.mocked(kv.get).mockResolvedValue({ lat: -33.865, lon: 151.209 });
+      vi.mocked(getLatestLocation).mockResolvedValue({
+        id: 1,
+        logged_at: new Date(),
+        latitude: -33.865,
+        longitude: 151.209,
+        temp_celsius: null,
+        feels_like_celsius: null,
+        humidity: null,
+        weather_main: null,
+        weather_description: null,
+        wind_speed_mps: null,
+        cloudiness: null,
+        weather_raw: null,
+        created_at: new Date(),
+      });
 
       // Sydney to Melbourne (~714km)
       const request = new Request('http://localhost:3000/api/location', {
@@ -411,7 +503,21 @@ describe('POST /api/location', () => {
     });
 
     it('should handle coordinates at north pole', async () => {
-      vi.mocked(kv.get).mockResolvedValue({ lat: 90, lon: 0 });
+      vi.mocked(getLatestLocation).mockResolvedValue({
+        id: 1,
+        logged_at: new Date(),
+        latitude: 90,
+        longitude: 0,
+        temp_celsius: null,
+        feels_like_celsius: null,
+        humidity: null,
+        weather_main: null,
+        weather_description: null,
+        wind_speed_mps: null,
+        cloudiness: null,
+        weather_raw: null,
+        created_at: new Date(),
+      });
 
       const request = new Request('http://localhost:3000/api/location', {
         method: 'POST',
@@ -428,7 +534,21 @@ describe('POST /api/location', () => {
     });
 
     it('should handle coordinates at south pole', async () => {
-      vi.mocked(kv.get).mockResolvedValue({ lat: -90, lon: 0 });
+      vi.mocked(getLatestLocation).mockResolvedValue({
+        id: 1,
+        logged_at: new Date(),
+        latitude: -90,
+        longitude: 0,
+        temp_celsius: null,
+        feels_like_celsius: null,
+        humidity: null,
+        weather_main: null,
+        weather_description: null,
+        wind_speed_mps: null,
+        cloudiness: null,
+        weather_raw: null,
+        created_at: new Date(),
+      });
 
       const request = new Request('http://localhost:3000/api/location', {
         method: 'POST',
@@ -445,7 +565,7 @@ describe('POST /api/location', () => {
     });
 
     it('should handle decimal coordinates with high precision', async () => {
-      vi.mocked(kv.get).mockResolvedValue(null);
+      vi.mocked(getLatestLocation).mockResolvedValue(null);
 
       const request = new Request('http://localhost:3000/api/location', {
         method: 'POST',
@@ -465,10 +585,7 @@ describe('POST /api/location', () => {
       expect(response.status).toBe(200);
       expect(data.revalidated).toBe(true);
 
-      expect(kv.set).toHaveBeenCalledWith('GEOLOCATION', {
-        lat: 52.520008,
-        lon: 13.404954,
-      });
+      expect(insertLocationHistory).toHaveBeenCalledWith(52.520008, 13.404954, null);
     });
   });
 });
