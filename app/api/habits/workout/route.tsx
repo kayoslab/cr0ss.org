@@ -4,7 +4,7 @@ import { rateLimit } from "@/lib/rate/limit";
 import { wrapTrace } from "@/lib/obs/trace";
 import { createErrorResponse, createSuccessResponse } from "@/lib/api/middleware";
 import { ZWorkoutUpsert } from "@/lib/db/validation";
-import { revalidateDashboard } from "@/lib/cache/revalidate";
+import { revalidateWorkouts } from "@/lib/cache/revalidate";
 import { assertSecret } from "@/lib/auth/secret";
 import { insertWorkoutDB, getRecentWorkoutsDB, getWorkoutsByTypeDB } from "@/lib/db/workouts";
 import { RATE_LIMITS } from "@/lib/rate/config";
@@ -85,7 +85,7 @@ export const POST = wrapTrace("POST /api/habits/workout", async (req: Request) =
       inserted.push(result);
     }
 
-    revalidateDashboard();
+    revalidateWorkouts();
     return createSuccessResponse(
       { ok: true, inserted: inserted.length, workouts: inserted },
       200

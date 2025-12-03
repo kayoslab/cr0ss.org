@@ -4,7 +4,7 @@ import { rateLimit } from "@/lib/rate/limit";
 import { wrapTrace } from "@/lib/obs/trace";
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db/client";
-import { revalidateDashboard } from "@/lib/cache/revalidate";
+import { revalidateShared } from "@/lib/cache/revalidate";
 import { assertSecret } from "@/lib/auth/secret";
 import { ZMonthlyGoalsUpsert } from "@/lib/db/validation";
 import { HTTP_STATUS } from "@/lib/constants/http";
@@ -101,7 +101,7 @@ export const POST = wrapTrace("POST /api/habits/goal", async (req: Request) => {
       `;
     }
 
-    revalidateDashboard();
+    revalidateShared();
     return NextResponse.json({ ok: true }, { status: HTTP_STATUS.OK });
   } catch (e: unknown) {
     const error = e as { status?: number; message?: string };

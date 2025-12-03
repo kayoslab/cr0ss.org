@@ -35,10 +35,11 @@ describe('revalidateDashboard', () => {
     expect(revalidatePath).toHaveBeenCalledWith('/dashboard', 'page');
   });
 
-  it('should call both revalidateTag and revalidatePath', () => {
+  it('should call revalidateTag for all dashboard cache tags', () => {
     revalidateDashboard();
 
-    expect(revalidateTag).toHaveBeenCalledOnce();
+    // Should invalidate all 5 dashboard-related cache tags
+    expect(revalidateTag).toHaveBeenCalledTimes(5);
     expect(revalidatePath).toHaveBeenCalledOnce();
   });
 

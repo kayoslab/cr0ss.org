@@ -1,5 +1,5 @@
 import React from "react";
-import { getDashboardData } from "@/lib/db/dashboard";
+import { getCoffeeDashboardData } from "@/lib/db/dashboard";
 import { isoToBerlinDate } from "@/lib/time/berlin";
 import CoffeeClient from "./coffee.client";
 
@@ -16,11 +16,11 @@ export const metadata = {
 };
 
 export default async function CoffeePage() {
-  // Fetch dashboard data directly from database
-  const dashboardData = await getDashboardData();
+  // Fetch coffee-specific dashboard data
+  const coffeeData = await getCoffeeDashboardData();
 
   // Map caffeine series to chart format (Berlin time labels)
-  const caffeineDual = dashboardData.caffeineSeries.map((p) => ({
+  const caffeineDual = coffeeData.caffeineSeries.map((p) => ({
     time: isoToBerlinDate(Date.parse(p.timeISO)),
     intake_mg: p.intake_mg,
     body_mg: p.body_mg,
@@ -37,14 +37,14 @@ export default async function CoffeePage() {
       </div>
 
       <CoffeeClient
-        cupsToday={dashboardData.cupsToday}
-        methodsBar={dashboardData.brewMethodsToday.map((b) => ({
+        cupsToday={coffeeData.cupsToday}
+        methodsBar={coffeeData.brewMethodsToday.map((b) => ({
           name: b.type,
           value: b.count,
         }))}
-        originsDonut={dashboardData.coffeeOriginThisWeek}
+        originsDonut={coffeeData.coffeeOriginThisWeek}
         caffeineDual={caffeineDual}
-        dailyCoffee30Days={dashboardData.coffeeLast30Days}
+        dailyCoffee30Days={coffeeData.coffeeLast30Days}
       />
     </div>
   );

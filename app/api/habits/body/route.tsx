@@ -5,7 +5,7 @@ import { wrapTrace } from "@/lib/obs/trace";
 import { NextResponse } from "next/server";
 import { ZBodyProfileUpsert } from "@/lib/db/validation";
 import { getBodyProfileDB, upsertBodyProfileDB } from "@/lib/db/profile";
-import { revalidateDashboard } from "@/lib/cache/revalidate";
+import { revalidateCoffee } from "@/lib/cache/revalidate";
 import { assertSecret } from "@/lib/auth/secret";
 import { HTTP_STATUS } from "@/lib/constants/http";
 import { RATE_LIMITS } from "@/lib/rate/config";
@@ -55,7 +55,7 @@ export const POST = wrapTrace("POST /api/habits/body", async (req: Request) => {
     }
 
     const updated = await upsertBodyProfileDB(result.data);
-    revalidateDashboard();
+    revalidateCoffee();
     return NextResponse.json({ ok: true, profile: updated }, { status: HTTP_STATUS.OK });
   } catch (e: unknown) {
     const error = e as { status?: number; message?: string };

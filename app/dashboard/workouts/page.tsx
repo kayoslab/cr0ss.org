@@ -1,5 +1,5 @@
 import React from "react";
-import { getDashboardData } from "@/lib/db/dashboard";
+import { getWorkoutsDashboardData } from "@/lib/db/dashboard";
 import WorkoutsClient from "./workouts.client";
 
 // Use edge runtime for better performance
@@ -15,17 +15,17 @@ export const metadata = {
 };
 
 export default async function WorkoutsPage() {
-  // Fetch dashboard data directly from database
-  const dashboardData = await getDashboardData();
+  // Fetch workouts-specific dashboard data
+  const workoutsData = await getWorkoutsDashboardData();
 
   // Use real streak and personal records data from database
-  const streaks = dashboardData.workoutStreaks;
+  const streaks = workoutsData.workoutStreaks;
 
   // Transform personal records to match expected type
-  const personalRecords = dashboardData.runningPersonalRecords
+  const personalRecords = workoutsData.runningPersonalRecords
     ? {
-        longestRun: dashboardData.runningPersonalRecords.longestRun,
-        fastestPace: dashboardData.runningPersonalRecords.fastestPace || undefined,
+        longestRun: workoutsData.runningPersonalRecords.longestRun,
+        fastestPace: workoutsData.runningPersonalRecords.fastestPace || undefined,
       }
     : undefined;
 
@@ -39,9 +39,9 @@ export default async function WorkoutsPage() {
       </div>
 
       <WorkoutsClient
-        workoutTypes={dashboardData.workoutTypes}
-        workoutStats={dashboardData.workoutStats}
-        workoutHeatmap={dashboardData.workoutHeatmap}
+        workoutTypes={workoutsData.workoutTypes}
+        workoutStats={workoutsData.workoutStats}
+        workoutHeatmap={workoutsData.workoutHeatmap}
         currentStreak={streaks.current}
         longestStreak={streaks.longest}
         personalRecords={personalRecords}
