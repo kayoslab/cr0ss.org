@@ -5,9 +5,9 @@ import HabitsClient from "./habits.client";
 // Use edge runtime for better performance
 export const runtime = "edge";
 
-// fetch settings
-export const dynamic = "force-dynamic";
-export const fetchCache = "force-no-store";
+// Cache configuration - revalidate every 5 minutes
+// Immediate invalidation on POST via revalidateDashboard()
+export const revalidate = 300; // 5 minutes
 
 export const metadata = {
   title: "Habits & Productivity | Dashboard",
