@@ -4,7 +4,7 @@ import { rateLimit } from "@/lib/rate/limit";
 import { wrapTrace } from "@/lib/obs/trace";
 import { sql } from "@/lib/db/client";
 import { ZCoffee } from "@/lib/db/validation";
-import { revalidateDashboard } from "@/lib/cache/revalidate";
+import { revalidateCoffee } from "@/lib/cache/revalidate";
 import { assertSecret } from "@/lib/auth/secret";
 import {
   berlinDateTimeToUTCISO,
@@ -85,7 +85,7 @@ export const POST = wrapTrace("POST /api/habits/coffee", async (req: Request) =>
       `;
     }
 
-    revalidateDashboard();
+    revalidateCoffee();
     return new Response(JSON.stringify({ ok: true, inserted: parsed.length }), { status: HTTP_STATUS.OK });
   } catch (err: unknown) {
     const error = err as { message?: string; status?: number };

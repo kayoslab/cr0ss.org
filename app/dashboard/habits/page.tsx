@@ -1,5 +1,5 @@
 import React from "react";
-import { getDashboardData } from "@/lib/db/dashboard";
+import { getHabitsDashboardData, getSharedDashboardData } from "@/lib/db/dashboard";
 import HabitsClient from "./habits.client";
 
 // Use edge runtime for better performance
@@ -15,60 +15,55 @@ export const metadata = {
 };
 
 export default async function HabitsPage() {
-  // Fetch dashboard data directly from database
-  const dashboardData = await getDashboardData();
+  // Fetch habits-specific and shared dashboard data
+  const [habitsData, sharedData] = await Promise.all([
+    getHabitsDashboardData(),
+    getSharedDashboardData(),
+  ]);
 
-  const goals = dashboardData.monthlyGoals ?? {
-    running_distance_km: 0,
-    steps: 0,
-    reading_minutes: 0,
-    outdoor_minutes: 0,
-    writing_minutes: 0,
-    coding_minutes: 0,
-    focus_minutes: 0,
-  };
+  const goals = sharedData.monthlyGoals;
 
   const progressToday = [
     {
       name: "Steps",
-      value: dashboardData.habitsToday.steps,
+      value: sharedData.habitsToday.steps,
       target: goals.steps,
     },
     {
       name: "Reading",
-      value: dashboardData.habitsToday.reading_minutes,
+      value: sharedData.habitsToday.reading_minutes,
       target: goals.reading_minutes,
     },
     {
       name: "Outdoor",
-      value: dashboardData.habitsToday.outdoor_minutes,
+      value: sharedData.habitsToday.outdoor_minutes,
       target: goals.outdoor_minutes,
     },
     {
       name: "Writing",
-      value: dashboardData.habitsToday.writing_minutes,
+      value: sharedData.habitsToday.writing_minutes,
       target: goals.writing_minutes,
     },
     {
       name: "Coding",
-      value: dashboardData.habitsToday.coding_minutes,
+      value: sharedData.habitsToday.coding_minutes,
       target: goals.coding_minutes,
     },
   ];
 
-  const consistencyBars = dashboardData.habitsConsistency.map((r) => ({
+  const consistencyBars = habitsData.habitsConsistency.map((r) => ({
     name: r.name,
     value: Math.round((r.kept / Math.max(1, r.total)) * 100),
   }));
 
-  const rhythmTrend = dashboardData.writingVsFocus.map((d) => ({
+  const rhythmTrend = habitsData.writingVsFocus.map((d) => ({
     date: d.date,
     "Writing (min)": d.writing_minutes,
     "Focus (min)": d.focus_minutes,
   }));
 
   // Use real streak data from database
-  const streaks = dashboardData.habitStreaks;
+  const streaks = habitsData.habitStreaks;
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6">
@@ -87,7 +82,7 @@ export default async function HabitsPage() {
         consistencyBars={consistencyBars}
         rhythmTrend={rhythmTrend}
         streaks={streaks}
-        sleepPrevCaff={dashboardData.sleepPrevCaff}
+        sleepPrevCaff={habitsData.sleepPrevCaff}
       />
     </div>
   );

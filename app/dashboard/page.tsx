@@ -4,7 +4,7 @@ import { MapPin, Coffee, Activity, BookOpen, Lightbulb } from "lucide-react";
 import { getAllCountries, getVisitedCountries } from "@/lib/contentful/api/country";
 import { CountryProps } from "@/lib/contentful/api/props/country";
 import { getCurrentLocation } from "@/lib/db/location";
-import { getDashboardData } from "@/lib/db/dashboard";
+import { getOverviewDashboardData } from "@/lib/db/dashboard";
 import { isoToBerlinDate } from "@/lib/time/berlin";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -23,8 +23,8 @@ export default async function DashboardPage() {
   const lon = currentLocation?.longitude ?? 0;
   const hasLocation = currentLocation != null;
 
-  // Fetch dashboard data directly from database (no API route)
-  const dashboardData = await getDashboardData();
+  // Fetch overview dashboard data (combines multiple domains)
+  const overviewData = await getOverviewDashboardData();
 
   // Contentful data
   const [countries = [], visited = []] = await Promise.all([
@@ -39,22 +39,14 @@ export default async function DashboardPage() {
     })
   );
 
-  const goals = dashboardData.monthlyGoals ?? {
-    running_distance_km: 0,
-    steps: 0,
-    reading_minutes: 0,
-    outdoor_minutes: 0,
-    writing_minutes: 0,
-    coding_minutes: 0,
-    focus_minutes: 0,
-  };
+  const goals = overviewData.monthlyGoals;
 
   // Calculate today's snapshot KPIs
   const todaySnapshot = {
-    coffeeCups: dashboardData.cupsToday,
-    steps: dashboardData.habitsToday.steps,
+    coffeeCups: overviewData.cupsToday,
+    steps: overviewData.habitsToday.steps,
     activeMinutes:
-      dashboardData.workoutHeatmap[dashboardData.workoutHeatmap.length - 1]
+      overviewData.workoutHeatmap[overviewData.workoutHeatmap.length - 1]
         ?.duration_min || 0,
     countriesVisited: visited.length,
   };
@@ -63,32 +55,32 @@ export default async function DashboardPage() {
   const topGoals = [
     {
       name: "Running",
-      value: dashboardData.runningProgress.total_km,
-      target: dashboardData.runningProgress.target_km,
+      value: overviewData.runningProgress.total_km,
+      target: overviewData.runningProgress.target_km,
       unit: "km",
       percentage: Math.round(
-        (dashboardData.runningProgress.total_km /
-          dashboardData.runningProgress.target_km) *
+        (overviewData.runningProgress.total_km /
+          overviewData.runningProgress.target_km) *
           100
       ),
     },
     {
       name: "Reading",
-      value: dashboardData.habitsToday.reading_minutes,
+      value: overviewData.habitsToday.reading_minutes,
       target: goals.reading_minutes,
       unit: "min",
       percentage: Math.round(
-        (dashboardData.habitsToday.reading_minutes / goals.reading_minutes) *
+        (overviewData.habitsToday.reading_minutes / goals.reading_minutes) *
           100
       ),
     },
     {
       name: "Steps",
-      value: dashboardData.habitsToday.steps,
+      value: overviewData.habitsToday.steps,
       target: goals.steps,
       unit: "steps",
       percentage: Math.round(
-        (dashboardData.habitsToday.steps / goals.steps) * 100
+        (overviewData.habitsToday.steps / goals.steps) * 100
       ),
     },
   ];
