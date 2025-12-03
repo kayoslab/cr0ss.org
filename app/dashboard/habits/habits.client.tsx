@@ -3,6 +3,7 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress, Bars, Area, Scatter } from "@/components/dashboard/charts/shadcn-charts";
 
 type SleepCaffData = {
@@ -75,20 +76,22 @@ export default function HabitsClient({
       {streaks && (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
           {Object.entries(streaks).map(([habit, data]) => (
-            <div key={habit} className="rounded-xl border border-neutral-200/60 bg-white p-4 shadow-sm">
-              <div className="text-xs font-medium text-neutral-500 uppercase mb-2">
-                {habit}
-              </div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-2xl font-bold">{data.current}</span>
-                {data.current > 0 && <span className="text-xl">🔥</span>}
-                {data.current >= 7 && <Badge variant="success">Week!</Badge>}
-                {data.current >= 30 && <Badge variant="primary">Month!</Badge>}
-              </div>
-              <div className="text-xs text-neutral-400">
-                Best: {data.longest} {data.longest === 1 ? "day" : "days"}
-              </div>
-            </div>
+            <Card key={habit}>
+              <CardHeader className="pb-2">
+                <CardDescription className="uppercase">{habit}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-2 mb-1">
+                  <CardTitle className="text-2xl">{data.current}</CardTitle>
+                  {data.current > 0 && <span className="text-xl">🔥</span>}
+                  {data.current >= 7 && <Badge variant="success">Week!</Badge>}
+                  {data.current >= 30 && <Badge variant="primary">Month!</Badge>}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Best: {data.longest} {data.longest === 1 ? "day" : "days"}
+                </p>
+              </CardContent>
+            </Card>
           ))}
         </div>
       )}
@@ -126,7 +129,6 @@ export default function HabitsClient({
             data={rhythmTrend}
             index="date"
             categories={["Writing (min)", "Focus (min)"]}
-            colors={["sky", "rose"]}
           />
         </div>
       </div>
@@ -145,7 +147,6 @@ export default function HabitsClient({
             x="prev_caffeine_mg"
             y="sleep_score"
             groupField="category"
-            colors={["emerald", "violet"]}
           />
           <p className="mt-2 text-xs text-neutral-500">
             Each dot is a day — X: Estimated remaining caffeine (mg) at the end of the day before. Y: sleep score.

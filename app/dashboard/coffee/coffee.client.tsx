@@ -10,6 +10,7 @@ import { CoffeeBarInteractive } from "@/components/dashboard/charts/coffee-bar-i
 import { BrewMethodsRadial } from "@/components/dashboard/charts/brew-methods-radial";
 import { Pie, PieChart, Cell } from "recharts";
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { CHART_COLOR_VALUES } from "@/lib/constants/chart-colors";
 
 type CoffeeClientProps = {
   cupsToday: number;
@@ -40,20 +41,6 @@ export default function CoffeeClient({
   // Check for high daily intake
   const totalIntake = caffeineDual.reduce((sum, p) => sum + p.intake_mg, 0);
   const highIntake = totalIntake > 400; // FDA recommends max 400mg/day
-
-  // Chart colors for coffee origins
-  const CHART_COLOR_VALUES = [
-    "oklch(0.646 0.222 41.116)",   // chart-1: orange
-    "oklch(0.6 0.118 184.704)",     // chart-2: cyan
-    "oklch(0.398 0.07 227.392)",    // chart-3: blue
-    "oklch(0.828 0.189 84.429)",    // chart-4: yellow
-    "oklch(0.769 0.188 70.08)",     // chart-5: peach
-    "oklch(0.55 0.22 330)",          // chart-6: pink
-    "oklch(0.65 0.18 150)",          // chart-7: teal
-    "oklch(0.7 0.15 270)",           // chart-8: purple
-    "oklch(0.6 0.2 50)",             // chart-9: gold
-    "oklch(0.5 0.18 200)",           // chart-10: blue
-  ];
 
   // Add fill color to data for tooltips
   const originsDonutWithColor = originsDonut.map((item, index) => ({
@@ -186,7 +173,6 @@ export default function CoffeeClient({
           data={caffeineDual}
           index="time"
           categories={["intake_mg", "body_mg"]}
-          colors={["emerald", "violet"]}
         />
         <p className="mt-2 text-xs text-neutral-500">
           Intake: caffeine consumed (mg) at that time. Body: modeled remaining caffeine (mg) in body over the day.

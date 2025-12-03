@@ -16,8 +16,9 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
+import { getChartColor } from "@/lib/constants/chart-colors"
 
-const CHART_COLOR = "oklch(0.646 0.222 41.116)";
+const CHART_COLOR = getChartColor(0);
 
 const chartConfig = {
   count: {

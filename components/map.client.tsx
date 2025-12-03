@@ -71,18 +71,22 @@ export default function MapClient({
 
       {/* Focusable "you are here" marker - only shown when valid location exists */}
       {showLocation && (
-        <circle
-          cx={x + r / 2}
-          cy={y + r / 2}
-          r={r}
-          fill="blue"
-          id="GEO"
-          tabIndex={0}
-          role="img"
-          aria-label={`Current location: ${latNum.toFixed(3)}, ${lonNum.toFixed(3)}`}
-        >
-          <title>Current location</title>
-        </circle>
+        <g>
+          <circle
+            cx={x + r / 2}
+            cy={y + r / 2}
+            r={r}
+            fill="oklch(0.646 0.222 41.116)"
+            stroke="white"
+            strokeWidth="2"
+            id="GEO"
+            tabIndex={0}
+            role="img"
+            aria-label={`Current location: ${latNum.toFixed(3)}, ${lonNum.toFixed(3)}`}
+          >
+            <title>Current location</title>
+          </circle>
+        </g>
       )}
 
       {/* Label line for coffee origin */}

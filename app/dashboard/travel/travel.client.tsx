@@ -3,7 +3,7 @@
 import React from "react";
 import MapClient, { TravelCountry } from "@/components/map.client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Donut, Panel } from "@/components/dashboard/charts/shadcn-charts";
+import { Donut } from "@/components/dashboard/charts/shadcn-charts";
 
 type TravelClientProps = {
   totalCountries: number;
@@ -53,19 +53,27 @@ export default function TravelClient({
           </CardContent>
         </Card>
 
-        <Panel title="Last Visited">
-          {recentVisited.length ? (
-            <div className="space-y-1">
-              {recentVisited.map((c) => (
-                <div key={c.id} className="text-m">
-                  {c.name} ({c.id})
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-sm text-neutral-500">No data yet.</div>
-          )}
-        </Panel>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Last Visited</CardDescription>
+            <CardTitle className="text-4xl">{recentVisited.length ? recentVisited[0].name : '—'}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {recentVisited.length > 1 ? (
+              <div className="space-y-1">
+                {recentVisited.slice(1).map((c) => (
+                  <div key={c.id} className="text-sm text-muted-foreground">
+                    {c.name}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                {recentVisited.length === 0 ? 'No visits yet' : 'Most recent visit'}
+              </p>
+            )}
+          </CardContent>
+        </Card>
 
         <Donut
           title="Countries"

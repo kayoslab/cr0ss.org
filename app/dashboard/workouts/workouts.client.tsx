@@ -69,61 +69,77 @@ export default function WorkoutsClient({
       {(currentStreak > 0 || personalRecords) && (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {currentStreak > 0 && (
-            <div className="rounded-xl border border-neutral-200/60 bg-white p-6 shadow-sm">
-              <div className="text-sm font-medium text-neutral-500">Current Streak</div>
-              <div className="mt-2 text-3xl font-bold flex items-center gap-2">
-                {currentStreak}
-                <span className="text-2xl">🔥</span>
-              </div>
-              <div className="text-xs text-neutral-400 mt-1">
-                {currentStreak === 1 ? "day" : "days"}
-              </div>
-            </div>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Current Streak</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CardTitle className="text-3xl flex items-center gap-2">
+                  {currentStreak}
+                  <span className="text-2xl">🔥</span>
+                </CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {currentStreak === 1 ? "day" : "days"}
+                </p>
+              </CardContent>
+            </Card>
           )}
 
           {longestStreak > 0 && (
-            <div className="rounded-xl border border-neutral-200/60 bg-white p-6 shadow-sm">
-              <div className="text-sm font-medium text-neutral-500">Longest Streak</div>
-              <div className="mt-2 text-3xl font-bold flex items-center gap-2">
-                {longestStreak}
-                <span className="text-2xl">⭐</span>
-              </div>
-              <div className="text-xs text-neutral-400 mt-1">
-                {longestStreak === 1 ? "day" : "days"}
-              </div>
-            </div>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Longest Streak</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CardTitle className="text-3xl flex items-center gap-2">
+                  {longestStreak}
+                  <span className="text-2xl">⭐</span>
+                </CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {longestStreak === 1 ? "day" : "days"}
+                </p>
+              </CardContent>
+            </Card>
           )}
 
           {personalRecords?.longestRun && (
-            <div className="rounded-xl border border-neutral-200/60 bg-white p-6 shadow-sm">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="text-sm font-medium text-neutral-500">Longest Run</div>
-                <Badge variant="success">PR</Badge>
-              </div>
-              <div className="mt-2 text-3xl font-bold">
-                {personalRecords.longestRun.distance_km.toFixed(1)}
-                <span className="text-lg text-neutral-400 ml-1">km</span>
-              </div>
-              <div className="text-xs text-neutral-400 mt-1">
-                {new Date(personalRecords.longestRun.date).toLocaleDateString()}
-              </div>
-            </div>
+            <Card>
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-2">
+                  <CardDescription>Longest Run</CardDescription>
+                  <Badge variant="success">PR</Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <CardTitle className="text-3xl">
+                  {personalRecords.longestRun.distance_km.toFixed(1)}
+                  <span className="text-lg text-muted-foreground ml-1">km</span>
+                </CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {new Date(personalRecords.longestRun.date).toLocaleDateString()}
+                </p>
+              </CardContent>
+            </Card>
           )}
 
           {personalRecords?.fastestPace && (
-            <div className="rounded-xl border border-neutral-200/60 bg-white p-6 shadow-sm">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="text-sm font-medium text-neutral-500">Fastest Pace</div>
-                <Badge variant="success">PR</Badge>
-              </div>
-              <div className="mt-2 text-3xl font-bold">
-                {personalRecords.fastestPace.pace_min_per_km.toFixed(1)}
-                <span className="text-lg text-neutral-400 ml-1">min/km</span>
-              </div>
-              <div className="text-xs text-neutral-400 mt-1">
-                {new Date(personalRecords.fastestPace.date).toLocaleDateString()}
-              </div>
-            </div>
+            <Card>
+              <CardHeader className="pb-2">
+                <div className="flex items-center gap-2">
+                  <CardDescription>Fastest Pace</CardDescription>
+                  <Badge variant="success">PR</Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <CardTitle className="text-3xl">
+                  {personalRecords.fastestPace.pace_min_per_km.toFixed(1)}
+                  <span className="text-lg text-muted-foreground ml-1">min/km</span>
+                </CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {new Date(personalRecords.fastestPace.date).toLocaleDateString()}
+                </p>
+              </CardContent>
+            </Card>
           )}
         </div>
       )}

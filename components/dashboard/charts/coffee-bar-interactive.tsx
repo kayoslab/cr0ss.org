@@ -16,11 +16,12 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
+import { getChartColor } from "@/lib/constants/chart-colors"
 
 const chartConfig = {
   cups: {
     label: "Cups",
-    color: "oklch(0.646 0.222 41.116)",
+    color: getChartColor(0),
   },
 } satisfies ChartConfig
 
