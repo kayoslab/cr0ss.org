@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import MapClient, { TravelCountry } from "@/components/map.client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Donut } from "@/components/dashboard/charts/shadcn-charts";
@@ -82,6 +83,25 @@ export default function TravelClient({
             { name: "Not Visited", value: Math.max(0, totalCountries - visitedCount) },
           ]}
         />
+      </div>
+
+      {/* Link to Collection */}
+      <div className="gap-4">
+        <Link
+          href="/blog/category/travel"
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-neutral-900 bg-neutral-100 border border-neutral-200 rounded-lg hover:bg-neutral-200 hover:border-neutral-300 transition-all shadow-sm"
+        >
+          View Travel Blog
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </Link>
       </div>
     </div>
   );
