@@ -27,24 +27,25 @@ export const GET = wrapTrace("GET /api/habits/goal", async (req: Request) => {
       SELECT (date_trunc('month', timezone('Europe/Berlin', now()))::date) AS month_start
     `;
     const rows = await sql/*sql*/`
-      SELECT kind::text, target::numeric
+      SELECT kind::text, target::numeric, period::text
       FROM monthly_goals
       WHERE month = ${month_start}::date
     `;
 
-    const out: Record<string, number> = {
-      running_distance_km: 0,
-      steps: 0,
-      reading_minutes: 0,
-      outdoor_minutes: 0,
-      writing_minutes: 0,
-      coding_minutes: 0,
-      focus_minutes: 0,
+    const out: Record<string, { target: number; period: string }> = {
+      running_distance_km: { target: 0, period: 'monthly' },
+      steps: { target: 0, period: 'daily' },
+      reading_minutes: { target: 0, period: 'daily' },
+      outdoor_minutes: { target: 0, period: 'daily' },
+      writing_minutes: { target: 0, period: 'daily' },
+      coding_minutes: { target: 0, period: 'daily' },
+      focus_minutes: { target: 0, period: 'daily' },
     };
-    for (const r of rows as Array<{ kind: string; target: number }>) {
+    for (const r of rows as Array<{ kind: string; target: number; period: string }>) {
       const k = String(r.kind);
       const v = Number(r.target);
-      if (k in out) out[k] = v;
+      const p = String(r.period);
+      if (k in out) out[k] = { target: v, period: p };
     }
     return NextResponse.json(out, { status: HTTP_STATUS.OK });
   } catch (e: unknown) {
@@ -82,7 +83,7 @@ export const POST = wrapTrace("POST /api/habits/goal", async (req: Request) => {
       SELECT (date_trunc('month', timezone('Europe/Berlin', now()))::date) AS month_start
     `;
 
-    const known = [
+    const allGoalKinds = [
       "running_distance_km",
       "steps",
       "reading_minutes",
@@ -92,13 +93,30 @@ export const POST = wrapTrace("POST /api/habits/goal", async (req: Request) => {
       "focus_minutes",
     ] as const;
 
-    for (const k of known) {
-      const v = Number(parsed?.[k] ?? 0);
-      await sql/*sql*/`
-        INSERT INTO monthly_goals (month, kind, target)
-        VALUES (${month_start}::date, ${k}::goal_kind, ${v}::numeric)
-        ON CONFLICT (month, kind) DO UPDATE SET target = EXCLUDED.target
-      `;
+    // Insert all goals with their respective periods
+    for (const k of allGoalKinds) {
+      const goalData = parsed?.[k];
+      if (goalData !== undefined) {
+        // Handle both old format (number) and new format (object with target and period)
+        let target: number;
+        let period: string;
+
+        if (typeof goalData === 'object' && goalData !== null && 'target' in goalData && 'period' in goalData) {
+          target = Number(goalData.target);
+          period = String(goalData.period);
+        } else {
+          // Fallback for old format or simple number
+          target = Number(goalData);
+          // Default period based on kind (for backward compatibility)
+          period = k === 'running_distance_km' ? 'monthly' : 'daily';
+        }
+
+        await sql/*sql*/`
+          INSERT INTO monthly_goals (month, kind, target, period)
+          VALUES (${month_start}::date, ${k}::goal_kind, ${target}::numeric, ${period}::goal_period)
+          ON CONFLICT (month, kind) DO UPDATE SET target = EXCLUDED.target, period = EXCLUDED.period
+        `;
+      }
     }
 
     revalidateShared();

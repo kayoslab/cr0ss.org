@@ -93,6 +93,7 @@ export const ZGoal = z.object({
     "coding_minutes",
   ]),
   target: z.coerce.number().min(0),
+  period: z.enum(["monthly", "daily"]),
 });
 
 export const ZSubjectiveMetrics = z.object({
@@ -149,12 +150,18 @@ export const ZDayUpsert = z.object({
   coding_minutes: z.coerce.number().int().min(0).optional(),
 });
 
+// Individual goal with value and period
+const ZGoalInput = z.object({
+  target: z.coerce.number().min(0),
+  period: z.enum(["monthly", "daily"]),
+});
+
 export const ZMonthlyGoalsUpsert = z.object({
-  running_distance_km: z.coerce.number().min(0).optional(),
-  steps: z.coerce.number().int().min(0).optional(),
-  reading_minutes: z.coerce.number().int().min(0).optional(),
-  outdoor_minutes: z.coerce.number().int().min(0).optional(),
-  writing_minutes: z.coerce.number().int().min(0).optional(),
-  coding_minutes: z.coerce.number().int().min(0).optional(),
-  focus_minutes: z.coerce.number().int().min(0).optional(),
+  running_distance_km: z.union([z.coerce.number().min(0), ZGoalInput]).optional(),
+  steps: z.union([z.coerce.number().int().min(0), ZGoalInput]).optional(),
+  reading_minutes: z.union([z.coerce.number().int().min(0), ZGoalInput]).optional(),
+  outdoor_minutes: z.union([z.coerce.number().int().min(0), ZGoalInput]).optional(),
+  writing_minutes: z.union([z.coerce.number().int().min(0), ZGoalInput]).optional(),
+  coding_minutes: z.union([z.coerce.number().int().min(0), ZGoalInput]).optional(),
+  focus_minutes: z.union([z.coerce.number().int().min(0), ZGoalInput]).optional(),
 });

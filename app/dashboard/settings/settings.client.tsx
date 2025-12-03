@@ -117,14 +117,21 @@ type BodyProfile = {
   notes?: string | null;
 };
 
+type GoalPeriod = "monthly" | "daily";
+
+type GoalValue = {
+  target: number;
+  period: GoalPeriod;
+};
+
 type Goals = {
-  running_distance_km: number;
-  steps: number;
-  reading_minutes: number;
-  outdoor_minutes: number;
-  writing_minutes: number;
-  coding_minutes: number;
-  focus_minutes: number;
+  running_distance_km: GoalValue;
+  steps: GoalValue;
+  reading_minutes: GoalValue;
+  outdoor_minutes: GoalValue;
+  writing_minutes: GoalValue;
+  coding_minutes: GoalValue;
+  focus_minutes: GoalValue;
 };
 
 type DayPayload = {
@@ -175,13 +182,13 @@ const methodDefaults: Record<CoffeeBrewingMethod, number> = {
 };
 
 const emptyGoals: Goals = {
-  running_distance_km: 0,
-  steps: 0,
-  reading_minutes: 0,
-  outdoor_minutes: 0,
-  writing_minutes: 0,
-  coding_minutes: 0,
-  focus_minutes: 0,
+  running_distance_km: { target: 0, period: "monthly" },
+  steps: { target: 0, period: "daily" },
+  reading_minutes: { target: 0, period: "daily" },
+  outdoor_minutes: { target: 0, period: "daily" },
+  writing_minutes: { target: 0, period: "daily" },
+  coding_minutes: { target: 0, period: "daily" },
+  focus_minutes: { target: 0, period: "daily" },
 };
 
 const emptyDay = (dateStr: string): DayPayload => ({
@@ -801,15 +808,66 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
           id="form-goals"
           onSubmit={submitGoals}
           onKeyDown={makeFormHotkeys(() => submitGoals())}
-          className="grid grid-cols-2 gap-4"
+          className="space-y-6"
         >
-          <NumField label="Running Distance (km)" value={goals.running_distance_km} onCommit={(v)=>setGoals(g=>({...g, running_distance_km:v}))} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitGoals(), step: 0.5 })}/>
-          <NumField label="Steps" value={goals.steps} onCommit={(v)=>setGoals(g=>({...g, steps:v}))} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitGoals(), step: 100 })}/>
-          <NumField label="Reading (min)" value={goals.reading_minutes} onCommit={(v)=>setGoals(g=>({...g, reading_minutes:v}))} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitGoals(), step: 5 })}/>
-          <NumField label="Outdoors (min)" value={goals.outdoor_minutes} onCommit={(v)=>setGoals(g=>({...g, outdoor_minutes:v}))} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitGoals(), step: 5 })}/>
-          <NumField label="Writing (min)" value={goals.writing_minutes} onCommit={(v)=>setGoals(g=>({...g, writing_minutes:v}))} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitGoals(), step: 5 })}/>
-          <NumField label="Coding (min)" value={goals.coding_minutes} onCommit={(v)=>setGoals(g=>({...g, coding_minutes:v}))} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitGoals(), step: 5 })}/>
-          <NumField label="Focus (min)" value={goals.focus_minutes} onCommit={(v)=>setGoals(g=>({...g, focus_minutes:v}))} onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitGoals(), step: 5 })}/>
+          <div className="space-y-4">
+            <GoalField
+              label="Running Distance (km)"
+              value={goals.running_distance_km.target}
+              period={goals.running_distance_km.period}
+              onValueChange={(v) => setGoals(g => ({ ...g, running_distance_km: { ...g.running_distance_km, target: v } }))}
+              onPeriodChange={(p) => setGoals(g => ({ ...g, running_distance_km: { ...g.running_distance_km, period: p } }))}
+              onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitGoals(), step: 0.5 })}
+            />
+            <GoalField
+              label="Steps"
+              value={goals.steps.target}
+              period={goals.steps.period}
+              onValueChange={(v) => setGoals(g => ({ ...g, steps: { ...g.steps, target: v } }))}
+              onPeriodChange={(p) => setGoals(g => ({ ...g, steps: { ...g.steps, period: p } }))}
+              onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitGoals(), step: 100 })}
+            />
+            <GoalField
+              label="Reading (min)"
+              value={goals.reading_minutes.target}
+              period={goals.reading_minutes.period}
+              onValueChange={(v) => setGoals(g => ({ ...g, reading_minutes: { ...g.reading_minutes, target: v } }))}
+              onPeriodChange={(p) => setGoals(g => ({ ...g, reading_minutes: { ...g.reading_minutes, period: p } }))}
+              onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitGoals(), step: 5 })}
+            />
+            <GoalField
+              label="Outdoors (min)"
+              value={goals.outdoor_minutes.target}
+              period={goals.outdoor_minutes.period}
+              onValueChange={(v) => setGoals(g => ({ ...g, outdoor_minutes: { ...g.outdoor_minutes, target: v } }))}
+              onPeriodChange={(p) => setGoals(g => ({ ...g, outdoor_minutes: { ...g.outdoor_minutes, period: p } }))}
+              onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitGoals(), step: 5 })}
+            />
+            <GoalField
+              label="Writing (min)"
+              value={goals.writing_minutes.target}
+              period={goals.writing_minutes.period}
+              onValueChange={(v) => setGoals(g => ({ ...g, writing_minutes: { ...g.writing_minutes, target: v } }))}
+              onPeriodChange={(p) => setGoals(g => ({ ...g, writing_minutes: { ...g.writing_minutes, period: p } }))}
+              onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitGoals(), step: 5 })}
+            />
+            <GoalField
+              label="Coding (min)"
+              value={goals.coding_minutes.target}
+              period={goals.coding_minutes.period}
+              onValueChange={(v) => setGoals(g => ({ ...g, coding_minutes: { ...g.coding_minutes, target: v } }))}
+              onPeriodChange={(p) => setGoals(g => ({ ...g, coding_minutes: { ...g.coding_minutes, period: p } }))}
+              onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitGoals(), step: 5 })}
+            />
+            <GoalField
+              label="Focus (min)"
+              value={goals.focus_minutes.target}
+              period={goals.focus_minutes.period}
+              onValueChange={(v) => setGoals(g => ({ ...g, focus_minutes: { ...g.focus_minutes, target: v } }))}
+              onPeriodChange={(p) => setGoals(g => ({ ...g, focus_minutes: { ...g.focus_minutes, period: p } }))}
+              onKeyDown={mkNumberKeydownHandler({ onSubmit: () => submitGoals(), step: 5 })}
+            />
+          </div>
         </form>
       </Card>
 
@@ -1162,6 +1220,45 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
 /* --------------------------------------------------------
    tiny inputs
 --------------------------------------------------------- */
+
+function GoalField({
+  label,
+  value,
+  period,
+  onValueChange,
+  onPeriodChange,
+  onKeyDown,
+}: {
+  label: string;
+  value: number;
+  period: GoalPeriod;
+  onValueChange: (v: number) => void;
+  onPeriodChange: (p: GoalPeriod) => void;
+  onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
+}) {
+  return (
+    <div className="grid grid-cols-[1fr_auto] gap-3 items-end">
+      <div className="flex flex-col">
+        <label className="block text-xs text-neutral-500 mb-1">{label}</label>
+        <input
+          type="number"
+          value={value}
+          onChange={(e) => onValueChange(Number(e.target.value))}
+          onKeyDown={onKeyDown}
+          className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-400"
+        />
+      </div>
+      <select
+        value={period}
+        onChange={(e) => onPeriodChange(e.target.value as GoalPeriod)}
+        className="rounded-md border border-neutral-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-400 bg-white"
+      >
+        <option value="daily">Daily</option>
+        <option value="monthly">Monthly</option>
+      </select>
+    </div>
+  );
+}
 
 function Label({ children }: { children: React.ReactNode }) {
   return <label className="block text-xs text-neutral-500 mb-1">{children}</label>;

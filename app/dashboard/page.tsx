@@ -39,7 +39,8 @@ export default async function DashboardPage() {
     })
   );
 
-  const goals = overviewData.monthlyGoals;
+  const monthlyGoals = overviewData.monthlyGoals;
+  const dailyGoals = overviewData.dailyGoals;
 
   // Calculate today's snapshot KPIs
   const todaySnapshot = {
@@ -51,39 +52,104 @@ export default async function DashboardPage() {
     countriesVisited: visited.length,
   };
 
-  // Top 3 monthly goals for overview
-  const topGoals = [
-    {
+  // Build all goals with their progress
+  const allGoals: Array<{
+    name: string;
+    value: number;
+    target: number;
+    unit: string;
+    percentage: number;
+    period: "monthly" | "daily";
+  }> = [];
+
+  // Goal metadata: maps goal keys to display info and how to get current value
+  const goalMetadata: Record<string, {
+    name: string;
+    unit: string;
+    getValue: (data: typeof overviewData) => number;
+  }> = {
+    running_distance_km: {
       name: "Running",
-      value: overviewData.runningProgress.total_km,
-      target: overviewData.runningProgress.target_km,
       unit: "km",
-      percentage: Math.round(
-        (overviewData.runningProgress.total_km /
-          overviewData.runningProgress.target_km) *
-          100
-      ),
+      getValue: (data) => data.runningProgress.total_km,
     },
-    {
-      name: "Reading",
-      value: overviewData.habitsToday.reading_minutes,
-      target: goals.reading_minutes,
-      unit: "min",
-      percentage: Math.round(
-        (overviewData.habitsToday.reading_minutes / goals.reading_minutes) *
-          100
-      ),
-    },
-    {
+    steps: {
       name: "Steps",
-      value: overviewData.habitsToday.steps,
-      target: goals.steps,
       unit: "steps",
-      percentage: Math.round(
-        (overviewData.habitsToday.steps / goals.steps) * 100
-      ),
+      getValue: (data) => data.habitsToday.steps || 0,
     },
-  ];
+    reading_minutes: {
+      name: "Reading",
+      unit: "min",
+      getValue: (data) => data.habitsToday.reading_minutes || 0,
+    },
+    outdoor_minutes: {
+      name: "Outdoors",
+      unit: "min",
+      getValue: (data) => data.habitsToday.outdoor_minutes || 0,
+    },
+    writing_minutes: {
+      name: "Writing",
+      unit: "min",
+      getValue: (data) => data.habitsToday.writing_minutes || 0,
+    },
+    coding_minutes: {
+      name: "Coding",
+      unit: "min",
+      getValue: (data) => data.habitsToday.coding_minutes || 0,
+    },
+    focus_minutes: {
+      name: "Focus",
+      unit: "min",
+      getValue: (data) => data.habitsToday.focus_minutes || 0,
+    },
+  };
+
+  // Process monthly goals
+  for (const [key, target] of Object.entries(monthlyGoals)) {
+    if (target > 0 && goalMetadata[key]) {
+      const meta = goalMetadata[key];
+      const value = meta.getValue(overviewData);
+      allGoals.push({
+        name: meta.name,
+        value,
+        target,
+        unit: meta.unit,
+        percentage: Math.round((value / target) * 100),
+        period: "monthly",
+      });
+    }
+  }
+
+  // Process daily goals
+  for (const [key, target] of Object.entries(dailyGoals)) {
+    if (target > 0 && goalMetadata[key]) {
+      const meta = goalMetadata[key];
+      const value = meta.getValue(overviewData);
+      allGoals.push({
+        name: meta.name,
+        value,
+        target,
+        unit: meta.unit,
+        percentage: Math.round((value / target) * 100),
+        period: "daily",
+      });
+    }
+  }
+
+  // Sort by percentage (highest first) and take top 3 for each period
+  const sortedMonthly = allGoals
+    .filter((g) => g.period === "monthly")
+    .sort((a, b) => b.percentage - a.percentage)
+    .slice(0, 3);
+
+  const sortedDaily = allGoals
+    .filter((g) => g.period === "daily")
+    .sort((a, b) => b.percentage - a.percentage)
+    .slice(0, 3);
+
+  const monthlyGoalsList = sortedMonthly;
+  const dailyGoalsList = sortedDaily;
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6">
@@ -137,22 +203,52 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      {/* Monthly Goals Progress */}
-      <div className="rounded-xl border border-neutral-200/60 bg-white p-6 shadow-sm">
-        <h3 className="text-lg font-semibold mb-4">Monthly Goals</h3>
-        <div className="space-y-4">
-          {topGoals.map((goal) => (
-            <div key={goal.name}>
-              <div className="flex justify-between text-sm mb-2">
-                <span className="font-medium">{goal.name}</span>
-                <span className="text-neutral-500">
-                  {goal.value.toLocaleString()} /{" "}
-                  {goal.target.toLocaleString()} {goal.unit}
-                </span>
-              </div>
-              <Progress value={Math.min(goal.percentage, 100)} className="h-2" />
+      {/* Goals Progress - Side by Side */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Daily Goals Progress */}
+        <div className="rounded-xl border border-neutral-200/60 bg-white p-6 shadow-sm">
+          <h3 className="text-lg font-semibold mb-4">Daily Goals</h3>
+          {dailyGoalsList.length > 0 ? (
+            <div className="space-y-4">
+              {dailyGoalsList.map((goal) => (
+                <div key={goal.name}>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="font-medium">{goal.name}</span>
+                    <span className="text-neutral-500">
+                      {goal.value.toLocaleString()} /{" "}
+                      {goal.target.toLocaleString()} {goal.unit}
+                    </span>
+                  </div>
+                  <Progress value={Math.min(goal.percentage, 100)} className="h-2" />
+                </div>
+              ))}
             </div>
-          ))}
+          ) : (
+            <p className="text-sm text-neutral-500">No daily goals set</p>
+          )}
+        </div>
+
+        {/* Monthly Goals Progress */}
+        <div className="rounded-xl border border-neutral-200/60 bg-white p-6 shadow-sm">
+          <h3 className="text-lg font-semibold mb-4">Monthly Goals</h3>
+          {monthlyGoalsList.length > 0 ? (
+            <div className="space-y-4">
+              {monthlyGoalsList.map((goal) => (
+                <div key={goal.name}>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="font-medium">{goal.name}</span>
+                    <span className="text-neutral-500">
+                      {goal.value.toLocaleString()} /{" "}
+                      {goal.target.toLocaleString()} {goal.unit}
+                    </span>
+                  </div>
+                  <Progress value={Math.min(goal.percentage, 100)} className="h-2" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-neutral-500">No monthly goals set</p>
+          )}
         </div>
       </div>
 

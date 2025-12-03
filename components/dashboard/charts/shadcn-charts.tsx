@@ -428,9 +428,13 @@ export function Scatter({
               if (!active || !payload || !payload.length) return null;
 
               const item = payload[0];
-              const seriesName = item.name || item.dataKey;
-              const config = chartConfig[seriesName as string];
-              const dotColor = config?.color || item.fill || item.color || getChartColor(0);
+
+              // Get the category from the data point itself if groupField exists
+              const categoryValue = groupField ? String(item.payload[groupField]) : 'all';
+              const config = chartConfig[categoryValue];
+
+              // Use the fill color from the scatter series or fall back to config color
+              const dotColor = item.fill || config?.color || getChartColor(0);
 
               return (
                 <div className="rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl">
@@ -439,7 +443,7 @@ export function Scatter({
                       className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
                       style={{ backgroundColor: dotColor }}
                     />
-                    <span className="font-medium">{config?.label || seriesName}</span>
+                    <span className="font-medium">{config?.label || categoryValue}</span>
                   </div>
                   <div className="grid gap-1">
                     {Object.entries(item.payload).map(([key, value]) => {

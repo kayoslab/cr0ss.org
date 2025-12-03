@@ -12,6 +12,10 @@ vi.mock('@/lib/auth/secret', () => ({
 
 vi.mock('@/lib/cache/revalidate', () => ({
   revalidateDashboard: vi.fn(),
+  revalidateCoffee: vi.fn(),
+  revalidateHabits: vi.fn(),
+  revalidateWorkouts: vi.fn(),
+  revalidateShared: vi.fn(),
 }));
 
 vi.mock('@/lib/obs/trace', () => ({
@@ -25,7 +29,7 @@ vi.mock('@/lib/db/profile', () => ({
 
 import { rateLimit } from '@/lib/rate/limit';
 import { assertSecret } from '@/lib/auth/secret';
-import { revalidateDashboard } from '@/lib/cache/revalidate';
+import { revalidateCoffee } from '@/lib/cache/revalidate';
 import { getBodyProfileDB, upsertBodyProfileDB } from '@/lib/db/profile';
 
 describe('GET /api/habits/body', () => {
@@ -152,7 +156,7 @@ describe('POST /api/habits/body', () => {
     vi.clearAllMocks();
     vi.mocked(rateLimit).mockResolvedValue({ ok: true });
     vi.mocked(assertSecret).mockImplementation(() => {});
-    vi.mocked(revalidateDashboard).mockImplementation(() => {});
+    vi.mocked(revalidateCoffee).mockImplementation(() => {});
   });
 
   describe('Authentication', () => {
@@ -267,7 +271,7 @@ describe('POST /api/habits/body', () => {
       const data = await response.json();
       expect(data.ok).toBe(true);
       expect(data.profile.weight_kg).toBe(76);
-      expect(revalidateDashboard).toHaveBeenCalled();
+      expect(revalidateCoffee).toHaveBeenCalled();
     });
 
     it('should update multiple fields', async () => {
@@ -303,7 +307,7 @@ describe('POST /api/habits/body', () => {
       expect(response.status).toBe(200);
       const data = await response.json();
       expect(data.profile).toEqual(mockProfile);
-      expect(revalidateDashboard).toHaveBeenCalled();
+      expect(revalidateCoffee).toHaveBeenCalled();
     });
 
     it('should handle full profile update', async () => {
