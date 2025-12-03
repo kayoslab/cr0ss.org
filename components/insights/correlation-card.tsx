@@ -20,21 +20,22 @@ export function CorrelationCard({ correlation, onClick }: CorrelationCardProps) 
   const { metricA, metricB, correlation: result, interpretation } = correlation;
   const isPositive = result.r > 0;
 
-  // Color coding based on confidence
-  const confidenceColors = {
-    strong: "bg-green-500/10 text-green-700 border-green-500/20",
-    moderate: "bg-blue-500/10 text-blue-700 border-blue-500/20",
-    exploratory: "bg-yellow-500/10 text-yellow-700 border-yellow-500/20",
-    none: "bg-gray-500/10 text-gray-700 border-gray-500/20",
+  // Color coding based on correlation strength (effect size)
+  const strengthColors = {
+    "very strong": "bg-purple-500/10 text-purple-700 border-purple-500/20",
+    strong: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+    moderate: "bg-cyan-500/10 text-cyan-700 border-cyan-500/20",
+    weak: "bg-gray-500/10 text-gray-700 border-gray-500/20",
+    "very weak": "bg-gray-400/10 text-gray-600 border-gray-400/20",
+    none: "bg-gray-300/10 text-gray-500 border-gray-300/20",
   };
 
-  const strengthColors = {
-    "very strong": "text-purple-600",
-    strong: "text-blue-600",
-    moderate: "text-cyan-600",
-    weak: "text-gray-600",
-    "very weak": "text-gray-400",
-    none: "text-gray-300",
+  // Confidence colors for tooltip/secondary display
+  const confidenceColors = {
+    strong: "text-green-600",
+    moderate: "text-blue-600",
+    exploratory: "text-yellow-600",
+    none: "text-gray-600",
   };
 
   return (
@@ -61,8 +62,8 @@ export function CorrelationCard({ correlation, onClick }: CorrelationCardProps) 
           </div>
 
           <div className="flex flex-col items-end gap-2">
-            <Badge variant="outline" className={confidenceColors[result.confidence]}>
-              {result.confidence}
+            <Badge variant="outline" className={strengthColors[result.strength]}>
+              {result.strength}
             </Badge>
             <TooltipProvider>
               <Tooltip>
@@ -74,8 +75,9 @@ export function CorrelationCard({ correlation, onClick }: CorrelationCardProps) 
                 </TooltipTrigger>
                 <TooltipContent>
                   <div className="space-y-1 text-xs">
-                    <p><strong>Correlation:</strong> {result.r.toFixed(4)}</p>
-                    <p><strong>P-value:</strong> {result.pValue.toFixed(4)}</p>
+                    <p><strong>Effect size (r):</strong> {result.r.toFixed(4)}</p>
+                    <p><strong>Significance (p):</strong> {result.pValue.toFixed(4)}</p>
+                    <p><strong>Confidence:</strong> {result.confidence}</p>
                     <p><strong>Sample size:</strong> {result.n}</p>
                   </div>
                 </TooltipContent>
@@ -91,8 +93,8 @@ export function CorrelationCard({ correlation, onClick }: CorrelationCardProps) 
         </p>
 
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
-          <span className={`font-medium ${strengthColors[result.strength]}`}>
-            {result.strength} correlation
+          <span className={`font-medium ${confidenceColors[result.confidence]}`}>
+            {result.confidence} confidence (p={result.pValue.toFixed(3)})
           </span>
           <span>•</span>
           <span>
