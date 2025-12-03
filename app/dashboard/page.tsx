@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import { MapPin, Coffee, Activity, BookOpen, Lightbulb } from "lucide-react";
 import { getAllCountries, getVisitedCountries } from "@/lib/contentful/api/country";
 import { CountryProps } from "@/lib/contentful/api/props/country";
 import { getCurrentLocation } from "@/lib/db/location";
@@ -96,7 +97,7 @@ export default async function DashboardPage() {
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Overview</h2>
         <p className="text-muted-foreground">
-          Your quantified self at a glance
+          Quantified self metrics and insights at a glance
         </p>
       </div>
 
@@ -150,8 +151,10 @@ export default async function DashboardPage() {
               </div>
               <div className="w-full bg-neutral-100 rounded-full h-2">
                 <div
-                  className="bg-emerald-500 h-2 rounded-full transition-all"
-                  style={{ width: `${Math.min(goal.percentage, 100)}%` }}
+                  className="h-2 rounded-full transition-all bg-[color:var(--chart-1)]"
+                  style={{
+                    width: `${Math.min(goal.percentage, 100)}%`
+                  }}
                 />
               </div>
             </div>
@@ -165,25 +168,7 @@ export default async function DashboardPage() {
           href="/dashboard/travel"
           className="flex flex-col items-center gap-2 rounded-xl border border-neutral-200/60 bg-white p-6 shadow-sm hover:bg-neutral-50 transition-colors"
         >
-          <svg
-            className="w-8 h-8 text-neutral-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-            />
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-            />
-          </svg>
+          <MapPin className="w-8 h-8 text-neutral-600" />
           <span className="font-medium">Travel</span>
         </Link>
 
@@ -191,19 +176,7 @@ export default async function DashboardPage() {
           href="/dashboard/coffee"
           className="flex flex-col items-center gap-2 rounded-xl border border-neutral-200/60 bg-white p-6 shadow-sm hover:bg-neutral-50 transition-colors"
         >
-          <svg
-            className="w-8 h-8 text-neutral-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"
-            />
-          </svg>
+          <Coffee className="w-8 h-8 text-neutral-600" />
           <span className="font-medium">Coffee</span>
         </Link>
 
@@ -211,19 +184,7 @@ export default async function DashboardPage() {
           href="/dashboard/workouts"
           className="flex flex-col items-center gap-2 rounded-xl border border-neutral-200/60 bg-white p-6 shadow-sm hover:bg-neutral-50 transition-colors"
         >
-          <svg
-            className="w-8 h-8 text-neutral-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 10V3L4 14h7v7l9-11h-7z"
-            />
-          </svg>
+          <Activity className="w-8 h-8 text-neutral-600" />
           <span className="font-medium">Workouts</span>
         </Link>
 
@@ -231,19 +192,7 @@ export default async function DashboardPage() {
           href="/dashboard/habits"
           className="flex flex-col items-center gap-2 rounded-xl border border-neutral-200/60 bg-white p-6 shadow-sm hover:bg-neutral-50 transition-colors"
         >
-          <svg
-            className="w-8 h-8 text-neutral-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-            />
-          </svg>
+          <BookOpen className="w-8 h-8 text-neutral-600" />
           <span className="font-medium">Habits</span>
         </Link>
 
@@ -251,19 +200,7 @@ export default async function DashboardPage() {
           href="/dashboard/insights"
           className="flex flex-col items-center gap-2 rounded-xl border border-neutral-200/60 bg-white p-6 shadow-sm hover:bg-neutral-50 transition-colors"
         >
-          <svg
-            className="w-8 h-8 text-neutral-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-            />
-          </svg>
+          <Lightbulb className="w-8 h-8 text-neutral-600" />
           <span className="font-medium">Insights</span>
         </Link>
       </div>

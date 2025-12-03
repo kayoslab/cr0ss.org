@@ -61,9 +61,9 @@ export default function HabitsClient({
                   </Badge>
                 </AlertTitle>
                 <AlertDescription>
-                  {is100Days && `Incredible dedication! You've maintained your ${habit} habit for 100 days straight. You're unstoppable!`}
-                  {isMonth && `Outstanding work! You've kept up your ${habit} habit for an entire month. Keep the momentum going!`}
-                  {isWeek && `You're on fire! You've maintained your ${habit} habit for a full week. Can you make it to 30 days?`}
+                  {is100Days && `Maintained ${habit} habit for 100 days straight. Incredible consistency and dedication!`}
+                  {isMonth && `Maintained ${habit} habit for an entire month. Outstanding work on building lasting habits!`}
+                  {isWeek && `Maintained ${habit} habit for a full week. Strong start on the journey to 30 days!`}
                 </AlertDescription>
               </Alert>
             );

@@ -13,7 +13,7 @@ export const fetchCache = "force-no-store";
 
 export const metadata = {
   title: "Travel | Dashboard",
-  description: "Track your travel and visited countries",
+  description: "Travel history and visited countries around the world",
 };
 
 export default async function TravelPage() {
@@ -46,7 +46,7 @@ export default async function TravelPage() {
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Travel</h2>
         <p className="text-muted-foreground">
-          Track your travel and countries visited around the world.
+          Travel history and countries visited around the world.
         </p>
       </div>
 
