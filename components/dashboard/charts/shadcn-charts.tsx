@@ -33,6 +33,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { CHART_COLOR_VALUES, getChartColor } from "@/lib/constants/chart-colors";
 
 /** Panel wrapper using shadcn Card components */
 export function Panel({ title, children }: { title: string; children: React.ReactNode }) {
@@ -54,35 +55,14 @@ function Empty({ hint }: { hint?: string }) {
   return <div className="text-neutral-500 text-sm">No data yet{hint ? ` — ${hint}` : ""}.</div>;
 }
 
-/* ------------------------- Color mapping ------------------------- */
-// Direct OKLCH color values from globals.css
-const CHART_COLOR_VALUES = [
-  "oklch(0.646 0.222 41.116)",   // chart-1: orange
-  "oklch(0.6 0.118 184.704)",     // chart-2: cyan
-  "oklch(0.398 0.07 227.392)",    // chart-3: blue
-  "oklch(0.828 0.189 84.429)",    // chart-4: yellow
-  "oklch(0.769 0.188 70.08)",     // chart-5: peach
-  "oklch(0.55 0.22 330)",          // chart-6: pink
-  "oklch(0.65 0.18 150)",          // chart-7: teal
-  "oklch(0.7 0.15 270)",           // chart-8: purple
-  "oklch(0.6 0.2 50)",             // chart-9: gold
-  "oklch(0.5 0.18 200)",           // chart-10: blue
-];
-
-function getChartColor(index: number): string {
-  return CHART_COLOR_VALUES[index % CHART_COLOR_VALUES.length];
-}
-
 /* ------------------------- Donut/Pie Chart ------------------------- */
 export function Donut({
   title,
   data,
-  colors = ["emerald", "sky", "violet", "amber", "rose"],
   isLoading,
 }: {
   title: string;
   data: { name: string; value: number }[];
-  colors?: string[];
   isLoading?: boolean;
 }) {
   if (isLoading) {
@@ -169,7 +149,6 @@ export function Line({
   data,
   index,
   categories,
-  colors = ["sky", "emerald", "violet", "amber", "rose"],
   isLoading,
   showLegend = true,
 }: {
@@ -177,7 +156,6 @@ export function Line({
   data: Record<string, string | number>[];
   index: string;
   categories: string[];
-  colors?: string[];
   isLoading?: boolean;
   showLegend?: boolean;
 }) {
@@ -269,7 +247,6 @@ export function Area({
   data,
   index,
   categories,
-  colors = ["sky", "emerald", "violet", "amber", "rose"],
   isLoading,
   showLegend = true,
 }: {
@@ -277,7 +254,6 @@ export function Area({
   data: Record<string, string | number>[];
   index: string;
   categories: string[];
-  colors?: string[];
   isLoading?: boolean;
   showLegend?: boolean;
 }) {
@@ -370,7 +346,6 @@ export function Scatter({
   data,
   x,
   y,
-  colors = ["violet"],
   groupField,
   isLoading,
   showLegend = true,
@@ -379,7 +354,6 @@ export function Scatter({
   data: Record<string, string | number>[];
   x: string;
   y: string;
-  colors?: string[];
   groupField?: string;
   isLoading?: boolean;
   showLegend?: boolean;

@@ -6,6 +6,8 @@ import { CountryProps } from "@/lib/contentful/api/props/country";
 import { getCurrentLocation } from "@/lib/db/location";
 import { getDashboardData } from "@/lib/db/dashboard";
 import { isoToBerlinDate } from "@/lib/time/berlin";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 
 // Use edge runtime for better performance
 export const runtime = "edge";
@@ -103,37 +105,45 @@ export default async function DashboardPage() {
 
       {/* Today's Snapshot - 4 KPIs */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <div className="rounded-xl border border-neutral-200/60 bg-white p-6 shadow-sm">
-          <div className="text-sm font-medium text-neutral-500">Coffee Cups</div>
-          <div className="mt-2 text-3xl font-bold">{todaySnapshot.coffeeCups}</div>
-          <div className="text-xs text-neutral-400 mt-1">Today</div>
-        </div>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Coffee Cups</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CardTitle className="text-3xl">{todaySnapshot.coffeeCups}</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">Today</p>
+          </CardContent>
+        </Card>
 
-        <div className="rounded-xl border border-neutral-200/60 bg-white p-6 shadow-sm">
-          <div className="text-sm font-medium text-neutral-500">Steps</div>
-          <div className="mt-2 text-3xl font-bold">
-            {todaySnapshot.steps.toLocaleString()}
-          </div>
-          <div className="text-xs text-neutral-400 mt-1">Today</div>
-        </div>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Steps</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CardTitle className="text-3xl">{todaySnapshot.steps.toLocaleString()}</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">Today</p>
+          </CardContent>
+        </Card>
 
-        <div className="rounded-xl border border-neutral-200/60 bg-white p-6 shadow-sm">
-          <div className="text-sm font-medium text-neutral-500">
-            Active Minutes
-          </div>
-          <div className="mt-2 text-3xl font-bold">
-            {todaySnapshot.activeMinutes}
-          </div>
-          <div className="text-xs text-neutral-400 mt-1">Today</div>
-        </div>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Active Minutes</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CardTitle className="text-3xl">{todaySnapshot.activeMinutes}</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">Today</p>
+          </CardContent>
+        </Card>
 
-        <div className="rounded-xl border border-neutral-200/60 bg-white p-6 shadow-sm">
-          <div className="text-sm font-medium text-neutral-500">Countries</div>
-          <div className="mt-2 text-3xl font-bold">
-            {todaySnapshot.countriesVisited}
-          </div>
-          <div className="text-xs text-neutral-400 mt-1">Visited</div>
-        </div>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Countries</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CardTitle className="text-3xl">{todaySnapshot.countriesVisited}</CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">Visited</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Monthly Goals Progress */}
@@ -149,14 +159,7 @@ export default async function DashboardPage() {
                   {goal.target.toLocaleString()} {goal.unit}
                 </span>
               </div>
-              <div className="w-full bg-neutral-100 rounded-full h-2">
-                <div
-                  className="h-2 rounded-full transition-all bg-[color:var(--chart-1)]"
-                  style={{
-                    width: `${Math.min(goal.percentage, 100)}%`
-                  }}
-                />
-              </div>
+              <Progress value={Math.min(goal.percentage, 100)} className="h-2" />
             </div>
           ))}
         </div>
