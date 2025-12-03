@@ -6,13 +6,14 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Kpi } from "@/components/dashboard/kpi";
 import { Donut, Line, Bars } from "@/components/dashboard/charts/shadcn-charts";
+import { CoffeeBarInteractive } from "@/components/dashboard/charts/coffee-bar-interactive";
 
 type CoffeeClientProps = {
   cupsToday: number;
   methodsBar: { name: string; value: number }[];
   originsDonut: { name: string; value: number }[];
   caffeineDual: { time: string; intake_mg: number; body_mg: number }[];
-  weeklyRhythm?: { day: string; cups: number; avg_hour: string }[];
+  dailyCoffee30Days: { date: string; cups: number }[];
 };
 
 export default function CoffeeClient({
@@ -20,7 +21,7 @@ export default function CoffeeClient({
   methodsBar,
   originsDonut,
   caffeineDual,
-  weeklyRhythm = [],
+  dailyCoffee30Days,
 }: CoffeeClientProps) {
   // Check for late caffeine (after 6 PM = 18:00)
   const lateCaffeineData = caffeineDual.filter(point => {
@@ -39,6 +40,9 @@ export default function CoffeeClient({
 
   return (
     <div className="space-y-6">
+      {/* Daily Coffee - Last 30 Days */}
+      <CoffeeBarInteractive data={dailyCoffee30Days} />
+
       {/* Health Alerts */}
       {(hasLateCaffeine || highIntake) && (
         <div className="space-y-3">
@@ -94,23 +98,6 @@ export default function CoffeeClient({
           Intake: caffeine consumed (mg) at that time. Body: modeled remaining caffeine (mg) in body over the day.
         </p>
       </div>
-
-      {/* Weekly Rhythm */}
-      {weeklyRhythm.length > 0 && (
-        <div>
-          <Bars
-            title="Weekly coffee rhythm (last 12 weeks)"
-            items={weeklyRhythm.map(d => ({
-              name: d.day.slice(0, 3), // Mon, Tue, etc.
-              value: d.cups
-            }))}
-          />
-          <p className="mt-2 text-xs text-neutral-500">
-            Average cups per day of the week. Most coffee on{' '}
-            {weeklyRhythm.reduce((max, d) => d.cups > max.cups ? d : max).day}.
-          </p>
-        </div>
-      )}
 
       {/* Link to Collection */}
       <div className="gap-4">

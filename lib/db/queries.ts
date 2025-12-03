@@ -809,3 +809,39 @@ export async function qCoffeeWeeklyRhythm(weeks = 12) {
     };
   });
 }
+
+/**
+ * Get daily coffee consumption for the last N days
+ * Returns one row per day with cup count
+ */
+export async function qCoffeeLast30Days(days = 30) {
+  const rows = await sql/*sql*/`
+    WITH date_range AS (
+      SELECT generate_series(
+        current_date - interval '1 day' * (${days} - 1),
+        current_date,
+        '1 day'::interval
+      )::date AS date
+    )
+    SELECT
+      dr.date,
+      COALESCE(COUNT(cl.id), 0)::int as cups
+    FROM date_range dr
+    LEFT JOIN coffee_log cl ON cl.date = dr.date
+    GROUP BY dr.date
+    ORDER BY dr.date ASC
+  `;
+
+  interface DailyCoffeeRow {
+    date: Date;
+    cups: number;
+  }
+
+  return rows.map(r => {
+    const row = r as DailyCoffeeRow;
+    return {
+      date: row.date.toISOString().split('T')[0], // YYYY-MM-DD format
+      cups: Number(row.cups),
+    };
+  });
+}
