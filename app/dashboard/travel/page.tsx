@@ -4,12 +4,12 @@ import { CountryProps } from "@/lib/contentful/api/props/country";
 import { getCurrentLocation } from "@/lib/db/location";
 import TravelClient from "./travel.client";
 
-// Use edge runtime to match other dashboard pages
+// Use edge runtime for better performance
 export const runtime = "edge";
 
-// fetch settings
-export const dynamic = "force-dynamic";
-export const fetchCache = "force-no-store";
+// Cache configuration - revalidate every 5 minutes
+// Travel data changes infrequently, so caching is beneficial
+export const revalidate = 300; // 5 minutes
 
 export const metadata = {
   title: "Travel | Dashboard",

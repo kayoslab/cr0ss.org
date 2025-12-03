@@ -7,7 +7,7 @@
  */
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   MapPin,
@@ -25,6 +25,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 
 const navigationItems = [
@@ -62,6 +63,21 @@ const navigationItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { setOpenMobile, isMobile } = useSidebar();
+
+  const handleNavigation = (e: React.MouseEvent, href: string) => {
+    // Prevent default link behavior
+    e.preventDefault();
+
+    // Close mobile sidebar on navigation
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+
+    // Use router.push for navigation with refresh
+    router.push(href);
+  };
 
   return (
     <Sidebar>
@@ -75,7 +91,11 @@ export function AppSidebar() {
                 return (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton asChild isActive={isActive}>
-                      <Link href={item.href}>
+                      <Link
+                        href={item.href}
+                        prefetch={true}
+                        onClick={(e) => handleNavigation(e, item.href)}
+                      >
                         <item.icon className="h-4 w-4" />
                         <span>{item.title}</span>
                       </Link>

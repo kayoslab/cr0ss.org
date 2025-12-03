@@ -6,6 +6,8 @@
  * on Vercel deployments with connection pooling.
  */
 
+import { unstable_cache } from "next/cache";
+import { CACHE_TAGS, CACHE_KEYS } from "@/lib/constants/cache";
 import {
   startOfBerlinDayISO,
   endOfBerlinDayISO,
@@ -60,10 +62,10 @@ function eventsBetween(
 }
 
 /**
- * Fetch all dashboard data directly from the database
- * This replaces the /api/dashboard endpoint to avoid race conditions
+ * Internal function to fetch all dashboard data directly from the database
+ * This is wrapped with unstable_cache for performance optimization
  */
-export async function getDashboardData() {
+async function fetchDashboardData() {
   // Fetch all data in parallel where possible
   const [
     habitsToday,
@@ -288,6 +290,29 @@ export async function getDashboardData() {
     monthlyGoals,
   };
 }
+
+/**
+ * Fetch all dashboard data with caching
+ *
+ * This function wraps fetchDashboardData with Next.js unstable_cache for performance:
+ * - Cached for 5 minutes (300 seconds)
+ * - Tagged with CACHE_TAGS.DASHBOARD for granular invalidation
+ * - Automatically revalidates on POST requests that call revalidateDashboard()
+ *
+ * Cache invalidation happens immediately when:
+ * - Coffee is logged (POST /api/habits/coffee)
+ * - Habits are updated (POST /api/habits/day)
+ * - Workouts are logged (POST /api/habits/workout, POST /api/habits/run)
+ * - Goals are updated (POST /api/habits/goal)
+ */
+export const getDashboardData = unstable_cache(
+  fetchDashboardData,
+  [CACHE_KEYS.DASHBOARD_DATA],
+  {
+    tags: [CACHE_TAGS.DASHBOARD],
+    revalidate: 300, // 5 minutes
+  }
+);
 
 /**
  * Type for dashboard data
