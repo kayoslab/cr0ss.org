@@ -65,7 +65,9 @@ describe('MapClient', () => {
 
       const circle = container.querySelector('#GEO');
       expect(circle).toBeInTheDocument();
-      expect(circle).toHaveAttribute('fill', 'blue');
+      expect(circle).toHaveAttribute('fill', 'oklch(0.646 0.222 41.116)');
+      expect(circle).toHaveAttribute('stroke', 'white');
+      expect(circle).toHaveAttribute('stroke-width', '2');
     });
 
     it('should render location marker when showLocation is explicitly true', () => {
