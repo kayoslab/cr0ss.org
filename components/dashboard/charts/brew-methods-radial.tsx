@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { PolarAngleAxis, PolarGrid, Radar, RadarChart } from "recharts"
+import { PolarGrid, RadialBar, RadialBarChart } from "recharts"
 
 import {
   Card,
@@ -16,32 +16,59 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import { getChartColor } from "@/lib/constants/chart-colors"
-
-const CHART_COLOR = getChartColor(0);
-
-const chartConfig = {
-  count: {
-    label: "Cups",
-    color: CHART_COLOR,
-  },
-} satisfies ChartConfig
+import { CHART_COLOR_VALUES } from "@/lib/constants/chart-colors"
 
 type BrewMethodsRadialProps = {
   data: { name: string; value: number }[]
 }
 
+// All available brew methods from the database
+const ALL_BREW_METHODS = [
+  "espresso",
+  "v60",
+  "chemex",
+  "moka",
+  "aero",
+  "cold_brew",
+  "other"
+] as const;
+
 export function BrewMethodsRadial({ data }: BrewMethodsRadialProps) {
-  // Transform data for radar chart with fill color
-  const chartData = data.map(method => ({
+  // Create a complete dataset with all brew methods, filling in 0 for missing ones
+  const completeData = React.useMemo(() => {
+    const dataMap = new Map(data.map(item => [item.name.toLowerCase(), item.value]));
+    return ALL_BREW_METHODS.map(method => ({
+      name: method,
+      value: dataMap.get(method) || 0,
+    }));
+  }, [data]);
+
+  // Transform data for radial bar chart with individual colors
+  const chartData = completeData.map((method, index) => ({
     method: method.name,
     count: method.value,
-    fill: CHART_COLOR,
+    fill: CHART_COLOR_VALUES[index % CHART_COLOR_VALUES.length],
   }))
 
+  // Create chart config with entries for each brew method
+  const chartConfig = React.useMemo(() => {
+    const config: ChartConfig = {
+      count: {
+        label: "Cups",
+      },
+    }
+    completeData.forEach((method, index) => {
+      config[method.name] = {
+        label: method.name,
+        color: CHART_COLOR_VALUES[index % CHART_COLOR_VALUES.length],
+      }
+    })
+    return config
+  }, [completeData])
+
   const totalCups = React.useMemo(
-    () => data.reduce((acc, curr) => acc + curr.value, 0),
-    [data]
+    () => completeData.reduce((acc, curr) => acc + curr.value, 0),
+    [completeData]
   )
 
   return (
@@ -57,39 +84,14 @@ export function BrewMethodsRadial({ data }: BrewMethodsRadialProps) {
           config={chartConfig}
           className="mx-auto aspect-square max-h-[250px]"
         >
-          <RadarChart data={chartData}>
+          <RadialBarChart data={chartData} innerRadius={30} outerRadius={100}>
             <ChartTooltip
               cursor={false}
-              content={
-                <ChartTooltipContent
-                  formatter={(value, name, item) => {
-                    return (
-                      <div className="flex items-center gap-2 w-full">
-                        <div
-                          className="h-2.5 w-2.5 shrink-0 rounded-full"
-                          style={{ backgroundColor: CHART_COLOR }}
-                        />
-                        <span className="text-muted-foreground">{name}</span>
-                        <span className="ml-auto font-mono font-medium tabular-nums">{value}</span>
-                      </div>
-                    );
-                  }}
-                />
-              }
+              content={<ChartTooltipContent hideLabel nameKey="method" />}
             />
-            <PolarAngleAxis dataKey="method" />
             <PolarGrid gridType="circle" />
-            <Radar
-              dataKey="count"
-              fill={CHART_COLOR}
-              stroke={CHART_COLOR}
-              fillOpacity={0.6}
-              dot={{
-                r: 4,
-                fillOpacity: 1,
-              }}
-            />
-          </RadarChart>
+            <RadialBar dataKey="count" />
+          </RadialBarChart>
         </ChartContainer>
       </CardContent>
     </Card>
