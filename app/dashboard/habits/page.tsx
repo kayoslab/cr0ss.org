@@ -21,33 +21,37 @@ export default async function HabitsPage() {
     getSharedDashboardData(),
   ]);
 
-  const goals = sharedData.monthlyGoals;
+  // Combine monthly and daily goals for unified access
+  const allGoals = {
+    ...sharedData.monthlyGoals,
+    ...sharedData.dailyGoals,
+  };
 
   const progressToday = [
     {
       name: "Steps",
       value: sharedData.habitsToday.steps,
-      target: goals.steps,
+      target: allGoals.steps || 0,
     },
     {
       name: "Reading",
       value: sharedData.habitsToday.reading_minutes,
-      target: goals.reading_minutes,
+      target: allGoals.reading_minutes || 0,
     },
     {
       name: "Outdoor",
       value: sharedData.habitsToday.outdoor_minutes,
-      target: goals.outdoor_minutes,
+      target: allGoals.outdoor_minutes || 0,
     },
     {
       name: "Writing",
       value: sharedData.habitsToday.writing_minutes,
-      target: goals.writing_minutes,
+      target: allGoals.writing_minutes || 0,
     },
     {
       name: "Coding",
       value: sharedData.habitsToday.coding_minutes,
-      target: goals.coding_minutes,
+      target: allGoals.coding_minutes || 0,
     },
   ];
 
