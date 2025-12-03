@@ -44,7 +44,7 @@ export default async function CoffeePage() {
         }))}
         originsDonut={dashboardData.coffeeOriginThisWeek}
         caffeineDual={caffeineDual}
-        weeklyRhythm={dashboardData.coffeeWeeklyRhythm}
+        dailyCoffee30Days={dashboardData.coffeeLast30Days}
       />
     </div>
   );

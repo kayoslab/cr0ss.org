@@ -20,6 +20,7 @@ import {
   qCupsToday,
   qCoffeeOriginThisWeek,
   qCoffeeWeeklyRhythm,
+  qCoffeeLast30Days,
   qHabitsToday,
   qHabitConsistencyThisWeek,
   qHabitStreaks,
@@ -81,6 +82,7 @@ export async function getDashboardData() {
     brewMethodsToday,
     origins7d,
     coffeeRhythm,
+    coffeeLast30Days,
   ] = await Promise.all([
     qHabitsToday(),
     qHabitConsistencyThisWeek(),
@@ -98,6 +100,7 @@ export async function getDashboardData() {
     qBrewMethodsToday(),
     qCoffeeOriginThisWeek(),
     qCoffeeWeeklyRhythm(12),
+    qCoffeeLast30Days(30),
   ]);
 
   // Get stats for each workout type present
@@ -267,6 +270,7 @@ export async function getDashboardData() {
     brewMethodsToday,
     coffeeOriginThisWeek: origins7d,
     coffeeWeeklyRhythm: coffeeRhythm,
+    coffeeLast30Days,
     habitsToday,
     habitsConsistency: consistency,
     habitStreaks,
