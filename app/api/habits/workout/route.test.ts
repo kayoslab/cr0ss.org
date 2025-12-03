@@ -12,6 +12,10 @@ vi.mock('@/lib/auth/secret', () => ({
 
 vi.mock('@/lib/cache/revalidate', () => ({
   revalidateDashboard: vi.fn(),
+  revalidateCoffee: vi.fn(),
+  revalidateHabits: vi.fn(),
+  revalidateWorkouts: vi.fn(),
+  revalidateShared: vi.fn(),
 }));
 
 vi.mock('@/lib/obs/trace', () => ({
@@ -35,7 +39,7 @@ vi.mock('@/lib/db/workouts', () => ({
 
 import { rateLimit } from '@/lib/rate/limit';
 import { assertSecret } from '@/lib/auth/secret';
-import { revalidateDashboard } from '@/lib/cache/revalidate';
+import { revalidateWorkouts } from '@/lib/cache/revalidate';
 import { insertWorkoutDB, getRecentWorkoutsDB, getWorkoutsByTypeDB } from '@/lib/db/workouts';
 
 describe('GET /api/habits/workout', () => {
@@ -195,7 +199,7 @@ describe('POST /api/habits/workout', () => {
     vi.clearAllMocks();
     vi.mocked(rateLimit).mockResolvedValue({ ok: true });
     vi.mocked(assertSecret).mockImplementation(() => {});
-    vi.mocked(revalidateDashboard).mockImplementation(() => {});
+    vi.mocked(revalidateWorkouts).mockImplementation(() => {});
   });
 
   describe('Authentication', () => {
@@ -302,7 +306,7 @@ describe('POST /api/habits/workout', () => {
           created_at: '2025-01-15T10:00:00Z',
         },
       ]);
-      expect(revalidateDashboard).toHaveBeenCalled();
+      expect(revalidateWorkouts).toHaveBeenCalled();
     });
 
     it('should insert workout with optional details', async () => {
@@ -401,7 +405,7 @@ describe('POST /api/habits/workout', () => {
           created_at: '2025-01-14T10:00:00Z',
         },
       ]);
-      expect(revalidateDashboard).toHaveBeenCalled();
+      expect(revalidateWorkouts).toHaveBeenCalled();
     });
 
     it('should fail all entries if one is invalid', async () => {
@@ -418,7 +422,7 @@ describe('POST /api/habits/workout', () => {
       const response = await POST(request);
 
       expect(response.status).toBe(400);
-      expect(revalidateDashboard).not.toHaveBeenCalled();
+      expect(revalidateWorkouts).not.toHaveBeenCalled();
       expect(insertWorkoutDB).not.toHaveBeenCalled();
     });
   });

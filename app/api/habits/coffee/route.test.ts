@@ -22,6 +22,10 @@ vi.mock('@/lib/db/client', () => {
 
 vi.mock('@/lib/cache/revalidate', () => ({
   revalidateDashboard: vi.fn(),
+  revalidateCoffee: vi.fn(),
+  revalidateHabits: vi.fn(),
+  revalidateWorkouts: vi.fn(),
+  revalidateShared: vi.fn(),
 }));
 
 vi.mock('@/lib/obs/trace', () => ({
@@ -39,7 +43,7 @@ vi.mock('@/lib/time/berlin', () => ({
 import { rateLimit } from '@/lib/rate/limit';
 import { assertSecret } from '@/lib/auth/secret';
 import { sql } from '@/lib/db/client';
-import { revalidateDashboard } from '@/lib/cache/revalidate';
+import { revalidateCoffee } from '@/lib/cache/revalidate';
 import { getAllCoffeeDTO } from '@/lib/contentful/api/coffee';
 
 describe('GET /api/habits/coffee', () => {
@@ -112,7 +116,7 @@ describe('POST /api/habits/coffee', () => {
     vi.clearAllMocks();
     vi.mocked(rateLimit).mockResolvedValue({ ok: true });
     vi.mocked(assertSecret).mockImplementation(() => {});
-    vi.mocked(revalidateDashboard).mockImplementation(() => {});
+    vi.mocked(revalidateCoffee).mockImplementation(() => {});
   });
 
   describe("Authentication", () => {
@@ -199,7 +203,7 @@ describe('POST /api/habits/coffee', () => {
       const data = await response.json();
       expect(data.ok).toBe(true);
       expect(data.inserted).toBe(1);
-      expect(revalidateDashboard).toHaveBeenCalled();
+      expect(revalidateCoffee).toHaveBeenCalled();
     });
 
     it('should handle time as wall-clock format', async () => {
@@ -238,7 +242,7 @@ describe('POST /api/habits/coffee', () => {
       const data = await response.json();
       expect(data.ok).toBe(true);
       expect(data.inserted).toBe(2);
-      expect(revalidateDashboard).toHaveBeenCalled();
+      expect(revalidateCoffee).toHaveBeenCalled();
     });
 
     it('should fail all entries if one is invalid', async () => {
@@ -255,7 +259,7 @@ describe('POST /api/habits/coffee', () => {
       const response = await POST(request);
 
       expect(response.status).toBe(400);
-      expect(revalidateDashboard).not.toHaveBeenCalled();
+      expect(revalidateCoffee).not.toHaveBeenCalled();
     });
   });
 });

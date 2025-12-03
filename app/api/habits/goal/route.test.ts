@@ -22,6 +22,10 @@ vi.mock('@/lib/db/client', () => {
 
 vi.mock('@/lib/cache/revalidate', () => ({
   revalidateDashboard: vi.fn(),
+  revalidateCoffee: vi.fn(),
+  revalidateHabits: vi.fn(),
+  revalidateWorkouts: vi.fn(),
+  revalidateShared: vi.fn(),
 }));
 
 vi.mock('@/lib/obs/trace', () => ({
@@ -31,7 +35,7 @@ vi.mock('@/lib/obs/trace', () => ({
 import { rateLimit } from '@/lib/rate/limit';
 import { assertSecret } from '@/lib/auth/secret';
 import { sql } from '@/lib/db/client';
-import { revalidateDashboard } from '@/lib/cache/revalidate';
+import { revalidateShared } from '@/lib/cache/revalidate';
 
 describe('GET /api/habits/goal', () => {
   beforeEach(() => {
@@ -158,7 +162,7 @@ describe('POST /api/habits/goal', () => {
     vi.clearAllMocks();
     vi.mocked(rateLimit).mockResolvedValue({ ok: true });
     vi.mocked(assertSecret).mockImplementation(() => {});
-    vi.mocked(revalidateDashboard).mockImplementation(() => {});
+    vi.mocked(revalidateShared).mockImplementation(() => {});
   });
 
   describe('Authentication', () => {
@@ -246,7 +250,7 @@ describe('POST /api/habits/goal', () => {
       expect(response.status).toBe(200);
       const data = await response.json();
       expect(data.ok).toBe(true);
-      expect(revalidateDashboard).toHaveBeenCalled();
+      expect(revalidateShared).toHaveBeenCalled();
     });
 
     it('should update multiple goals', async () => {
@@ -267,7 +271,7 @@ describe('POST /api/habits/goal', () => {
       expect(response.status).toBe(200);
       const data = await response.json();
       expect(data.ok).toBe(true);
-      expect(revalidateDashboard).toHaveBeenCalled();
+      expect(revalidateShared).toHaveBeenCalled();
     });
 
     it('should update all goals', async () => {
@@ -292,7 +296,7 @@ describe('POST /api/habits/goal', () => {
       expect(response.status).toBe(200);
       const data = await response.json();
       expect(data.ok).toBe(true);
-      expect(revalidateDashboard).toHaveBeenCalled();
+      expect(revalidateShared).toHaveBeenCalled();
     });
 
     it('should handle zero values as goal targets', async () => {

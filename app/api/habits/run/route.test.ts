@@ -22,6 +22,10 @@ vi.mock('@/lib/db/client', () => {
 
 vi.mock('@/lib/cache/revalidate', () => ({
   revalidateDashboard: vi.fn(),
+  revalidateCoffee: vi.fn(),
+  revalidateHabits: vi.fn(),
+  revalidateWorkouts: vi.fn(),
+  revalidateShared: vi.fn(),
 }));
 
 vi.mock('@/lib/obs/trace', () => ({
@@ -31,7 +35,7 @@ vi.mock('@/lib/obs/trace', () => ({
 import { rateLimit } from '@/lib/rate/limit';
 import { assertSecret } from '@/lib/auth/secret';
 import { sql } from '@/lib/db/client';
-import { revalidateDashboard } from '@/lib/cache/revalidate';
+import { revalidateWorkouts } from '@/lib/cache/revalidate';
 
 describe('GET /api/habits/run', () => {
   beforeEach(() => {
@@ -113,7 +117,7 @@ describe('POST /api/habits/run', () => {
     vi.clearAllMocks();
     vi.mocked(rateLimit).mockResolvedValue({ ok: true });
     vi.mocked(assertSecret).mockImplementation(() => {});
-    vi.mocked(revalidateDashboard).mockImplementation(() => {});
+    vi.mocked(revalidateWorkouts).mockImplementation(() => {});
   });
 
   describe('Authentication', () => {
@@ -201,7 +205,7 @@ describe('POST /api/habits/run', () => {
       const data = await response.json();
       expect(data.ok).toBe(true);
       expect(data.inserted).toBe(1);
-      expect(revalidateDashboard).toHaveBeenCalled();
+      expect(revalidateWorkouts).toHaveBeenCalled();
     });
 
     it('should insert run with optional avg_pace_sec_per_km', async () => {
@@ -245,7 +249,7 @@ describe('POST /api/habits/run', () => {
       const data = await response.json();
       expect(data.ok).toBe(true);
       expect(data.inserted).toBe(2);
-      expect(revalidateDashboard).toHaveBeenCalled();
+      expect(revalidateWorkouts).toHaveBeenCalled();
     });
 
     it('should fail all entries if one is invalid', async () => {
@@ -262,7 +266,7 @@ describe('POST /api/habits/run', () => {
       const response = await POST(request);
 
       expect(response.status).toBe(400);
-      expect(revalidateDashboard).not.toHaveBeenCalled();
+      expect(revalidateWorkouts).not.toHaveBeenCalled();
     });
   });
 });

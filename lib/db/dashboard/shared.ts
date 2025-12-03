@@ -15,7 +15,7 @@ import { qMonthlyGoalsObject, qHabitsToday } from "@/lib/db/queries";
  */
 export const getSharedDashboardData = unstable_cache(
   async () => {
-    const [monthlyGoals, habitsToday] = await Promise.all([
+    const [goals, habitsToday] = await Promise.all([
       qMonthlyGoalsObject(),
       qHabitsToday(),
     ]);
@@ -23,13 +23,16 @@ export const getSharedDashboardData = unstable_cache(
     return {
       monthlyGoals: {
         running_distance_km: 0,
+        ...goals.monthly,
+      },
+      dailyGoals: {
         steps: 0,
         reading_minutes: 0,
         outdoor_minutes: 0,
         writing_minutes: 0,
         coding_minutes: 0,
         focus_minutes: 0,
-        ...monthlyGoals,
+        ...goals.daily,
       },
       habitsToday,
     };

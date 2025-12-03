@@ -444,39 +444,58 @@ export async function qRunningHeatmap(days = 42) {
   return ZHeat.parse(out);
 }
 
-export async function qMonthlyGoalsObject(): Promise<Record<string, number>> {
+export async function qMonthlyGoalsObject(): Promise<{
+  monthly: Record<string, number>;
+  daily: Record<string, number>;
+}> {
   const [{ month_start }] = await sql/*sql*/`
     SELECT (date_trunc('month', timezone('Europe/Berlin', now()))::date) AS month_start
   `;
 
   const rows = await sql/*sql*/`
-    SELECT kind::text, target::numeric
+    SELECT kind::text, target::numeric, period::text
     FROM monthly_goals
     WHERE month = ${month_start}::date
   `;
 
-  const out: Record<string, number> = {
-    running_distance_km: 0,
-    steps: 0,
-    reading_minutes: 0,
-    outdoor_minutes: 0,
-    writing_minutes: 0,
-    coding_minutes: 0,
-    focus_minutes: 0,
-  };
+  const monthly: Record<string, number> = {};
+  const daily: Record<string, number> = {};
+
+  // Default values for all possible goals
+  const allGoals = [
+    'running_distance_km',
+    'steps',
+    'reading_minutes',
+    'outdoor_minutes',
+    'writing_minutes',
+    'coding_minutes',
+    'focus_minutes',
+  ];
 
   interface GoalRow {
     kind: string;
     target: number;
+    period: string;
   }
 
   for (const r of rows) {
     const row = r as GoalRow;
     const k = String(row.kind);
     const v = Number(row.target);
-    if (k in out) out[k] = v;
+    const p = String(row.period);
+
+    if (p === 'monthly') {
+      monthly[k] = v;
+    } else if (p === 'daily') {
+      daily[k] = v;
+    }
   }
-  return out;
+
+  // Ensure all goals exist with default 0 values based on current data
+  // If a goal doesn't exist in the database, we don't set a default
+  // This allows the calling code to handle defaults
+
+  return { monthly, daily };
 }
 
 // ---- Workout Queries (Multi-Type Support) ----

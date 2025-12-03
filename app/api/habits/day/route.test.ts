@@ -27,6 +27,10 @@ vi.mock('@/lib/db/client', () => {
 
 vi.mock('@/lib/cache/revalidate', () => ({
   revalidateDashboard: vi.fn(),
+  revalidateCoffee: vi.fn(),
+  revalidateHabits: vi.fn(),
+  revalidateWorkouts: vi.fn(),
+  revalidateShared: vi.fn(),
 }));
 
 vi.mock('@/lib/obs/trace', () => ({
@@ -36,7 +40,7 @@ vi.mock('@/lib/obs/trace', () => ({
 import { rateLimit } from '@/lib/rate/limit';
 import { assertSecret } from '@/lib/auth/secret';
 import { sql } from '@/lib/db/client';
-import { revalidateDashboard } from '@/lib/cache/revalidate';
+import { revalidateHabits } from '@/lib/cache/revalidate';
 
 describe('GET /api/habits/day', () => {
   beforeEach(() => {
@@ -133,7 +137,7 @@ describe('POST /api/habits/day', () => {
     vi.clearAllMocks();
     vi.mocked(rateLimit).mockResolvedValue({ ok: true });
     vi.mocked(assertSecret).mockImplementation(() => {});
-    vi.mocked(revalidateDashboard).mockImplementation(() => {});
+    vi.mocked(revalidateHabits).mockImplementation(() => {});
   });
 
   describe('Authentication', () => {
@@ -265,7 +269,7 @@ describe('POST /api/habits/day', () => {
       const response = await POST(request);
 
       expect(response.status).toBe(200);
-      expect(revalidateDashboard).toHaveBeenCalled();
+      expect(revalidateHabits).toHaveBeenCalled();
     });
   });
 });
