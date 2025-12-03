@@ -55,16 +55,22 @@ function Empty({ hint }: { hint?: string }) {
 }
 
 /* ------------------------- Color mapping ------------------------- */
-const CHART_COLORS = {
-  sky: "hsl(200, 98%, 39%)",
-  emerald: "hsl(160, 84%, 39%)",
-  violet: "hsl(258, 90%, 66%)",
-  amber: "hsl(38, 92%, 50%)",
-  rose: "hsl(351, 89%, 60%)",
-};
+// Direct OKLCH color values from globals.css
+const CHART_COLOR_VALUES = [
+  "oklch(0.646 0.222 41.116)",   // chart-1: orange
+  "oklch(0.6 0.118 184.704)",     // chart-2: cyan
+  "oklch(0.398 0.07 227.392)",    // chart-3: blue
+  "oklch(0.828 0.189 84.429)",    // chart-4: yellow
+  "oklch(0.769 0.188 70.08)",     // chart-5: peach
+  "oklch(0.55 0.22 330)",          // chart-6: pink
+  "oklch(0.65 0.18 150)",          // chart-7: teal
+  "oklch(0.7 0.15 270)",           // chart-8: purple
+  "oklch(0.6 0.2 50)",             // chart-9: gold
+  "oklch(0.5 0.18 200)",           // chart-10: blue
+];
 
-function getChartColor(colorName: string): string {
-  return CHART_COLORS[colorName as keyof typeof CHART_COLORS] || colorName;
+function getChartColor(index: number): string {
+  return CHART_COLOR_VALUES[index % CHART_COLOR_VALUES.length];
 }
 
 /* ------------------------- Donut/Pie Chart ------------------------- */
@@ -97,12 +103,17 @@ export function Donut({
     );
   }
 
-  // Create chart config from data - shadcn handles the rest
+  // Add fill color to data for tooltips
+  const dataWithColor = data.map((item, index) => ({
+    ...item,
+    fill: getChartColor(index),
+  }));
+
+  // Create chart config from data - use direct color values
   const chartConfig: ChartConfig = data.reduce((acc, item, index) => {
-    const colorName = colors[index % colors.length];
     acc[item.name] = {
       label: item.name,
-      color: getChartColor(colorName),
+      color: getChartColor(index),
     };
     return acc;
   }, {} as ChartConfig);
@@ -111,9 +122,26 @@ export function Donut({
     <Panel title={title}>
       <ChartContainer config={chartConfig} className="h-64 w-full">
         <PieChart>
-          <ChartTooltip content={<ChartTooltipContent />} />
+          <ChartTooltip
+            content={
+              <ChartTooltipContent
+                formatter={(value, name, item) => {
+                  return (
+                    <div className="flex items-center gap-2 w-full">
+                      <div
+                        className="h-2.5 w-2.5 shrink-0 rounded-full"
+                        style={{ backgroundColor: item.payload.fill }}
+                      />
+                      <span className="text-muted-foreground">{name}</span>
+                      <span className="ml-auto font-mono font-medium tabular-nums">{value}</span>
+                    </div>
+                  );
+                }}
+              />
+            }
+          />
           <Pie
-            data={data}
+            data={dataWithColor}
             dataKey="value"
             nameKey="name"
             cx="50%"
@@ -122,10 +150,10 @@ export function Donut({
             outerRadius={80}
             paddingAngle={2}
           >
-            {data.map((entry, index) => (
+            {dataWithColor.map((entry) => (
               <Cell
-                key={`cell-${index}`}
-                fill={getChartColor(colors[index % colors.length])}
+                key={`cell-${entry.name}`}
+                fill={entry.fill}
               />
             ))}
           </Pie>
@@ -175,7 +203,7 @@ export function Line({
   const chartConfig: ChartConfig = categories.reduce((acc, category, idx) => {
     acc[category] = {
       label: category,
-      color: getChartColor(colors[idx % colors.length]),
+      color: getChartColor(idx),
     };
     return acc;
   }, {} as ChartConfig);
@@ -199,14 +227,32 @@ export function Line({
             className="text-xs"
             width={42}
           />
-          <ChartTooltip content={<ChartTooltipContent />} />
+          <ChartTooltip
+            content={
+              <ChartTooltipContent
+                formatter={(value, name) => {
+                  const config = chartConfig[name as string];
+                  return (
+                    <div className="flex items-center gap-2 w-full">
+                      <div
+                        className="h-2.5 w-2.5 shrink-0 rounded-full"
+                        style={{ backgroundColor: config?.color }}
+                      />
+                      <span className="text-muted-foreground">{config?.label || name}</span>
+                      <span className="ml-auto font-mono font-medium tabular-nums">{value}</span>
+                    </div>
+                  );
+                }}
+              />
+            }
+          />
           {showLegend && <ChartLegend content={<ChartLegendContent />} />}
           {categories.map((category, idx) => (
             <RechartsLine
               key={category}
               type="monotone"
               dataKey={category}
-              stroke={getChartColor(colors[idx % colors.length])}
+              stroke={getChartColor(idx)}
               strokeWidth={2}
               dot={false}
             />
@@ -257,7 +303,7 @@ export function Area({
   const chartConfig: ChartConfig = categories.reduce((acc, category, idx) => {
     acc[category] = {
       label: category,
-      color: getChartColor(colors[idx % colors.length]),
+      color: getChartColor(idx),
     };
     return acc;
   }, {} as ChartConfig);
@@ -281,15 +327,33 @@ export function Area({
             className="text-xs"
             width={42}
           />
-          <ChartTooltip content={<ChartTooltipContent />} />
+          <ChartTooltip
+            content={
+              <ChartTooltipContent
+                formatter={(value, name) => {
+                  const config = chartConfig[name as string];
+                  return (
+                    <div className="flex items-center gap-2 w-full">
+                      <div
+                        className="h-2.5 w-2.5 shrink-0 rounded-full"
+                        style={{ backgroundColor: config?.color }}
+                      />
+                      <span className="text-muted-foreground">{config?.label || name}</span>
+                      <span className="ml-auto font-mono font-medium tabular-nums">{value}</span>
+                    </div>
+                  );
+                }}
+              />
+            }
+          />
           {showLegend && <ChartLegend content={<ChartLegendContent />} />}
           {categories.map((category, idx) => (
             <RechartsArea
               key={category}
               type="monotone"
               dataKey={category}
-              stroke={getChartColor(colors[idx % colors.length])}
-              fill={getChartColor(colors[idx % colors.length])}
+              stroke={getChartColor(idx)}
+              fill={getChartColor(idx)}
               fillOpacity={0.2}
               strokeWidth={2}
             />
@@ -357,7 +421,7 @@ export function Scatter({
   const chartConfig: ChartConfig = categories.reduce((acc, category, idx) => {
     acc[category] = {
       label: category,
-      color: getChartColor(colors[idx % colors.length]),
+      color: getChartColor(idx),
     };
     return acc;
   }, {} as ChartConfig);
@@ -386,7 +450,39 @@ export function Scatter({
             width={42}
           />
           <ChartTooltip
-            content={<ChartTooltipContent />}
+            content={({ active, payload }) => {
+              if (!active || !payload || !payload.length) return null;
+
+              const item = payload[0];
+              const seriesName = item.name || item.dataKey;
+              const config = chartConfig[seriesName as string];
+              const dotColor = config?.color || item.fill || item.color || getChartColor(0);
+
+              return (
+                <div className="rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <div
+                      className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
+                      style={{ backgroundColor: dotColor }}
+                    />
+                    <span className="font-medium">{config?.label || seriesName}</span>
+                  </div>
+                  <div className="grid gap-1">
+                    {Object.entries(item.payload).map(([key, value]) => {
+                      if (key === groupField || key === 'fill') return null;
+                      return (
+                        <div key={key} className="flex justify-between gap-4">
+                          <span className="text-muted-foreground">{key}:</span>
+                          <span className="font-mono font-medium tabular-nums">
+                            {typeof value === 'number' ? value.toLocaleString() : String(value)}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            }}
             cursor={{ strokeDasharray: '3 3' }}
           />
           {showLegend && categories.length > 1 && (
@@ -403,7 +499,7 @@ export function Scatter({
                   key={category}
                   name={category}
                   data={categoryData}
-                  fill={getChartColor(colors[idx % colors.length])}
+                  fill={getChartColor(idx)}
                 />
               );
             })
@@ -411,7 +507,7 @@ export function Scatter({
             // Single scatter
             <RechartsScatter
               data={prepared}
-              fill={getChartColor(colors[0])}
+              fill={getChartColor(0)}
             />
           )}
         </ScatterChart>
@@ -452,7 +548,7 @@ export function Bars({
   const chartConfig: ChartConfig = {
     value: {
       label: "Value",
-      color: getChartColor("emerald"),
+      color: getChartColor(0),
     },
   };
 
@@ -474,8 +570,25 @@ export function Bars({
             className="text-xs"
             width={100}
           />
-          <ChartTooltip content={<ChartTooltipContent />} />
-          <Bar dataKey="value" fill={getChartColor("emerald")} radius={4} />
+          <ChartTooltip
+            content={
+              <ChartTooltipContent
+                formatter={(value, name) => {
+                  return (
+                    <div className="flex items-center gap-2 w-full">
+                      <div
+                        className="h-2.5 w-2.5 shrink-0 rounded-full"
+                        style={{ backgroundColor: getChartColor(0) }}
+                      />
+                      <span className="text-muted-foreground">{name}</span>
+                      <span className="ml-auto font-mono font-medium tabular-nums">{value}</span>
+                    </div>
+                  );
+                }}
+              />
+            }
+          />
+          <Bar dataKey="value" fill={getChartColor(0)} radius={4} />
         </BarChart>
       </ChartContainer>
     </Panel>

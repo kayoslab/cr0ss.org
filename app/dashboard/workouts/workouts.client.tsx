@@ -3,7 +3,7 @@
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Kpi } from "@/components/dashboard/kpi";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Panel } from "@/components/dashboard/charts/shadcn-charts";
 
 type WorkoutStats = {
@@ -154,8 +154,8 @@ export default function WorkoutsClient({
                 <div className="grid grid-cols-10 gap-1">
                   {filteredHeatmap.map(({ date, duration_min, workouts }, i) => {
                     const max = Math.max(1, ...filteredHeatmap.map((d) => d.duration_min));
-                    const bg = duration_min === 0 ? "bg-neutral-700" : "bg-emerald-500";
-                    const opacity = duration_min === 0 ? 1 : Math.max(0.2, Math.min(1, duration_min / max));
+                    const opacity = duration_min === 0 ? 0.2 : Math.max(0.3, Math.min(1, duration_min / max));
+                    const bgClass = duration_min === 0 ? "bg-neutral-300" : "bg-[color:var(--chart-1)]";
 
                     return (
                       <div
@@ -163,7 +163,7 @@ export default function WorkoutsClient({
                         className="relative h-4 w-4 rounded-sm group cursor-pointer"
                       >
                         <div
-                          className={`absolute inset-0 rounded-sm ${bg}`}
+                          className={`absolute inset-0 rounded-sm ${bgClass}`}
                           style={{ opacity }}
                         />
 
@@ -193,11 +193,18 @@ export default function WorkoutsClient({
                 {filteredStats.map((stat) => {
                   const typeName = stat.workout_type.charAt(0).toUpperCase() + stat.workout_type.slice(1);
                   return (
-                    <Kpi
-                      key={stat.workout_type}
-                      label={`${typeName} Sessions`}
-                      value={stat.count}
-                    />
+                    <Card key={stat.workout_type}>
+                      <CardHeader className="pb-2">
+                        <CardDescription>{typeName} Sessions</CardDescription>
+                        <CardTitle className="text-4xl">{stat.count}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground">
+                          {stat.total_duration_min > 0 && `${Math.round(stat.total_duration_min)} min total`}
+                          {stat.total_distance_km > 0 && ` • ${stat.total_distance_km.toFixed(1)} km`}
+                        </p>
+                      </CardContent>
+                    </Card>
                   );
                 })}
               </div>

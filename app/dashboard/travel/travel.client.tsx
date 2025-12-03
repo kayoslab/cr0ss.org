@@ -2,7 +2,7 @@
 
 import React from "react";
 import MapClient, { TravelCountry } from "@/components/map.client";
-import { Kpi } from "@/components/dashboard/kpi";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Donut, Panel } from "@/components/dashboard/charts/shadcn-charts";
 
 type TravelClientProps = {
@@ -41,7 +41,17 @@ export default function TravelClient({
 
       {/* Travel Stats */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <Kpi label="Visited Countries" value={visitedCount} />
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Visited Countries</CardDescription>
+            <CardTitle className="text-4xl">{visitedCount}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              {Math.round((visitedCount / totalCountries) * 100)}% of world
+            </p>
+          </CardContent>
+        </Card>
 
         <Panel title="Last Visited">
           {recentVisited.length ? (

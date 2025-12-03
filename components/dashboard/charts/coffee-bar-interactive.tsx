@@ -20,7 +20,7 @@ import {
 const chartConfig = {
   cups: {
     label: "Cups",
-    color: "hsl(142 76% 36%)", // emerald-600
+    color: "oklch(0.646 0.222 41.116)",
   },
 } satisfies ChartConfig
 
@@ -107,10 +107,22 @@ export function CoffeeBarInteractive({ data }: CoffeeBarInteractiveProps) {
                       year: "numeric",
                     })
                   }}
+                  formatter={(value, name) => {
+                    return (
+                      <div className="flex items-center gap-2 w-full">
+                        <div
+                          className="h-2.5 w-2.5 shrink-0 rounded-full"
+                          style={{ backgroundColor: chartConfig.cups.color }}
+                        />
+                        <span className="text-muted-foreground">{chartConfig.cups.label}</span>
+                        <span className="ml-auto font-mono font-medium tabular-nums">{value}</span>
+                      </div>
+                    );
+                  }}
                 />
               }
             />
-            <Bar dataKey="cups" fill="var(--color-cups)" />
+            <Bar dataKey="cups" fill={chartConfig.cups.color} />
           </BarChart>
         </ChartContainer>
       </CardContent>
