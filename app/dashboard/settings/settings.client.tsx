@@ -221,6 +221,13 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
   const [savingDay, setSavingDay] = useState(false);
   const [savingCoffee, setSavingCoffee] = useState(false);
   const [savingWorkout, setSavingWorkout] = useState(false);
+  const [loadingStrava, setLoadingStrava] = useState(false);
+  const [syncingStrava, setSyncingStrava] = useState(false);
+  const [stravaStatus, setStravaStatus] = useState<{
+    connected: boolean;
+    athlete?: { id: number; name: string | null };
+    lastSync?: string | null;
+  } | null>(null);
 
   // data models
   const [body, setBody] = useState<BodyProfile | null>(null);
@@ -586,6 +593,113 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
     }
   }
 
+  async function fetchStravaStatus() {
+    if (!secretOK) return;
+    setLoadingStrava(true);
+    try {
+      const res = await jfetch<{
+        connected: boolean;
+        athlete?: { id: number; name: string | null };
+        lastSync?: string | null;
+      }>("/api/strava/auth/status", { method: "GET" }, secret);
+
+      if (res.ok && res.json) {
+        setStravaStatus(res.json);
+      } else {
+        setStravaStatus({ connected: false });
+      }
+    } catch (e: unknown) {
+      console.error("Failed to fetch Strava status:", e);
+      setStravaStatus({ connected: false });
+    } finally {
+      setLoadingStrava(false);
+    }
+  }
+
+  async function handleStravaConnect() {
+    if (!secretOK) return setMsg("Enter a valid secret first.");
+    setLoadingStrava(true);
+    try {
+      // Get auth URL
+      const res = await jfetch<{ authUrl: string }>(
+        "/api/strava/auth/connect",
+        { method: "GET" },
+        secret
+      );
+
+      if (res.ok && res.json && res.json.authUrl) {
+        // Open in new window
+        window.open(res.json.authUrl, "_blank", "width=600,height=800");
+        setMsg("Opening Strava authorization window. After connecting, check status below.");
+      } else {
+        setMsg(res.error || "Failed to generate Strava authorization URL.");
+      }
+    } finally {
+      setLoadingStrava(false);
+    }
+  }
+
+  async function handleStravaDisconnect() {
+    if (!secretOK) return setMsg("Enter a valid secret first.");
+    if (!confirm("Disconnect Strava? This will stop automatic workout sync.")) return;
+
+    setLoadingStrava(true);
+    try {
+      const res = await jfetch<{ ok: boolean }>(
+        "/api/strava/auth/disconnect",
+        { method: "POST" },
+        secret
+      );
+
+      if (res.ok) {
+        setMsg("Strava disconnected successfully.");
+        setStravaStatus({ connected: false });
+      } else {
+        setMsg(res.error || "Failed to disconnect Strava.");
+      }
+    } finally {
+      setLoadingStrava(false);
+    }
+  }
+
+  async function handleStravaSync() {
+    if (!secretOK) return setMsg("Enter a valid secret first.");
+    setSyncingStrava(true);
+    try {
+      const res = await jfetch<{
+        ok: boolean;
+        synced: number;
+        errors: number;
+        total: number;
+      }>(
+        "/api/strava/sync",
+        {
+          method: "POST",
+          body: JSON.stringify({ daysBack: 30 })
+        },
+        secret
+      );
+
+      if (res.ok && res.json) {
+        setMsg(`Strava sync complete: ${res.json.synced} workouts synced (${res.json.errors} errors).`);
+        // Refresh status
+        fetchStravaStatus();
+      } else {
+        setMsg(res.error || "Failed to sync Strava activities.");
+      }
+    } finally {
+      setSyncingStrava(false);
+    }
+  }
+
+  // Fetch Strava status when secret is validated
+  useEffect(() => {
+    if (secretOK) {
+      fetchStravaStatus();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [secretOK]);
+
   /* --------------------------------------------------------
      UI bits
   --------------------------------------------------------- */
@@ -869,6 +983,106 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
             />
           </div>
         </form>
+      </Card>
+
+      {/* Strava Integration */}
+      <Card title="Strava Integration">
+        <div className="space-y-4">
+          <p className="text-sm text-neutral-600">
+            Connect your Strava account to automatically import running and other workout activities.
+          </p>
+
+          {!secretOK ? (
+            <div className="p-4 bg-amber-50 border border-amber-200 rounded-md">
+              <p className="text-sm text-amber-800">
+                Please enter and validate your API secret above to manage Strava integration.
+              </p>
+            </div>
+          ) : loadingStrava ? (
+            <div className="flex items-center gap-2 text-sm text-neutral-500">
+              <Spinner className="text-black/80" />
+              Loading Strava status...
+            </div>
+          ) : stravaStatus?.connected ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 bg-green-500 rounded-full" />
+                <span className="text-sm font-medium text-green-700">Connected</span>
+              </div>
+
+              {stravaStatus.athlete && (
+                <div className="text-sm text-neutral-600">
+                  Athlete: <span className="font-medium">{stravaStatus.athlete.name || `ID ${stravaStatus.athlete.id}`}</span>
+                </div>
+              )}
+
+              {stravaStatus.lastSync && (
+                <div className="text-sm text-neutral-500">
+                  Last sync: {new Date(stravaStatus.lastSync).toLocaleString()}
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <button
+                  onClick={handleStravaSync}
+                  disabled={syncingStrava || !secretOK}
+                  className={cls(
+                    "px-4 py-2 rounded-md flex items-center gap-2",
+                    "bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50"
+                  )}
+                >
+                  {syncingStrava && <Spinner className="text-black/80" />}
+                  {syncingStrava ? "Syncing..." : "Sync Now"}
+                </button>
+
+                <button
+                  onClick={() => fetchStravaStatus()}
+                  disabled={loadingStrava || !secretOK}
+                  className={cls(
+                    "px-4 py-2 rounded-md",
+                    "border border-neutral-300 text-neutral-700 hover:bg-neutral-50 disabled:opacity-50"
+                  )}
+                >
+                  Refresh Status
+                </button>
+
+                <button
+                  onClick={handleStravaDisconnect}
+                  disabled={loadingStrava || !secretOK}
+                  className={cls(
+                    "px-4 py-2 rounded-md",
+                    "border border-red-300 text-red-700 hover:bg-red-50 disabled:opacity-50"
+                  )}
+                >
+                  Disconnect
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 bg-neutral-400 rounded-full" />
+                <span className="text-sm font-medium text-neutral-600">Not connected</span>
+              </div>
+
+              <button
+                onClick={handleStravaConnect}
+                disabled={loadingStrava || !secretOK}
+                className={cls(
+                  "px-4 py-2 rounded-md flex items-center gap-2",
+                  "bg-orange-600 text-white hover:bg-orange-500 disabled:opacity-50"
+                )}
+              >
+                {loadingStrava && <Spinner className="text-black/80" />}
+                Connect Strava
+              </button>
+            </div>
+          )}
+
+          <p className="text-xs text-neutral-500">
+            New activities will be automatically imported via webhook. Use "Sync Now" to import recent activities (last 30 days).
+          </p>
+        </div>
       </Card>
 
       {/* Coffee Data (Contentful) */}
