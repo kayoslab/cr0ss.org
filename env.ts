@@ -13,10 +13,10 @@ export const env = createEnv({
     DASHBOARD_API_SECRET: z.string().min(20),
     // AI Gateway (Vercel AI)
     AI_GATEWAY_API_KEY: z.string().min(10).optional(),
-    // Strava Integration
-    STRAVA_CLIENT_ID: z.string().min(1),
-    STRAVA_CLIENT_SECRET: z.string().min(1),
-    STRAVA_WEBHOOK_VERIFY_TOKEN: z.string().min(20),
+    // Strava Integration (optional - only required if using Strava sync)
+    STRAVA_CLIENT_ID: z.string().min(1).optional(),
+    STRAVA_CLIENT_SECRET: z.string().min(1).optional(),
+    STRAVA_WEBHOOK_VERIFY_TOKEN: z.string().min(20).optional(),
     TOKEN_ENCRYPTION_KEY: z.string().length(64).optional(),
   },
   client: {},

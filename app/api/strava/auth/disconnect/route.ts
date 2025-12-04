@@ -4,6 +4,7 @@ import { sql } from '@/lib/db/client';
 import { assertSecret } from '@/lib/auth/secret';
 import { rateLimit } from '@/lib/rate/limit';
 import { revalidateWorkouts } from '@/lib/cache/revalidate';
+import { assertStravaConfigured } from '@/lib/strava/config';
 
 export const runtime = 'edge';
 
@@ -15,6 +16,8 @@ export const runtime = 'edge';
  */
 export async function POST(request: NextRequest) {
   try {
+    assertStravaConfigured();
+
     // Verify authentication
     assertSecret(request);
 

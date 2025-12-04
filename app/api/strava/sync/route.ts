@@ -3,6 +3,7 @@ import { sql } from '@/lib/db/client';
 import { assertSecret } from '@/lib/auth/secret';
 import { rateLimit } from '@/lib/rate/limit';
 import { revalidateWorkouts } from '@/lib/cache/revalidate';
+import { assertStravaConfigured } from '@/lib/strava/config';
 import {
   getStravaAuth,
   refreshAccessTokenIfNeeded,
@@ -24,6 +25,8 @@ export const runtime = 'edge';
  */
 export async function POST(request: NextRequest) {
   try {
+    assertStravaConfigured();
+
     // Verify authentication
     assertSecret(request);
 
@@ -77,6 +80,14 @@ export async function POST(request: NextRequest) {
     // Process each activity
     for (const activity of activities) {
       try {
+        // Only sync running activities
+        const runningTypes = ['Run', 'TrailRun', 'VirtualRun'];
+        if (!runningTypes.includes(activity.type)) {
+          console.log(`Skipping non-running activity ${activity.id}: ${activity.type}`);
+          skipped++;
+          continue;
+        }
+
         // Transform to workout format
         const workout = transformStravaActivityToWorkout(activity);
 
