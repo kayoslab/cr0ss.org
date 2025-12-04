@@ -1,6 +1,6 @@
 export const runtime = "edge";
 
-import { revalidatePath, revalidateTag } from 'next/cache';
+import { revalidateTag as _revalidateTag, revalidatePath } from "next/cache";
 import { hasValidSecret } from '@/lib/auth/secret';
 import { createErrorResponse, createSuccessResponse } from '@/lib/api/middleware';
 import { getBlog } from '@/lib/contentful/api/blog';
@@ -8,6 +8,10 @@ import { algoliasearch } from 'algoliasearch';
 import { env } from '@/env';
 import type { CategoryProps } from '@/lib/contentful/api/props/category';
 import type { BlogProps } from '@/lib/contentful/api/props/blog';
+
+// Type-safe wrapper for revalidateTag that works in edge runtime
+// Edge runtime doesn't support the second parameter properly despite TypeScript requiring it
+const revalidateTag = (tag: string) => (_revalidateTag as (tag: string) => void)(tag);
 
 /**
  * Contentful webhook payload structure
