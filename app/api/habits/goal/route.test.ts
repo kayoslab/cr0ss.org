@@ -95,22 +95,22 @@ describe('GET /api/habits/goal', () => {
       expect(response.status).toBe(200);
       const data = await response.json();
       expect(data).toEqual({
-        running_distance_km: 0,
-        steps: 0,
-        reading_minutes: 0,
-        outdoor_minutes: 0,
-        writing_minutes: 0,
-        coding_minutes: 0,
-        focus_minutes: 0,
+        running_distance_km: { target: 0, period: 'monthly' },
+        steps: { target: 0, period: 'daily' },
+        reading_minutes: { target: 0, period: 'daily' },
+        outdoor_minutes: { target: 0, period: 'daily' },
+        writing_minutes: { target: 0, period: 'daily' },
+        coding_minutes: { target: 0, period: 'daily' },
+        focus_minutes: { target: 0, period: 'daily' },
       });
     });
 
     it('should return goals with values from database', async () => {
       vi.mocked(sql).mockResolvedValueOnce([{ month_start: '2025-01-01' }]);
       vi.mocked(sql).mockResolvedValueOnce([
-        { kind: 'running_distance_km', target: 50 },
-        { kind: 'steps', target: 300000 },
-        { kind: 'reading_minutes', target: 600 },
+        { kind: 'running_distance_km', target: 50, period: 'monthly' },
+        { kind: 'steps', target: 300000, period: 'daily' },
+        { kind: 'reading_minutes', target: 600, period: 'daily' },
       ]);
 
       const request = new Request('http://localhost:3000/api/habits/goal');
@@ -119,26 +119,26 @@ describe('GET /api/habits/goal', () => {
       expect(response.status).toBe(200);
       const data = await response.json();
       expect(data).toEqual({
-        running_distance_km: 50,
-        steps: 300000,
-        reading_minutes: 600,
-        outdoor_minutes: 0,
-        writing_minutes: 0,
-        coding_minutes: 0,
-        focus_minutes: 0,
+        running_distance_km: { target: 50, period: 'monthly' },
+        steps: { target: 300000, period: 'daily' },
+        reading_minutes: { target: 600, period: 'daily' },
+        outdoor_minutes: { target: 0, period: 'daily' },
+        writing_minutes: { target: 0, period: 'daily' },
+        coding_minutes: { target: 0, period: 'daily' },
+        focus_minutes: { target: 0, period: 'daily' },
       });
     });
 
     it('should handle all goal types', async () => {
       vi.mocked(sql).mockResolvedValueOnce([{ month_start: '2025-01-01' }]);
       vi.mocked(sql).mockResolvedValueOnce([
-        { kind: 'running_distance_km', target: 100 },
-        { kind: 'steps', target: 400000 },
-        { kind: 'reading_minutes', target: 800 },
-        { kind: 'outdoor_minutes', target: 600 },
-        { kind: 'writing_minutes', target: 300 },
-        { kind: 'coding_minutes', target: 2000 },
-        { kind: 'focus_minutes', target: 1500 },
+        { kind: 'running_distance_km', target: 100, period: 'monthly' },
+        { kind: 'steps', target: 400000, period: 'daily' },
+        { kind: 'reading_minutes', target: 800, period: 'daily' },
+        { kind: 'outdoor_minutes', target: 600, period: 'daily' },
+        { kind: 'writing_minutes', target: 300, period: 'daily' },
+        { kind: 'coding_minutes', target: 2000, period: 'daily' },
+        { kind: 'focus_minutes', target: 1500, period: 'daily' },
       ]);
 
       const request = new Request('http://localhost:3000/api/habits/goal');
@@ -146,13 +146,13 @@ describe('GET /api/habits/goal', () => {
 
       expect(response.status).toBe(200);
       const data = await response.json();
-      expect(data.running_distance_km).toBe(100);
-      expect(data.steps).toBe(400000);
-      expect(data.reading_minutes).toBe(800);
-      expect(data.outdoor_minutes).toBe(600);
-      expect(data.writing_minutes).toBe(300);
-      expect(data.coding_minutes).toBe(2000);
-      expect(data.focus_minutes).toBe(1500);
+      expect(data.running_distance_km).toEqual({ target: 100, period: 'monthly' });
+      expect(data.steps).toEqual({ target: 400000, period: 'daily' });
+      expect(data.reading_minutes).toEqual({ target: 800, period: 'daily' });
+      expect(data.outdoor_minutes).toEqual({ target: 600, period: 'daily' });
+      expect(data.writing_minutes).toEqual({ target: 300, period: 'daily' });
+      expect(data.coding_minutes).toEqual({ target: 2000, period: 'daily' });
+      expect(data.focus_minutes).toEqual({ target: 1500, period: 'daily' });
     });
   });
 });
