@@ -13,6 +13,11 @@ export const env = createEnv({
     DASHBOARD_API_SECRET: z.string().min(20),
     // AI Gateway (Vercel AI)
     AI_GATEWAY_API_KEY: z.string().min(10).optional(),
+    // Strava Integration
+    STRAVA_CLIENT_ID: z.string().min(1),
+    STRAVA_CLIENT_SECRET: z.string().min(1),
+    STRAVA_WEBHOOK_VERIFY_TOKEN: z.string().min(20),
+    TOKEN_ENCRYPTION_KEY: z.string().length(64).optional(),
   },
   client: {},
   // If you're using Next.js < 13.4.4, you'll need to specify the runtimeEnv manually
@@ -31,5 +36,9 @@ export const env = createEnv({
     CONTENTFUL_ACCESS_TOKEN: process.env.CONTENTFUL_ACCESS_TOKEN,
     CONTENTFUL_REVALIDATE_SECRET: process.env.CONTENTFUL_REVALIDATE_SECRET,
     DASHBOARD_API_SECRET: process.env.DASHBOARD_API_SECRET,
+    STRAVA_CLIENT_ID: process.env.STRAVA_CLIENT_ID,
+    STRAVA_CLIENT_SECRET: process.env.STRAVA_CLIENT_SECRET,
+    STRAVA_WEBHOOK_VERIFY_TOKEN: process.env.STRAVA_WEBHOOK_VERIFY_TOKEN,
+    TOKEN_ENCRYPTION_KEY: process.env.TOKEN_ENCRYPTION_KEY,
   }
 });

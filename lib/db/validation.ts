@@ -55,6 +55,9 @@ export const WorkoutType = z.enum([
 
 export const WorkoutIntensity = z.enum(['low', 'moderate', 'high', 'max']);
 
+// Workout source (manual entry or external integration)
+export const WorkoutSource = z.enum(['manual', 'strava']);
+
 // Unified workout schema
 export const ZWorkout = z.object({
   id: z.number().int().optional(),
@@ -66,6 +69,11 @@ export const ZWorkout = z.object({
   details: z.record(z.string(), z.any()).optional(),
   notes: z.string().optional(),
   created_at: z.string().optional(),
+
+  // Strava integration fields
+  source: WorkoutSource.optional(),
+  external_id: z.string().optional(),
+  synced_at: z.string().optional(),
 });
 
 export const ZWorkoutUpsert = z.object({
@@ -76,6 +84,10 @@ export const ZWorkoutUpsert = z.object({
   perceived_effort: z.coerce.number().int().min(1).max(10).optional(),
   details: z.record(z.string(), z.any()).optional(),
   notes: z.string().optional(),
+
+  // Strava integration fields
+  source: WorkoutSource.optional(),
+  external_id: z.string().optional(),
 });
 
 export type Workout = z.infer<typeof ZWorkout>;
@@ -165,3 +177,61 @@ export const ZMonthlyGoalsUpsert = z.object({
   coding_minutes: z.union([z.coerce.number().int().min(0), ZGoalInput]).optional(),
   focus_minutes: z.union([z.coerce.number().int().min(0), ZGoalInput]).optional(),
 });
+
+// ===== Strava Integration Schemas =====
+
+// Strava OAuth token response
+export const ZStravaTokenResponse = z.object({
+  token_type: z.string(),
+  expires_at: z.number(),
+  expires_in: z.number(),
+  refresh_token: z.string(),
+  access_token: z.string(),
+  athlete: z.object({
+    id: z.number(),
+    username: z.string().optional(),
+    firstname: z.string().optional(),
+    lastname: z.string().optional(),
+  }),
+});
+
+// Strava webhook event
+export const ZStravaWebhookEvent = z.object({
+  object_type: z.enum(['activity', 'athlete']),
+  object_id: z.number(),
+  aspect_type: z.enum(['create', 'update', 'delete']),
+  updates: z.record(z.boolean()).optional(),
+  owner_id: z.number(),
+  subscription_id: z.number(),
+  event_time: z.number(),
+});
+
+// Strava activity (simplified - only fields we care about)
+export const ZStravaActivity = z.object({
+  id: z.number(),
+  name: z.string(),
+  type: z.string(),
+  start_date: z.string(),
+  start_date_local: z.string(),
+  timezone: z.string(),
+  distance: z.number(),
+  moving_time: z.number(),
+  elapsed_time: z.number(),
+  total_elevation_gain: z.number(),
+
+  // Optional metrics
+  average_speed: z.number().optional(),
+  max_speed: z.number().optional(),
+  average_heartrate: z.number().optional(),
+  max_heartrate: z.number().optional(),
+  average_cadence: z.number().optional(),
+  elev_high: z.number().optional(),
+  elev_low: z.number().optional(),
+  description: z.string().optional(),
+  kudos_count: z.number().optional(),
+  private: z.boolean().optional(),
+});
+
+export type StravaTokenResponse = z.infer<typeof ZStravaTokenResponse>;
+export type StravaWebhookEvent = z.infer<typeof ZStravaWebhookEvent>;
+export type StravaActivity = z.infer<typeof ZStravaActivity>;
