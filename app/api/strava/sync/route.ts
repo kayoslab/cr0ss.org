@@ -80,43 +80,59 @@ export async function POST(request: NextRequest) {
         // Transform to workout format
         const workout = transformStravaActivityToWorkout(activity);
 
-        // Upsert workout (insert or update if exists)
-        await sql`
-          INSERT INTO workouts (
-            date,
-            workout_type,
-            duration_min,
-            intensity,
-            perceived_effort,
-            details,
-            notes,
-            source,
-            external_id,
-            synced_at
-          )
-          VALUES (
-            ${workout.date},
-            ${workout.workout_type},
-            ${workout.duration_min},
-            ${workout.intensity || null},
-            ${workout.perceived_effort || null},
-            ${JSON.stringify(workout.details)},
-            ${workout.notes || null},
-            'strava',
-            ${workout.external_id},
-            now()
-          )
-          ON CONFLICT (external_id)
-          DO UPDATE SET
-            date = EXCLUDED.date,
-            workout_type = EXCLUDED.workout_type,
-            duration_min = EXCLUDED.duration_min,
-            intensity = EXCLUDED.intensity,
-            perceived_effort = EXCLUDED.perceived_effort,
-            details = EXCLUDED.details,
-            notes = EXCLUDED.notes,
-            synced_at = now()
+        // Check if workout already exists
+        const existingWorkout = await sql`
+          SELECT id FROM workouts
+          WHERE external_id = ${workout.external_id}
+            AND source = 'strava'
+          LIMIT 1
         `;
+
+        if (existingWorkout.length > 0) {
+          // Update existing workout
+          await sql`
+            UPDATE workouts
+            SET
+              date = ${workout.date},
+              workout_type = ${workout.workout_type},
+              duration_min = ${workout.duration_min},
+              intensity = ${workout.intensity || null},
+              perceived_effort = ${workout.perceived_effort || null},
+              details = ${JSON.stringify(workout.details)},
+              notes = ${workout.notes || null},
+              synced_at = now()
+            WHERE external_id = ${workout.external_id}
+              AND source = 'strava'
+          `;
+        } else {
+          // Insert new workout
+          await sql`
+            INSERT INTO workouts (
+              date,
+              workout_type,
+              duration_min,
+              intensity,
+              perceived_effort,
+              details,
+              notes,
+              source,
+              external_id,
+              synced_at
+            )
+            VALUES (
+              ${workout.date},
+              ${workout.workout_type},
+              ${workout.duration_min},
+              ${workout.intensity || null},
+              ${workout.perceived_effort || null},
+              ${JSON.stringify(workout.details)},
+              ${workout.notes || null},
+              'strava',
+              ${workout.external_id},
+              now()
+            )
+          `;
+        }
 
         // Log sync success
         await sql`

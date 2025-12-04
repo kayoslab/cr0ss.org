@@ -184,37 +184,53 @@ async function handleActivitySync(
     if (activity.max_heartrate) details.max_heartrate = activity.max_heartrate;
     if (activity.average_cadence) details.avg_cadence = activity.average_cadence;
 
-    // Upsert workout (insert or update if exists)
-    await sql`
-      INSERT INTO workouts (
-        date,
-        workout_type,
-        duration_min,
-        details,
-        notes,
-        source,
-        external_id,
-        synced_at
-      )
-      VALUES (
-        ${dateLocal},
-        ${workoutType},
-        ${durationMin},
-        ${JSON.stringify(details)},
-        ${activity.description || null},
-        'strava',
-        ${activity.id.toString()},
-        now()
-      )
-      ON CONFLICT (external_id)
-      DO UPDATE SET
-        date = EXCLUDED.date,
-        workout_type = EXCLUDED.workout_type,
-        duration_min = EXCLUDED.duration_min,
-        details = EXCLUDED.details,
-        notes = EXCLUDED.notes,
-        synced_at = now()
+    // Check if workout already exists
+    const existingWorkout = await sql`
+      SELECT id FROM workouts
+      WHERE external_id = ${activity.id.toString()}
+        AND source = 'strava'
+      LIMIT 1
     `;
+
+    if (existingWorkout.length > 0) {
+      // Update existing workout
+      await sql`
+        UPDATE workouts
+        SET
+          date = ${dateLocal},
+          workout_type = ${workoutType},
+          duration_min = ${durationMin},
+          details = ${JSON.stringify(details)},
+          notes = ${activity.description || null},
+          synced_at = now()
+        WHERE external_id = ${activity.id.toString()}
+          AND source = 'strava'
+      `;
+    } else {
+      // Insert new workout
+      await sql`
+        INSERT INTO workouts (
+          date,
+          workout_type,
+          duration_min,
+          details,
+          notes,
+          source,
+          external_id,
+          synced_at
+        )
+        VALUES (
+          ${dateLocal},
+          ${workoutType},
+          ${durationMin},
+          ${JSON.stringify(details)},
+          ${activity.description || null},
+          'strava',
+          ${activity.id.toString()},
+          now()
+        )
+      `;
+    }
 
     // Log sync success
     await sql`
