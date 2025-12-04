@@ -9,13 +9,6 @@ const nextConfig = {
   experimental: {
     serverActions: { bodySizeLimit: '2mb' },
     optimizePackageImports: ['@heroicons/react'],
-    cacheLife: {
-      max: {
-        stale: 31536000, // 1 year in seconds
-        revalidate: 31536000, // 1 year in seconds
-        expire: 31536000, // 1 year in seconds
-      },
-    },
   },
   reactStrictMode: true,
   compiler: {
