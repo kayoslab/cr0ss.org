@@ -200,7 +200,7 @@ export const ZStravaWebhookEvent = z.object({
   object_type: z.enum(['activity', 'athlete']),
   object_id: z.number(),
   aspect_type: z.enum(['create', 'update', 'delete']),
-  updates: z.record(z.boolean()).optional(),
+  updates: z.record(z.string(), z.boolean()).optional(),
   owner_id: z.number(),
   subscription_id: z.number(),
   event_time: z.number(),
