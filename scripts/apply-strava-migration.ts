@@ -29,23 +29,44 @@ async function runMigration() {
   console.log(`🚀 Applying Strava integration migration...`);
 
   try {
-    // Split the migration into individual statements
-    // Remove comments and split by semicolons
-    const statements = migrationSQL
+    // Remove SQL comments and normalize whitespace
+    const cleanSQL = migrationSQL
       .split('\n')
-      .filter(line => !line.trim().startsWith('--'))
-      .join('\n')
-      .split(';')
+      .filter(line => {
+        const trimmed = line.trim();
+        return trimmed && !trimmed.startsWith('--');
+      })
+      .join('\n');
+
+    // Split on semicolon but be careful with function bodies
+    const statements = cleanSQL
+      .split(/;(?=\s*(?:CREATE|ALTER|DROP|INSERT|UPDATE|DELETE|COMMENT|$))/i)
       .map(stmt => stmt.trim())
       .filter(stmt => stmt.length > 0);
 
-    for (const statement of statements) {
-      if (statement) {
+    console.log(`Found ${statements.length} statements to execute\n`);
+
+    for (let i = 0; i < statements.length; i++) {
+      const statement = statements[i];
+      // Get first line for logging (max 80 chars)
+      const preview = statement.split('\n')[0].substring(0, 80);
+      console.log(`[${i + 1}/${statements.length}] Executing: ${preview}...`);
+
+      try {
         await db.unsafe(statement);
+        console.log(`  ✓ Success`);
+      } catch (error: any) {
+        // Check if error is about object already existing
+        if (error.code === '42P07' || error.code === '42710') {
+          console.log(`  ⚠ Already exists, skipping`);
+        } else {
+          console.error(`  ✗ Failed:`, error.message);
+          throw error;
+        }
       }
     }
 
-    console.log('✅ Migration applied successfully!');
+    console.log('\n✅ Migration applied successfully!');
     console.log('');
     console.log('Created tables:');
     console.log('  - strava_auth (OAuth credentials)');
@@ -55,7 +76,7 @@ async function runMigration() {
     console.log('  - workouts (added source, external_id, synced_at columns)');
 
   } catch (error) {
-    console.error('❌ Migration failed:');
+    console.error('\n❌ Migration failed:');
     console.error(error);
     process.exit(1);
   }

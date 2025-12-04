@@ -76,11 +76,22 @@ export async function GET(request: NextRequest) {
     }
 
     const tokenData = await tokenResponse.json();
+    console.log('Received token data from Strava');
 
     // Validate response structure
-    const validatedData = ZStravaTokenResponse.parse(tokenData);
+    let validatedData;
+    try {
+      validatedData = ZStravaTokenResponse.parse(tokenData);
+      console.log('Token data validated successfully');
+    } catch (validationError) {
+      console.error('Token validation failed:', validationError);
+      console.error('Token data:', JSON.stringify(tokenData, null, 2));
+      throw validationError;
+    }
 
     // Store tokens in database
+    console.log('Storing tokens in database for athlete:', validatedData.athlete.id);
+    const athleteName = `${validatedData.athlete.firstname || ''} ${validatedData.athlete.lastname || ''}`.trim();
     await sql`
       INSERT INTO strava_auth (
         athlete_id,
@@ -93,7 +104,7 @@ export async function GET(request: NextRequest) {
       )
       VALUES (
         ${validatedData.athlete.id},
-        ${validatedData.athlete.firstname || ''} ${validatedData.athlete.lastname || ''},
+        ${athleteName},
         ${validatedData.access_token},
         ${validatedData.refresh_token},
         ${new Date(validatedData.expires_at * 1000).toISOString()},
@@ -110,10 +121,12 @@ export async function GET(request: NextRequest) {
         scopes = EXCLUDED.scopes,
         updated_at = now()
     `;
+    console.log('Tokens stored successfully');
 
     // Revalidate workouts cache
     revalidateWorkouts();
 
+    console.log('Authorization complete, returning success');
     return NextResponse.json({
       ok: true,
       athlete: {

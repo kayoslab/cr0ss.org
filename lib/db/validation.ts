@@ -189,9 +189,9 @@ export const ZStravaTokenResponse = z.object({
   access_token: z.string(),
   athlete: z.object({
     id: z.number(),
-    username: z.string().optional(),
-    firstname: z.string().optional(),
-    lastname: z.string().optional(),
+    username: z.string().nullable().optional(),
+    firstname: z.string().nullable().optional(),
+    lastname: z.string().nullable().optional(),
   }),
 });
 
