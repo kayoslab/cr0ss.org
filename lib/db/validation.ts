@@ -227,7 +227,7 @@ export const ZStravaActivity = z.object({
   average_cadence: z.number().optional(),
   elev_high: z.number().optional(),
   elev_low: z.number().optional(),
-  description: z.string().optional(),
+  description: z.string().nullable().optional(),
   kudos_count: z.number().optional(),
   private: z.boolean().optional(),
 });
