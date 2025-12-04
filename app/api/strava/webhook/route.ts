@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { env } from '@/env';
 import { sql } from '@/lib/db/client';
 import { ZStravaWebhookEvent, ZStravaActivity } from '@/lib/db/validation';
 import { rateLimit } from '@/lib/rate/limit';
 import { revalidateWorkouts } from '@/lib/cache/revalidate';
+import { getStravaConfig } from '@/lib/strava/config';
 
 export const runtime = 'edge';
 
@@ -15,6 +15,8 @@ export const runtime = 'edge';
  */
 export async function GET(request: NextRequest) {
   try {
+    const config = getStravaConfig();
+
     const { searchParams } = new URL(request.url);
 
     const mode = searchParams.get('hub.mode');
@@ -22,7 +24,7 @@ export async function GET(request: NextRequest) {
     const challenge = searchParams.get('hub.challenge');
 
     // Verify the token matches our configured token
-    if (mode === 'subscribe' && token === env.STRAVA_WEBHOOK_VERIFY_TOKEN) {
+    if (mode === 'subscribe' && token === config.webhookVerifyToken) {
       console.log('Strava webhook verification successful');
 
       // Respond with the challenge to complete verification
@@ -53,6 +55,8 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    getStravaConfig(); // Verify Strava is configured
+
     // Apply rate limiting (webhooks shouldn't count against API limits)
     const rateLimitResult = await rateLimit(request, 'strava-webhook', {
       windowSec: 60,
@@ -166,6 +170,13 @@ async function handleActivitySync(
 
     const activityData = await activityResponse.json();
     const activity = ZStravaActivity.parse(activityData);
+
+    // Only sync running activities
+    const runningTypes = ['Run', 'TrailRun', 'VirtualRun'];
+    if (!runningTypes.includes(activity.type)) {
+      console.log(`Skipping non-running activity ${activity.id}: ${activity.type}`);
+      return;
+    }
 
     // Transform Strava activity to workout format
     const workoutType = mapStravaTypeToWorkoutType(activity.type);
@@ -329,6 +340,7 @@ async function handleActivityDelete(event: { object_id: number; owner_id: number
  */
 async function refreshAccessToken(athleteId: number, refreshToken: string) {
   try {
+    const config = getStravaConfig();
     const tokenUrl = 'https://www.strava.com/oauth/token';
     const response = await fetch(tokenUrl, {
       method: 'POST',
@@ -336,8 +348,8 @@ async function refreshAccessToken(athleteId: number, refreshToken: string) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        client_id: env.STRAVA_CLIENT_ID,
-        client_secret: env.STRAVA_CLIENT_SECRET,
+        client_id: config.clientId,
+        client_secret: config.clientSecret,
         grant_type: 'refresh_token',
         refresh_token: refreshToken,
       }),

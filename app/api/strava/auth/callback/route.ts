@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { env } from '@/env';
 import { sql } from '@/lib/db/client';
 import { ZStravaTokenResponse } from '@/lib/db/validation';
 import { rateLimit } from '@/lib/rate/limit';
 import { revalidateWorkouts } from '@/lib/cache/revalidate';
+import { getStravaConfig } from '@/lib/strava/config';
 
 export const runtime = 'edge';
 
@@ -15,6 +15,8 @@ export const runtime = 'edge';
  */
 export async function GET(request: NextRequest) {
   try {
+    const config = getStravaConfig();
+
     // Apply rate limiting
     const rateLimitResult = await rateLimit(request, 'strava-callback', {
       windowSec: 60,
@@ -59,8 +61,8 @@ export async function GET(request: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        client_id: env.STRAVA_CLIENT_ID,
-        client_secret: env.STRAVA_CLIENT_SECRET,
+        client_id: config.clientId,
+        client_secret: config.clientSecret,
         code,
         grant_type: 'authorization_code',
       }),

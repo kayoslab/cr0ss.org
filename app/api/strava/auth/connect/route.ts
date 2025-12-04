@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { env } from '@/env';
 import { assertSecret } from '@/lib/auth/secret';
 import { rateLimit } from '@/lib/rate/limit';
+import { getStravaConfig } from '@/lib/strava/config';
 
 export const runtime = 'edge';
 
@@ -13,6 +13,9 @@ export const runtime = 'edge';
  */
 export async function GET(request: NextRequest) {
   try {
+    // Get Strava config (throws if not configured)
+    const config = getStravaConfig();
+
     // Verify authentication
     assertSecret(request);
 
@@ -36,7 +39,7 @@ export async function GET(request: NextRequest) {
     const callbackUrl = new URL('/api/strava/auth/callback', request.url);
 
     const authUrl = new URL('https://www.strava.com/oauth/authorize');
-    authUrl.searchParams.set('client_id', env.STRAVA_CLIENT_ID);
+    authUrl.searchParams.set('client_id', config.clientId);
     authUrl.searchParams.set('redirect_uri', callbackUrl.toString());
     authUrl.searchParams.set('response_type', 'code');
     authUrl.searchParams.set('approval_prompt', 'auto');

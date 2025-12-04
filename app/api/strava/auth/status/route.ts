@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db/client';
 import { assertSecret } from '@/lib/auth/secret';
 import { rateLimit } from '@/lib/rate/limit';
+import { assertStravaConfigured } from '@/lib/strava/config';
 
 export const runtime = 'edge';
 
@@ -12,6 +13,8 @@ export const runtime = 'edge';
  */
 export async function GET(request: NextRequest) {
   try {
+    assertStravaConfigured();
+
     // Verify authentication
     assertSecret(request);
 
