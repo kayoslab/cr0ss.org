@@ -15,10 +15,6 @@ const nextConfig = {
     // Temporarily disable console removal for debugging Edge runtime on Vercel
     removeConsole: false, // process.env.NODE_ENV === 'production',
   },
-  // Explicitly pass environment variables to Edge runtime
-  env: {
-    DASHBOARD_API_SECRET: process.env.DASHBOARD_API_SECRET,
-  },
   images: {
     remotePatterns: [
       {
