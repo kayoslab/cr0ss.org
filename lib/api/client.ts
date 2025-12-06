@@ -96,7 +96,11 @@ function buildUrl(path: string, params?: Record<string, string | number | boolea
 function getApiSecret(): string | undefined {
   // Only in server context
   if (typeof window === 'undefined') {
-    return env.DASHBOARD_API_SECRET;
+    const secret = env.DASHBOARD_API_SECRET;
+    if (!secret) {
+      console.warn('[API Client] DASHBOARD_API_SECRET is not set in environment. API calls will fail authentication.');
+    }
+    return secret;
   }
   return undefined;
 }
