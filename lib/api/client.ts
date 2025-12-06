@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { env } from '@/env';
 import { SECRET_HEADER } from '@/lib/auth/constants';
 
 /**
@@ -92,11 +91,15 @@ function buildUrl(path: string, params?: Record<string, string | number | boolea
 /**
  * Get API secret for server-side requests
  * Only available in server context
+ *
+ * Note: We access process.env directly instead of using the env module
+ * because the env module's experimental__runtimeEnv doesn't work properly
+ * with Edge runtime. Edge runtime does support process.env access.
  */
 function getApiSecret(): string | undefined {
   // Only in server context
   if (typeof window === 'undefined') {
-    const secret = env.DASHBOARD_API_SECRET;
+    const secret = process.env.DASHBOARD_API_SECRET;
     if (!secret) {
       console.warn('[API Client] DASHBOARD_API_SECRET is not set in environment. API calls will fail authentication.');
     }
