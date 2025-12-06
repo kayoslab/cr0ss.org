@@ -13,6 +13,19 @@ import { SECRET_HEADER } from "./constants";
 export function hasValidSecret(req: Request): boolean {
   const hdr = new Headers(req.headers);
 
+  // Debug logging for Vercel Edge runtime
+  const expectedSecret = process.env.DASHBOARD_API_SECRET;
+  const providedSecret = hdr.get(SECRET_HEADER);
+
+  console.log('[Auth Debug]', {
+    hasExpectedSecret: !!expectedSecret,
+    expectedSecretLength: expectedSecret?.length || 0,
+    hasProvidedSecret: !!providedSecret,
+    providedSecretLength: providedSecret?.length || 0,
+    secretsMatch: providedSecret === expectedSecret,
+    header: SECRET_HEADER,
+  });
+
   // Check standard admin secret header
   const adminSecret = hdr.get(SECRET_HEADER);
   if (adminSecret && adminSecret === process.env.DASHBOARD_API_SECRET) {
