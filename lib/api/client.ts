@@ -50,17 +50,26 @@ function getBaseUrl(): string {
     return window.location.origin;
   }
 
-  // Server-side: use environment variable or fallback to localhost
-  // In production, VERCEL_URL or custom domain should be set
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
+  // Server-side: prefer production URL or localhost over preview deployments
+  // This avoids Deployment Protection issues on preview deployments
+
+  // In development (NODE_ENV !== 'production'), always use localhost
+  if (process.env.NODE_ENV !== 'production') {
+    const port = process.env.PORT || '3000';
+    return `http://localhost:${port}`;
   }
 
+  // In production, prefer custom domain over VERCEL_URL
   if (process.env.NEXT_PUBLIC_SITE_URL) {
     return process.env.NEXT_PUBLIC_SITE_URL;
   }
 
-  // Development fallback - check for PORT env var
+  // Fallback to VERCEL_URL for production deployments
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+
+  // Final fallback
   const port = process.env.PORT || '3000';
   return `http://localhost:${port}`;
 }
