@@ -38,18 +38,25 @@ export function hasValidSecret(req: Request): boolean {
     providedLast3: providedSecret?.substring(providedSecret.length - 3),
   });
 
-  // Check standard admin secret header
+  // Check standard admin secret header (with trimming to handle whitespace)
   const adminSecret = hdr.get(SECRET_HEADER);
-  if (adminSecret && adminSecret === process.env.DASHBOARD_API_SECRET) {
+  const expectedAdminSecret = process.env.DASHBOARD_API_SECRET;
+  if (adminSecret && expectedAdminSecret &&
+      adminSecret.trim() === expectedAdminSecret.trim()) {
+    console.log('[Auth Debug] Admin secret matched!');
     return true;
   }
 
   // Check Contentful webhook secret (used for all Contentful webhooks: revalidation + indexing)
   const revalidateSecret = hdr.get('x-vercel-revalidation-key');
-  if (revalidateSecret && revalidateSecret === process.env.CONTENTFUL_REVALIDATE_SECRET) {
+  const expectedRevalidateSecret = process.env.CONTENTFUL_REVALIDATE_SECRET;
+  if (revalidateSecret && expectedRevalidateSecret &&
+      revalidateSecret.trim() === expectedRevalidateSecret.trim()) {
+    console.log('[Auth Debug] Contentful secret matched!');
     return true;
   }
 
+  console.log('[Auth Debug] No secrets matched, returning false');
   return false;
 }
 
