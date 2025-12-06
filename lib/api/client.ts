@@ -108,17 +108,7 @@ function buildUrl(path: string, params?: Record<string, string | number | boolea
 function getApiSecret(): string | undefined {
   // Only in server context
   if (typeof window === 'undefined') {
-    const secret = process.env.DASHBOARD_API_SECRET;
-    console.log('[API Client] Getting secret', {
-      hasSecret: !!secret,
-      secretLength: secret?.length || 0,
-      isServer: typeof window === 'undefined',
-      runtime: process.env.NEXT_RUNTIME || 'nodejs',
-    });
-    if (!secret) {
-      console.warn('[API Client] DASHBOARD_API_SECRET is not set in environment. API calls will fail authentication.');
-    }
-    return secret;
+    return process.env.DASHBOARD_API_SECRET;
   }
   return undefined;
 }
@@ -139,15 +129,6 @@ async function fetchApi<T>(
         [SECRET_HEADER]: apiSecret,
       };
     }
-
-    // Debug logging for every request
-    console.log('[API Client] Making request:', {
-      url,
-      method: options.method || 'GET',
-      hasAuthHeader: !!(options.headers as Record<string, string>)?.[SECRET_HEADER],
-      runtime: process.env.NEXT_RUNTIME || 'nodejs',
-      isServer: typeof window === 'undefined',
-    });
 
     const response = await fetch(url, options);
 

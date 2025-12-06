@@ -67,27 +67,7 @@ export default async function DashboardPage() {
       }),
     ]);
   } catch (error) {
-    // Enhanced error logging for debugging on Vercel
-    console.error('[Dashboard] API call failed:', {
-      error,
-      errorType: error?.constructor?.name,
-      message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-      runtime: process.env.NEXT_RUNTIME || 'nodejs',
-      hasSecret: !!process.env.DASHBOARD_API_SECRET,
-    });
-
-    // Re-throw with enhanced message for visibility in browser
-    if (error instanceof Error) {
-      const enhancedError = new Error(
-        `Dashboard API Error: ${error.message}\n` +
-        `Runtime: ${process.env.NEXT_RUNTIME || 'nodejs'}\n` +
-        `Has Secret: ${!!process.env.DASHBOARD_API_SECRET}\n` +
-        `Original: ${error.stack}`
-      );
-      enhancedError.name = 'DashboardLoadError';
-      throw enhancedError;
-    }
+    console.error('[Dashboard] Failed to load dashboard data:', error);
     throw error;
   }
 

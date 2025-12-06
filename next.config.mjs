@@ -12,8 +12,7 @@ const nextConfig = {
   },
   reactStrictMode: true,
   compiler: {
-    // Temporarily disable console removal for debugging Edge runtime on Vercel
-    removeConsole: false, // process.env.NODE_ENV === 'production',
+    removeConsole: process.env.NODE_ENV === 'production',
   },
   images: {
     remotePatterns: [
