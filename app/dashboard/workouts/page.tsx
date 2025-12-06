@@ -8,7 +8,7 @@ import type {
 import WorkoutsClient from "./workouts.client";
 
 // Use edge runtime for better performance
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 // Cache configuration - revalidate every 5 minutes
 // Immediate invalidation on POST via revalidateDashboard()

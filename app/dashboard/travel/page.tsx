@@ -5,7 +5,7 @@ import { getCurrentLocation } from "@/lib/db/location";
 import TravelClient from "./travel.client";
 
 // Use edge runtime for better performance
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 // Cache configuration - revalidate every 5 minutes
 // Travel data changes infrequently, so caching is beneficial

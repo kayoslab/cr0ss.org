@@ -17,7 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 
 // Use edge runtime for better performance
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 // Cache configuration - revalidate every 5 minutes
 // Immediate invalidation on POST via revalidateDashboard()
