@@ -4,8 +4,15 @@ import { MapPin, Coffee, Activity, BookOpen, Lightbulb } from "lucide-react";
 import { getAllCountries, getVisitedCountries } from "@/lib/contentful/api/country";
 import { CountryProps } from "@/lib/contentful/api/props/country";
 import { getCurrentLocation } from "@/lib/db/location";
-import { getOverviewDashboardData } from "@/lib/db/dashboard";
-import { isoToBerlinDate } from "@/lib/time/berlin";
+import { dashboardApi } from "@/lib/api/client";
+import type {
+  CoffeeSummaryResponse,
+  HabitsTodayResponse,
+  WorkoutsHeatmapResponse,
+  GoalsResponse,
+  GoalsProgressResponse,
+  RunningStatsResponse,
+} from "@/lib/api/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 
@@ -23,8 +30,36 @@ export default async function DashboardPage() {
   const lon = currentLocation?.longitude ?? 0;
   const hasLocation = currentLocation != null;
 
-  // Fetch overview dashboard data (combines multiple domains)
-  const overviewData = await getOverviewDashboardData();
+  // Fetch overview dashboard data from API endpoints in parallel
+  const [coffeeSummary, habitsToday, workoutHeatmap, goals, goalsProgress, runningStats] =
+    await Promise.all([
+      dashboardApi.get<CoffeeSummaryResponse>("/coffee/summary", {
+        tags: ["coffee:summary"],
+        revalidate: 60,
+      }),
+      dashboardApi.get<HabitsTodayResponse>("/habits/today", {
+        tags: ["habits:today"],
+        revalidate: 30,
+      }),
+      dashboardApi.get<WorkoutsHeatmapResponse>("/workouts/heatmap", {
+        params: { days: 60 },
+        tags: ["workouts:heatmap"],
+        revalidate: 300,
+      }),
+      dashboardApi.get<GoalsResponse>("/goals", {
+        tags: ["goals"],
+        revalidate: 600,
+      }),
+      dashboardApi.get<GoalsProgressResponse>("/goals/progress", {
+        tags: ["goals:progress"],
+        revalidate: 60,
+      }),
+      dashboardApi.get<RunningStatsResponse>("/workouts/running/stats", {
+        params: { period: "month" },
+        tags: ["workouts:running"],
+        revalidate: 60,
+      }),
+    ]);
 
   // Contentful data
   const [countries = [], visited = []] = await Promise.all([
@@ -39,20 +74,19 @@ export default async function DashboardPage() {
     })
   );
 
-  const monthlyGoals = overviewData.monthlyGoals;
-  const dailyGoals = overviewData.dailyGoals;
+  const monthlyGoals = goals.monthly;
+  const dailyGoals = goals.daily;
 
   // Calculate today's snapshot KPIs
   const todaySnapshot = {
-    coffeeCups: overviewData.cupsToday,
-    steps: overviewData.habitsToday.steps,
+    coffeeCups: coffeeSummary.cups,
+    steps: habitsToday.steps,
     activeMinutes:
-      overviewData.workoutHeatmap[overviewData.workoutHeatmap.length - 1]
-        ?.duration_min || 0,
+      workoutHeatmap.heatmap[workoutHeatmap.heatmap.length - 1]?.duration_min || 0,
     countriesVisited: visited.length,
   };
 
-  // Build all goals with their progress
+  // Build all goals with their progress from the progress endpoint
   const allGoals: Array<{
     name: string;
     value: number;
@@ -62,77 +96,30 @@ export default async function DashboardPage() {
     period: "monthly" | "daily";
   }> = [];
 
-  // Goal metadata: maps goal keys to display info and how to get current value
-  const goalMetadata: Record<string, {
-    name: string;
-    unit: string;
-    getValue: (data: typeof overviewData) => number;
-  }> = {
-    running_distance_km: {
-      name: "Running",
-      unit: "km",
-      getValue: (data) => data.runningProgress.total_km,
-    },
-    steps: {
-      name: "Steps",
-      unit: "steps",
-      getValue: (data) => data.habitsToday.steps || 0,
-    },
-    reading_minutes: {
-      name: "Reading",
-      unit: "min",
-      getValue: (data) => data.habitsToday.reading_minutes || 0,
-    },
-    outdoor_minutes: {
-      name: "Outdoors",
-      unit: "min",
-      getValue: (data) => data.habitsToday.outdoor_minutes || 0,
-    },
-    writing_minutes: {
-      name: "Writing",
-      unit: "min",
-      getValue: (data) => data.habitsToday.writing_minutes || 0,
-    },
-    coding_minutes: {
-      name: "Coding",
-      unit: "min",
-      getValue: (data) => data.habitsToday.coding_minutes || 0,
-    },
-    focus_minutes: {
-      name: "Focus",
-      unit: "min",
-      getValue: (data) => data.habitsToday.focus_minutes || 0,
-    },
-  };
-
-  // Process monthly goals
-  for (const [key, target] of Object.entries(monthlyGoals)) {
-    if (target > 0 && goalMetadata[key]) {
-      const meta = goalMetadata[key];
-      const value = meta.getValue(overviewData);
+  // Process daily goals progress
+  if (goalsProgress.daily) {
+    for (const goalItem of goalsProgress.daily) {
       allGoals.push({
-        name: meta.name,
-        value,
-        target,
-        unit: meta.unit,
-        percentage: Math.round((value / target) * 100),
-        period: "monthly",
+        name: goalItem.goal,
+        value: goalItem.current,
+        target: goalItem.target,
+        unit: goalItem.unit,
+        percentage: goalItem.progress_pct,
+        period: "daily",
       });
     }
   }
 
-  // Process daily goals
-  for (const [key, target] of Object.entries(dailyGoals)) {
-    if (target > 0 && goalMetadata[key]) {
-      const meta = goalMetadata[key];
-      const value = meta.getValue(overviewData);
+  // Process monthly goals progress
+  if (goalsProgress.monthly) {
+    for (const goalItem of goalsProgress.monthly) {
       allGoals.push({
-        name: meta.name,
-        value,
-        target,
-        unit: meta.unit,
-        percentage: Math.round((value / target) * 100),
-        period: "daily",
+        name: goalItem.goal,
+        value: goalItem.current,
+        target: goalItem.target,
+        unit: goalItem.unit,
+        percentage: goalItem.progress_pct,
+        period: "monthly",
       });
     }
   }

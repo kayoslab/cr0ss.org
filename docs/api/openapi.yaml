@@ -6,6 +6,7 @@ info:
 
     ## Authentication
     Most endpoints require authentication via the `X-Secret` header containing your secret token.
+    Dashboard endpoints require the `X-Admin-Secret` header for enhanced security.
 
     ## Rate Limiting
     All endpoints are rate limited. Rate limit headers are included in responses:
@@ -15,6 +16,7 @@ info:
     - AI Chat: 10 requests per 12 hours
     - Search: 100 requests per 60 seconds
     - Habits: 30 requests per 60 seconds
+    - Dashboard: 30 requests per 60 seconds
     - Revalidation: 5 requests per 300 seconds (5 minutes)
 
   version: 1.0.0
@@ -48,6 +50,960 @@ tags:
     description: Authentication status
 
 paths:
+  /v1/dashboard/coffee/summary:
+    get:
+      tags: [Dashboard]
+      summary: Get coffee consumption summary
+      description: |
+        Returns coffee consumption summary for a specific date.
+        Includes total cups consumed and breakdown by brew method.
+
+        **Rate Limit:** 30 requests per 60 seconds
+        **Cache:** 1 minute (realtime)
+      security:
+        - AdminAuth: []
+      parameters:
+        - name: date
+          in: query
+          description: Date in YYYY-MM-DD format (defaults to today in Europe/Berlin timezone)
+          schema:
+            type: string
+            format: date
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+          example: "2025-12-05"
+      responses:
+        '200':
+          description: Coffee summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  date:
+                    type: string
+                    format: date
+                    description: Date of the summary
+                    example: "2025-12-05"
+                  cups:
+                    type: integer
+                    minimum: 0
+                    description: Total number of cups consumed
+                    example: 3
+                  brewMethods:
+                    type: array
+                    description: Breakdown of brew methods used
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          description: Brew method type
+                          example: "espresso"
+                        count:
+                          type: integer
+                          minimum: 0
+                          description: Number of cups with this method
+                          example: 2
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /v1/dashboard/coffee/timeline:
+    get:
+      tags: [Dashboard]
+      summary: Get coffee consumption timeline
+      description: |
+        Returns coffee consumption timeline for a date range.
+        Shows cups per period and average caffeine content.
+
+        **Rate Limit:** 30 requests per 60 seconds
+        **Cache:** 5 minutes (frequent)
+      security:
+        - AdminAuth: []
+      parameters:
+        - name: start_date
+          in: query
+          required: true
+          description: Start date in YYYY-MM-DD format
+          schema:
+            type: string
+            format: date
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+          example: "2025-12-01"
+        - name: end_date
+          in: query
+          required: true
+          description: End date in YYYY-MM-DD format
+          schema:
+            type: string
+            format: date
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+          example: "2025-12-05"
+        - name: granularity
+          in: query
+          description: Time period granularity
+          schema:
+            type: string
+            enum: [day, week, month]
+            default: day
+          example: "day"
+      responses:
+        '200':
+          description: Coffee timeline
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  timeline:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        period:
+                          type: string
+                          description: Time period (YYYY-MM-DD for day, YYYY-Www for week, YYYY-MM for month)
+                          example: "2025-12-01"
+                        cups_count:
+                          type: integer
+                          minimum: 0
+                          description: Number of cups in this period
+                          example: 3
+                        avg_caffeine_mg:
+                          type: integer
+                          minimum: 0
+                          description: Average caffeine content per cup (mg)
+                          example: 100
+                  total_cups:
+                    type: integer
+                    minimum: 0
+                    description: Total cups in the entire range
+                    example: 15
+                  avg_cups_per_day:
+                    type: number
+                    format: float
+                    minimum: 0
+                    description: Average cups per day
+                    example: 3.0
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /v1/dashboard/coffee/caffeine-curve:
+    get:
+      tags: [Dashboard]
+      summary: Get caffeine curve for a date
+      description: |
+        Returns modeled caffeine curve showing intake and body levels throughout the day.
+        Uses pharmacokinetic modeling based on user's body profile.
+
+        **Rate Limit:** 30 requests per 60 seconds
+        **Cache:** 1 minute (realtime)
+      security:
+        - AdminAuth: []
+      parameters:
+        - name: date
+          in: query
+          description: Date in YYYY-MM-DD format (defaults to today in Europe/Berlin timezone)
+          schema:
+            type: string
+            format: date
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+          example: "2025-12-05"
+        - name: resolution
+          in: query
+          description: Minutes between data points
+          schema:
+            type: integer
+            minimum: 15
+            maximum: 240
+            default: 60
+          example: 60
+      responses:
+        '200':
+          description: Caffeine curve data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  date:
+                    type: string
+                    format: date
+                    description: Date of the curve
+                    example: "2025-12-05"
+                  series:
+                    type: array
+                    description: Time series data points
+                    items:
+                      type: object
+                      properties:
+                        time:
+                          type: string
+                          format: date-time
+                          description: ISO timestamp in Berlin timezone
+                          example: "2025-12-05T08:00:00.000Z"
+                        intake_mg:
+                          type: integer
+                          minimum: 0
+                          description: Cumulative caffeine intake (mg)
+                          example: 80
+                        body_mg:
+                          type: integer
+                          minimum: 0
+                          description: Modeled body caffeine level (mg)
+                          example: 85
+                  body_profile:
+                    type: object
+                    description: User's caffeine metabolism parameters
+                    properties:
+                      half_life_hours:
+                        type: number
+                        format: float
+                        description: Caffeine half-life in hours
+                        example: 5.0
+                      sensitivity:
+                        type: number
+                        format: float
+                        description: Caffeine sensitivity multiplier
+                        example: 1.0
+                      bioavailability:
+                        type: number
+                        format: float
+                        description: Caffeine bioavailability
+                        example: 0.9
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /v1/dashboard/workouts/summary:
+    get:
+      tags: [Dashboard]
+      summary: Get workouts summary
+      description: |
+        Returns workout summary for a specific period (today, week, or month).
+        Includes workout types breakdown, totals, and streak information.
+
+        **Rate Limit:** 30 requests per 60 seconds
+        **Cache:** 1 minute (realtime)
+      security:
+        - AdminAuth: []
+      parameters:
+        - name: period
+          in: query
+          description: Period to summarize
+          schema:
+            type: string
+            enum: [today, week, month]
+            default: month
+          example: "week"
+      responses:
+        '200':
+          description: Workouts summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  period:
+                    type: string
+                    description: Period of the summary
+                    example: "week"
+                  workout_types:
+                    type: array
+                    description: Breakdown by workout type
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          description: Workout type
+                          example: "running"
+                        count:
+                          type: integer
+                          minimum: 0
+                          description: Number of workouts
+                          example: 3
+                        total_duration_min:
+                          type: integer
+                          minimum: 0
+                          description: Total duration in minutes
+                          example: 150
+                        avg_duration_min:
+                          type: number
+                          format: float
+                          minimum: 0
+                          description: Average duration per workout
+                          example: 50.0
+                  total_workouts:
+                    type: integer
+                    minimum: 0
+                    description: Total number of workouts
+                    example: 4
+                  total_duration_min:
+                    type: integer
+                    minimum: 0
+                    description: Total duration across all workouts
+                    example: 210
+                  streaks:
+                    type: object
+                    description: Workout streaks (max 2 days gap allowed)
+                    properties:
+                      current:
+                        type: integer
+                        minimum: 0
+                        description: Current workout streak
+                        example: 3
+                      longest:
+                        type: integer
+                        minimum: 0
+                        description: Longest streak on record
+                        example: 7
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /v1/dashboard/workouts/heatmap:
+    get:
+      tags: [Dashboard]
+      summary: Get workouts heatmap
+      description: |
+        Returns heatmap data for workout visualization.
+        Shows daily workout duration (and distance for running) over a period.
+
+        **Rate Limit:** 30 requests per 60 seconds
+        **Cache:** 5 minutes (frequent)
+      security:
+        - AdminAuth: []
+      parameters:
+        - name: days
+          in: query
+          description: Number of days to include
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 365
+            default: 60
+          example: 60
+        - name: workout_type
+          in: query
+          description: Filter by specific workout type
+          schema:
+            type: string
+          example: "running"
+      responses:
+        '200':
+          description: Workouts heatmap
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  heatmap:
+                    type: array
+                    description: Daily workout data (includes all days, even with zero activity)
+                    items:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                          format: date
+                          description: Date
+                          example: "2025-10-06"
+                        duration_min:
+                          type: integer
+                          minimum: 0
+                          description: Total duration in minutes
+                          example: 45
+                        distance_km:
+                          type: number
+                          format: float
+                          minimum: 0
+                          description: Distance in kilometers (only for running workouts)
+                          example: 8.5
+                  stats:
+                    type: object
+                    description: Summary statistics for the period
+                    properties:
+                      active_days:
+                        type: integer
+                        minimum: 0
+                        description: Number of days with workouts
+                        example: 30
+                      total_duration_min:
+                        type: integer
+                        minimum: 0
+                        description: Total duration across all days
+                        example: 1500
+                      avg_duration_min:
+                        type: number
+                        format: float
+                        minimum: 0
+                        description: Average duration on active days
+                        example: 50.0
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /v1/dashboard/workouts/running/stats:
+    get:
+      tags: [Dashboard]
+      summary: Get running statistics
+      description: |
+        Returns detailed running statistics for a specific period.
+        Includes totals, pace, personal records, and monthly goal progress.
+
+        **Rate Limit:** 30 requests per 60 seconds
+        **Cache:** 1 minute (realtime)
+      security:
+        - AdminAuth: []
+      parameters:
+        - name: period
+          in: query
+          description: Period to analyze
+          schema:
+            type: string
+            enum: [month, year, all]
+            default: month
+          example: "month"
+      responses:
+        '200':
+          description: Running statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  period:
+                    type: string
+                    description: Period of the stats
+                    example: "month"
+                  total_runs:
+                    type: integer
+                    minimum: 0
+                    description: Total number of runs
+                    example: 12
+                  total_distance_km:
+                    type: number
+                    format: float
+                    minimum: 0
+                    description: Total distance in kilometers
+                    example: 85.5
+                  total_duration_min:
+                    type: integer
+                    minimum: 0
+                    description: Total duration in minutes
+                    example: 600
+                  avg_pace_sec_per_km:
+                    type: number
+                    format: float
+                    minimum: 0
+                    description: Average pace in seconds per kilometer
+                    example: 421.0
+                  personal_records:
+                    type: object
+                    description: All-time personal records
+                    properties:
+                      longest_run_km:
+                        type: number
+                        format: float
+                        minimum: 0
+                        description: Longest run distance
+                        example: 21.1
+                      longest_run_date:
+                        type: string
+                        format: date
+                        description: Date of longest run
+                        example: "2025-11-15"
+                      fastest_pace_sec_per_km:
+                        type: number
+                        format: float
+                        minimum: 0
+                        description: Fastest pace achieved
+                        example: 240.0
+                      fastest_pace_date:
+                        type: string
+                        format: date
+                        description: Date of fastest pace
+                        example: "2025-10-20"
+                  monthly_progress:
+                    type: object
+                    description: Monthly goal progress (only included when period=month)
+                    properties:
+                      target_km:
+                        type: number
+                        format: float
+                        minimum: 0
+                        description: Monthly distance target
+                        example: 100.0
+                      current_km:
+                        type: number
+                        format: float
+                        minimum: 0
+                        description: Current distance this month
+                        example: 85.5
+                      remaining_km:
+                        type: number
+                        format: float
+                        description: Remaining distance to target
+                        example: 14.5
+                      progress_pct:
+                        type: number
+                        format: float
+                        minimum: 0
+                        maximum: 100
+                        description: Progress percentage
+                        example: 85.5
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /v1/dashboard/habits/today:
+    get:
+      tags: [Dashboard]
+      summary: Get today's habits data
+      description: |
+        Returns habit tracking data for a specific date.
+        Includes steps, reading, outdoor time, writing, coding, focus, and sleep.
+
+        **Rate Limit:** 30 requests per 60 seconds
+        **Cache:** 30 seconds (highest freshness priority)
+      security:
+        - AdminAuth: []
+      parameters:
+        - name: date
+          in: query
+          description: Date in YYYY-MM-DD format (defaults to today in Europe/Berlin timezone)
+          schema:
+            type: string
+            format: date
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+          example: "2025-12-05"
+      responses:
+        '200':
+          description: Habits data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  date:
+                    type: string
+                    format: date
+                    description: Date of the data
+                    example: "2025-12-05"
+                  steps:
+                    type: integer
+                    minimum: 0
+                    description: Step count
+                    example: 12500
+                  reading_minutes:
+                    type: integer
+                    minimum: 0
+                    description: Minutes spent reading
+                    example: 45
+                  outdoor_minutes:
+                    type: integer
+                    minimum: 0
+                    description: Minutes spent outdoors
+                    example: 60
+                  writing_minutes:
+                    type: integer
+                    minimum: 0
+                    description: Minutes spent writing
+                    example: 90
+                  coding_minutes:
+                    type: integer
+                    minimum: 0
+                    description: Minutes spent coding
+                    example: 240
+                  focus_minutes:
+                    type: integer
+                    minimum: 0
+                    description: Minutes in deep focus
+                    example: 180
+                  sleep_score:
+                    type: integer
+                    minimum: 0
+                    maximum: 100
+                    description: Sleep quality score (optional)
+                    example: 85
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /v1/dashboard/habits/consistency:
+    get:
+      tags: [Dashboard]
+      summary: Get habit consistency metrics
+      description: |
+        Returns consistency metrics showing how often daily targets are met.
+        Analyzes habit performance over a specified period.
+
+        **Rate Limit:** 30 requests per 60 seconds
+        **Cache:** 5 minutes (frequent)
+      security:
+        - AdminAuth: []
+      parameters:
+        - name: days
+          in: query
+          description: Number of days to analyze
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 90
+            default: 7
+          example: 7
+      responses:
+        '200':
+          description: Habit consistency metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  period_days:
+                    type: integer
+                    minimum: 1
+                    description: Number of days analyzed
+                    example: 7
+                  habits:
+                    type: array
+                    description: Consistency data for each habit
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Habit name
+                          example: "Steps"
+                        target:
+                          type: number
+                          format: float
+                          description: Daily target value
+                          example: 8000.0
+                        days_met:
+                          type: integer
+                          minimum: 0
+                          description: Number of days target was met
+                          example: 5
+                        consistency_pct:
+                          type: number
+                          format: float
+                          minimum: 0
+                          maximum: 100
+                          description: Percentage of days target was met
+                          example: 71.0
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /v1/dashboard/habits/streaks:
+    get:
+      tags: [Dashboard]
+      summary: Get habit streaks
+      description: |
+        Returns current and longest streaks for all habits.
+        A streak is broken if a day doesn't meet the daily target.
+
+        **Rate Limit:** 30 requests per 60 seconds
+        **Cache:** 5 minutes (frequent)
+      security:
+        - AdminAuth: []
+      responses:
+        '200':
+          description: Habit streaks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  streaks:
+                    type: array
+                    description: Streak data for each habit
+                    items:
+                      type: object
+                      properties:
+                        habit:
+                          type: string
+                          description: Habit name
+                          example: "Steps"
+                        current:
+                          type: integer
+                          minimum: 0
+                          description: Current streak in days
+                          example: 12
+                        longest:
+                          type: integer
+                          minimum: 0
+                          description: All-time longest streak
+                          example: 45
+                        target:
+                          type: number
+                          format: float
+                          description: Daily target to maintain streak
+                          example: 8000.0
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /v1/dashboard/habits/trends:
+    get:
+      tags: [Dashboard]
+      summary: Get habit trends
+      description: |
+        Returns time-series trends for specified habits over a period.
+        Use for visualizing habit performance over time.
+
+        **Rate Limit:** 30 requests per 60 seconds
+        **Cache:** 5 minutes (frequent)
+      security:
+        - AdminAuth: []
+      parameters:
+        - name: habits
+          in: query
+          required: true
+          description: Comma-separated habit names
+          schema:
+            type: string
+            minLength: 1
+          example: "writing_minutes,focus_minutes"
+        - name: days
+          in: query
+          description: Number of days to fetch
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 90
+            default: 14
+          example: 14
+      responses:
+        '200':
+          description: Habit trends
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  trends:
+                    type: array
+                    description: Daily data points
+                    items:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                          format: date
+                          description: Date
+                          example: "2025-12-01"
+                        values:
+                          type: object
+                          description: Habit values for this date
+                          additionalProperties:
+                            type: integer
+                            minimum: 0
+                          example:
+                            writing_minutes: 45
+                            focus_minutes: 120
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /v1/dashboard/goals:
+    get:
+      tags: [Dashboard]
+      summary: Get all goals
+      description: |
+        Returns all goals organized by period (daily and monthly).
+        Goals define target values for habits and activities.
+
+        **Rate Limit:** 30 requests per 60 seconds
+        **Cache:** 10 minutes (stable)
+      security:
+        - AdminAuth: []
+      responses:
+        '200':
+          description: All goals
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  daily:
+                    type: object
+                    description: Daily goal targets
+                    additionalProperties:
+                      type: number
+                      format: float
+                    example:
+                      steps: 10000
+                      reading_minutes: 30
+                      outdoor_minutes: 30
+                      writing_minutes: 60
+                      coding_minutes: 120
+                      focus_minutes: 180
+                  monthly:
+                    type: object
+                    description: Monthly goal targets
+                    additionalProperties:
+                      type: number
+                      format: float
+                    example:
+                      running_distance_km: 100
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /v1/dashboard/goals/progress:
+    get:
+      tags: [Dashboard]
+      summary: Get goal progress
+      description: |
+        Returns progress towards goals for daily and/or monthly periods.
+        Shows current values, targets, and completion percentages.
+
+        **Rate Limit:** 30 requests per 60 seconds
+        **Cache:** 1 minute (realtime)
+      security:
+        - AdminAuth: []
+      parameters:
+        - name: period
+          in: query
+          description: Filter by period (returns both if not specified)
+          schema:
+            type: string
+            enum: [daily, monthly]
+          example: "daily"
+      responses:
+        '200':
+          description: Goal progress
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  daily:
+                    type: array
+                    description: Daily goal progress (optional)
+                    items:
+                      type: object
+                      properties:
+                        goal:
+                          type: string
+                          description: Goal name
+                          example: "Steps"
+                        target:
+                          type: number
+                          format: float
+                          description: Target value
+                          example: 10000.0
+                        current:
+                          type: number
+                          format: float
+                          description: Current value
+                          example: 8500.0
+                        progress_pct:
+                          type: number
+                          format: float
+                          minimum: 0
+                          maximum: 100
+                          description: Progress percentage
+                          example: 85.0
+                        unit:
+                          type: string
+                          description: Unit of measurement
+                          example: "steps"
+                  monthly:
+                    type: array
+                    description: Monthly goal progress (optional)
+                    items:
+                      type: object
+                      properties:
+                        goal:
+                          type: string
+                          description: Goal name
+                          example: "Running Distance Km"
+                        target:
+                          type: number
+                          format: float
+                          description: Target value
+                          example: 100.0
+                        current:
+                          type: number
+                          format: float
+                          description: Current value
+                          example: 45.5
+                        progress_pct:
+                          type: number
+                          format: float
+                          minimum: 0
+                          maximum: 100
+                          description: Progress percentage
+                          example: 46.0
+                        unit:
+                          type: string
+                          description: Unit of measurement
+                          example: "km"
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
   /chat:
     post:
       tags: [AI]
@@ -620,6 +1576,11 @@ components:
       in: header
       name: X-Secret
       description: Secret token for authentication
+    AdminAuth:
+      type: apiKey
+      in: header
+      name: X-Admin-Secret
+      description: Admin secret token for dashboard endpoints
 
   schemas:
     SearchHit:
