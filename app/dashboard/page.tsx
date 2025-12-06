@@ -16,8 +16,11 @@ import type {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 
-// Use edge runtime for better performance
+// Use nodejs runtime for environment variable access
 export const runtime = "nodejs";
+
+// Force dynamic rendering (no static generation)
+export const dynamic = 'force-dynamic';
 
 // Cache configuration - revalidate every 5 minutes
 // Immediate invalidation on POST via revalidateDashboard()

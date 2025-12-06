@@ -10,6 +10,9 @@ import WorkoutsClient from "./workouts.client";
 // Use edge runtime for better performance
 export const runtime = "nodejs";
 
+// Force dynamic rendering (no static generation)
+export const dynamic = 'force-dynamic';
+
 // Cache configuration - revalidate every 5 minutes
 // Immediate invalidation on POST via revalidateDashboard()
 export const revalidate = 300; // 5 minutes

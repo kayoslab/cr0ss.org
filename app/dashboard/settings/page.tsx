@@ -4,8 +4,10 @@ import React from "react";
 import SettingsClient from "./settings.client";
 import { getAllCoffeeDTO } from "@/lib/contentful/api/coffee";
 
-// Use edge runtime to match other dashboard pages
+// Use nodejs runtime for environment variable access
 export const runtime = "nodejs";
+
+// Force dynamic rendering (no static generation)
 export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
