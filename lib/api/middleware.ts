@@ -141,8 +141,11 @@ export class ApiRouteBuilder<TContext extends ApiContext = ApiContext> {
    */
   withAuth(): this {
     return this.use(async (request) => {
+      console.log('[Middleware] withAuth called, importing assertSecret');
       const { assertSecret } = await import('@/lib/auth/secret');
+      console.log('[Middleware] About to call assertSecret');
       assertSecret(request);
+      console.log('[Middleware] assertSecret completed successfully');
     });
   }
 
