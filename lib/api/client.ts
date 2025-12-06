@@ -131,6 +131,15 @@ async function fetchApi<T>(
       };
     }
 
+    // Debug logging for every request
+    console.log('[API Client] Making request:', {
+      url,
+      method: options.method || 'GET',
+      hasAuthHeader: !!(options.headers as Record<string, string>)?.[SECRET_HEADER],
+      runtime: process.env.NEXT_RUNTIME || 'nodejs',
+      isServer: typeof window === 'undefined',
+    });
+
     const response = await fetch(url, options);
 
     // Handle non-OK responses
