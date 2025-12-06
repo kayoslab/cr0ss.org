@@ -98,6 +98,17 @@ export const GET = createApiRoute()
   .withRateLimit('dashboard-coffee-summary', { windowSec: 60, max: 30 })
   .withTrace('GET /api/v1/dashboard/coffee/summary')
   .handle(async (request) => {
+    // Direct auth check as fallback (in case middleware chain doesn't execute)
+    const { hasValidSecret } = await import('@/lib/auth/secret');
+    if (!hasValidSecret(request)) {
+      console.error('[Route Handler] Direct auth check failed');
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "content-type": "application/json" },
+      });
+    }
+    console.log('[Route Handler] Direct auth check passed');
+
     try {
       // Parse query parameters
       const url = new URL(request.url);
