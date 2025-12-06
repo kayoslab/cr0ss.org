@@ -34,6 +34,85 @@ interface ContentfulWebhookPayload {
   // Legacy format support
   tag?: string;
   path?: string;
+  // Dashboard event-based invalidation
+  dashboard?: DashboardEvent;
+}
+
+/**
+ * Dashboard event structure for event-based cache invalidation
+ */
+interface DashboardEvent {
+  /** Event type (e.g., 'coffee.created', 'workout.created', 'habits.updated', 'goals.updated') */
+  event: string;
+  /** Optional date parameter for date-specific invalidation (YYYY-MM-DD format) */
+  date?: string;
+  /** Optional additional metadata */
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Determines which cache tags to revalidate based on dashboard events
+ */
+function getDashboardRevalidationTags(event: DashboardEvent): string[] {
+  const tags: string[] = [];
+  const { event: eventType, date } = event;
+
+  // Import cache tag helpers
+  const { coffeeTags, workoutsTags, habitsTags, goalsTags } = require('@/lib/api/cache');
+
+  switch (eventType) {
+    case 'coffee.created':
+      // Invalidate coffee summary for the specific date
+      if (date) {
+        tags.push(coffeeTags('summary', date));
+      }
+      // Also invalidate general coffee summary and timeline
+      tags.push(coffeeTags('summary'));
+      tags.push(coffeeTags('timeline'));
+      tags.push(coffeeTags('caffeine-curve'));
+      // Invalidate dashboard overview
+      tags.push('dashboard');
+      break;
+
+    case 'workout.created':
+      // Invalidate workout summary and heatmap
+      if (date) {
+        tags.push(workoutsTags('summary', date));
+        tags.push(workoutsTags('heatmap', date));
+      }
+      tags.push(workoutsTags('summary'));
+      tags.push(workoutsTags('heatmap'));
+      tags.push(workoutsTags('running-stats'));
+      // Invalidate dashboard overview
+      tags.push('dashboard');
+      break;
+
+    case 'habits.updated':
+      // Invalidate all habit-related data
+      if (date) {
+        tags.push(habitsTags('today', date));
+      }
+      tags.push(habitsTags('today'));
+      tags.push(habitsTags('consistency'));
+      tags.push(habitsTags('streaks'));
+      tags.push(habitsTags('trends'));
+      // Invalidate dashboard overview
+      tags.push('dashboard');
+      break;
+
+    case 'goals.updated':
+      // Invalidate goals data
+      tags.push(goalsTags('list'));
+      tags.push(goalsTags('progress'));
+      // Invalidate dashboard overview
+      tags.push('dashboard');
+      break;
+
+    default:
+      console.warn(`Unknown dashboard event type: ${eventType}`);
+  }
+
+  return tags;
 }
 
 /**
@@ -41,6 +120,11 @@ interface ContentfulWebhookPayload {
  */
 function getRevalidationTags(payload: ContentfulWebhookPayload): string[] {
   const tags: string[] = [];
+
+  // Handle dashboard events first
+  if (payload.dashboard) {
+    tags.push(...getDashboardRevalidationTags(payload.dashboard));
+  }
 
   // Handle legacy format (manual tag/path specification)
   if (payload.tag) {
