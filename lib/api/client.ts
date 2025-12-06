@@ -100,6 +100,12 @@ function getApiSecret(): string | undefined {
   // Only in server context
   if (typeof window === 'undefined') {
     const secret = process.env.DASHBOARD_API_SECRET;
+    console.log('[API Client] Getting secret', {
+      hasSecret: !!secret,
+      secretLength: secret?.length || 0,
+      isServer: typeof window === 'undefined',
+      runtime: process.env.NEXT_RUNTIME || 'nodejs',
+    });
     if (!secret) {
       console.warn('[API Client] DASHBOARD_API_SECRET is not set in environment. API calls will fail authentication.');
     }

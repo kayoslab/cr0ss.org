@@ -31,23 +31,26 @@ export default async function DashboardPage() {
   const hasLocation = currentLocation != null;
 
   // Fetch overview dashboard data from API endpoints in parallel
-  const [coffeeSummary, habitsToday, workoutHeatmap, goals, goalsProgress, runningStats] =
-    await Promise.all([
-      dashboardApi.get<CoffeeSummaryResponse>("/coffee/summary", {
-        tags: ["coffee:summary"],
-        revalidate: 60,
-      }),
-      dashboardApi.get<HabitsTodayResponse>("/habits/today", {
-        tags: ["habits:today"],
-        revalidate: 30,
-      }),
-      dashboardApi.get<WorkoutsHeatmapResponse>("/workouts/heatmap", {
-        params: { days: 60 },
-        tags: ["workouts:heatmap"],
-        revalidate: 300,
-      }),
-      dashboardApi.get<GoalsResponse>("/goals", {
-        tags: ["goals"],
+  let coffeeSummary, habitsToday, workoutHeatmap, goals, goalsProgress, runningStats;
+
+  try {
+    [coffeeSummary, habitsToday, workoutHeatmap, goals, goalsProgress, runningStats] =
+      await Promise.all([
+        dashboardApi.get<CoffeeSummaryResponse>("/coffee/summary", {
+          tags: ["coffee:summary"],
+          revalidate: 60,
+        }),
+        dashboardApi.get<HabitsTodayResponse>("/habits/today", {
+          tags: ["habits:today"],
+          revalidate: 30,
+        }),
+        dashboardApi.get<WorkoutsHeatmapResponse>("/workouts/heatmap", {
+          params: { days: 60 },
+          tags: ["workouts:heatmap"],
+          revalidate: 300,
+        }),
+        dashboardApi.get<GoalsResponse>("/goals", {
+          tags: ["goals"],
         revalidate: 600,
       }),
       dashboardApi.get<GoalsProgressResponse>("/goals/progress", {
@@ -60,6 +63,30 @@ export default async function DashboardPage() {
         revalidate: 60,
       }),
     ]);
+  } catch (error) {
+    // Enhanced error logging for debugging on Vercel
+    console.error('[Dashboard] API call failed:', {
+      error,
+      errorType: error?.constructor?.name,
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      runtime: process.env.NEXT_RUNTIME || 'nodejs',
+      hasSecret: !!process.env.DASHBOARD_API_SECRET,
+    });
+
+    // Re-throw with enhanced message for visibility in browser
+    if (error instanceof Error) {
+      const enhancedError = new Error(
+        `Dashboard API Error: ${error.message}\n` +
+        `Runtime: ${process.env.NEXT_RUNTIME || 'nodejs'}\n` +
+        `Has Secret: ${!!process.env.DASHBOARD_API_SECRET}\n` +
+        `Original: ${error.stack}`
+      );
+      enhancedError.name = 'DashboardLoadError';
+      throw enhancedError;
+    }
+    throw error;
+  }
 
   // Contentful data
   const [countries = [], visited = []] = await Promise.all([
