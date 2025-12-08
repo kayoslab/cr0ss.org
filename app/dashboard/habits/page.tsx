@@ -19,7 +19,7 @@ export const revalidate = 300; // 5 minutes
 
 export const metadata = {
   title: "Habits & Productivity | Dashboard",
-  description: "Track your daily habits and productivity metrics",
+  description: "Tracked daily habits and productivity metrics",
 };
 
 export default async function HabitsPage() {
@@ -125,7 +125,7 @@ export default async function HabitsPage() {
           Habits & Productivity
         </h2>
         <p className="text-muted-foreground">
-          Track your daily habits, productivity metrics, streaks, and
+          Tracked daily habits, productivity metrics, streaks, and
           consistency.
         </p>
       </div>

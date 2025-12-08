@@ -17,7 +17,7 @@ export const revalidate = 300; // 5 minutes
 
 export const metadata = {
   title: "Workouts | Dashboard",
-  description: "Track your workouts and running activity",
+  description: "Tracked workouts and running activity",
 };
 
 export default async function WorkoutsPage() {
@@ -79,7 +79,7 @@ export default async function WorkoutsPage() {
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Workouts</h2>
         <p className="text-muted-foreground">
-          Track your workout sessions, training progress, and personal records.
+          Tracked workout sessions, training progress, and personal records.
         </p>
       </div>
 
