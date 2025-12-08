@@ -13,7 +13,7 @@ export const revalidate = 300; // 5 minutes
 
 export const metadata = {
   title: "Coffee & Caffeine | Dashboard",
-  description: "Track your coffee consumption and caffeine intake",
+  description: "Tracked coffee consumption and caffeine intake",
 };
 
 // API Response types
@@ -105,7 +105,7 @@ export default async function CoffeePage() {
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Coffee & Caffeine</h2>
         <p className="text-muted-foreground">
-          Track your coffee consumption, brewing methods, and caffeine levels
+          Tracked coffee consumption, brewing methods, and caffeine levels
           throughout the day.
         </p>
       </div>

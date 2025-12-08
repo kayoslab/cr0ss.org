@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export const metadata = {
   title: "Insights | cr0ss.org",
-  description: "Discover correlations in your quantified self data",
+  description: "Discover correlations in the quantified self data",
 };
 
 function InsightsLoading() {
@@ -31,7 +31,7 @@ export default function InsightsPage() {
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Insights</h2>
         <p className="text-muted-foreground">
-          Discover statistically significant correlations in your quantified self data
+          Discover statistically significant correlations in the quantified self data
         </p>
       </div>
 
@@ -42,7 +42,7 @@ export default function InsightsPage() {
           <CardHeader>
             <h2 className="text-lg font-semibold">How It Works</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              This correlation engine analyzes your daily metrics to find meaningful patterns.
+              This correlation engine analyzes the daily metrics to find meaningful patterns.
             </p>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">

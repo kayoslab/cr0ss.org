@@ -15,10 +15,12 @@ import {
   Activity,
   BookOpen,
   Lightbulb,
+  Settings2,
 } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -60,6 +62,14 @@ const navigationItems = [
     icon: Lightbulb,
   },
 ];
+
+const footerItems = [
+  {
+    title: "Settings",
+    href: "/dashboard/settings",
+    icon: Settings2,
+  },
+]
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -107,6 +117,27 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+          {footerItems.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton asChild isActive={isActive}>
+                  <Link
+                    href={item.href}
+                    prefetch={true}
+                    onClick={(e) => handleNavigation(e, item.href)}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }
