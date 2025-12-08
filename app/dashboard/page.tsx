@@ -19,11 +19,8 @@ import { Progress } from "@/components/ui/progress";
 // Use nodejs runtime for environment variable access
 export const runtime = "nodejs";
 
-// Force dynamic rendering (no static generation)
-export const dynamic = 'force-dynamic';
-
-// Cache configuration - revalidate every 5 minutes
-// Immediate invalidation on POST via revalidateDashboard()
+// Use ISR (Incremental Static Regeneration) with 5-minute cache
+// Cache is immediately invalidated via revalidatePath() when data changes
 export const revalidate = 300; // 5 minutes
 
 export default async function DashboardPage() {
