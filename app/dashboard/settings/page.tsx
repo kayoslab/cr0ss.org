@@ -2,12 +2,18 @@ import "server-only";
 
 import React from "react";
 import SettingsClient from "./settings.client";
-import { getAllCoffeeDTO } from "@/lib/contentful/api/coffee";
+import { dashboardApi } from "@/lib/api/client";
+import type { CoffeeConfigResponse } from "@/lib/api/types";
 
 // Use nodejs runtime for environment variable access
 export const runtime = "nodejs";
 
 export default async function SettingsPage() {
-  const { items } = await getAllCoffeeDTO(1, 20);
+  const { items } = await dashboardApi.get<CoffeeConfigResponse>("/settings/coffee", {
+    params: { page: 1, limit: 20 },
+    tags: ["dashboard:settings:coffee"],
+    revalidate: 3600, // 1 hour
+  });
+
   return <SettingsClient coffees={items} />;
 }

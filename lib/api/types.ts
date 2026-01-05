@@ -163,3 +163,67 @@ export interface GoalsProgressResponse {
   daily?: GoalProgressItem[];
   monthly?: GoalProgressItem[];
 }
+
+// ============================================================================
+// Insights API Types
+// ============================================================================
+
+// Re-export correlation types from the source module to ensure type compatibility
+export type { DiscoveredCorrelation } from '@/lib/insights/correlation-discovery';
+
+export interface InsightsResponse {
+  correlations: Array<import('@/lib/insights/correlation-discovery').DiscoveredCorrelation>;
+  metadata: {
+    days_analyzed: number;
+    min_correlation: number;
+    p_value_threshold: number;
+  };
+}
+
+// ============================================================================
+// Location API Types
+// ============================================================================
+
+export interface LocationResponse {
+  latitude: number;
+  longitude: number;
+  logged_at: string;
+  temp_celsius: number | null;
+  feels_like_celsius: number | null;
+  humidity: number | null;
+  cloudiness: number | null;
+  weather_main: string | null;
+  weather_description: string | null;
+}
+
+// ============================================================================
+// Countries API Types
+// ============================================================================
+
+export interface Country {
+  id: string;
+  name: string;
+  path: string;
+  visited: boolean;
+  lastVisited?: string;
+}
+
+export interface CountriesResponse {
+  countries: Country[];
+  total: number;
+  visited_count: number;
+}
+
+// ============================================================================
+// Settings API Types
+// ============================================================================
+
+export interface CoffeeConfigItem {
+  id: string;
+  name: string;
+  roaster: string;
+}
+
+export interface CoffeeConfigResponse {
+  items: CoffeeConfigItem[];
+}
