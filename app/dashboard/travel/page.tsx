@@ -1,12 +1,10 @@
 import React from "react";
-import { getAllCountries, getVisitedCountries } from "@/lib/contentful/api/country";
-import { CountryProps } from "@/lib/contentful/api/props/country";
-import { getCurrentLocation } from "@/lib/db/location";
+import { dashboardApi } from "@/lib/api/client";
+import type { LocationResponse, CountriesResponse } from "@/lib/api/types";
 import TravelClient from "./travel.client";
 
 // Use edge runtime for better performance
 export const runtime = "nodejs";
-
 
 // Cache configuration - revalidate every 5 minutes
 // Travel data changes infrequently, so caching is beneficial
@@ -18,24 +16,37 @@ export const metadata = {
 };
 
 export default async function TravelPage() {
-  // Get current location from database view
-  const currentLocation = await getCurrentLocation();
-  const lat = currentLocation?.latitude ?? 0;
-  const lon = currentLocation?.longitude ?? 0;
-  const hasLocation = currentLocation != null;
+  // Fetch location and countries data from APIs
+  const [locationData, allCountriesData, visitedCountriesData] = await Promise.all([
+    dashboardApi.get<LocationResponse>("/location", {
+      tags: ["dashboard:location"],
+      revalidate: 300, // 5 minutes
+    }),
+    dashboardApi.get<CountriesResponse>("/countries", {
+      tags: ["dashboard:countries"],
+      revalidate: 3600, // 1 hour
+    }),
+    dashboardApi.get<CountriesResponse>("/countries", {
+      params: { visited: "true" },
+      tags: ["dashboard:countries"],
+      revalidate: 3600, // 1 hour
+    }),
+  ]);
 
-  // Contentful
-  const [countries = [], visited = []] = await Promise.all([getAllCountries(), getVisitedCountries(true)]);
-  const countriesSlim = (countries as unknown as CountryProps[]).map((c: CountryProps) => ({
+  const lat = locationData?.latitude ?? 0;
+  const lon = locationData?.longitude ?? 0;
+  const hasLocation = locationData != null;
+
+  const countriesSlim = allCountriesData.countries.map((c) => ({
     id: c.id,
-    path: c.data?.path ?? "",
-    visited: c.lastVisited != null,
+    path: c.path,
+    visited: c.visited,
   }));
 
   const travel = {
-    totalCountries: countries.length,
-    visitedCount: visited.length,
-    recentVisited: (visited as unknown as CountryProps[]).slice(0, 5).map((c) => ({ id: c.id, name: c.name })),
+    totalCountries: allCountriesData.total,
+    visitedCount: visitedCountriesData.visited_count,
+    recentVisited: visitedCountriesData.countries.slice(0, 5).map((c) => ({ id: c.id, name: c.name })),
     countries: countriesSlim,
     lat,
     lon,

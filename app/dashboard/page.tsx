@@ -1,9 +1,6 @@
 import React from "react";
 import Link from "next/link";
 import { MapPin, Coffee, Activity, BookOpen, Lightbulb } from "lucide-react";
-import { getAllCountries, getVisitedCountries } from "@/lib/contentful/api/country";
-import { CountryProps } from "@/lib/contentful/api/props/country";
-import { getCurrentLocation } from "@/lib/db/location";
 import { dashboardApi } from "@/lib/api/client";
 import type {
   CoffeeSummaryResponse,
@@ -12,9 +9,13 @@ import type {
   GoalsResponse,
   GoalsProgressResponse,
   RunningStatsResponse,
+  LocationResponse,
+  CountriesResponse,
 } from "@/lib/api/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { StatCard } from "@/components/dashboard/stat-card";
+import { ProgressRow } from "@/components/dashboard/progress-row";
 
 // Use nodejs runtime for environment variable access
 export const runtime = "nodejs";
@@ -28,18 +29,21 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 300; // 5 minutes
 
 export default async function DashboardPage() {
-  // Get current location from database view
-  const currentLocation = await getCurrentLocation();
-  const lat = currentLocation?.latitude ?? 0;
-  const lon = currentLocation?.longitude ?? 0;
-  const hasLocation = currentLocation != null;
-
-  // Fetch overview dashboard data from API endpoints in parallel
-  let coffeeSummary, habitsToday, workoutHeatmap, goals, goalsProgress, runningStats;
+  // Fetch all dashboard data from API endpoints in parallel
+  let locationData, countriesData, coffeeSummary, habitsToday, workoutHeatmap, goals, goalsProgress, runningStats;
 
   try {
-    [coffeeSummary, habitsToday, workoutHeatmap, goals, goalsProgress, runningStats] =
+    [locationData, countriesData, coffeeSummary, habitsToday, workoutHeatmap, goals, goalsProgress, runningStats] =
       await Promise.all([
+        dashboardApi.get<LocationResponse>("/location", {
+          tags: ["dashboard:location"],
+          revalidate: 300, // 5 minutes
+        }),
+        dashboardApi.get<CountriesResponse>("/countries", {
+          params: { visited: "true" },
+          tags: ["dashboard:countries"],
+          revalidate: 3600, // 1 hour
+        }),
         dashboardApi.get<CoffeeSummaryResponse>("/coffee/summary", {
           tags: ["coffee:summary"],
           revalidate: 60,
@@ -72,18 +76,15 @@ export default async function DashboardPage() {
     throw error;
   }
 
-  // Contentful data
-  const [countries = [], visited = []] = await Promise.all([
-    getAllCountries(),
-    getVisitedCountries(true),
-  ]);
-  const countriesSlim = (countries as unknown as CountryProps[]).map(
-    (c: CountryProps) => ({
-      id: c.id,
-      path: c.data?.path ?? "",
-      visited: c.lastVisited != null,
-    })
-  );
+  const lat = locationData?.latitude ?? 0;
+  const lon = locationData?.longitude ?? 0;
+  const hasLocation = locationData != null;
+
+  const countriesSlim = countriesData.countries.map((c) => ({
+    id: c.id,
+    path: c.path,
+    visited: c.visited,
+  }));
 
   const monthlyGoals = goals.monthly;
   const dailyGoals = goals.daily;
@@ -94,7 +95,7 @@ export default async function DashboardPage() {
     steps: habitsToday.steps,
     activeMinutes:
       workoutHeatmap.heatmap[workoutHeatmap.heatmap.length - 1]?.duration_min || 0,
-    countriesVisited: visited.length,
+    countriesVisited: countriesData.visited_count,
   };
 
   // Build all goals with their progress from the progress endpoint
@@ -160,45 +161,30 @@ export default async function DashboardPage() {
 
       {/* Today's Snapshot - 4 KPIs */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Coffee Cups</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CardTitle className="text-3xl">{todaySnapshot.coffeeCups}</CardTitle>
-            <p className="text-xs text-muted-foreground mt-1">Today</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Steps</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CardTitle className="text-3xl">{todaySnapshot.steps.toLocaleString()}</CardTitle>
-            <p className="text-xs text-muted-foreground mt-1">Today</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Active Minutes</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CardTitle className="text-3xl">{todaySnapshot.activeMinutes}</CardTitle>
-            <p className="text-xs text-muted-foreground mt-1">Today</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Countries</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CardTitle className="text-3xl">{todaySnapshot.countriesVisited}</CardTitle>
-            <p className="text-xs text-muted-foreground mt-1">Visited</p>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Coffee Cups"
+          value={todaySnapshot.coffeeCups}
+          subtitle="Today"
+          icon={Coffee}
+        />
+        <StatCard
+          title="Steps"
+          value={todaySnapshot.steps.toLocaleString()}
+          subtitle="Today"
+          icon={Activity}
+        />
+        <StatCard
+          title="Active Minutes"
+          value={todaySnapshot.activeMinutes}
+          subtitle="Today"
+          icon={Activity}
+        />
+        <StatCard
+          title="Countries"
+          value={todaySnapshot.countriesVisited}
+          subtitle="Visited"
+          icon={MapPin}
+        />
       </div>
 
       {/* Goals Progress - Side by Side */}
@@ -209,16 +195,13 @@ export default async function DashboardPage() {
           {dailyGoalsList.length > 0 ? (
             <div className="space-y-4">
               {dailyGoalsList.map((goal) => (
-                <div key={goal.name}>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="font-medium">{goal.name}</span>
-                    <span className="text-neutral-500">
-                      {goal.value.toLocaleString()} /{" "}
-                      {goal.target.toLocaleString()} {goal.unit}
-                    </span>
-                  </div>
-                  <Progress value={Math.min(goal.percentage, 100)} className="h-2" />
-                </div>
+                <ProgressRow
+                  key={goal.name}
+                  name={goal.name}
+                  value={goal.value}
+                  target={goal.target}
+                  unit={goal.unit}
+                />
               ))}
             </div>
           ) : (
@@ -232,16 +215,13 @@ export default async function DashboardPage() {
           {monthlyGoalsList.length > 0 ? (
             <div className="space-y-4">
               {monthlyGoalsList.map((goal) => (
-                <div key={goal.name}>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="font-medium">{goal.name}</span>
-                    <span className="text-neutral-500">
-                      {goal.value.toLocaleString()} /{" "}
-                      {goal.target.toLocaleString()} {goal.unit}
-                    </span>
-                  </div>
-                  <Progress value={Math.min(goal.percentage, 100)} className="h-2" />
-                </div>
+                <ProgressRow
+                  key={goal.name}
+                  name={goal.name}
+                  value={goal.value}
+                  target={goal.target}
+                  unit={goal.unit}
+                />
               ))}
             </div>
           ) : (

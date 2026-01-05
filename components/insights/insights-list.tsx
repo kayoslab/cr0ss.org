@@ -5,7 +5,8 @@
  */
 
 import { CorrelationCard } from "./correlation-card";
-import { discoverCorrelations } from "@/lib/insights/correlation-discovery";
+import { dashboardApi } from "@/lib/api/client";
+import type { InsightsResponse } from "@/lib/api/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Lightbulb } from "lucide-react";
 
@@ -24,11 +25,16 @@ export async function InsightsList({
   let error = null;
 
   try {
-    correlations = await discoverCorrelations({
-      days,
-      pValueThreshold,
-      minAbsR,
+    const data = await dashboardApi.get<InsightsResponse>("/insights", {
+      params: {
+        days,
+        p_value_threshold: pValueThreshold,
+        min_abs_r: minAbsR,
+      },
+      tags: ["insights:correlations"],
+      revalidate: 900, // 15 minutes
     });
+    correlations = data.correlations;
   } catch (err) {
     console.error("Error loading insights:", err);
     error = err;

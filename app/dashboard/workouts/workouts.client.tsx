@@ -171,7 +171,7 @@ export default function WorkoutsClient({
                   {filteredHeatmap.map(({ date, duration_min, workouts }, i) => {
                     const max = Math.max(1, ...filteredHeatmap.map((d) => d.duration_min));
                     const opacity = duration_min === 0 ? 0.2 : Math.max(0.3, Math.min(1, duration_min / max));
-                    const bgClass = duration_min === 0 ? "bg-neutral-300" : "bg-[color:var(--chart-1)]";
+                    const bgClass = duration_min === 0 ? "bg-neutral-500" : "bg-[color:var(--chart-1)]";
 
                     return (
                       <div
