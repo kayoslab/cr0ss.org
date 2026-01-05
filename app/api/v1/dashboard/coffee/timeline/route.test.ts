@@ -3,9 +3,11 @@ import { GET } from './route';
 
 // Mock dependencies
 vi.mock('@/lib/db/client', () => {
-  const sqlMock = vi.fn();
-  // sql.unsafe needs to return a value for template literal usage
-  sqlMock.unsafe = vi.fn((value) => value);
+  const unsafeMock = vi.fn((value: unknown) => value);
+  const sqlMock = Object.assign(vi.fn(), {
+    // sql.unsafe needs to return a value for template literal usage
+    unsafe: unsafeMock,
+  });
   return {
     sql: sqlMock,
   };
