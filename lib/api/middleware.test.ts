@@ -12,7 +12,7 @@ import { NextResponse } from 'next/server';
 // Mock env for auth tests
 vi.mock('@/env', () => ({
   env: {
-    DASHBOARD_API_SECRET: 'test-dashboard-secret',
+    DASHBOARD_API_SECRET: 'test-dashboard-secret-1234567890',
     CONTENTFUL_REVALIDATE_SECRET: 'test-revalidate-secret',
   },
 }));
@@ -315,7 +315,7 @@ describe('API Middleware Helpers', () => {
 
         // With secret - should succeed
         const requestWithAuth = new Request('http://localhost', {
-          headers: { 'x-admin-secret': 'test-dashboard-secret' },
+          headers: { 'x-admin-secret': 'test-dashboard-secret-1234567890' },
         });
         const responseWithAuth = await handler(requestWithAuth);
         expect(responseWithAuth.status).toBe(200);
@@ -386,7 +386,7 @@ describe('API Middleware Helpers', () => {
           });
 
         const request = new Request('http://localhost', {
-          headers: { 'x-admin-secret': 'test-dashboard-secret' },
+          headers: { 'x-admin-secret': 'test-dashboard-secret-1234567890' },
         });
         const response = await handler(request);
 

@@ -21,14 +21,14 @@ afterAll(() => {
 
 // Mock environment variables
 process.env.DATABASE_URL = 'postgresql://test@localhost:5432/test';
-process.env.DASHBOARD_API_SECRET = 'test-secret';
-process.env.CONTENTFUL_REVALIDATE_SECRET = 'test-revalidate-secret';
-process.env.CONTENTFUL_SPACE_ID = 'test-space';
-process.env.CONTENTFUL_ACCESS_TOKEN = 'test-token';
+process.env.DASHBOARD_API_SECRET = 'test-dashboard-secret-1234567890'; // Min 20 chars
+process.env.CONTENTFUL_REVALIDATE_SECRET = 'test-revalidate-secret-1234567890'; // Min 20 chars
+process.env.CONTENTFUL_SPACE_ID = 'testspace123'; // Exactly 12 chars
+process.env.CONTENTFUL_ACCESS_TOKEN = 'test-token-1234567890123456789012345678901'; // Exactly 43 chars
 process.env.CONTENTFUL_ENVIRONMENT = 'test';
-process.env.ALGOLIA_APP_ID = 'test-app-id';
-process.env.ALGOLIA_ADMIN_KEY = 'test-admin-key';
-process.env.ALGOLIA_SEARCH_KEY = 'test-search-key';
+process.env.ALGOLIA_APP_ID = '1234567890'; // Exactly 10 chars
+process.env.ALGOLIA_ADMIN_KEY = 'test-admin-key-12345678901234567890'; // Min 20 chars
+process.env.ALGOLIA_SEARCH_KEY = 'test-search-key-12345678901234567890'; // Min 20 chars
 process.env.ALGOLIA_INDEX = 'test-index';
 process.env.KV_REST_API_URL = 'http://localhost:8080';
 process.env.KV_REST_API_TOKEN = 'test-token';
@@ -39,6 +39,16 @@ vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
   revalidateTag: vi.fn(),
 }));
+
+// Mock Next.js Link component
+vi.mock('next/link', () => {
+  const React = require('react');
+  return {
+    default: ({ children, href, ...props }: any) => {
+      return React.createElement('a', { href, ...props }, children);
+    },
+  };
+});
 
 // Mock Vercel KV
 vi.mock('@vercel/kv', () => ({

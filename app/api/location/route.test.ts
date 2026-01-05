@@ -19,7 +19,7 @@ vi.mock('@/lib/db/location', () => ({
 // Mock env - now using standard auth
 vi.mock('@/env', () => ({
   env: {
-    DASHBOARD_API_SECRET: 'test-dashboard-secret',
+    DASHBOARD_API_SECRET: 'test-dashboard-secret-1234567890',
   },
 }));
 
@@ -88,7 +88,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-secret': 'test-dashboard-secret',
+          'x-admin-secret': 'test-dashboard-secret-1234567890',
         },
         body: JSON.stringify({ lon: 13.405 }),
       });
@@ -105,7 +105,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-secret': 'test-dashboard-secret',
+          'x-admin-secret': 'test-dashboard-secret-1234567890',
         },
         body: JSON.stringify({ lat: 52.52 }),
       });
@@ -122,7 +122,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-secret': 'test-dashboard-secret',
+          'x-admin-secret': 'test-dashboard-secret-1234567890',
         },
         body: JSON.stringify({}),
       });
@@ -139,7 +139,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-secret': 'test-dashboard-secret',
+          'x-admin-secret': 'test-dashboard-secret-1234567890',
         },
         body: JSON.stringify({ lat: null, lon: 13.405 }),
       });
@@ -156,7 +156,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-secret': 'test-dashboard-secret',
+          'x-admin-secret': 'test-dashboard-secret-1234567890',
         },
         body: JSON.stringify({ lat: '52.52', lon: '13.405' }),
       });
@@ -174,7 +174,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-secret': 'test-dashboard-secret',
+          'x-admin-secret': 'test-dashboard-secret-1234567890',
         },
         body: JSON.stringify({ lat: 'invalid', lon: 'invalid' }),
       });
@@ -191,7 +191,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-secret': 'test-dashboard-secret',
+          'x-admin-secret': 'test-dashboard-secret-1234567890',
         },
         body: JSON.stringify({ lat: NaN, lon: 13.405 }),
       });
@@ -212,7 +212,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-secret': 'test-dashboard-secret',
+          'x-admin-secret': 'test-dashboard-secret-1234567890',
         },
         body: JSON.stringify({ lat: 52.52, lon: 13.405 }),
       });
@@ -252,7 +252,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-secret': 'test-dashboard-secret',
+          'x-admin-secret': 'test-dashboard-secret-1234567890',
         },
         body: JSON.stringify({ lat: 48.1351, lon: 11.582 }),
       });
@@ -289,7 +289,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-secret': 'test-dashboard-secret',
+          'x-admin-secret': 'test-dashboard-secret-1234567890',
         },
         body: JSON.stringify({ lat: 52.52, lon: 13.405 }),
       });
@@ -327,7 +327,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-secret': 'test-dashboard-secret',
+          'x-admin-secret': 'test-dashboard-secret-1234567890',
         },
         body: JSON.stringify({ lat: 52.4, lon: 13.06 }),
       });
@@ -349,7 +349,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-secret': 'test-dashboard-secret',
+          'x-admin-secret': 'test-dashboard-secret-1234567890',
         },
         body: JSON.stringify({ lat: 52.52, lon: 13.405 }),
       });
@@ -368,7 +368,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-secret': 'test-dashboard-secret',
+          'x-admin-secret': 'test-dashboard-secret-1234567890',
         },
         body: JSON.stringify({ lat: 52.52, lon: 13.405 }),
       });
@@ -403,7 +403,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-secret': 'test-dashboard-secret',
+          'x-admin-secret': 'test-dashboard-secret-1234567890',
         },
         body: JSON.stringify({ lat: 0, lon: 100 }),
       });
@@ -436,7 +436,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-secret': 'test-dashboard-secret',
+          'x-admin-secret': 'test-dashboard-secret-1234567890',
         },
         body: JSON.stringify({ lat: 51.5, lon: 0 }),
       });
@@ -455,7 +455,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-secret': 'test-dashboard-secret',
+          'x-admin-secret': 'test-dashboard-secret-1234567890',
         },
         body: JSON.stringify({ lat: 0, lon: 0 }),
       });
@@ -490,7 +490,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-secret': 'test-dashboard-secret',
+          'x-admin-secret': 'test-dashboard-secret-1234567890',
         },
         body: JSON.stringify({ lat: -37.814, lon: 144.963 }),
       });
@@ -523,7 +523,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-secret': 'test-dashboard-secret',
+          'x-admin-secret': 'test-dashboard-secret-1234567890',
         },
         body: JSON.stringify({ lat: 90, lon: 0 }),
       });
@@ -554,7 +554,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-secret': 'test-dashboard-secret',
+          'x-admin-secret': 'test-dashboard-secret-1234567890',
         },
         body: JSON.stringify({ lat: -90, lon: 0 }),
       });
@@ -571,7 +571,7 @@ describe('POST /api/location', () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-secret': 'test-dashboard-secret',
+          'x-admin-secret': 'test-dashboard-secret-1234567890',
         },
         body: JSON.stringify({
           lat: 52.520008,

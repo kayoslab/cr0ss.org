@@ -11,7 +11,7 @@ vi.mock('@/lib/db/client', () => {
 
 vi.mock('@/env', () => ({
   env: {
-    DASHBOARD_API_SECRET: 'test-secret',
+    DASHBOARD_API_SECRET: 'test-dashboard-secret-1234567890',
   },
 }));
 
@@ -37,7 +37,7 @@ describe('GET /api/v1/dashboard/coffee/summary', () => {
 
       const request = new Request('http://localhost:3000/api/v1/dashboard/coffee/summary', {
         headers: {
-          'x-admin-secret': 'test-secret',
+          'x-admin-secret': 'test-dashboard-secret-1234567890',
         },
       });
       const response = await GET(request);
@@ -54,7 +54,7 @@ describe('GET /api/v1/dashboard/coffee/summary', () => {
 
       const request = new Request('http://localhost:3000/api/v1/dashboard/coffee/summary', {
         headers: {
-          'x-admin-secret': 'test-secret',
+          'x-admin-secret': 'test-dashboard-secret-1234567890',
         },
       });
       const response = await GET(request);
@@ -73,7 +73,7 @@ describe('GET /api/v1/dashboard/coffee/summary', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/summary?date=2025-12-01',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -88,7 +88,7 @@ describe('GET /api/v1/dashboard/coffee/summary', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/summary?date=invalid',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -110,7 +110,7 @@ describe('GET /api/v1/dashboard/coffee/summary', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/summary?date=2025-12-05',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -135,7 +135,7 @@ describe('GET /api/v1/dashboard/coffee/summary', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/summary?date=2025-12-05',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -162,7 +162,7 @@ describe('GET /api/v1/dashboard/coffee/summary', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/summary?date=2025-12-05',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -180,7 +180,7 @@ describe('GET /api/v1/dashboard/coffee/summary', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/summary?date=2025-12-05',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -200,7 +200,7 @@ describe('GET /api/v1/dashboard/coffee/summary', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/summary?date=2025-12-05',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );

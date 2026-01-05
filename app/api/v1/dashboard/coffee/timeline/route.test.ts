@@ -4,6 +4,8 @@ import { GET } from './route';
 // Mock dependencies
 vi.mock('@/lib/db/client', () => {
   const sqlMock = vi.fn();
+  // sql.unsafe needs to return a value for template literal usage
+  sqlMock.unsafe = vi.fn((value) => value);
   return {
     sql: sqlMock,
   };
@@ -11,7 +13,7 @@ vi.mock('@/lib/db/client', () => {
 
 vi.mock('@/env', () => ({
   env: {
-    DASHBOARD_API_SECRET: 'test-secret',
+    DASHBOARD_API_SECRET: 'test-dashboard-secret-1234567890',
   },
 }));
 
@@ -41,7 +43,7 @@ describe('GET /api/v1/dashboard/coffee/timeline', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/timeline?start_date=2025-12-01&end_date=2025-12-05',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -57,7 +59,7 @@ describe('GET /api/v1/dashboard/coffee/timeline', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/timeline?end_date=2025-12-05',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -74,7 +76,7 @@ describe('GET /api/v1/dashboard/coffee/timeline', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/timeline?start_date=2025-12-01',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -91,7 +93,7 @@ describe('GET /api/v1/dashboard/coffee/timeline', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/timeline?start_date=invalid&end_date=2025-12-05',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -108,7 +110,7 @@ describe('GET /api/v1/dashboard/coffee/timeline', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/timeline?start_date=2025-12-01&end_date=invalid',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -129,7 +131,7 @@ describe('GET /api/v1/dashboard/coffee/timeline', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/timeline?start_date=2025-12-01&end_date=2025-12-05',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -149,7 +151,7 @@ describe('GET /api/v1/dashboard/coffee/timeline', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/timeline?start_date=2025-12-01&end_date=2025-12-31&granularity=week',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -169,7 +171,7 @@ describe('GET /api/v1/dashboard/coffee/timeline', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/timeline?start_date=2025-12-01&end_date=2025-12-31&granularity=month',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -185,7 +187,7 @@ describe('GET /api/v1/dashboard/coffee/timeline', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/timeline?start_date=2025-12-01&end_date=2025-12-05&granularity=invalid',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -206,7 +208,7 @@ describe('GET /api/v1/dashboard/coffee/timeline', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/timeline?start_date=2025-12-01&end_date=2025-12-05',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -231,7 +233,7 @@ describe('GET /api/v1/dashboard/coffee/timeline', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/timeline?start_date=2025-12-01&end_date=2025-12-03',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -258,7 +260,7 @@ describe('GET /api/v1/dashboard/coffee/timeline', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/timeline?start_date=2025-12-01&end_date=2025-12-05',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -279,7 +281,7 @@ describe('GET /api/v1/dashboard/coffee/timeline', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/timeline?start_date=2025-12-01&end_date=2025-12-05',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -296,7 +298,7 @@ describe('GET /api/v1/dashboard/coffee/timeline', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/timeline?start_date=2025-12-01&end_date=2025-12-05&granularity=day',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -315,7 +317,7 @@ describe('GET /api/v1/dashboard/coffee/timeline', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/timeline?start_date=2025-12-01&end_date=2025-12-05',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
