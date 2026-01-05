@@ -133,6 +133,15 @@ export interface HabitsTrendsResponse {
   }>;
 }
 
+export interface SleepQualityResponse {
+  data: Array<{
+    date: string;
+    sleep_score: number;
+    prev_caffeine_mg: number;
+    prev_day_workout: boolean;
+  }>;
+}
+
 // ============================================================================
 // Goals API Types
 // ============================================================================

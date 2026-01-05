@@ -6,6 +6,7 @@ import type {
   HabitsStreaksResponse,
   HabitsTrendsResponse,
   GoalsResponse,
+  SleepQualityResponse,
 } from "@/lib/api/types";
 import HabitsClient from "./habits.client";
 
@@ -24,7 +25,7 @@ export const metadata = {
 
 export default async function HabitsPage() {
   // Fetch habits data from API endpoints in parallel
-  const [habitsToday, consistency, streaks, trends, goals] = await Promise.all([
+  const [habitsToday, consistency, streaks, trends, goals, sleepQuality] = await Promise.all([
     dashboardApi.get<HabitsTodayResponse>("/habits/today", {
       tags: ["habits:today"],
       revalidate: 30, // 30 seconds cache (realtime)
@@ -49,6 +50,10 @@ export default async function HabitsPage() {
     dashboardApi.get<GoalsResponse>("/goals", {
       tags: ["goals"],
       revalidate: 600, // 10 minutes cache
+    }),
+    dashboardApi.get<SleepQualityResponse>("/habits/sleep-quality", {
+      tags: ["habits:sleep-quality"],
+      revalidate: 300, // 5 minutes cache
     }),
   ]);
 
@@ -109,14 +114,8 @@ export default async function HabitsPage() {
     steps: streaks.streaks.find((s) => s.habit === "Steps") || { current: 0, longest: 0 },
   };
 
-  // Sleep/caffeine data - placeholder for now as this requires more complex querying
-  // This data isn't available via a single API endpoint yet
-  const sleepPrevCaff: Array<{
-    date: string;
-    sleep_score: number;
-    prev_caffeine_mg: number;
-    prev_day_workout: boolean;
-  }> = [];
+  // Sleep quality data from API
+  const sleepPrevCaff = sleepQuality.data;
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6">
