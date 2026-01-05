@@ -108,6 +108,11 @@ export async function discoverCorrelations(
         ["workoutCount", "workoutDurationMin"], // Duration depends on count
         ["prevDayWorkout", "prevDayWorkoutDuration"], // Workout implies duration
         ["prevDayRunning", "prevDayRunDistance"], // Running implies distance
+        // Weather-to-weather correlations (obvious environmental relationships)
+        ["avgCloudiness", "sunnyDay"], // sunnyDay is calculated from cloudiness < 30%
+        ["avgTempCelsius", "avgHumidity"], // Temperature and humidity are physically related
+        ["avgCloudiness", "avgTempCelsius"], // Cloudiness affects temperature
+        ["avgCloudiness", "avgHumidity"], // Cloudiness affects humidity
       ];
 
       const isObvious = obviousCorrelations.some(
