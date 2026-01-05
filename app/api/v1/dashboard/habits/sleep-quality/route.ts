@@ -37,8 +37,8 @@ export type SleepQualityResponse = z.infer<typeof SleepQualityResponseSchema>;
  *   - prev_day_workout: Whether a workout occurred the previous day
  *
  * Cache:
- * - Duration: 5 minutes (MEDIUM freshness)
- * - Tags: habits:sleep-quality, habits
+ * - Duration: 5 minutes (FREQUENT freshness)
+ * - Tags: habits:sleep-quality
  *
  * Example:
  * GET /api/v1/dashboard/habits/sleep-quality
@@ -71,7 +71,7 @@ export const GET = createApiRoute()
       const validatedData = SleepQualityResponseSchema.parse(sleepQualityData);
 
       // Generate cache tags
-      const tags = [habitsTags('sleep-quality'), habitsTags()];
+      const tags = [habitsTags('sleep-quality')];
 
       // Return response with cache headers
       const response = apiSuccess(validatedData);
@@ -79,10 +79,10 @@ export const GET = createApiRoute()
       // Add cache tags via Next.js headers
       response.headers.set('X-Cache-Tags', tags.join(','));
 
-      // Add cache control header (5 minutes - MEDIUM freshness)
+      // Add cache control header (5 minutes - FREQUENT freshness)
       response.headers.set(
         'Cache-Control',
-        `s-maxage=${CACHE_DURATIONS.MEDIUM}, stale-while-revalidate`
+        `s-maxage=${CACHE_DURATIONS.FREQUENT}, stale-while-revalidate`
       );
 
       return response;

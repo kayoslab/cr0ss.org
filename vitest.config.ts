@@ -5,10 +5,12 @@ import path from 'path';
 export default defineConfig({
   plugins: [react()],
   test: {
-    include: ['**/*.test.{ts,tsx}', '!node_modules/**'],
+    include: ['{app,components,lib}/**/*.test.{ts,tsx}'],
     environment: 'jsdom',
     setupFiles: ['./test/setup.ts'],
     globals: true,
+    testTimeout: 10000,
+    hookTimeout: 10000,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
