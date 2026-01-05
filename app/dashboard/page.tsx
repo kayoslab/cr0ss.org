@@ -51,8 +51,8 @@ export default async function DashboardPage() {
         }),
         dashboardApi.get<GoalsResponse>("/goals", {
           tags: ["goals"],
-        revalidate: 600,
-      }),
+          revalidate: 600,
+        }),
       dashboardApi.get<GoalsProgressResponse>("/goals/progress", {
         tags: ["goals:progress"],
         revalidate: 60,
