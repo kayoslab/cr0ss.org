@@ -3,16 +3,16 @@ import { describe, it, expect, vi } from 'vitest';
 // Mock env - must be before imports
 vi.mock('@/env', () => ({
   env: {
-    DASHBOARD_API_SECRET: 'test-dashboard-secret',
-    CONTENTFUL_REVALIDATE_SECRET: 'test-revalidate-secret',
+    DASHBOARD_API_SECRET: 'test-dashboard-secret-1234567890',
+    CONTENTFUL_REVALIDATE_SECRET: 'test-revalidate-secret-1234567890',
   },
 }));
 
 import { hasValidSecret, assertSecret } from './secret';
 
 // Use the same values from the mock
-const TEST_DASHBOARD_SECRET = 'test-dashboard-secret';
-const TEST_REVALIDATE_SECRET = 'test-revalidate-secret';
+const TEST_DASHBOARD_SECRET = 'test-dashboard-secret-1234567890';
+const TEST_REVALIDATE_SECRET = 'test-revalidate-secret-1234567890';
 
 describe('Auth Secret Utilities', () => {
   describe('hasValidSecret', () => {

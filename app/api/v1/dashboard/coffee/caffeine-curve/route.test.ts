@@ -11,7 +11,7 @@ vi.mock('@/lib/db/client', () => {
 
 vi.mock('@/env', () => ({
   env: {
-    DASHBOARD_API_SECRET: 'test-secret',
+    DASHBOARD_API_SECRET: 'test-dashboard-secret-1234567890',
   },
 }));
 
@@ -72,7 +72,7 @@ describe('GET /api/v1/dashboard/coffee/caffeine-curve', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/caffeine-curve',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -90,7 +90,7 @@ describe('GET /api/v1/dashboard/coffee/caffeine-curve', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/caffeine-curve',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -105,7 +105,7 @@ describe('GET /api/v1/dashboard/coffee/caffeine-curve', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/caffeine-curve?date=2025-12-01',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -120,7 +120,7 @@ describe('GET /api/v1/dashboard/coffee/caffeine-curve', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/caffeine-curve?date=invalid',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -139,7 +139,7 @@ describe('GET /api/v1/dashboard/coffee/caffeine-curve', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/caffeine-curve',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -157,7 +157,7 @@ describe('GET /api/v1/dashboard/coffee/caffeine-curve', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/caffeine-curve?resolution=30',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -168,10 +168,10 @@ describe('GET /api/v1/dashboard/coffee/caffeine-curve', () => {
 
     it('should reject resolution below minimum (15)', async () => {
       const request = new Request(
-        'http://localhost:3000/api/v1/dashboard/coffee/caffeine-curve?resolution=10',
+        'http://localhost:3000/api/v1/dashboard/coffee/caffeine-curve?date=2025-12-05&resolution=10',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -185,10 +185,10 @@ describe('GET /api/v1/dashboard/coffee/caffeine-curve', () => {
 
     it('should reject resolution above maximum (240)', async () => {
       const request = new Request(
-        'http://localhost:3000/api/v1/dashboard/coffee/caffeine-curve?resolution=300',
+        'http://localhost:3000/api/v1/dashboard/coffee/caffeine-curve?date=2025-12-05&resolution=300',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -209,7 +209,7 @@ describe('GET /api/v1/dashboard/coffee/caffeine-curve', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/caffeine-curve?date=2025-12-05',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -234,7 +234,7 @@ describe('GET /api/v1/dashboard/coffee/caffeine-curve', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/caffeine-curve?date=2025-12-05',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -258,7 +258,7 @@ describe('GET /api/v1/dashboard/coffee/caffeine-curve', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/caffeine-curve?date=2025-12-05',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -275,7 +275,7 @@ describe('GET /api/v1/dashboard/coffee/caffeine-curve', () => {
         'http://localhost:3000/api/v1/dashboard/coffee/caffeine-curve?date=2025-12-05',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
@@ -289,13 +289,17 @@ describe('GET /api/v1/dashboard/coffee/caffeine-curve', () => {
 
   describe('Error Handling', () => {
     it('should return 500 on database error', async () => {
-      vi.mocked(sql).mockRejectedValueOnce(new Error('Database connection failed'));
+      // Mock qCoffeeEventsForDayWithLookback to fail (from @/lib/db/queries)
+      const { qCoffeeEventsForDayWithLookback } = await import('@/lib/db/queries');
+      vi.mocked(qCoffeeEventsForDayWithLookback).mockRejectedValueOnce(
+        new Error('Database connection failed')
+      );
 
       const request = new Request(
         'http://localhost:3000/api/v1/dashboard/coffee/caffeine-curve?date=2025-12-05',
         {
           headers: {
-            'x-admin-secret': 'test-secret',
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
           },
         }
       );
