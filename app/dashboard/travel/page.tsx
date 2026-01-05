@@ -6,6 +6,10 @@ import TravelClient from "./travel.client";
 // Use edge runtime for better performance
 export const runtime = "nodejs";
 
+// Force dynamic rendering to fetch data on-demand from API
+// API endpoints handle caching with tag-based invalidation
+export const dynamic = 'force-dynamic';
+
 // Cache configuration - revalidate every 5 minutes
 // Travel data changes infrequently, so caching is beneficial
 export const revalidate = 300; // 5 minutes
