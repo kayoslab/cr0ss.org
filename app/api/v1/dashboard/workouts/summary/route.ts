@@ -69,7 +69,16 @@ async function getWorkoutsSummary(period: string): Promise<WorkoutsSummaryRespon
       break;
   }
 
-  // Query for workout types summary
+  // Get all distinct workout types that exist (ever logged)
+  const allTypesRows = await sql/*sql*/`
+    SELECT DISTINCT workout_type::text as type
+    FROM workouts
+    ORDER BY workout_type::text
+  `;
+
+  const allTypes = allTypesRows.map((r) => String(r.type));
+
+  // Query for workout types summary for current period
   const workoutTypesRows = await sql/*sql*/`
     SELECT
       workout_type::text as type,
@@ -83,12 +92,29 @@ async function getWorkoutsSummary(period: string): Promise<WorkoutsSummaryRespon
     ORDER BY total_duration_min DESC
   `;
 
-  const workout_types = workoutTypesRows.map((r) => ({
-    type: String(r.type),
-    count: Number(r.count),
-    total_duration_min: Number(r.total_duration_min),
-    avg_duration_min: Number(r.avg_duration_min),
-  }));
+  // Create a map of types with data in current period
+  const typeStatsMap = new Map(
+    workoutTypesRows.map((r) => [
+      String(r.type),
+      {
+        type: String(r.type),
+        count: Number(r.count),
+        total_duration_min: Number(r.total_duration_min),
+        avg_duration_min: Number(r.avg_duration_min),
+      },
+    ])
+  );
+
+  // Build complete workout_types array with all types (including zeros)
+  const workout_types = allTypes.map((type) => {
+    const stats = typeStatsMap.get(type);
+    return stats || {
+      type,
+      count: 0,
+      total_duration_min: 0,
+      avg_duration_min: 0,
+    };
+  });
 
   // Calculate total workouts and duration
   const total_workouts = workout_types.reduce((sum, wt) => sum + wt.count, 0);

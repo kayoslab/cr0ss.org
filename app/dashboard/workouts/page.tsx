@@ -43,16 +43,23 @@ export default async function WorkoutsPage() {
     }),
   ]);
 
-  // Extract unique workout types from summary
+  // Extract unique workout types from summary (includes all types ever logged)
   const workoutTypes = summary.workout_types.map((wt) => wt.type);
 
-  // Transform workout stats to match client component format
-  const workoutStats = summary.workout_types.map((wt) => ({
-    workout_type: wt.type,
-    count: wt.count,
-    total_duration_min: wt.total_duration_min,
-    total_distance_km: 0, // We'll calculate this from heatmap if needed
-  }));
+  // Calculate stats from heatmap data (not summary) to match the visible time period
+  // This ensures counts match what's displayed in the heatmap
+  const workoutStats = workoutTypes.map((type) => {
+    const typeWorkouts = heatmap.heatmap.flatMap((day) =>
+      day.workouts.filter((w) => w.type === type)
+    );
+
+    return {
+      workout_type: type,
+      count: typeWorkouts.length,
+      total_duration_min: typeWorkouts.reduce((sum, w) => sum + w.duration_min, 0),
+      total_distance_km: 0,
+    };
+  });
 
   // Transform heatmap to match client component format
   const workoutHeatmap = heatmap.heatmap.map((day) => ({
