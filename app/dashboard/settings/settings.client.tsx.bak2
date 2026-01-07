@@ -1460,7 +1460,7 @@ function GoalField({
           onKeyDown={onKeyDown}
         />
       </div>
-      <Select value={period} onValueChange={(v: string) => onPeriodChange(v as GoalPeriod)}>
+      <Select value={period} onValueChange={(v) => onPeriodChange(v as GoalPeriod)}>
         <SelectTrigger className="w-[120px]">
           <SelectValue />
         </SelectTrigger>
@@ -1560,24 +1560,17 @@ function SelectField({
   children: React.ReactNode;
 }) {
   // Extract option values and labels from children
-  const allOptions = React.Children.toArray(children).filter(
+  const options = React.Children.toArray(children).filter(
     (child): child is React.ReactElement<{ value: string; children: React.ReactNode }> =>
       React.isValidElement(child) && child.type === 'option'
   );
 
-  // Find placeholder (option with empty value)
-  const placeholderOption = allOptions.find(opt => opt.props.value === '');
-  const placeholder = placeholderOption ? String(placeholderOption.props.children) : 'Select...';
-
-  // Filter out empty value options (Radix UI doesn't allow empty string values)
-  const options = allOptions.filter(opt => opt.props.value !== '');
-
   return (
     <div className="flex flex-col space-y-2">
       <Label>{label}</Label>
-      <Select value={value || undefined} onValueChange={onChange}>
+      <Select value={value} onValueChange={onChange}>
         <SelectTrigger>
-          <SelectValue placeholder={placeholder} />
+          <SelectValue />
         </SelectTrigger>
         <SelectContent>
           {options.map((opt) => (
