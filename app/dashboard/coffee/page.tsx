@@ -50,10 +50,11 @@ interface CaffeineCurveResponse {
   };
 }
 
-// Coffee origin data type (from existing data module)
-interface CoffeeOrigin {
-  name: string;
-  value: number;
+interface CoffeeOriginsResponse {
+  origins: Array<{
+    name: string;
+    value: number;
+  }>;
 }
 
 export default async function CoffeePage() {
@@ -66,7 +67,7 @@ export default async function CoffeePage() {
   const startDate = thirtyDaysAgo.toISOString().split('T')[0];
 
   // Fetch coffee data from API endpoints in parallel
-  const [summary, timeline, caffeineCurve] = await Promise.all([
+  const [summary, timeline, caffeineCurve, origins] = await Promise.all([
     apiGet<CoffeeSummaryResponse>('/api/v1/dashboard/coffee/summary', {
       tags: ['coffee:summary'],
       revalidate: 60, // 1 minute cache
@@ -84,6 +85,10 @@ export default async function CoffeePage() {
       tags: ['coffee:caffeine'],
       revalidate: 60, // 1 minute cache
     }),
+    apiGet<CoffeeOriginsResponse>('/api/v1/dashboard/coffee/origins', {
+      tags: ['coffee:origins'],
+      revalidate: 300, // 5 minutes cache
+    }),
   ]);
 
   // Map caffeine series to chart format (Berlin time labels)
@@ -98,10 +103,6 @@ export default async function CoffeePage() {
     date: t.period,
     cups: t.cups_count,
   }));
-
-  // Get coffee origins data (placeholder - this data comes from a different source)
-  // For now, we'll use an empty array as this data isn't available via API yet
-  const coffeeOriginThisWeek: CoffeeOrigin[] = [];
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6">
@@ -119,7 +120,7 @@ export default async function CoffeePage() {
           name: b.type,
           value: b.count,
         }))}
-        originsDonut={coffeeOriginThisWeek}
+        originsDonut={origins.origins}
         caffeineDual={caffeineDual}
         dailyCoffee30Days={dailyCoffee30Days}
       />
