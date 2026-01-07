@@ -15,6 +15,12 @@ const WorkoutsHeatmapResponseSchema = z.object({
       date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
       duration_min: z.number().int().min(0),
       distance_km: z.number().min(0).optional(),
+      workouts: z.array(
+        z.object({
+          type: z.string(),
+          duration_min: z.number().int().min(0),
+        })
+      ),
     })
   ),
   stats: z.object({
@@ -55,68 +61,57 @@ async function getWorkoutsHeatmap(
     SELECT (${current_date}::date - interval '1 day' * (${days} - 1))::date::text as start_date
   `;
 
-  // Query for heatmap data
-  let heatmapRows;
+  // Query for individual workouts (not aggregated)
+  let workoutRows;
   if (workoutType) {
-    // Filter by workout type and include distance if it's running
-    if (workoutType === 'running') {
-      heatmapRows = await sql/*sql*/`
-        SELECT
-          date::text,
-          SUM(duration_min)::int as duration_min,
-          COALESCE(SUM((details->>'distance_m')::numeric / 1000), 0)::numeric as distance_km
-        FROM workouts
-        WHERE date >= ${start_date}::date
-          AND date <= ${current_date}::date
-          AND workout_type = ${workoutType}
-        GROUP BY date
-        ORDER BY date ASC
-      `;
-    } else {
-      heatmapRows = await sql/*sql*/`
-        SELECT
-          date::text,
-          SUM(duration_min)::int as duration_min
-        FROM workouts
-        WHERE date >= ${start_date}::date
-          AND date <= ${current_date}::date
-          AND workout_type = ${workoutType}
-        GROUP BY date
-        ORDER BY date ASC
-      `;
-    }
-  } else {
-    // All workout types
-    heatmapRows = await sql/*sql*/`
+    workoutRows = await sql/*sql*/`
       SELECT
         date::text,
-        SUM(duration_min)::int as duration_min
+        workout_type,
+        duration_min::int
       FROM workouts
       WHERE date >= ${start_date}::date
         AND date <= ${current_date}::date
-      GROUP BY date
-      ORDER BY date ASC
+        AND workout_type = ${workoutType}
+      ORDER BY date ASC, workout_type ASC
+    `;
+  } else {
+    workoutRows = await sql/*sql*/`
+      SELECT
+        date::text,
+        workout_type,
+        duration_min::int
+      FROM workouts
+      WHERE date >= ${start_date}::date
+        AND date <= ${current_date}::date
+      ORDER BY date ASC, workout_type ASC
     `;
   }
 
-  // Create a map of dates with data
-  interface HeatmapRow {
+  // Group workouts by date
+  interface WorkoutRow {
     date: string;
+    workout_type: string;
     duration_min: number;
-    distance_km?: number;
   }
 
-  const dataByDate = new Map<string, HeatmapRow>();
-  for (const row of heatmapRows) {
-    const r = row as HeatmapRow;
-    const entry: HeatmapRow = {
-      date: String(r.date),
+  const workoutsByDate = new Map<
+    string,
+    Array<{ type: string; duration_min: number }>
+  >();
+
+  for (const row of workoutRows) {
+    const r = row as WorkoutRow;
+    const dateStr = String(r.date);
+    const workout = {
+      type: String(r.workout_type),
       duration_min: Number(r.duration_min),
     };
-    if (workoutType === 'running' && r.distance_km !== undefined) {
-      entry.distance_km = Number(r.distance_km);
+
+    if (!workoutsByDate.has(dateStr)) {
+      workoutsByDate.set(dateStr, []);
     }
-    dataByDate.set(String(r.date), entry);
+    workoutsByDate.get(dateStr)!.push(workout);
   }
 
   // Generate complete heatmap with all dates (including zeros)
@@ -124,6 +119,7 @@ async function getWorkoutsHeatmap(
     date: string;
     duration_min: number;
     distance_km?: number;
+    workouts: Array<{ type: string; duration_min: number }>;
   }> = [];
 
   for (let i = 0; i < days; i++) {
@@ -131,20 +127,14 @@ async function getWorkoutsHeatmap(
       SELECT (${start_date}::date + interval '1 day' * ${i})::date::text as date
     `;
     const dateStr = String(date);
-    const data = dataByDate.get(dateStr);
+    const workouts = workoutsByDate.get(dateStr) || [];
+    const duration_min = workouts.reduce((sum, w) => sum + w.duration_min, 0);
 
-    if (data) {
-      heatmap.push(data);
-    } else {
-      const entry: { date: string; duration_min: number; distance_km?: number } = {
-        date: dateStr,
-        duration_min: 0,
-      };
-      if (workoutType === 'running') {
-        entry.distance_km = 0;
-      }
-      heatmap.push(entry);
-    }
+    heatmap.push({
+      date: dateStr,
+      duration_min,
+      workouts,
+    });
   }
 
   // Calculate stats

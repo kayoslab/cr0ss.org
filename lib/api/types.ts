@@ -64,6 +64,10 @@ export interface WorkoutsHeatmapResponse {
     date: string;
     duration_min: number;
     distance_km?: number;
+    workouts: Array<{
+      type: string;
+      duration_min: number;
+    }>;
   }>;
   stats: {
     active_days: number;

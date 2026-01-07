@@ -55,14 +55,10 @@ export default async function WorkoutsPage() {
   }));
 
   // Transform heatmap to match client component format
-  // The client expects workouts array per day, but API returns aggregated data
-  // We'll create a simplified version that works with the client
   const workoutHeatmap = heatmap.heatmap.map((day) => ({
     date: day.date,
     duration_min: day.duration_min,
-    workouts: day.duration_min > 0
-      ? [{ type: "workout", duration_min: day.duration_min }] // Simplified for now
-      : [],
+    workouts: day.workouts,
   }));
 
   // Transform personal records to match client component format
