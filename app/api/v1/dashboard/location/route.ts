@@ -8,15 +8,16 @@ import { z } from 'zod';
 
 /**
  * Response schema for location endpoint
+ * Note: Using coerce to handle PostgreSQL DECIMAL types which return as strings
  */
 const LocationResponseSchema = z.object({
-  latitude: z.number(),
-  longitude: z.number(),
+  latitude: z.coerce.number(),
+  longitude: z.coerce.number(),
   logged_at: z.string(),
-  temp_celsius: z.number().nullable(),
-  feels_like_celsius: z.number().nullable(),
-  humidity: z.number().nullable(),
-  cloudiness: z.number().nullable(),
+  temp_celsius: z.coerce.number().nullable(),
+  feels_like_celsius: z.coerce.number().nullable(),
+  humidity: z.coerce.number().nullable(),
+  cloudiness: z.coerce.number().nullable(),
   weather_main: z.string().nullable(),
   weather_description: z.string().nullable(),
 });
