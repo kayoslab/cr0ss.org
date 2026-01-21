@@ -119,14 +119,30 @@ export const GET = createApiRoute()
         };
       });
 
-      // Apply filter
+      // Apply filter and sort
       let countries;
       if (filter === 'visited') {
-        countries = allCountries.filter((c) => c.visited);
+        countries = allCountries
+          .filter((c) => c.visited)
+          .sort((a, b) => {
+            // Sort by lastVisited descending (most recent first)
+            if (!a.lastVisited) return 1;
+            if (!b.lastVisited) return -1;
+            return b.lastVisited.localeCompare(a.lastVisited);
+          });
       } else if (filter === 'unvisited') {
         countries = allCountries.filter((c) => !c.visited);
       } else {
-        countries = allCountries;
+        // For 'all', sort visited countries first by lastVisited, then unvisited alphabetically
+        const visited = allCountries
+          .filter((c) => c.visited)
+          .sort((a, b) => {
+            if (!a.lastVisited) return 1;
+            if (!b.lastVisited) return -1;
+            return b.lastVisited.localeCompare(a.lastVisited);
+          });
+        const unvisited = allCountries.filter((c) => !c.visited);
+        countries = [...visited, ...unvisited];
       }
 
       const visited_count = countries.filter((c) => c.visited).length;
