@@ -35,6 +35,7 @@ export function revalidateCoffee() {
   revalidateTag('coffee:timeline'); // All timeline variations (wildcard)
   revalidateTag(`coffee:caffeine:${today}`); // Today's caffeine curve
   revalidateTag('coffee:caffeine'); // All caffeine curves
+  revalidateTag('coffee:origins'); // Coffee origins (countries)
 
   // Invalidate legacy dashboard caches for backward compatibility
   revalidateTag(CACHE_TAGS.COFFEE);
