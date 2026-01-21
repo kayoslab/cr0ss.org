@@ -1,13 +1,18 @@
 // components/map.tsx
 import { CountryProps } from '@/lib/contentful/api/props/country';
 import { getAllCountries } from '@/lib/contentful/api/country';
+import { getVisitedCountriesMap } from '@/lib/db/countries';
 import clsx from "clsx";
 
 type Props = { lat: number; lon: number; className?: string };
 
 // Responsive SVG world map (transparent), scales by width; never overflows
 export default async function Map({ lat, lon, className }: Props) {
-  const countries = await getAllCountries();
+  // Fetch static country data from Contentful and visited status from database
+  const [countries, visitedMap] = await Promise.all([
+    getAllCountries(),
+    getVisitedCountriesMap(),
+  ]);
   const mapWidth = 1009.6727;
   const mapHeight = 665.96301;
 
@@ -27,14 +32,17 @@ export default async function Map({ lat, lon, className }: Props) {
       strokeLinejoin="round"
       strokeWidth=".1"
     >
-      {(countries as unknown as CountryProps[]).map((country: CountryProps) => (
-        <path
-          id={country.id}
-          key={country.id}
-          d={country.data.path}
-          fill={country.lastVisited != null ? "gray" : "#ececec"}
-        />
-      ))}
+      {(countries as unknown as CountryProps[]).map((country: CountryProps) => {
+        const isVisited = visitedMap.has(country.id.toUpperCase());
+        return (
+          <path
+            id={country.id}
+            key={country.id}
+            d={country.data.path}
+            fill={isVisited ? "gray" : "#ececec"}
+          />
+        );
+      })}
       <circle cx={x + r / 2} cy={y + r / 2} r={r} fill="blue" id="GEO" />
     </svg>
   );

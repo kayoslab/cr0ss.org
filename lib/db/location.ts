@@ -19,6 +19,7 @@ export interface LocationHistoryRecord {
   wind_speed_mps: number | null;
   cloudiness: number | null;
   weather_raw: Record<string, unknown> | null;
+  country_code: string | null;
   created_at: Date;
 }
 
@@ -41,7 +42,8 @@ export async function insertLocationHistory(
       weather_description,
       wind_speed_mps,
       cloudiness,
-      weather_raw
+      weather_raw,
+      country_code
     ) VALUES (
       ${latitude},
       ${longitude},
@@ -52,7 +54,8 @@ export async function insertLocationHistory(
       ${weather?.weather_description ?? null},
       ${weather?.wind_speed_mps ?? null},
       ${weather?.cloudiness ?? null},
-      ${weather ? JSON.stringify(weather.weather_raw) : null}
+      ${weather ? JSON.stringify(weather.weather_raw) : null},
+      ${weather?.country_code ?? null}
     )
     RETURNING *
   `;

@@ -116,3 +116,14 @@ export function revalidateGoals() {
   revalidateTag(CACHE_TAGS.DASHBOARD); // Overview page shows goal-dependent data
   revalidatePath(PATHS.DASHBOARD, "page");
 }
+
+/**
+ * Revalidate countries-specific dashboard caches
+ * Call when a new country is visited
+ */
+export function revalidateCountries() {
+  revalidateTag('dashboard:countries'); // Countries list
+  revalidateTag('dashboard:countries:visited'); // Visited countries filter
+  revalidateTag(CACHE_TAGS.DASHBOARD); // Overview page may show country data
+  revalidatePath(PATHS.DASHBOARD, "page");
+}

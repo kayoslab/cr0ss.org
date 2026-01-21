@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getAllCountries, getVisitedCountries, getCountry } from './country';
+import { getAllCountries, getCountry } from './country';
 
 // Mock the fetchGraphQL function
 vi.mock('./api', () => ({
@@ -90,92 +90,6 @@ describe('lib/contentful/api/country', () => {
     });
   });
 
-  describe('getVisitedCountries', () => {
-    it('should return visited countries by default', async () => {
-      const { fetchGraphQL } = await import('./api');
-
-      (fetchGraphQL as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        data: {
-          countryCollection: {
-            items: [
-              { id: 'US', name: 'United States', lastVisited: '2024-01-15' },
-              { id: 'CA', name: 'Canada', lastVisited: '2023-08-20' },
-            ],
-          },
-        },
-      });
-
-      const result = await getVisitedCountries();
-
-      expect(result).toHaveLength(2);
-      expect(fetchGraphQL).toHaveBeenCalledWith(
-        expect.stringContaining('lastVisited_exists: true'),
-        ['countries']
-      );
-    });
-
-    it('should return unvisited countries when passed false', async () => {
-      const { fetchGraphQL } = await import('./api');
-
-      (fetchGraphQL as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        data: {
-          countryCollection: {
-            items: [
-              { id: 'FR', name: 'France' },
-              { id: 'DE', name: 'Germany' },
-            ],
-          },
-        },
-      });
-
-      const result = await getVisitedCountries(false);
-
-      expect(result).toHaveLength(2);
-      expect(fetchGraphQL).toHaveBeenCalledWith(
-        expect.stringContaining('lastVisited_exists: false'),
-        ['countries']
-      );
-    });
-
-    it('should order by lastVisited descending', async () => {
-      const { fetchGraphQL } = await import('./api');
-
-      (fetchGraphQL as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        data: {
-          countryCollection: {
-            items: [
-              { id: 'US', lastVisited: '2024-01-15' },
-              { id: 'CA', lastVisited: '2023-08-20' },
-            ],
-          },
-        },
-      });
-
-      await getVisitedCountries(true);
-
-      expect(fetchGraphQL).toHaveBeenCalledWith(
-        expect.stringContaining('order: lastVisited_DESC'),
-        ['countries']
-      );
-    });
-
-    it('should handle empty results', async () => {
-      const { fetchGraphQL } = await import('./api');
-
-      (fetchGraphQL as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-        data: {
-          countryCollection: {
-            items: [],
-          },
-        },
-      });
-
-      const result = await getVisitedCountries();
-
-      expect(result).toEqual([]);
-    });
-  });
-
   describe('getCountry', () => {
     it('should return a single country by ID', async () => {
       const { fetchGraphQL } = await import('./api');
@@ -187,7 +101,6 @@ describe('lib/contentful/api/country', () => {
               {
                 id: 'US',
                 name: 'United States',
-                lastVisited: '2024-01-15',
               },
             ],
           },

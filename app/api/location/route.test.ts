@@ -16,6 +16,11 @@ vi.mock('@/lib/db/location', () => ({
   insertLocationHistory: vi.fn(),
 }));
 
+// Mock database countries functions
+vi.mock('@/lib/db/countries', () => ({
+  upsertVisitedCountry: vi.fn(),
+}));
+
 // Mock env - now using standard auth
 vi.mock('@/env', () => ({
   env: {
@@ -43,6 +48,7 @@ describe('POST /api/location', () => {
       wind_speed_mps: null,
       cloudiness: null,
       weather_raw: null,
+      country_code: null,
       created_at: new Date(),
     });
   });
@@ -244,6 +250,7 @@ describe('POST /api/location', () => {
         wind_speed_mps: null,
         cloudiness: null,
         weather_raw: null,
+        country_code: null,
         created_at: new Date(),
       });
 
@@ -281,6 +288,7 @@ describe('POST /api/location', () => {
         wind_speed_mps: null,
         cloudiness: null,
         weather_raw: null,
+        country_code: null,
         created_at: new Date(),
       });
 
@@ -319,6 +327,7 @@ describe('POST /api/location', () => {
         wind_speed_mps: null,
         cloudiness: null,
         weather_raw: null,
+        country_code: null,
         created_at: new Date(),
       });
 
@@ -396,6 +405,7 @@ describe('POST /api/location', () => {
         wind_speed_mps: null,
         cloudiness: null,
         weather_raw: null,
+        country_code: null,
         created_at: new Date(),
       });
 
@@ -429,6 +439,7 @@ describe('POST /api/location', () => {
         wind_speed_mps: null,
         cloudiness: null,
         weather_raw: null,
+        country_code: null,
         created_at: new Date(),
       });
 
@@ -482,6 +493,7 @@ describe('POST /api/location', () => {
         wind_speed_mps: null,
         cloudiness: null,
         weather_raw: null,
+        country_code: null,
         created_at: new Date(),
       });
 
@@ -516,6 +528,7 @@ describe('POST /api/location', () => {
         wind_speed_mps: null,
         cloudiness: null,
         weather_raw: null,
+        country_code: null,
         created_at: new Date(),
       });
 
@@ -547,6 +560,7 @@ describe('POST /api/location', () => {
         wind_speed_mps: null,
         cloudiness: null,
         weather_raw: null,
+        country_code: null,
         created_at: new Date(),
       });
 

@@ -33,21 +33,6 @@ export async function getAllCountries() {
   return extractCountries(countries);
 }
 
-export async function getVisitedCountries(visited = true) {  
-  const countries = await fetchGraphQL(
-    `query {
-      countryCollection(where:{lastVisited_exists: ${visited}}, order: lastVisited_DESC, preview: false, limit: 1000) {
-          items {
-            ${COUNTRY_GRAPHQL_FIELDS}
-          }
-        }
-      }`,
-    ['countries']
-  );
-
-  return extractCountries(countries);
-}
-
 export async function getCountry(id: string) {
   const country = await fetchGraphQL(
     `query {

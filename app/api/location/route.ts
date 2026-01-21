@@ -1,8 +1,9 @@
 import { assertSecret } from '@/lib/auth/secret';
-import { revalidateDashboard } from '@/lib/cache/revalidate';
+import { revalidateDashboard, revalidateCountries } from '@/lib/cache/revalidate';
 import { apiSuccess, validationError } from '@/lib/api/responses';
 import { fetchWeather } from '@/lib/services/openweathermap';
 import { insertLocationHistory, getLatestLocation } from '@/lib/db/location';
+import { upsertVisitedCountry } from '@/lib/db/countries';
 
 const LOCATION_THRESHOLD_KM = 150;
 
@@ -34,6 +35,12 @@ export async function POST(request: Request) {
 
     // Always store location with weather in database for history
     await insertLocationHistory(lat, lon, weather);
+
+    // Track country visit if country code is available
+    if (weather?.country_code) {
+      await upsertVisitedCountry(weather.country_code);
+      revalidateCountries();
+    }
 
     if (!storedLocation) {
       revalidateDashboard();

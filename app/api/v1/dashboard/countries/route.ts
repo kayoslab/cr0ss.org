@@ -3,7 +3,8 @@ export const runtime = 'nodejs';
 import { createApiRoute } from '@/lib/api/middleware';
 import { apiSuccess, apiError } from '@/lib/api/responses';
 import { dashboardTags, CACHE_DURATIONS } from '@/lib/api/cache';
-import { getAllCountries, getVisitedCountries } from '@/lib/contentful/api/country';
+import { getAllCountries } from '@/lib/contentful/api/country';
+import { getVisitedCountriesMap } from '@/lib/db/countries';
 import { z } from 'zod';
 
 /**
@@ -21,7 +22,9 @@ const CountrySchema = z.object({
   name: z.string(),
   path: z.string(),
   visited: z.boolean(),
+  firstVisited: z.string().optional(),
   lastVisited: z.string().optional(),
+  visitCount: z.number().int().min(0).optional(),
 });
 
 const CountriesResponseSchema = z.object({
@@ -90,24 +93,41 @@ export const GET = createApiRoute()
         filter = paramsResult.data.visited === 'true' ? 'visited' : 'unvisited';
       }
 
-      // Fetch countries from Contentful
-      let countriesRaw: unknown[];
-      if (filter === 'visited') {
-        countriesRaw = await getVisitedCountries(true);
-      } else if (filter === 'unvisited') {
-        countriesRaw = await getVisitedCountries(false);
-      } else {
-        countriesRaw = await getAllCountries();
-      }
+      // Fetch all countries from Contentful (static data: name, path)
+      const countriesRaw = await getAllCountries();
 
-      // Transform Contentful data to API response format
-      const countries = countriesRaw.map((country: any) => ({
-        id: country.id,
-        name: country.name,
-        path: country.data?.path || '',
-        visited: !!country.lastVisited,
-        lastVisited: country.lastVisited || undefined,
-      }));
+      // Fetch visited countries from database (dynamic data: visits)
+      const visitedMap = await getVisitedCountriesMap();
+
+      // Transform and merge Contentful + DB data
+      const allCountries = countriesRaw.map((country: any) => {
+        const countryCode = country.id?.toUpperCase();
+        const dbVisit = countryCode ? visitedMap.get(countryCode) : null;
+
+        return {
+          id: country.id,
+          name: country.name,
+          path: country.data?.path || '',
+          visited: !!dbVisit,
+          firstVisited: dbVisit
+            ? new Date(dbVisit.first_visited).toISOString().split('T')[0]
+            : undefined,
+          lastVisited: dbVisit
+            ? new Date(dbVisit.last_visited).toISOString().split('T')[0]
+            : undefined,
+          visitCount: dbVisit ? dbVisit.visit_count : undefined,
+        };
+      });
+
+      // Apply filter
+      let countries;
+      if (filter === 'visited') {
+        countries = allCountries.filter((c) => c.visited);
+      } else if (filter === 'unvisited') {
+        countries = allCountries.filter((c) => !c.visited);
+      } else {
+        countries = allCountries;
+      }
 
       const visited_count = countries.filter((c) => c.visited).length;
 

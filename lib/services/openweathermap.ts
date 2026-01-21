@@ -13,6 +13,7 @@ export interface WeatherData {
   weather_description: string;
   wind_speed_mps: number;
   cloudiness: number;
+  country_code: string | null;
   weather_raw: Record<string, unknown>;
 }
 
@@ -31,6 +32,9 @@ interface OpenWeatherResponse {
   };
   clouds: {
     all: number;
+  };
+  sys: {
+    country?: string;
   };
 }
 
@@ -79,6 +83,7 @@ export async function fetchWeather(
       weather_description: data.weather[0]?.description || "Unknown",
       wind_speed_mps: data.wind.speed,
       cloudiness: data.clouds.all,
+      country_code: data.sys.country || null,
       weather_raw: data as unknown as Record<string, unknown>,
     };
   } catch (error) {

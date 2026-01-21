@@ -209,7 +209,9 @@ export interface Country {
   name: string;
   path: string;
   visited: boolean;
+  firstVisited?: string;
   lastVisited?: string;
+  visitCount?: number;
 }
 
 export interface CountriesResponse {
