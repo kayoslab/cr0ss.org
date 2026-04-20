@@ -36,7 +36,7 @@ describe('Footer', () => {
     expect(homeLinks.length).toBeGreaterThan(0);
 
     expect(getAllByText('Blog').length).toBeGreaterThan(0);
-    expect(getAllByText('Dashboard').length).toBeGreaterThan(0);
+    expect(getAllByText('Projects').length).toBeGreaterThan(0);
   });
 
   it('should render Information section header', () => {
@@ -80,11 +80,11 @@ describe('Footer', () => {
     expect(blogLinks[0]).toHaveAttribute('href', '/blog');
   });
 
-  it('should render correct href for Dashboard link', () => {
+  it('should render correct href for Projects link', () => {
     const { getAllByRole } = render(<Footer />);
 
-    const dashboardLinks = getAllByRole('link', { name: /Dashboard/i });
-    expect(dashboardLinks[0]).toHaveAttribute('href', '/dashboard');
+    const projectsLinks = getAllByRole('link', { name: /Projects/i });
+    expect(projectsLinks[0]).toHaveAttribute('href', '/projects');
   });
 
   it('should render correct href for About link', () => {
