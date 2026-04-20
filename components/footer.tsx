@@ -41,18 +41,10 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href='/coffee'
+                  href='/projects'
                   className='text-sm text-gray-600 hover:text-gray-900 transition-colors'
                 >
-                  Coffee
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href='/dashboard'
-                  className='text-sm text-gray-600 hover:text-gray-900 transition-colors'
-                >
-                  Dashboard
+                  Projects
                 </Link>
               </li>
             </ul>
