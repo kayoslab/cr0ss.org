@@ -16,6 +16,13 @@ type Project = {
 
 const projects: Project[] = [
   {
+    name: "Latency Cathedral",
+    description:
+      "In Progress: Uses live network timings (ping, resource load, packet jitter) to generate gothic structures in WebGL. Every network condition creates a different cathedral.",
+    url: "https://latency.cr0ss.org",
+    external: true,
+  },
+  {
     name: "EAVI",
     description:
       "An ephemeral audiovisual installation in the browser. Each visit becomes a one-off composition shaped by your environment, time and motion — then disappears, leaving no trace.",
