@@ -16,9 +16,16 @@ type Project = {
 
 const projects: Project[] = [
   {
+    name: "404 Museum",
+    description:
+      "In Progress: Every page refresh reveals a fake abandoned website from an alternate internet timeline. Each generated website feels like something that genuinely could have existed.",
+    url: "https://404.cr0ss.org",
+    external: true,
+  },
+  {
     name: "Latency Cathedral",
     description:
-      "In Progress: Uses live network timings (ping, resource load, packet jitter) to generate gothic structures in WebGL. Every network condition creates a different cathedral.",
+      "Uses live network timings (ping, resource load, packet jitter) to generate gothic structures in WebGL. Every network condition creates a different cathedral.",
     url: "https://latency.cr0ss.org",
     external: true,
   },
