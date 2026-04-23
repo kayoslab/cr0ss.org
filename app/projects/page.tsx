@@ -18,7 +18,14 @@ const projects: Project[] = [
   {
     name: "404 Museum",
     description:
-      "In Progress: Every page refresh reveals a fake abandoned website from an alternate internet timeline. Each generated website feels like something that genuinely could have existed.",
+      "In Progress: Signal Intelligence is a browser-based self-audit that reveals what a device and browser expose before a user logs into any website.",
+    url: "https://signal.cr0ss.org",
+    external: true,
+  },
+  {
+    name: "404 Museum",
+    description:
+      "Every page refresh reveals a fake abandoned website from an alternate internet timeline. Each generated website feels like something that genuinely could have existed.",
     url: "https://404.cr0ss.org",
     external: true,
   },
