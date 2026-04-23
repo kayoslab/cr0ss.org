@@ -16,7 +16,7 @@ type Project = {
 
 const projects: Project[] = [
   {
-    name: "404 Museum",
+    name: "Signal",
     description:
       "In Progress: Signal Intelligence is a browser-based self-audit that reveals what a device and browser expose before a user logs into any website.",
     url: "https://signal.cr0ss.org",
