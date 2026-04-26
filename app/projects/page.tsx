@@ -18,7 +18,7 @@ const projects: Project[] = [
   {
     name: "Signal Intelligence",
     description:
-      "In Progress: Signal Intelligence is a browser-based self-audit that reveals what a device and browser expose before a user logs into any website.",
+      "Signal Intelligence is a browser-based self-audit that reveals what a device and browser expose before a user logs into any website.",
     url: "https://signal.cr0ss.org",
     external: true,
   },
