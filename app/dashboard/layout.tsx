@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
+import { MobileMarketingNav } from "@/components/dashboard/mobile-marketing-nav";
 import { Separator } from "@/components/ui/separator";
 
 const marketingLinks = [
@@ -40,7 +41,8 @@ export default function DashboardLayout({
               </Link>
             ))}
           </nav>
-          <div className="ml-auto flex items-center">
+          <div className="ml-auto flex items-center gap-2">
+            <MobileMarketingNav links={marketingLinks} />
             <Link
               href="/chat"
               className="inline-flex rounded-full bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 p-[1px] transition-all duration-200 hover:scale-105"
