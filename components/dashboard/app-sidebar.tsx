@@ -23,7 +23,6 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -32,7 +31,7 @@ import {
 
 const navigationItems = [
   {
-    title: "Overview",
+    title: "Dashboard",
     href: "/dashboard",
     icon: LayoutDashboard,
   },
@@ -93,7 +92,6 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Dashboard</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationItems.map((item) => {

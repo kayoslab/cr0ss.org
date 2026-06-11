@@ -151,7 +151,7 @@ export default async function DashboardPage() {
   const dailyGoalsList = sortedDaily;
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6">
+    <div className="w-full space-y-6">
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Overview</h2>
         <p className="text-muted-foreground">
