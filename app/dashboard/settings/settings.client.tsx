@@ -311,15 +311,18 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
   // load secret from localStorage
   useEffect(() => {
     const s = localStorage.getItem("dashboard_secret");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot hydration from external store
     if (s) setSecret(s);
   }, []);
 
-  // when method changes, prefill amount
+  // when method changes, prefill amount (user can edit afterward, so not derived)
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- reset-on-dep-change pattern
   useEffect(() => setAmount(methodDefaults[method]), [method]);
 
   // sync body -> bodyForm when loaded or updated
   useEffect(() => {
     if (!body) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate editable form from fetched data
     setBodyForm({
       weight_kg: body.weight_kg?.toString() ?? "",
       height_cm: body.height_cm?.toString() ?? "",
@@ -706,6 +709,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
   // Fetch Strava status when secret is validated
   useEffect(() => {
     if (secretOK) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- triggers fetch side-effect, not derived state
       fetchStravaStatus();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1610,6 +1614,7 @@ function TimeField({
 
   // keep local text in sync when parent updates externally
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sync local edit buffer when parent value changes
     if (value !== text) setText(normalize(value));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);

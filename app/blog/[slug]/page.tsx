@@ -117,49 +117,52 @@ export default async function BlogContent({
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  let blog: BlogProps;
+  let recommendations: BlogProps[];
+
   try {
     const { slug } = await params;
-    const blog = await getBlog(slug) as unknown as BlogProps;
-    if (!blog) {
+    const fetched = (await getBlog(slug)) as unknown as BlogProps | null;
+    if (!fetched) {
       notFound();
     }
-
-    const recommendations = await getRecommendations(blog);
-
-    const jsonLd = createBlogJsonLd({
-      title: blog.title,
-      description: blog.seoDescription || blog.summary,
-      author: blog.author,
-      slug: blog.slug,
-      publishedTime: blog.sys.firstPublishedAt,
-      modifiedTime: blog.sys.publishedAt,
-      heroImageUrl: blog.heroImage?.url,
-    });
-
-    const breadcrumbJsonLd = createBlogBreadcrumbJsonLd({
-      slug: blog.slug,
-      title: blog.title,
-      category: blog.categoriesCollection?.items[0]?.title,
-    });
-
-    return (
-      <>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
-        />
-        <main className='flex min-h-screen flex-col items-center justify-between bg-white pb-24'>
-          <BlogViewTracker blog={blog} />
-          <Blog blog={blog} recommendations={recommendations} />
-        </main>
-      </>
-    );
+    blog = fetched;
+    recommendations = await getRecommendations(blog);
   } catch (error) {
     console.error('Error loading blog content:', error);
     notFound();
   }
+
+  const jsonLd = createBlogJsonLd({
+    title: blog.title,
+    description: blog.seoDescription || blog.summary,
+    author: blog.author,
+    slug: blog.slug,
+    publishedTime: blog.sys.firstPublishedAt,
+    modifiedTime: blog.sys.publishedAt,
+    heroImageUrl: blog.heroImage?.url,
+  });
+
+  const breadcrumbJsonLd = createBlogBreadcrumbJsonLd({
+    slug: blog.slug,
+    title: blog.title,
+    category: blog.categoriesCollection?.items[0]?.title,
+  });
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <main className='flex min-h-screen flex-col items-center justify-between bg-white pb-24'>
+        <BlogViewTracker blog={blog} />
+        <Blog blog={blog} recommendations={recommendations} />
+      </main>
+    </>
+  );
 }

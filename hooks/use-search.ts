@@ -3,13 +3,14 @@ import type { AlgoliaHit, SearchAPIResponse } from '@/lib/algolia/client';
 
 export function useSearch() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [suggestions, setSuggestions] = useState<AlgoliaHit[]>([]);
-  const [queryID, setQueryID] = useState<string | null>(null);
+  const [fetched, setFetched] = useState<{ suggestions: AlgoliaHit[]; queryID: string | null }>({
+    suggestions: [],
+    queryID: null,
+  });
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (searchQuery.trim().length === 0) {
-      setSuggestions([]);
       return;
     }
 
@@ -19,11 +20,10 @@ export function useSearch() {
         const response = await fetch(`/api/algolia/search?q=${encodeURIComponent(searchQuery)}`);
         if (!response.ok) throw new Error('Search failed');
         const data: SearchAPIResponse = await response.json();
-        setSuggestions(data.hits);
-        setQueryID(data.queryID);
+        setFetched({ suggestions: data.hits, queryID: data.queryID });
       } catch (error) {
         console.error('Error fetching suggestions:', error);
-        setSuggestions([]);
+        setFetched({ suggestions: [], queryID: null });
       } finally {
         setIsLoading(false);
       }
@@ -33,11 +33,12 @@ export function useSearch() {
     return () => clearTimeout(debounceTimer);
   }, [searchQuery]);
 
+  const isEmpty = searchQuery.trim().length === 0;
   return {
     searchQuery,
     setSearchQuery,
-    suggestions,
-    queryID,
-    isLoading
+    suggestions: isEmpty ? [] : fetched.suggestions,
+    queryID: isEmpty ? null : fetched.queryID,
+    isLoading,
   };
-} 
+}

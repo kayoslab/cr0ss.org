@@ -119,114 +119,117 @@ export async function generateStaticParams() {
 }
 
 export default async function CoffeeDetailPage({ params }: Props) {
+  let slug: string;
+  let coffee: CoffeeProps;
+  let allCountriesData: CountryProps[];
+
   try {
-    const { slug } = await params;
-    const coffee = (await getCoffee(slug)) as unknown as CoffeeProps;
-    if (!coffee) {
+    ({ slug } = await params);
+    const fetched = (await getCoffee(slug)) as unknown as CoffeeProps | null;
+    if (!fetched) {
       notFound();
     }
-
-    // Fetch all countries for the map
+    coffee = fetched;
     const allCountries = await getAllCountries();
-    const allCountriesData = (allCountries as unknown as CountryProps[]);
-
-    // Find the origin country
-    const originCountry = coffee.country?.sys?.id
-      ? allCountriesData.find((c) => c.sys.id === coffee.country?.sys?.id) || null
-      : null;
-
-    // Build JSON-LD structured data
-    const imageUrl = coffee.photo?.url
-      ? (coffee.photo.url.startsWith('http') ? coffee.photo.url : `https:${coffee.photo.url}`)
-      : null;
-
-    const jsonLd = {
-      '@context': 'https://schema.org',
-      '@type': 'Product',
-      name: coffee.name,
-      description: `${coffee.name} from ${coffee.roaster}${coffee.country ? `, ${coffee.country.name}` : ''}`,
-      brand: {
-        '@type': 'Brand',
-        name: coffee.roaster,
-      },
-      ...(imageUrl && {
-        image: imageUrl,
-      }),
-      ...(coffee.scaScore && {
-        aggregateRating: {
-          '@type': 'AggregateRating',
-          ratingValue: coffee.scaScore,
-          bestRating: 100,
-          worstRating: 0,
-        },
-      }),
-      offers: {
-        '@type': 'Offer',
-        availability: 'https://schema.org/InStock',
-        ...(coffee.url && {
-          url: coffee.url,
-        }),
-      },
-      additionalProperty: [
-        ...(coffee.country ? [{
-          '@type': 'PropertyValue',
-          name: 'Origin Country',
-          value: coffee.country.name,
-        }] : []),
-        ...(coffee.region ? [{
-          '@type': 'PropertyValue',
-          name: 'Region',
-          value: coffee.region,
-        }] : []),
-        ...(coffee.process ? [{
-          '@type': 'PropertyValue',
-          name: 'Process',
-          value: coffee.process,
-        }] : []),
-        ...(coffee.variety ? [{
-          '@type': 'PropertyValue',
-          name: 'Variety',
-          value: coffee.variety,
-        }] : []),
-        ...(coffee.farmer ? [{
-          '@type': 'PropertyValue',
-          name: 'Farmer',
-          value: coffee.farmer,
-        }] : []),
-        ...(coffee.farm ? [{
-          '@type': 'PropertyValue',
-          name: 'Farm',
-          value: coffee.farm,
-        }] : []),
-      ],
-    };
-
-    const breadcrumbJsonLd = createCoffeeBreadcrumbJsonLd({
-      slug,
-      name: coffee.name,
-    });
-
-    return (
-      <>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
-        />
-        <main className="flex min-h-screen flex-col items-center justify-between bg-white pb-24">
-          <CoffeeDetail
-            coffee={coffee}
-            originCountry={originCountry}
-            allCountries={allCountriesData}
-          />
-        </main>
-      </>
-    );
+    allCountriesData = allCountries as unknown as CountryProps[];
   } catch (error) {
     console.error('Error loading coffee content:', error);
     notFound();
   }
+
+  // Find the origin country
+  const originCountry = coffee.country?.sys?.id
+    ? allCountriesData.find((c) => c.sys.id === coffee.country?.sys?.id) || null
+    : null;
+
+  // Build JSON-LD structured data
+  const imageUrl = coffee.photo?.url
+    ? (coffee.photo.url.startsWith('http') ? coffee.photo.url : `https:${coffee.photo.url}`)
+    : null;
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: coffee.name,
+    description: `${coffee.name} from ${coffee.roaster}${coffee.country ? `, ${coffee.country.name}` : ''}`,
+    brand: {
+      '@type': 'Brand',
+      name: coffee.roaster,
+    },
+    ...(imageUrl && {
+      image: imageUrl,
+    }),
+    ...(coffee.scaScore && {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: coffee.scaScore,
+        bestRating: 100,
+        worstRating: 0,
+      },
+    }),
+    offers: {
+      '@type': 'Offer',
+      availability: 'https://schema.org/InStock',
+      ...(coffee.url && {
+        url: coffee.url,
+      }),
+    },
+    additionalProperty: [
+      ...(coffee.country ? [{
+        '@type': 'PropertyValue',
+        name: 'Origin Country',
+        value: coffee.country.name,
+      }] : []),
+      ...(coffee.region ? [{
+        '@type': 'PropertyValue',
+        name: 'Region',
+        value: coffee.region,
+      }] : []),
+      ...(coffee.process ? [{
+        '@type': 'PropertyValue',
+        name: 'Process',
+        value: coffee.process,
+      }] : []),
+      ...(coffee.variety ? [{
+        '@type': 'PropertyValue',
+        name: 'Variety',
+        value: coffee.variety,
+      }] : []),
+      ...(coffee.farmer ? [{
+        '@type': 'PropertyValue',
+        name: 'Farmer',
+        value: coffee.farmer,
+      }] : []),
+      ...(coffee.farm ? [{
+        '@type': 'PropertyValue',
+        name: 'Farm',
+        value: coffee.farm,
+      }] : []),
+    ],
+  };
+
+  const breadcrumbJsonLd = createCoffeeBreadcrumbJsonLd({
+    slug,
+    name: coffee.name,
+  });
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <main className="flex min-h-screen flex-col items-center justify-between bg-white pb-24">
+        <CoffeeDetail
+          coffee={coffee}
+          originCountry={originCountry}
+          allCountries={allCountriesData}
+        />
+      </main>
+    </>
+  );
 }
