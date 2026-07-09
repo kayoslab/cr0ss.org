@@ -33,7 +33,7 @@ export const Blog = ({ blog, recommendations }: { blog: BlogProps, recommendatio
             <div
               className='text-zinc-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed'
             >
-              By  <Link href={`/page/about`}><u>{"cr0ss"}</u></Link>{" published on "}{publishDate}{" in "}
+              By  <Link href={`/`}><u>{"cr0ss"}</u></Link>{" published on "}{publishDate}{" in "}
               {blog.categoriesCollection.items.length > 0 ? "|" : ""}
               {blog.categoriesCollection.items.map((category: CategoryProps) => (
                 <u key={category.slug}><Link href={`/blog/category/` + category.slug}>{category.title}</Link>|</u>

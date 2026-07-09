@@ -41,10 +41,10 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href='/projects'
+                  href='/portfolio'
                   className='text-sm text-gray-600 hover:text-gray-900 transition-colors'
                 >
-                  Projects
+                  Portfolio
                 </Link>
               </li>
             </ul>
@@ -56,14 +56,6 @@ export default function Footer() {
               Information
             </h3>
             <ul className='space-y-3'>
-              <li>
-                <Link
-                  href='/page/about'
-                  className='text-sm text-gray-600 hover:text-gray-900 transition-colors'
-                >
-                  About
-                </Link>
-              </li>
               <li>
                 <Link
                   href='/page/contact'

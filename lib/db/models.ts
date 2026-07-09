@@ -69,32 +69,59 @@ export const ZPaceSeries = z.array(ZPacePoint);
 export const ZHeatDay = z.object({ date: z.string(), km: z.number().min(0) });
 export const ZHeat = z.array(ZHeatDay);
 
-// AI Chat Embeddings
-export const ZEmbeddingSource = z.enum(["blog", "knowledge"]);
-export type EmbeddingSource = z.infer<typeof ZEmbeddingSource>;
+// Networking contact memory (vector search over people I meet)
 
-export const ZEmbeddingMetadata = z.object({
-  source: ZEmbeddingSource,
-  slug: z.string().optional(),      // For blog posts
-  title: z.string().optional(),     // For blog posts
-  file: z.string().optional(),      // For knowledge base files
-  url: z.string().optional(),       // Full URL if applicable
+/** How the visitor identified themselves on the portfolio capture form. */
+export const ZAnchorType = z.enum(["linkedin", "company"]);
+export type AnchorType = z.infer<typeof ZAnchorType>;
+
+/** Lifecycle of an enrichment job for a captured contact. */
+export const ZContactStatus = z.enum(["pending", "enriching", "enriched", "failed"]);
+export type ContactStatus = z.infer<typeof ZContactStatus>;
+
+/**
+ * A seed row created by the public capture form.
+ * `anchorValue` is a LinkedIn URL or a company name depending on `anchorType`.
+ */
+export const ZContactSeed = z.object({
+  name: z.string().min(1).max(200),
+  anchorType: ZAnchorType,
+  anchorValue: z.string().min(1).max(500),
+  message: z.string().max(1000).optional(),
+  source: z.string().max(100).default("portfolio"),
+  // Campaign identifier from the capture URL (?campaign-id=…) — tracks how/where
+  // the contact was met.
+  campaignId: z.string().max(200).optional(),
 });
-export type EmbeddingMetadata = z.infer<typeof ZEmbeddingMetadata>;
+export type ContactSeed = z.infer<typeof ZContactSeed>;
 
-export const ZChatEmbedding = z.object({
-  id: z.number().int(),
-  content: z.string(),
-  embedding: z.array(z.number()).length(384).optional(), // Vector as array (text-embedding-3-small, truncated to 384 dims)
-  metadata: ZEmbeddingMetadata,
-  created_at: z.string(),
-  updated_at: z.string(),
-});
-export type ChatEmbedding = z.infer<typeof ZChatEmbedding>;
+/**
+ * Enriched profile stored as JSONB metadata alongside the embedding.
+ * Known fields are typed; extra actor-specific fields are preserved via passthrough.
+ */
+export const ZProfileMetadata = z
+  .object({
+    name: z.string(),
+    headline: z.string().optional(),
+    company: z.string().optional(),
+    role: z.string().optional(),
+    location: z.string().optional(),
+    linkedinUrl: z.string().optional(),
+    email: z.string().optional(),
+    metAt: z.string().optional(),      // Where/when we met, if known
+    tags: z.array(z.string()).optional(),
+  })
+  .catchall(z.unknown());
+export type ProfileMetadata = z.infer<typeof ZProfileMetadata>;
 
-export const ZRetrievalResult = z.object({
+/** A single ranked result from a plain-English recall query. */
+export const ZContactSearchResult = z.object({
+  contactId: z.string(),
+  name: z.string(),
+  anchorType: ZAnchorType,
+  anchorValue: z.string(),
   content: z.string(),
-  metadata: ZEmbeddingMetadata,
+  profile: ZProfileMetadata,
   similarity: z.number().min(0).max(1),
 });
-export type RetrievalResult = z.infer<typeof ZRetrievalResult>;
+export type ContactSearchResult = z.infer<typeof ZContactSearchResult>;
