@@ -33,16 +33,19 @@ async function startApifyRun(contactId: string): Promise<string | null> {
   const contact = await getContactById(contactId);
   if (!contact) throw new FatalError(`Contact ${contactId} not found`);
 
-  // NOTE: the exact input shape depends on the chosen Apify actor.
-  // For a LinkedIn profile scraper, pass the profile URL; for a search/enrich
-  // actor, pass a name + company query. Adjust to match APIFY_ACTOR_ID.
+  // Input for dev_fusion/linkedin-profile-scraper (LinkedIn URL → profile).
+  // The company anchor has no LinkedIn URL, so this URL-only actor can't enrich
+  // it; swap in a search/enrich actor if you want the company path to work.
   const input =
     contact.anchorType === 'linkedin'
       ? { profileUrls: [contact.anchorValue] }
       : { queries: [`${contact.name} ${contact.anchorValue}`] };
 
+  // Apify REST uses `username~actorName`; accept the `username/actorName` form too.
+  const actorPath = actorId.trim().replace('/', '~');
+
   const res = await fetch(
-    `${APIFY_BASE}/acts/${encodeURIComponent(actorId)}/runs?token=${token}`,
+    `${APIFY_BASE}/acts/${actorPath}/runs?token=${token}`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
