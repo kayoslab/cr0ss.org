@@ -93,20 +93,13 @@ async function main() {
       CREATE INDEX IF NOT EXISTS contact_embeddings_profile_idx
         ON contact_embeddings USING gin (profile)
     `;
-    try {
-      await sql`
-        CREATE INDEX IF NOT EXISTS contact_embeddings_embedding_idx
-          ON contact_embeddings
-          USING ivfflat (embedding vector_cosine_ops)
-          WITH (lists = 100)
-      `;
-      console.log("✅ contact_embeddings table + vector index ready\n");
-    } catch (error) {
-      console.log(
-        "⚠️  Vector index skipped (created after first rows):",
-        error instanceof Error ? error.message.split("\n")[0] : String(error)
-      );
-    }
+    // No approximate vector index (ivfflat/hnsw) on purpose. A personal contact
+    // store is small, so an exact sequential scan is fast and always correct.
+    // An ivfflat index with lists=100 + default probes=1 silently returns zero
+    // rows on a tiny table (it only scans one of 100 clusters). Add HNSW only if
+    // this ever grows into the tens of thousands of contacts.
+    await sql`DROP INDEX IF EXISTS contact_embeddings_embedding_idx`;
+    console.log("✅ contact_embeddings table + indexes ready\n");
 
     // 5. Verify
     console.log("5️⃣  Verifying tables...");
