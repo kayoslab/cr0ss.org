@@ -25,8 +25,9 @@ const ZCaptureRequest = ZContactSeed.extend({
  * a pre-filled wa.me link so the visitor lands in WhatsApp.
  */
 export async function POST(request: Request) {
-  // Rate limit: 5 submissions per hour per client (spam control).
-  const rl = await rateLimit(request, "capture", { windowSec: 3600, max: 5 });
+  // Rate limit: 200 submissions/hour per client. Deliberately high because at
+  // events many visitors share one NAT/WiFi IP and would otherwise collide.
+  const rl = await rateLimit(request, "capture", { windowSec: 3600, max: 200 });
   if (!rl.ok) {
     return createErrorResponse(
       "Too many submissions. Please try again later.",

@@ -33,13 +33,16 @@ async function startApifyRun(contactId: string): Promise<string | null> {
   const contact = await getContactById(contactId);
   if (!contact) throw new FatalError(`Contact ${contactId} not found`);
 
-  // Input for dev_fusion/linkedin-profile-scraper (LinkedIn URL → profile).
-  // The company anchor has no LinkedIn URL, so this URL-only actor can't enrich
-  // it; swap in a search/enrich actor if you want the company path to work.
-  const input =
-    contact.anchorType === 'linkedin'
-      ? { profileUrls: [contact.anchorValue] }
-      : { queries: [`${contact.name} ${contact.anchorValue}`] };
+  // Input for harvestapi/linkedin-profile-scraper: `queries` accepts LinkedIn
+  // profile URLs or public identifiers. The company anchor has no URL, so a
+  // profile scraper can't resolve it — swap in a search actor for that path.
+  const input = {
+    queries: [
+      contact.anchorType === 'linkedin'
+        ? contact.anchorValue
+        : `${contact.name} ${contact.anchorValue}`,
+    ],
+  };
 
   // Apify REST uses `username~actorName`; accept the `username/actorName` form too.
   const actorPath = actorId.trim().replace('/', '~');
@@ -53,7 +56,8 @@ async function startApifyRun(contactId: string): Promise<string | null> {
     }
   );
   if (!res.ok) {
-    throw new FatalError(`Apify run start failed: ${res.status}`);
+    const body = await res.text().catch(() => '');
+    throw new FatalError(`Apify run start failed: ${res.status} ${body.slice(0, 300)}`);
   }
   const json = (await res.json()) as { data?: { id?: string } };
   const runId = json.data?.id;
@@ -90,18 +94,55 @@ async function buildAndEmbed(contactId: string, runId: string): Promise<void> {
   const items = (await res.json()) as Array<Record<string, unknown>>;
   const raw = items[0] ?? {};
 
+  // An actor can "succeed" but return an error item (e.g. Apify plan limits) or
+  // no usable data. Don't pollute the contact memory — mark it failed instead.
+  const actorError = str(raw.error);
+  const hasProfileData =
+    str(raw.fullName) ||
+    str(raw.name) ||
+    str(raw.firstName) ||
+    str(raw.headline) ||
+    str(raw.companyName) ||
+    str(raw.jobTitle);
+  if (actorError || !hasProfileData) {
+    await setContactStatus(contactId, 'failed');
+    console.error(
+      `Enrichment produced no usable profile for ${contactId}: ${actorError ?? 'empty result'}`
+    );
+    return;
+  }
+
+  // Extract across common actor shapes. harvestapi: firstName/lastName,
+  // location.linkedinText, currentPosition[]/experience[]; flatter actors expose
+  // fullName/companyName/jobTitle directly — the fallbacks cover both.
+  const loc = (raw.location ?? {}) as { linkedinText?: unknown };
+  const positions = (
+    Array.isArray(raw.currentPosition)
+      ? raw.currentPosition
+      : Array.isArray(raw.experience)
+        ? raw.experience
+        : []
+  ) as Array<Record<string, unknown>>;
+  const cur = positions[0] ?? {};
+  const emails = Array.isArray(raw.emails) ? raw.emails : [];
+  const fullName =
+    [str(raw.firstName), str(raw.lastName)].filter(Boolean).join(' ') ||
+    str(raw.fullName) ||
+    str(raw.name);
+  const about = str(raw.about);
+
   const profile = ZProfileMetadata.parse({
-    ...raw,
-    name: str(raw.fullName) ?? str(raw.name) ?? contact.name,
+    name: fullName || contact.name,
     headline: str(raw.headline),
-    company: str(raw.companyName) ?? str(raw.company),
-    role: str(raw.jobTitle) ?? str(raw.title),
-    location: str(raw.location) ?? str(raw.addressWithCountry),
+    company: str(cur.companyName) ?? str(raw.companyName) ?? str(raw.company),
+    role: str(cur.position) ?? str(raw.jobTitle) ?? str(raw.title),
+    location: str(loc.linkedinText) ?? str(raw.location) ?? str(raw.addressWithCountry),
     linkedinUrl:
       str(raw.linkedinUrl) ??
       str(raw.profileUrl) ??
       (contact.anchorType === 'linkedin' ? contact.anchorValue : undefined),
-    email: str(raw.email),
+    email: str(emails[0]) ?? str(raw.email),
+    about,
     metAt: contact.campaignId ?? str(raw.metAt),
   });
 
@@ -112,6 +153,7 @@ async function buildAndEmbed(contactId: string, runId: string): Promise<void> {
     profile.company && `Company: ${profile.company}`,
     profile.role && `Role: ${profile.role}`,
     profile.location && `Location: ${profile.location}`,
+    about && `About: ${about.slice(0, 400)}`,
     `Met via ${contact.anchorType}: ${contact.anchorValue}`,
     contact.campaignId && `Met at: ${contact.campaignId}`,
     contact.message && `Note: ${contact.message}`,
