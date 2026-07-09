@@ -50,7 +50,7 @@ export async function getAllProjects(): Promise<PortfolioCollection> {
 /** A single portfolio project by slug, or null if not found. */
 export async function getProject(slug: string): Promise<PortfolioProps | null> {
   try {
-    const escapedSlug = slug.replace(/"/g, '\\"');
+    const escapedSlug = slug.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
     const query = `query {
       portfolioProjectCollection(where: { slug: "${escapedSlug}" }, limit: 1, preview: false) {
         items {
