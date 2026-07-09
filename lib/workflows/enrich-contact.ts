@@ -53,7 +53,8 @@ async function startApifyRun(contactId: string): Promise<string | null> {
     }
   );
   if (!res.ok) {
-    throw new FatalError(`Apify run start failed: ${res.status}`);
+    const body = await res.text().catch(() => '');
+    throw new FatalError(`Apify run start failed: ${res.status} ${body.slice(0, 300)}`);
   }
   const json = (await res.json()) as { data?: { id?: string } };
   const runId = json.data?.id;
@@ -89,6 +90,23 @@ async function buildAndEmbed(contactId: string, runId: string): Promise<void> {
   if (!res.ok) throw new FatalError(`Apify dataset fetch failed: ${res.status}`);
   const items = (await res.json()) as Array<Record<string, unknown>>;
   const raw = items[0] ?? {};
+
+  // An actor can "succeed" but return an error item (e.g. Apify plan limits) or
+  // no usable data. Don't pollute the contact memory — mark it failed instead.
+  const actorError = str(raw.error);
+  const hasProfileData =
+    str(raw.fullName) ||
+    str(raw.name) ||
+    str(raw.headline) ||
+    str(raw.companyName) ||
+    str(raw.jobTitle);
+  if (actorError || !hasProfileData) {
+    await setContactStatus(contactId, 'failed');
+    console.error(
+      `Enrichment produced no usable profile for ${contactId}: ${actorError ?? 'empty result'}`
+    );
+    return;
+  }
 
   const profile = ZProfileMetadata.parse({
     ...raw,
