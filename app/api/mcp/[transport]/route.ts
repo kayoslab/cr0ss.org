@@ -30,7 +30,10 @@ const handler = createMcpHandler(
       },
       async ({ query, limit }) => {
         const embedding = await generateEmbedding(query);
-        const results = await searchContacts(embedding, limit ?? 5);
+        // Return the top-K nearest (ranked best-first) with no hard similarity
+        // floor — the agent judges relevance. A fixed threshold drops valid
+        // matches because the 384-dim embeddings compress cosine scores.
+        const results = await searchContacts(embedding, limit ?? 5, 0);
         return {
           content: [{ type: "text", text: JSON.stringify(results, null, 2) }],
         };
