@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+import { withWorkflow } from 'workflow/next';
 import { fileURLToPath } from 'node:url';
 import createJiti from 'jiti';
 const jiti = createJiti(fileURLToPath(import.meta.url));
@@ -42,4 +43,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default withWorkflow(nextConfig);

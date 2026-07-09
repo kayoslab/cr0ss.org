@@ -39,3 +39,5 @@ next-env.d.ts
 
 # transformers.js model cache
 .transformers-cache/
+.env*
+/.swc

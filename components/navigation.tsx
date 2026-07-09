@@ -156,22 +156,14 @@ export default function Navigation() {
           <Link href='/blog' className='text-sm font-semibold leading-6 text-gray-900'>
             Blog
           </Link>
-          <Link href='/projects' className='text-sm font-semibold leading-6 text-gray-900'>
-            Projects
+          <Link href='/portfolio' className='text-sm font-semibold leading-6 text-gray-900'>
+            Portfolio
           </Link>
           <Link href='/page/about' className='text-sm font-semibold leading-6 text-gray-900'>
             About
           </Link>
           <Link href='/page/contact' className='text-sm font-semibold leading-6 text-gray-900'>
             Contact
-          </Link>
-          <Link
-            href='/chat'
-            className='inline-flex rounded-full p-[1px] bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 transition-all duration-200 hover:scale-105'
-          >
-            <span className='flex items-center bg-white rounded-full px-4 py-1.5 text-sm font-semibold'>
-              <span className='bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 bg-clip-text text-transparent'>AI Chat</span>
-            </span>
           </Link>
         </Popover.Group>
         <div className='hidden lg:flex lg:flex-1 lg:justify-end'>
@@ -313,11 +305,11 @@ export default function Navigation() {
                   Blog
                 </Link>
                 <Link
-                  href='/projects'
+                  href='/portfolio'
                   className='-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50'
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Projects
+                  Portfolio
                 </Link>
                 <Link
                   href='/page/about'
@@ -332,15 +324,6 @@ export default function Navigation() {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Contact
-                </Link>
-                <Link
-                  href='/chat'
-                  className='mt-4 inline-flex rounded-full p-[1px] bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 transition-all duration-200'
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <span className='flex items-center justify-center bg-white rounded-full px-6 py-2 text-base font-semibold'>
-                    <span className='bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 bg-clip-text text-transparent'>AI Chat</span>
-                  </span>
                 </Link>
               </div>
               <div className='py-6'>

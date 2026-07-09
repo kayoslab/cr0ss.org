@@ -180,6 +180,16 @@ function getRevalidationTags(payload: ContentfulWebhookPayload): string[] {
       tags.push('knowledgeBase');
       break;
 
+    case 'portfolioProject':
+      // Revalidate portfolio collection
+      tags.push('portfolioProjects');
+
+      // Revalidate specific project if slug is available
+      if (slug) {
+        tags.push(slug);
+      }
+      break;
+
     default:
       console.warn(`Unknown content type: ${contentTypeId}`);
   }
@@ -275,6 +285,16 @@ function getRevalidationPaths(payload: ContentfulWebhookPayload): string[] {
         paths.push(`/coffee/${slug}`);
       }
       break;
+
+    case 'portfolioProject':
+      // Revalidate portfolio index
+      paths.push('/portfolio');
+
+      // Revalidate specific project detail page if slug is available
+      if (slug) {
+        paths.push(`/portfolio/${slug}`);
+      }
+      break;
   }
 
   return paths;
@@ -325,47 +345,11 @@ export async function POST(request: Request) {
       algoliaUpdated = true;
     }
 
-    // Re-index content for AI chat
-    // Note: This runs async and doesn't block the response
-    let aiIndexed = false;
-    if (contentTypeId === 'blogPost' && slug) {
-      // Call the AI re-indexing endpoint (runs on Node runtime)
-      fetch(new URL('/api/ai/reindex-blog', request.url), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-vercel-revalidation-key': request.headers.get('x-vercel-revalidation-key') || '',
-        },
-        body: JSON.stringify({ slug }),
-      })
-        .then(() => console.log(`AI re-indexing triggered for blog: ${slug}`))
-        .catch((error) => console.error(`AI re-indexing failed for blog ${slug}:`, error));
-
-      aiIndexed = true;
-    }
-
-    // Re-index knowledge base entry for AI chat
-    if (contentTypeId === 'knowledgeBase' && slug) {
-      fetch(new URL('/api/ai/reindex-knowledge', request.url), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-vercel-revalidation-key': request.headers.get('x-vercel-revalidation-key') || '',
-        },
-        body: JSON.stringify({ slug }),
-      })
-        .then(() => console.log(`AI re-indexing triggered for knowledge base: ${slug}`))
-        .catch((error) => console.error(`AI re-indexing failed for knowledge base ${slug}:`, error));
-
-      aiIndexed = true;
-    }
-
     return createSuccessResponse({
       revalidated: true,
       tags: tagsToRevalidate,
       paths: pathsToRevalidate,
       algoliaIndexed: algoliaUpdated,
-      aiIndexQueued: aiIndexed,
       timestamp: Date.now(),
     });
   } catch (error) {
