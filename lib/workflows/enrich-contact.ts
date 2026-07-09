@@ -102,6 +102,7 @@ async function buildAndEmbed(contactId: string, runId: string): Promise<void> {
       str(raw.profileUrl) ??
       (contact.anchorType === 'linkedin' ? contact.anchorValue : undefined),
     email: str(raw.email),
+    metAt: contact.campaignId ?? str(raw.metAt),
   });
 
   // Mash the useful fields into one blob — this is what becomes searchable.
@@ -112,6 +113,7 @@ async function buildAndEmbed(contactId: string, runId: string): Promise<void> {
     profile.role && `Role: ${profile.role}`,
     profile.location && `Location: ${profile.location}`,
     `Met via ${contact.anchorType}: ${contact.anchorValue}`,
+    contact.campaignId && `Met at: ${contact.campaignId}`,
     contact.message && `Note: ${contact.message}`,
   ]
     .filter(Boolean)

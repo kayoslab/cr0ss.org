@@ -7,8 +7,7 @@ import { Separator } from "@/components/ui/separator";
 const marketingLinks = [
   { href: "/", label: "Home" },
   { href: "/blog", label: "Blog" },
-  { href: "/projects", label: "Projects" },
-  { href: "/page/about", label: "About" },
+  { href: "/portfolio", label: "Portfolio" },
   { href: "/page/contact", label: "Contact" },
 ];
 

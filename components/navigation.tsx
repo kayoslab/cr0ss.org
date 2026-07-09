@@ -159,9 +159,6 @@ export default function Navigation() {
           <Link href='/portfolio' className='text-sm font-semibold leading-6 text-gray-900'>
             Portfolio
           </Link>
-          <Link href='/page/about' className='text-sm font-semibold leading-6 text-gray-900'>
-            About
-          </Link>
           <Link href='/page/contact' className='text-sm font-semibold leading-6 text-gray-900'>
             Contact
           </Link>
@@ -310,13 +307,6 @@ export default function Navigation() {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Portfolio
-                </Link>
-                <Link
-                  href='/page/about'
-                  className='-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50'
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  About
                 </Link>
                 <Link
                   href='/page/contact'

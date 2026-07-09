@@ -11,6 +11,7 @@ export interface PortfolioProps {
   title: string;
   summary: string;
   url?: string | null;
+  githubUrl?: string | null;
   external?: boolean | null;
   order?: number | null;
   heroImage?: {
@@ -61,6 +62,7 @@ export const PORTFOLIO_GRAPHQL_FIELDS = `
   slug
   summary
   url
+  githubUrl
   external
   order
   heroImage {

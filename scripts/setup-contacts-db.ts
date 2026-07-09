@@ -58,6 +58,7 @@ async function main() {
         anchor_value TEXT NOT NULL,
         message TEXT,
         source TEXT NOT NULL DEFAULT 'portfolio',
+        campaign_id TEXT,
         status TEXT NOT NULL DEFAULT 'pending'
           CHECK (status IN ('pending', 'enriching', 'enriched', 'failed')),
         apify_run_id TEXT,
@@ -65,7 +66,10 @@ async function main() {
         enriched_at TIMESTAMP WITH TIME ZONE
       )
     `;
+    // Idempotent: add campaign_id to an existing contacts table if missing.
+    await sql`ALTER TABLE contacts ADD COLUMN IF NOT EXISTS campaign_id TEXT`;
     await sql`CREATE INDEX IF NOT EXISTS contacts_status_idx ON contacts (status)`;
+    await sql`CREATE INDEX IF NOT EXISTS contacts_campaign_id_idx ON contacts (campaign_id)`;
     await sql`CREATE INDEX IF NOT EXISTS contacts_created_at_idx ON contacts (created_at)`;
     console.log("✅ contacts table ready\n");
 

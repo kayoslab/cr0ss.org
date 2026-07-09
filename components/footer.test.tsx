@@ -36,7 +36,7 @@ describe('Footer', () => {
     expect(homeLinks.length).toBeGreaterThan(0);
 
     expect(getAllByText('Blog').length).toBeGreaterThan(0);
-    expect(getAllByText('Projects').length).toBeGreaterThan(0);
+    expect(getAllByText('Portfolio').length).toBeGreaterThan(0);
   });
 
   it('should render Information section header', () => {
@@ -48,7 +48,6 @@ describe('Footer', () => {
   it('should render information links', () => {
     const { getByText } = render(<Footer />);
 
-    expect(getByText('About')).toBeInTheDocument();
     expect(getByText('Contact')).toBeInTheDocument();
     expect(getByText('Imprint')).toBeInTheDocument();
   });
@@ -80,18 +79,11 @@ describe('Footer', () => {
     expect(blogLinks[0]).toHaveAttribute('href', '/blog');
   });
 
-  it('should render correct href for Projects link', () => {
+  it('should render correct href for Portfolio link', () => {
     const { getAllByRole } = render(<Footer />);
 
-    const projectsLinks = getAllByRole('link', { name: /Projects/i });
-    expect(projectsLinks[0]).toHaveAttribute('href', '/projects');
-  });
-
-  it('should render correct href for About link', () => {
-    const { getByRole } = render(<Footer />);
-
-    const aboutLink = getByRole('link', { name: 'About' });
-    expect(aboutLink).toHaveAttribute('href', '/page/about');
+    const portfolioLinks = getAllByRole('link', { name: /Portfolio/i });
+    expect(portfolioLinks[0]).toHaveAttribute('href', '/portfolio');
   });
 
   it('should render correct href for Contact link', () => {

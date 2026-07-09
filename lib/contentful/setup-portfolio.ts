@@ -108,11 +108,37 @@ const seedProjects: SeedProject[] = [
 
 async function ensureContentType() {
   try {
-    await client.contentType.get({ contentTypeId: CONTENT_TYPE_ID });
-    console.log(`ℹ️  Content type '${CONTENT_TYPE_ID}' already exists — skipping.`);
+    const existing = await client.contentType.get({ contentTypeId: CONTENT_TYPE_ID });
+    // Idempotently add any newly-introduced fields (e.g. githubUrl).
+    if (existing.fields.some((f) => f.id === 'githubUrl')) {
+      console.log(`ℹ️  Content type '${CONTENT_TYPE_ID}' up to date — skipping.`);
+      return;
+    }
+    console.log(`Adding 'githubUrl' field to '${CONTENT_TYPE_ID}'...`);
+    const updated = await client.contentType.update(
+      { contentTypeId: CONTENT_TYPE_ID },
+      {
+        ...existing,
+        fields: [
+          ...existing.fields,
+          {
+            id: 'githubUrl',
+            name: 'GitHub URL',
+            type: 'Symbol',
+            required: false,
+            localized: false,
+          },
+        ],
+      }
+    );
+    await client.contentType.publish({ contentTypeId: CONTENT_TYPE_ID }, updated);
+    console.log(`✅ 'githubUrl' field added and published.`);
     return;
-  } catch {
-    // Not found — create it below.
+  } catch (error) {
+    // A genuine "not found" means we create the type below; anything else rethrows.
+    if (error && typeof error === 'object' && 'name' in error && error.name !== 'NotFound') {
+      throw error;
+    }
   }
 
   console.log(`Creating content type '${CONTENT_TYPE_ID}'...`);

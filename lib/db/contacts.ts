@@ -27,13 +27,14 @@ function getSQL() {
 export async function insertContactSeed(seed: ContactSeed): Promise<string> {
   const sql = getSQL();
   const rows = (await sql`
-    INSERT INTO contacts (name, anchor_type, anchor_value, message, source, status)
+    INSERT INTO contacts (name, anchor_type, anchor_value, message, source, campaign_id, status)
     VALUES (
       ${seed.name},
       ${seed.anchorType},
       ${seed.anchorValue},
       ${seed.message ?? null},
       ${seed.source},
+      ${seed.campaignId ?? null},
       'pending'
     )
     RETURNING id
@@ -68,10 +69,11 @@ export async function getContactById(id: string): Promise<{
   anchorType: AnchorType;
   anchorValue: string;
   message: string | null;
+  campaignId: string | null;
 } | null> {
   const sql = getSQL();
   const rows = (await sql`
-    SELECT id, name, anchor_type, anchor_value, message
+    SELECT id, name, anchor_type, anchor_value, message, campaign_id
     FROM contacts
     WHERE id = ${id}
     LIMIT 1
@@ -81,6 +83,7 @@ export async function getContactById(id: string): Promise<{
     anchor_type: AnchorType;
     anchor_value: string;
     message: string | null;
+    campaign_id: string | null;
   }>;
   const row = rows[0];
   if (!row) return null;
@@ -90,6 +93,7 @@ export async function getContactById(id: string): Promise<{
     anchorType: row.anchor_type,
     anchorValue: row.anchor_value,
     message: row.message,
+    campaignId: row.campaign_id,
   };
 }
 

@@ -23,7 +23,7 @@ const ZCaptureForm = z.object({
 
 type CaptureFormValues = z.infer<typeof ZCaptureForm>;
 
-export function CaptureForm() {
+export function CaptureForm({ campaignId }: { campaignId?: string }) {
   const [serverError, setServerError] = useState<string | null>(null);
 
   const {
@@ -44,7 +44,7 @@ export function CaptureForm() {
       const res = await fetch('/api/capture', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
+        body: JSON.stringify({ ...values, campaignId }),
       });
 
       if (res.status === 429) {

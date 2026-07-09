@@ -89,6 +89,9 @@ export const ZContactSeed = z.object({
   anchorValue: z.string().min(1).max(500),
   message: z.string().max(1000).optional(),
   source: z.string().max(100).default("portfolio"),
+  // Campaign identifier from the capture URL (?campaign-id=…) — tracks how/where
+  // the contact was met.
+  campaignId: z.string().max(200).optional(),
 });
 export type ContactSeed = z.infer<typeof ZContactSeed>;
 
