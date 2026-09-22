@@ -162,7 +162,7 @@ describe('POST /api/habits/coffee', () => {
 
       expect(response.status).toBe(400);
       const data = await response.json();
-      expect(data.message).toBe('Validation failed');
+      expect(data.error).toBe('Validation failed');
     });
 
     it('should return 400 for invalid coffee type', async () => {

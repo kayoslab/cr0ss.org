@@ -26,6 +26,7 @@ vi.mock('@/lib/cache/revalidate', () => ({
   revalidateHabits: vi.fn(),
   revalidateWorkouts: vi.fn(),
   revalidateShared: vi.fn(),
+  revalidateGoals: vi.fn(),
 }));
 
 vi.mock('@/lib/obs/trace', () => ({
@@ -35,7 +36,7 @@ vi.mock('@/lib/obs/trace', () => ({
 import { rateLimit } from '@/lib/rate/limit';
 import { assertSecret } from '@/lib/auth/secret';
 import { sql } from '@/lib/db/client';
-import { revalidateShared } from '@/lib/cache/revalidate';
+import { revalidateGoals } from '@/lib/cache/revalidate';
 
 describe('GET /api/habits/goal', () => {
   beforeEach(() => {
@@ -162,7 +163,7 @@ describe('POST /api/habits/goal', () => {
     vi.clearAllMocks();
     vi.mocked(rateLimit).mockResolvedValue({ ok: true });
     vi.mocked(assertSecret).mockImplementation(() => {});
-    vi.mocked(revalidateShared).mockImplementation(() => {});
+    vi.mocked(revalidateGoals).mockImplementation(() => {});
   });
 
   describe('Authentication', () => {
@@ -209,7 +210,7 @@ describe('POST /api/habits/goal', () => {
 
       expect(response.status).toBe(400);
       const data = await response.json();
-      expect(data.message).toBe('Validation failed');
+      expect(data.error).toBe('Validation failed');
     });
 
     it('should return 400 for negative steps', async () => {
@@ -250,7 +251,7 @@ describe('POST /api/habits/goal', () => {
       expect(response.status).toBe(200);
       const data = await response.json();
       expect(data.ok).toBe(true);
-      expect(revalidateShared).toHaveBeenCalled();
+      expect(revalidateGoals).toHaveBeenCalled();
     });
 
     it('should update multiple goals', async () => {
@@ -271,7 +272,7 @@ describe('POST /api/habits/goal', () => {
       expect(response.status).toBe(200);
       const data = await response.json();
       expect(data.ok).toBe(true);
-      expect(revalidateShared).toHaveBeenCalled();
+      expect(revalidateGoals).toHaveBeenCalled();
     });
 
     it('should update all goals', async () => {
@@ -296,7 +297,7 @@ describe('POST /api/habits/goal', () => {
       expect(response.status).toBe(200);
       const data = await response.json();
       expect(data.ok).toBe(true);
-      expect(revalidateShared).toHaveBeenCalled();
+      expect(revalidateGoals).toHaveBeenCalled();
     });
 
     it('should handle zero values as goal targets', async () => {

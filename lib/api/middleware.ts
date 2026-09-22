@@ -1,40 +1,9 @@
 import { NextResponse } from 'next/server';
 import { ZodSchema, z } from 'zod';
+import { apiError, validationError } from '@/lib/api/responses';
+import type { ApiError } from '@/lib/api/responses';
 
-/**
- * Standard API error response
- */
-export interface ApiError {
-  error: string;
-  details?: unknown;
-  code?: string;
-}
-
-/**
- * Creates a standardized JSON error response
- */
-export function createErrorResponse(
-  error: string,
-  status: number = 500,
-  details?: unknown,
-  code?: string
-): NextResponse<ApiError> {
-  const response: ApiError = { error };
-  if (details) response.details = details;
-  if (code) response.code = code;
-
-  return NextResponse.json(response, { status });
-}
-
-/**
- * Creates a standardized JSON success response
- */
-export function createSuccessResponse<T>(
-  data: T,
-  status: number = 200
-): NextResponse<T> {
-  return NextResponse.json(data, { status });
-}
+export type { ApiError };
 
 /**
  * Validates request body against a Zod schema
@@ -53,12 +22,7 @@ export async function validateRequestBody<T extends ZodSchema>(
     if (!result.success) {
       return {
         success: false,
-        response: createErrorResponse(
-          'Validation failed',
-          400,
-          result.error.flatten(),
-          'VALIDATION_ERROR'
-        ),
+        response: validationError('Validation failed', result.error.flatten()),
       };
     }
 
@@ -66,7 +30,7 @@ export async function validateRequestBody<T extends ZodSchema>(
   } catch {
     return {
       success: false,
-      response: createErrorResponse(
+      response: apiError(
         'Invalid JSON in request body',
         400,
         undefined,
@@ -74,6 +38,17 @@ export async function validateRequestBody<T extends ZodSchema>(
       ),
     };
   }
+}
+
+/** Errors thrown as `{ status, message? }` (legacy auth helpers, upstream clients). */
+function isStatusError(
+  error: unknown
+): error is { status: number; message?: string } {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    typeof (error as { status?: unknown }).status === 'number'
+  );
 }
 
 /**
@@ -91,12 +66,19 @@ export function withErrorHandler(
         return error;
       }
 
+      if (isStatusError(error)) {
+        const message =
+          error.message ??
+          (error.status === 401 ? 'Unauthorized' : 'Request failed');
+        return apiError(message, error.status);
+      }
+
       // Log error for debugging
       console.error('API route error:', error);
 
       // Return generic error response
       if (error instanceof Error) {
-        return createErrorResponse(
+        return apiError(
           'Internal server error',
           500,
           process.env.NODE_ENV === 'development' ? error.message : undefined,
@@ -104,7 +86,7 @@ export function withErrorHandler(
         );
       }
 
-      return createErrorResponse('An unexpected error occurred', 500);
+      return apiError('An unexpected error occurred', 500);
     }
   };
 }
@@ -229,6 +211,8 @@ export class ApiRouteBuilder<TContext extends ApiContext = ApiContext> {
  *   });
  * ```
  */
-export function createApiRoute<TContext extends ApiContext = ApiContext>(): ApiRouteBuilder<TContext> {
+export function createApiRoute<
+  TContext extends ApiContext = ApiContext,
+>(): ApiRouteBuilder<TContext> {
   return new ApiRouteBuilder<TContext>();
 }

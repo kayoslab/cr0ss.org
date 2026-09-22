@@ -12,15 +12,15 @@ vi.mock('@/lib/auth/secret', () => ({
   hasValidSecret: vi.fn(),
 }));
 
-vi.mock('@/lib/api/middleware', () => {
+vi.mock('@/lib/api/responses', () => {
   return {
-    createErrorResponse: vi.fn((error: string, status: number, details?: unknown, code?: string) => {
+    apiError: vi.fn((error: string, status: number, details?: unknown, code?: string) => {
       const response: { error: string; details?: unknown; code?: string } = { error };
       if (details !== undefined) response.details = details;
       if (code) response.code = code;
       return NextResponse.json(response, { status });
     }),
-    createSuccessResponse: vi.fn((data: unknown, status: number = 200) => {
+    apiSuccess: vi.fn((data: unknown, status: number = 200) => {
       return NextResponse.json(data, { status });
     }),
   };

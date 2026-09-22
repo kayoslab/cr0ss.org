@@ -1,11 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  validateRequestBody,
-  withErrorHandler,
-  createApiRoute,
-} from './middleware';
+import { validateRequestBody, withErrorHandler, createApiRoute } from './middleware';
+import { apiSuccess as createSuccessResponse } from './responses';
 import { z } from 'zod';
 import { NextResponse } from 'next/server';
 
@@ -18,83 +13,6 @@ vi.mock('@/env', () => ({
 }));
 
 describe('API Middleware Helpers', () => {
-  describe('createErrorResponse', () => {
-    it('should create error response with message and default status 500', () => {
-      const response = createErrorResponse('Something went wrong');
-
-      expect(response.status).toBe(500);
-      expect(response).toBeInstanceOf(NextResponse);
-    });
-
-    it('should create error response with custom status code', () => {
-      const response = createErrorResponse('Not found', 404);
-
-      expect(response.status).toBe(404);
-    });
-
-    it('should include details when provided', async () => {
-      const details = { field: 'email', issue: 'invalid format' };
-      const response = createErrorResponse('Validation failed', 400, details);
-
-      const body = await response.json();
-      expect(body.error).toBe('Validation failed');
-      expect(body.details).toEqual(details);
-    });
-
-    it('should include error code when provided', async () => {
-      const response = createErrorResponse('Unauthorized', 401, undefined, 'AUTH_FAILED');
-
-      const body = await response.json();
-      expect(body.error).toBe('Unauthorized');
-      expect(body.code).toBe('AUTH_FAILED');
-    });
-
-    it('should include both details and code', async () => {
-      const details = { reason: 'token expired' };
-      const response = createErrorResponse('Auth error', 401, details, 'TOKEN_EXPIRED');
-
-      const body = await response.json();
-      expect(body.error).toBe('Auth error');
-      expect(body.details).toEqual(details);
-      expect(body.code).toBe('TOKEN_EXPIRED');
-    });
-  });
-
-  describe('createSuccessResponse', () => {
-    it('should create success response with data and default status 200', async () => {
-      const data = { id: 123, name: 'Test' };
-      const response = createSuccessResponse(data);
-
-      expect(response.status).toBe(200);
-      const body = await response.json();
-      expect(body).toEqual(data);
-    });
-
-    it('should create success response with custom status code', async () => {
-      const data = { created: true };
-      const response = createSuccessResponse(data, 201);
-
-      expect(response.status).toBe(201);
-      const body = await response.json();
-      expect(body.created).toBe(true);
-    });
-
-    it('should handle null data', async () => {
-      const response = createSuccessResponse(null);
-
-      const body = await response.json();
-      expect(body).toBe(null);
-    });
-
-    it('should handle array data', async () => {
-      const data = [{ id: 1 }, { id: 2 }];
-      const response = createSuccessResponse(data);
-
-      const body = await response.json();
-      expect(body).toEqual(data);
-    });
-  });
-
   describe('validateRequestBody', () => {
     const TestSchema = z.object({
       email: z.string().email(),

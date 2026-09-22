@@ -22,15 +22,6 @@ vi.mock('@/lib/obs/trace', () => ({
   wrapTrace: <T extends (...args: unknown[]) => unknown>(_name: string, fn: T): T => fn,
 }));
 
-vi.mock('@/lib/api/middleware', () => ({
-  createErrorResponse: vi.fn((message: string, status: number) => 
-    new Response(JSON.stringify({ message }), { status })
-  ),
-  createSuccessResponse: vi.fn((data: unknown, status = 200) => 
-    new Response(JSON.stringify(data), { status })
-  ),
-}));
-
 vi.mock('@/lib/db/workouts', () => ({
   insertWorkoutDB: vi.fn(),
   getRecentWorkoutsDB: vi.fn(),
@@ -52,7 +43,7 @@ describe('GET /api/habits/workout', () => {
   describe('Authentication', () => {
     it('should require authentication', async () => {
       vi.mocked(assertSecret).mockImplementation(() => {
-        throw new Error('Unauthorized');
+        throw new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
       });
 
       const request = new Request('http://localhost:3000/api/habits/workout');
@@ -205,7 +196,7 @@ describe('POST /api/habits/workout', () => {
   describe('Authentication', () => {
     it('should require authentication', async () => {
       vi.mocked(assertSecret).mockImplementation(() => {
-        throw new Error('Unauthorized');
+        throw new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
       });
 
       const request = new Request('http://localhost:3000/api/habits/workout', {
@@ -245,7 +236,7 @@ describe('POST /api/habits/workout', () => {
 
       expect(response.status).toBe(400);
       const data = await response.json();
-      expect(data.message).toBe('Validation failed');
+      expect(data.error).toBe('Validation failed');
     });
 
     it('should return 400 for invalid workout type', async () => {

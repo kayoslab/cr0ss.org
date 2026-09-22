@@ -164,7 +164,7 @@ describe('POST /api/habits/run', () => {
 
       expect(response.status).toBe(400);
       const data = await response.json();
-      expect(data.message).toBe('Validation failed');
+      expect(data.error).toBe('Validation failed');
     });
 
     it('should return 400 for negative distance', async () => {

@@ -13,9 +13,9 @@ vi.mock('@/lib/auth/secret', () => ({
 vi.mock('@/lib/cache/revalidate', () => ({
   revalidateDashboard: vi.fn(),
   revalidateCoffee: vi.fn(),
+  revalidateShared: vi.fn(),
   revalidateHabits: vi.fn(),
   revalidateWorkouts: vi.fn(),
-  revalidateShared: vi.fn(),
 }));
 
 vi.mock('@/lib/obs/trace', () => ({
@@ -29,7 +29,7 @@ vi.mock('@/lib/db/profile', () => ({
 
 import { rateLimit } from '@/lib/rate/limit';
 import { assertSecret } from '@/lib/auth/secret';
-import { revalidateCoffee } from '@/lib/cache/revalidate';
+import { revalidateShared } from '@/lib/cache/revalidate';
 import { getBodyProfileDB, upsertBodyProfileDB } from '@/lib/db/profile';
 
 describe('GET /api/habits/body', () => {
@@ -48,7 +48,7 @@ describe('GET /api/habits/body', () => {
       const request = new Request('http://localhost:3000/api/habits/body');
       const response = await GET(request);
 
-      expect(response.status).toBe(500);
+      expect(response.status).toBe(401);
       expect(assertSecret).toHaveBeenCalledWith(request);
     });
   });
@@ -156,7 +156,7 @@ describe('POST /api/habits/body', () => {
     vi.clearAllMocks();
     vi.mocked(rateLimit).mockResolvedValue({ ok: true });
     vi.mocked(assertSecret).mockImplementation(() => {});
-    vi.mocked(revalidateCoffee).mockImplementation(() => {});
+    vi.mocked(revalidateShared).mockImplementation(() => {});
   });
 
   describe('Authentication', () => {
@@ -203,7 +203,7 @@ describe('POST /api/habits/body', () => {
 
       expect(response.status).toBe(400);
       const data = await response.json();
-      expect(data.message).toBe('Validation failed');
+      expect(data.error).toBe('Validation failed');
     });
 
     it('should return 400 for invalid sex', async () => {
@@ -271,7 +271,7 @@ describe('POST /api/habits/body', () => {
       const data = await response.json();
       expect(data.ok).toBe(true);
       expect(data.profile.weight_kg).toBe(76);
-      expect(revalidateCoffee).toHaveBeenCalled();
+      expect(revalidateShared).toHaveBeenCalled();
     });
 
     it('should update multiple fields', async () => {
@@ -307,7 +307,7 @@ describe('POST /api/habits/body', () => {
       expect(response.status).toBe(200);
       const data = await response.json();
       expect(data.profile).toEqual(mockProfile);
-      expect(revalidateCoffee).toHaveBeenCalled();
+      expect(revalidateShared).toHaveBeenCalled();
     });
 
     it('should handle full profile update', async () => {

@@ -1,15 +1,12 @@
-import { z } from "zod";
-import { start } from "workflow/api";
-import { rateLimit } from "@/lib/rate/limit";
-import {
-  createErrorResponse,
-  createSuccessResponse,
-  validateRequestBody,
-} from "@/lib/api/middleware";
-import { ZContactSeed } from "@/lib/db/models";
-import { insertContactSeed } from "@/lib/db/contacts";
-import { enrichContactWorkflow } from "@/lib/workflows/enrich-contact";
-import { env } from "@/env";
+import { z } from 'zod';
+import { start } from 'workflow/api';
+import { rateLimit } from '@/lib/rate/limit';
+import { validateRequestBody } from '@/lib/api/middleware';
+import { apiError, apiSuccess } from '@/lib/api/responses';
+import { ZContactSeed } from '@/lib/db/models';
+import { insertContactSeed } from '@/lib/db/contacts';
+import { enrichContactWorkflow } from '@/lib/workflows/enrich-contact';
+import { env } from '@/env';
 
 // The public form also submits a honeypot field which must stay empty.
 const ZCaptureRequest = ZContactSeed.extend({
@@ -26,13 +23,13 @@ const ZCaptureRequest = ZContactSeed.extend({
 export async function POST(request: Request) {
   // Rate limit: 200 submissions/hour per client. Deliberately high because at
   // events many visitors share one NAT/WiFi IP and would otherwise collide.
-  const rl = await rateLimit(request, "capture", { windowSec: 3600, max: 200 });
+  const rl = await rateLimit(request, 'capture', { windowSec: 3600, max: 200 });
   if (!rl.ok) {
-    return createErrorResponse(
-      "Too many submissions. Please try again later.",
+    return apiError(
+      'Too many submissions. Please try again later.',
       429,
       { retryAfterSec: rl.retryAfterSec },
-      "RATE_LIMIT_EXCEEDED"
+      'RATE_LIMIT_EXCEEDED'
     );
   }
 
@@ -43,16 +40,16 @@ export async function POST(request: Request) {
 
   // Honeypot tripped — pretend success without storing anything.
   if (website && website.trim().length > 0) {
-    return createSuccessResponse({ ok: true });
+    return apiSuccess({ ok: true });
   }
 
   const ownerNumber = env.OWNER_WHATSAPP;
   if (!ownerNumber) {
-    return createErrorResponse(
-      "Capture is not configured yet.",
+    return apiError(
+      'Capture is not configured yet.',
       503,
       undefined,
-      "NOT_CONFIGURED"
+      'NOT_CONFIGURED'
     );
   }
 
@@ -63,12 +60,12 @@ export async function POST(request: Request) {
   try {
     await start(enrichContactWorkflow, [id]);
   } catch (error) {
-    console.error("Failed to start enrichment workflow:", error);
+    console.error('Failed to start enrichment workflow:', error);
   }
 
   // Build the pre-filled WhatsApp link (open-ended so they can add detail).
   const text = `Hi! We just met — I'm ${seed.name}.`;
   const waUrl = `https://wa.me/${ownerNumber}?text=${encodeURIComponent(text)}`;
 
-  return createSuccessResponse({ id, waUrl });
+  return apiSuccess({ id, waUrl });
 }

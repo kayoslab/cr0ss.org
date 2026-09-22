@@ -1,8 +1,8 @@
-import { start } from "workflow/api";
-import { createErrorResponse, createSuccessResponse } from "@/lib/api/middleware";
-import { listPendingContacts } from "@/lib/db/contacts";
-import { enrichContactWorkflow } from "@/lib/workflows/enrich-contact";
-import { env } from "@/env";
+import { start } from 'workflow/api';
+import { apiError, apiSuccess } from '@/lib/api/responses';
+import { listPendingContacts } from '@/lib/db/contacts';
+import { enrichContactWorkflow } from '@/lib/workflows/enrich-contact';
+import { env } from '@/env';
 
 /**
  * Fallback enrichment sweep for any contacts left in `pending`
@@ -13,9 +13,9 @@ import { env } from "@/env";
  */
 export async function GET(request: Request) {
   const secret = env.CRON_SECRET;
-  const auth = request.headers.get("authorization");
+  const auth = request.headers.get('authorization');
   if (!secret || auth !== `Bearer ${secret}`) {
-    return createErrorResponse("Unauthorized", 401, undefined, "UNAUTHORIZED");
+    return apiError('Unauthorized', 401, undefined, 'UNAUTHORIZED');
   }
 
   const pending = await listPendingContacts(25);
@@ -30,5 +30,5 @@ export async function GET(request: Request) {
     }
   }
 
-  return createSuccessResponse({ pending: pending.length, started: started.length });
+  return apiSuccess({ pending: pending.length, started: started.length });
 }

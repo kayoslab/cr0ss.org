@@ -1,9 +1,6 @@
 import { revalidateTag, revalidatePath } from 'next/cache';
 import { hasValidSecret } from '@/lib/auth/secret';
-import {
-  createErrorResponse,
-  createSuccessResponse,
-} from '@/lib/api/middleware';
+import { apiError, apiSuccess } from '@/lib/api/responses';
 import { getBlog } from '@/lib/contentful/api/blog';
 import { algoliasearch } from 'algoliasearch';
 import { env } from '@/env';
@@ -257,7 +254,7 @@ function getRevalidationPaths(payload: ContentfulWebhookPayload): string[] {
 export async function POST(request: Request) {
   // Check for valid secret using standard auth
   if (!hasValidSecret(request)) {
-    return createErrorResponse('Unauthorized', 401, undefined, 'UNAUTHORIZED');
+    return apiError('Unauthorized', 401, undefined, 'UNAUTHORIZED');
   }
 
   try {
@@ -267,7 +264,7 @@ export async function POST(request: Request) {
     const pathsToRevalidate = getRevalidationPaths(body);
 
     if (tagsToRevalidate.length === 0 && pathsToRevalidate.length === 0) {
-      return createErrorResponse(
+      return apiError(
         'No revalidation targets determined from payload',
         400,
         { payload: body },
@@ -298,7 +295,7 @@ export async function POST(request: Request) {
       algoliaUpdated = true;
     }
 
-    return createSuccessResponse({
+    return apiSuccess({
       revalidated: true,
       tags: tagsToRevalidate,
       paths: pathsToRevalidate,
@@ -307,7 +304,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error('Revalidation error:', error);
-    return createErrorResponse(
+    return apiError(
       'Failed to revalidate',
       500,
       error instanceof Error ? error.message : undefined,

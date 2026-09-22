@@ -184,8 +184,8 @@ describe('POST /api/habits/day', () => {
 
       expect(response.status).toBe(400);
       const data = await response.json();
-      expect(data.message).toBe('Validation failed');
-      expect(data.errors).toBeDefined();
+      expect(data.error).toBe('Validation failed');
+      expect(data.details).toBeDefined();
     });
 
     it('should return 400 for negative sleep score', async () => {
@@ -198,7 +198,7 @@ describe('POST /api/habits/day', () => {
 
       expect(response.status).toBe(400);
       const data = await response.json();
-      expect(data.message).toBe('Validation failed');
+      expect(data.error).toBe('Validation failed');
     });
 
     it('should return 400 for sleep score above 100', async () => {
