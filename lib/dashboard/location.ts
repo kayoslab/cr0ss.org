@@ -2,8 +2,8 @@
  * Most recent logged location, with the weather captured alongside it.
  */
 import { z } from 'zod';
-import { cached } from '@/lib/cache/cached';
-import { tags, CACHE_LIFE } from '@/lib/cache/tags';
+import { cacheLife, cacheTag } from 'next/cache';
+import { tags } from '@/lib/cache/tags';
 import { getCurrentLocation } from '@/lib/db/location';
 
 // `coerce` because PostgreSQL DECIMAL columns arrive as strings.
@@ -36,7 +36,9 @@ async function queryLocation(): Promise<Location | null> {
   });
 }
 
-export const getLocation = cached('dashboard-location', queryLocation, {
-  tags: () => [tags.dashboard.location],
-  revalidate: CACHE_LIFE.frequent,
-});
+export async function getLocation(): Promise<Location | null> {
+  'use cache';
+  cacheLife('frequent');
+  cacheTag(tags.dashboard.location);
+  return queryLocation();
+}

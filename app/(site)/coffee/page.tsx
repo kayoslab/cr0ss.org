@@ -1,12 +1,11 @@
+import { Suspense } from 'react';
 import { getAllCoffee } from '@/lib/contentful/api/coffee';
 import { CoffeeProps } from '@/lib/contentful/api/props/coffee';
 import CoffeeGrid from '@/components/coffee/coffee-grid';
 import { COFFEE_PER_PAGE } from '@/lib/constants';
 import { createListMetadata } from '@/lib/metadata';
 import type { Metadata } from 'next';
-
-// Revalidate the page every hour
-export const revalidate = 3600;
+import BlogGridLoading from '../blog/loading';
 
 export const metadata: Metadata = createListMetadata({
   title: 'Coffee | cr0ss.mind',
@@ -14,28 +13,34 @@ export const metadata: Metadata = createListMetadata({
   path: '/coffee',
 });
 
-export default async function CoffeePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ page?: string }>;
-}) {
+type SearchParams = Promise<{ page?: string }>;
+
+async function CoffeeList({ searchParams }: { searchParams: SearchParams }) {
   const { page } = await searchParams;
   const currentPage = Number(page) || 1;
   const coffeeCollection = await getAllCoffee(currentPage, COFFEE_PER_PAGE);
 
-  const totalCoffees = coffeeCollection.total;
-  const totalPages = Math.ceil(totalCoffees / COFFEE_PER_PAGE);
-  const coffees = coffeeCollection.items as unknown as CoffeeProps[];
+  return (
+    <CoffeeGrid
+      coffees={coffeeCollection.items as unknown as CoffeeProps[]}
+      currentPage={currentPage}
+      totalPages={Math.ceil(coffeeCollection.total / COFFEE_PER_PAGE)}
+      basePath='/coffee'
+      title='Coffee Collection'
+    />
+  );
+}
 
+export default function CoffeePage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
   return (
     <main className='flex min-h-screen flex-col items-center justify-between bg-white pb-24'>
-      <CoffeeGrid
-        coffees={coffees}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        basePath="/coffee"
-        title="Coffee Collection"
-      />
+      <Suspense fallback={<BlogGridLoading />}>
+        <CoffeeList searchParams={searchParams} />
+      </Suspense>
     </main>
   );
 }

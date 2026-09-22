@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
@@ -22,55 +23,74 @@ function firstParam(value: string | string[] | undefined): string | undefined {
   return value;
 }
 
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+// The "Let's stay in touch" box only appears when arriving via a campaign
+// link (e.g. the NFC card → /portfolio?campaign-id=shoreditch-meetup). It's
+// the one part of the page that depends on the URL, so it streams in on its
+// own while the rest is prerendered.
+async function CampaignCapture({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const campaignId = firstParam((await searchParams)['campaign-id']);
+  if (!campaignId) return null;
+  return (
+    <div className='mb-12'>
+      <CaptureForm campaignId={campaignId} />
+    </div>
+  );
+}
+
 export default async function PortfolioPage({
   searchParams,
 }: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+  searchParams: SearchParams;
 }) {
-  const [{ items }, sp] = await Promise.all([getAllProjects(), searchParams]);
-
-  // The "Let's stay in touch" box only appears when arriving via a campaign
-  // link (e.g. the NFC card → /portfolio?campaign-id=shoreditch-meetup).
-  const campaignId = firstParam(sp['campaign-id']);
+  const { items } = await getAllProjects();
 
   return (
-    <main className="flex flex-col items-center bg-white pb-12">
-      <div className="w-full max-w-4xl px-6 pt-10 lg:px-8">
-        {/* Campaign visitors land straight on the capture box. */}
-        {campaignId && <CaptureForm campaignId={campaignId} />}
+    <main className='flex flex-col items-center bg-white pb-12'>
+      <div className='w-full max-w-4xl px-6 pt-10 lg:px-8'>
+        <Suspense>
+          <CampaignCapture searchParams={searchParams} />
+        </Suspense>
 
-        <section className={campaignId ? 'mt-12' : ''}>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+        <section>
+          <h1 className='text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl'>
             Who am I?
           </h1>
-          <div className="mt-6 space-y-4 text-lg leading-relaxed text-gray-600">
+          <div className='mt-6 space-y-4 text-lg leading-relaxed text-gray-600'>
             {INTRO_PARAGRAPHS.map((paragraph, i) => (
               <p key={i}>{paragraph}</p>
             ))}
           </div>
         </section>
 
-        <h2 className="mt-12 text-2xl font-bold tracking-tight text-gray-900">
+        <h2 className='mt-12 text-2xl font-bold tracking-tight text-gray-900'>
           Things I&apos;ve been building
         </h2>
 
-        <div className="mt-6 grid gap-6">
+        <div className='mt-6 grid gap-6'>
           {items.map((project) => (
             <Link
               key={project.slug}
               href={`/portfolio/${project.slug}`}
-              className="group block rounded-xl border border-gray-200 p-6 transition-colors hover:border-gray-400 hover:bg-gray-50"
+              className='group block rounded-xl border border-gray-200 p-6 transition-colors hover:border-gray-400 hover:bg-gray-50'
             >
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-semibold text-gray-900">{project.title}</h3>
-                <ArrowUpRight className="h-5 w-5 text-gray-400 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-gray-600" />
+              <div className='flex items-center justify-between'>
+                <h3 className='text-xl font-semibold text-gray-900'>
+                  {project.title}
+                </h3>
+                <ArrowUpRight className='h-5 w-5 text-gray-400 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-gray-600' />
               </div>
-              <p className="mt-2 text-gray-600">{project.summary}</p>
+              <p className='mt-2 text-gray-600'>{project.summary}</p>
             </Link>
           ))}
 
           {items.length === 0 && (
-            <p className="text-gray-500">No projects yet — check back soon.</p>
+            <p className='text-gray-500'>No projects yet — check back soon.</p>
           )}
         </div>
       </div>

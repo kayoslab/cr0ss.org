@@ -3,8 +3,8 @@
  */
 import { z } from 'zod';
 import { sql } from '@/lib/db/client';
-import { cached } from '@/lib/cache/cached';
-import { tags, CACHE_LIFE } from '@/lib/cache/tags';
+import { cacheLife, cacheTag } from 'next/cache';
+import { tags } from '@/lib/cache/tags';
 
 // ---------------------------------------------------------------------------
 // Schemas
@@ -230,12 +230,10 @@ async function queryWorkoutsHeatmap(
   for (const r of rows) {
     const d = String(r.date);
     if (!byDate.has(d)) byDate.set(d, []);
-    byDate
-      .get(d)!
-      .push({
-        type: String(r.workout_type),
-        duration_min: Number(r.duration_min),
-      });
+    byDate.get(d)!.push({
+      type: String(r.workout_type),
+      duration_min: Number(r.duration_min),
+    });
   }
 
   // Fill every day in the window (including zeros) so the grid is dense.
@@ -380,32 +378,30 @@ async function queryRunningStats(period: RunningPeriod): Promise<RunningStats> {
 // Cached public API
 // ---------------------------------------------------------------------------
 
-export const getWorkoutsSummary = cached(
-  'workouts-summary',
-  queryWorkoutsSummary,
-  {
-    tags: (period) => [tags.workouts.summary(period), tags.workouts.summary()],
-    revalidate: CACHE_LIFE.realtime,
-  }
-);
+export async function getWorkoutsSummary(
+  period: SummaryPeriod
+): Promise<WorkoutsSummary> {
+  'use cache';
+  cacheLife('realtime');
+  cacheTag(tags.workouts.summary(period), tags.workouts.summary());
+  return queryWorkoutsSummary(period);
+}
 
-export const getWorkoutsHeatmap = cached(
-  'workouts-heatmap',
-  queryWorkoutsHeatmap,
-  {
-    tags: (days, type) => [
-      tags.workouts.heatmap(days, type ?? 'all'),
-      tags.workouts.heatmap(),
-    ],
-    revalidate: CACHE_LIFE.frequent,
-  }
-);
+export async function getWorkoutsHeatmap(
+  days: number,
+  type?: string
+): Promise<WorkoutsHeatmap> {
+  'use cache';
+  cacheLife('frequent');
+  cacheTag(tags.workouts.heatmap(days, type ?? 'all'), tags.workouts.heatmap());
+  return queryWorkoutsHeatmap(days, type);
+}
 
-export const getRunningStats = cached(
-  'workouts-running-stats',
-  queryRunningStats,
-  {
-    tags: (period) => [tags.workouts.running(period), tags.workouts.running()],
-    revalidate: CACHE_LIFE.realtime,
-  }
-);
+export async function getRunningStats(
+  period: RunningPeriod
+): Promise<RunningStats> {
+  'use cache';
+  cacheLife('realtime');
+  cacheTag(tags.workouts.running(period), tags.workouts.running());
+  return queryRunningStats(period);
+}

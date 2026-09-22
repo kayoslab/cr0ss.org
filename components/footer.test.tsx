@@ -1,6 +1,11 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render } from '@testing-library/react';
 import Footer from './footer';
+
+// The real component is an async cached Server Component; render the year inline here.
+vi.mock('@/components/current-year', () => ({
+  CurrentYear: () => new Date().getFullYear(),
+}));
 
 describe('Footer', () => {
   it('should render the brand name', () => {
@@ -12,14 +17,18 @@ describe('Footer', () => {
   it('should render the description', () => {
     const { getByText } = render(<Footer />);
 
-    expect(getByText(/Personal and professional website of Simon Krüger/i)).toBeInTheDocument();
+    expect(
+      getByText(/Personal and professional website of Simon Krüger/i)
+    ).toBeInTheDocument();
   });
 
   it('should display the current year in copyright', () => {
     const currentYear = new Date().getFullYear();
     const { getByText } = render(<Footer />);
 
-    expect(getByText(new RegExp(`© ${currentYear} Simon Krüger`))).toBeInTheDocument();
+    expect(
+      getByText(new RegExp(`© ${currentYear} Simon Krüger`))
+    ).toBeInTheDocument();
   });
 
   it('should render Navigation section header', () => {
@@ -91,7 +100,9 @@ describe('Footer', () => {
 
     const contactLinks = getAllByRole('link', { name: /Contact/i });
     // Filter out the one in Information section
-    const contactLink = contactLinks.find(link => link.getAttribute('href') === '/page/contact');
+    const contactLink = contactLinks.find(
+      (link) => link.getAttribute('href') === '/page/contact'
+    );
     expect(contactLink).toHaveAttribute('href', '/page/contact');
   });
 

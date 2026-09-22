@@ -6,6 +6,22 @@ const jiti = createJiti(fileURLToPath(import.meta.url));
 jiti('./env');
 
 const nextConfig = {
+  // Cache Components: dynamic by default, `'use cache'` opts data into the
+  // cache. Profiles below are referenced by name via cacheLife() — see
+  // lib/cache/tags.ts for which data uses which.
+  cacheComponents: true,
+  cacheLife: {
+    // Live-ish dashboard numbers (today's cups, today's habits).
+    realtime: { stale: 60, revalidate: 60, expire: 86400 },
+    // Charts over recent days.
+    frequent: { stale: 300, revalidate: 300, expire: 86400 },
+    // Expensive analysis (correlations).
+    standard: { stale: 900, revalidate: 900, expire: 86400 },
+    // Reference data: countries, coffee catalogue, Algolia recommendations.
+    stable: { stale: 3600, revalidate: 3600, expire: 604800 },
+    // Contentful content: invalidated by webhook, refreshed hourly as a backstop.
+    content: { stale: 3600, revalidate: 3600, expire: 604800 },
+  },
   experimental: {
     serverActions: { bodySizeLimit: '2mb' },
     optimizePackageImports: ['@heroicons/react'],

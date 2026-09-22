@@ -3,8 +3,8 @@
  * visit history from the database.
  */
 import { z } from 'zod';
-import { cached } from '@/lib/cache/cached';
-import { tags, CACHE_LIFE } from '@/lib/cache/tags';
+import { cacheLife, cacheTag } from 'next/cache';
+import { tags } from '@/lib/cache/tags';
 import { getAllCountries } from '@/lib/contentful/api/country';
 import { getVisitedCountriesMap } from '@/lib/db/countries';
 
@@ -73,7 +73,9 @@ async function queryCountries(filter: CountryFilter): Promise<Countries> {
   });
 }
 
-export const getCountries = cached('dashboard-countries', queryCountries, {
-  tags: () => [tags.dashboard.countries, tags.content.countries],
-  revalidate: CACHE_LIFE.stable,
-});
+export async function getCountries(filter: CountryFilter): Promise<Countries> {
+  'use cache';
+  cacheLife('stable');
+  cacheTag(tags.dashboard.countries, tags.content.countries);
+  return queryCountries(filter);
+}

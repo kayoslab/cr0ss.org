@@ -9,7 +9,8 @@ import { invalidations } from './tags';
 vi.mock('next/cache', () => ({
   revalidateTag: vi.fn(),
   revalidatePath: vi.fn(),
-  unstable_cache: (fn: unknown) => fn,
+  cacheTag: vi.fn(),
+  cacheLife: vi.fn(),
 }));
 
 import { revalidateTag, revalidatePath } from 'next/cache';

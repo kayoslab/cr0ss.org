@@ -1,4 +1,6 @@
+import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
+import { Skeleton } from '@/components/ui/skeleton';
 import { getAllPages, getPage } from '@/lib/contentful/api/page';
 import { PageProps } from '@/lib/contentful/api/props/page';
 import { Page } from '@/components/page/page';
@@ -12,7 +14,7 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const { slug } = await params;
-    const page = await getPage(slug) as unknown as PageProps;
+    const page = (await getPage(slug)) as unknown as PageProps;
     if (!page) {
       return {
         title: 'Page Not Found',
@@ -43,9 +45,9 @@ export async function generateStaticParams() {
   }));
 }
 
-export default async function PageContent({ params }: Props) {
+async function PageBody({ params }: Props) {
   const { slug } = await params;
-  const page = await getPage(slug) as unknown as PageProps;
+  const page = (await getPage(slug)) as unknown as PageProps;
 
   if (!page) {
     notFound();
@@ -55,5 +57,27 @@ export default async function PageContent({ params }: Props) {
     <main className='flex min-h-screen flex-col items-center justify-between bg-white pb-24'>
       <Page page={page} />
     </main>
+  );
+}
+
+function ContentLoading() {
+  return (
+    <main className='flex min-h-screen flex-col items-center bg-white pb-24'>
+      <div className='w-full max-w-3xl space-y-6 px-6 pt-10 lg:px-8'>
+        <Skeleton className='h-10 w-3/4' />
+        <Skeleton className='h-6 w-1/2' />
+        <Skeleton className='aspect-video w-full rounded-xl' />
+        <Skeleton className='h-4 w-full' />
+        <Skeleton className='h-4 w-5/6' />
+      </div>
+    </main>
+  );
+}
+
+export default function PageContent({ params }: Props) {
+  return (
+    <Suspense fallback={<ContentLoading />}>
+      <PageBody params={params} />
+    </Suspense>
   );
 }

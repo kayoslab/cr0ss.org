@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next';
+import { cacheLife } from 'next/cache';
 import { getAllBlogs } from '@/lib/contentful/api/blog';
 import { getAllPages } from '@/lib/contentful/api/page';
 import { getAllCategories } from '@/lib/contentful/api/category';
@@ -10,10 +11,9 @@ import type { PageProps } from '@/lib/contentful/api/props/page';
 import type { CategoryProps } from '@/lib/contentful/api/props/category';
 import type { CoffeeProps } from '@/lib/contentful/api/props/coffee';
 
-// Revalidate sitemap every hour
-export const revalidate = 3600;
-
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  'use cache';
+  cacheLife('content');
   try {
     // Fetch all blogs by paginating (use small batches that work reliably)
     let allBlogs: BlogProps[] = [];

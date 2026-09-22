@@ -2,8 +2,8 @@
  * Correlation discovery across the quantified-self metrics. Expensive
  * (7+ table joins plus statistics), hence the longer cache life.
  */
-import { cached } from '@/lib/cache/cached';
-import { tags, CACHE_LIFE } from '@/lib/cache/tags';
+import { cacheLife, cacheTag } from 'next/cache';
+import { tags } from '@/lib/cache/tags';
 import {
   discoverCorrelations,
   type DiscoveredCorrelation,
@@ -38,10 +38,13 @@ async function queryInsights(
   };
 }
 
-export const getInsights = cached('dashboard-insights', queryInsights, {
-  tags: (days) => [
-    tags.insights.correlations(days),
-    tags.insights.correlations(),
-  ],
-  revalidate: CACHE_LIFE.standard,
-});
+export async function getInsights(
+  days: number,
+  pValueThreshold: number,
+  minAbsR: number
+): Promise<Insights> {
+  'use cache';
+  cacheLife('standard');
+  cacheTag(tags.insights.correlations(days), tags.insights.correlations());
+  return queryInsights(days, pValueThreshold, minAbsR);
+}

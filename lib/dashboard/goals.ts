@@ -3,8 +3,8 @@
  */
 import { z } from 'zod';
 import { sql } from '@/lib/db/client';
-import { cached } from '@/lib/cache/cached';
-import { tags, CACHE_LIFE } from '@/lib/cache/tags';
+import { cacheLife, cacheTag } from 'next/cache';
+import { tags } from '@/lib/cache/tags';
 
 export const GoalsSchema = z.object({
   daily: z.record(z.string(), z.number()),
@@ -156,12 +156,18 @@ async function queryGoalsProgress(period?: GoalPeriod): Promise<GoalsProgress> {
   return GoalsProgressSchema.parse(result);
 }
 
-export const getGoals = cached('goals', queryGoals, {
-  tags: () => [tags.goals.list],
-  revalidate: CACHE_LIFE.frequent,
-});
+export async function getGoals(): Promise<Goals> {
+  'use cache';
+  cacheLife('frequent');
+  cacheTag(tags.goals.list);
+  return queryGoals();
+}
 
-export const getGoalsProgress = cached('goals-progress', queryGoalsProgress, {
-  tags: (period) => [tags.goals.progress(period), tags.goals.progress()],
-  revalidate: CACHE_LIFE.realtime,
-});
+export async function getGoalsProgress(
+  period?: GoalPeriod
+): Promise<GoalsProgress> {
+  'use cache';
+  cacheLife('realtime');
+  cacheTag(tags.goals.progress(period), tags.goals.progress());
+  return queryGoalsProgress(period);
+}

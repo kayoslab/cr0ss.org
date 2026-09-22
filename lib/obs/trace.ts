@@ -1,30 +1,26 @@
-import { getClientId } from "@/lib/rate/who";
+import { getClientId } from '@/lib/rate/who';
 
 export function getRequestId(req: Request): string {
   const h = new Headers(req.headers);
-  // prefer upstream ids if present
-  return (
-    h.get("x-request-id") ||
-    h.get("x-vercel-id") ||
-    crypto.randomUUID()
-  );
+  // Upstream ids only: minting one here would make a prerender non-deterministic.
+  return h.get('x-request-id') || h.get('x-vercel-id') || '-';
 }
 
-/** Wrap an Edge route handler to log route + duration + status + client id. */
+/** Wrap a route handler to log route + duration + status + client id. */
 export function wrapTrace(
   label: string,
   handler: (req: Request) => Promise<Response>
 ): (req: Request) => Promise<Response> {
   return async (req: Request) => {
-    const started = Date.now();
+    const started = performance.now();
     const rid = getRequestId(req);
     const who = getClientId(req);
     try {
       const res = await handler(req);
-      const ms = Date.now() - started;
+      const ms = Math.round(performance.now() - started);
       console.log(
         JSON.stringify({
-          msg: "route",
+          msg: 'route',
           label,
           rid,
           who,
@@ -35,10 +31,10 @@ export function wrapTrace(
       );
       return res;
     } catch (err: unknown) {
-      const ms = Date.now() - started;
+      const ms = Math.round(performance.now() - started);
       console.error(
         JSON.stringify({
-          msg: "route_error",
+          msg: 'route_error',
           label,
           rid,
           who,

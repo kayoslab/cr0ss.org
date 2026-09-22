@@ -4,7 +4,8 @@ import { tags, invalidations, allBaseTags } from './tags';
 vi.mock('next/cache', () => ({
   revalidateTag: vi.fn(),
   revalidatePath: vi.fn(),
-  unstable_cache: (fn: unknown) => fn,
+  cacheTag: vi.fn(),
+  cacheLife: vi.fn(),
 }));
 
 import { revalidateTag } from 'next/cache';

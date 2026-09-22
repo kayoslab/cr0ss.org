@@ -1,4 +1,6 @@
+import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
+import { Skeleton } from '@/components/ui/skeleton';
 import { getAllCoffee, getCoffee } from '@/lib/contentful/api/coffee';
 import { CoffeeProps } from '@/lib/contentful/api/props/coffee';
 import { getAllCountries } from '@/lib/contentful/api/country';
@@ -34,9 +36,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const description = descriptionParts.join(' • ');
 
     // Add tasting notes to description if available
-    const tastingNotesText = coffee.tastingNotes && coffee.tastingNotes.length > 0
-      ? ` Tasting notes: ${coffee.tastingNotes.slice(0, 3).join(', ')}`
-      : '';
+    const tastingNotesText =
+      coffee.tastingNotes && coffee.tastingNotes.length > 0
+        ? ` Tasting notes: ${coffee.tastingNotes.slice(0, 3).join(', ')}`
+        : '';
 
     const fullDescription = `${description}${tastingNotesText}`;
 
@@ -54,7 +57,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     // Get optimized image URL
     const imageUrl = coffee.photo?.url
-      ? (coffee.photo.url.startsWith('http') ? coffee.photo.url : `https:${coffee.photo.url}`)
+      ? coffee.photo.url.startsWith('http')
+        ? coffee.photo.url
+        : `https:${coffee.photo.url}`
       : null;
 
     // Build canonical URL
@@ -71,14 +76,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         description: fullDescription,
         siteName: 'cr0ss.org',
         url: canonicalUrl,
-        images: imageUrl ? [
-          {
-            url: imageUrl,
-            width: 1200,
-            height: 630,
-            alt: coffee.photo?.title || coffee.name,
-          },
-        ] : [],
+        images: imageUrl
+          ? [
+              {
+                url: imageUrl,
+                width: 1200,
+                height: 630,
+                alt: coffee.photo?.title || coffee.name,
+              },
+            ]
+          : [],
       },
       twitter: {
         card: 'summary_large_image',
@@ -113,12 +120,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 // At build time, fetch all slugs to build the coffee pages so they are static and cached
 export async function generateStaticParams() {
   const allCoffees = await getAllCoffee(1, 100);
-  return (allCoffees.items as unknown as CoffeeProps[]).map((coffee: CoffeeProps) => ({
-    slug: coffee.slug,
-  }));
+  return (allCoffees.items as unknown as CoffeeProps[]).map(
+    (coffee: CoffeeProps) => ({
+      slug: coffee.slug,
+    })
+  );
 }
 
-export default async function CoffeeDetailPage({ params }: Props) {
+async function CoffeeDetailContent({ params }: Props) {
   let slug: string;
   let coffee: CoffeeProps;
   let allCountriesData: CountryProps[];
@@ -144,7 +153,9 @@ export default async function CoffeeDetailPage({ params }: Props) {
 
   // Build JSON-LD structured data
   const imageUrl = coffee.photo?.url
-    ? (coffee.photo.url.startsWith('http') ? coffee.photo.url : `https:${coffee.photo.url}`)
+    ? coffee.photo.url.startsWith('http')
+      ? coffee.photo.url
+      : `https:${coffee.photo.url}`
     : null;
 
   const jsonLd = {
@@ -175,36 +186,60 @@ export default async function CoffeeDetailPage({ params }: Props) {
       }),
     },
     additionalProperty: [
-      ...(coffee.country ? [{
-        '@type': 'PropertyValue',
-        name: 'Origin Country',
-        value: coffee.country.name,
-      }] : []),
-      ...(coffee.region ? [{
-        '@type': 'PropertyValue',
-        name: 'Region',
-        value: coffee.region,
-      }] : []),
-      ...(coffee.process ? [{
-        '@type': 'PropertyValue',
-        name: 'Process',
-        value: coffee.process,
-      }] : []),
-      ...(coffee.variety ? [{
-        '@type': 'PropertyValue',
-        name: 'Variety',
-        value: coffee.variety,
-      }] : []),
-      ...(coffee.farmer ? [{
-        '@type': 'PropertyValue',
-        name: 'Farmer',
-        value: coffee.farmer,
-      }] : []),
-      ...(coffee.farm ? [{
-        '@type': 'PropertyValue',
-        name: 'Farm',
-        value: coffee.farm,
-      }] : []),
+      ...(coffee.country
+        ? [
+            {
+              '@type': 'PropertyValue',
+              name: 'Origin Country',
+              value: coffee.country.name,
+            },
+          ]
+        : []),
+      ...(coffee.region
+        ? [
+            {
+              '@type': 'PropertyValue',
+              name: 'Region',
+              value: coffee.region,
+            },
+          ]
+        : []),
+      ...(coffee.process
+        ? [
+            {
+              '@type': 'PropertyValue',
+              name: 'Process',
+              value: coffee.process,
+            },
+          ]
+        : []),
+      ...(coffee.variety
+        ? [
+            {
+              '@type': 'PropertyValue',
+              name: 'Variety',
+              value: coffee.variety,
+            },
+          ]
+        : []),
+      ...(coffee.farmer
+        ? [
+            {
+              '@type': 'PropertyValue',
+              name: 'Farmer',
+              value: coffee.farmer,
+            },
+          ]
+        : []),
+      ...(coffee.farm
+        ? [
+            {
+              '@type': 'PropertyValue',
+              name: 'Farm',
+              value: coffee.farm,
+            },
+          ]
+        : []),
     ],
   };
 
@@ -216,14 +251,14 @@ export default async function CoffeeDetailPage({ params }: Props) {
   return (
     <>
       <script
-        type="application/ld+json"
+        type='application/ld+json'
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <script
-        type="application/ld+json"
+        type='application/ld+json'
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
-      <main className="flex min-h-screen flex-col items-center justify-between bg-white pb-24">
+      <main className='flex min-h-screen flex-col items-center justify-between bg-white pb-24'>
         <CoffeeDetail
           coffee={coffee}
           originCountry={originCountry}
@@ -231,5 +266,27 @@ export default async function CoffeeDetailPage({ params }: Props) {
         />
       </main>
     </>
+  );
+}
+
+function ContentLoading() {
+  return (
+    <main className='flex min-h-screen flex-col items-center bg-white pb-24'>
+      <div className='w-full max-w-3xl space-y-6 px-6 pt-10 lg:px-8'>
+        <Skeleton className='h-10 w-3/4' />
+        <Skeleton className='h-6 w-1/2' />
+        <Skeleton className='aspect-video w-full rounded-xl' />
+        <Skeleton className='h-4 w-full' />
+        <Skeleton className='h-4 w-5/6' />
+      </div>
+    </main>
+  );
+}
+
+export default function CoffeeDetailPage({ params }: Props) {
+  return (
+    <Suspense fallback={<ContentLoading />}>
+      <CoffeeDetailContent params={params} />
+    </Suspense>
   );
 }

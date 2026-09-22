@@ -4,8 +4,8 @@
  */
 import { z } from 'zod';
 import { sql } from '@/lib/db/client';
-import { cached } from '@/lib/cache/cached';
-import { tags, CACHE_LIFE } from '@/lib/cache/tags';
+import { cacheLife, cacheTag } from 'next/cache';
+import { tags } from '@/lib/cache/tags';
 import {
   startOfBerlinDayISO,
   endOfBerlinDayISO,
@@ -359,38 +359,42 @@ async function querySleepQuality(): Promise<SleepQuality> {
 // Cached public API
 // ---------------------------------------------------------------------------
 
-export const getHabitsToday = cached('habits-today', queryHabitsToday, {
-  tags: (date) => [tags.habits.today(date), tags.habits.today()],
-  revalidate: CACHE_LIFE.realtime,
-});
+export async function getHabitsToday(date: string): Promise<HabitsToday> {
+  'use cache';
+  cacheLife('realtime');
+  cacheTag(tags.habits.today(date), tags.habits.today());
+  return queryHabitsToday(date);
+}
 
-export const getHabitsConsistency = cached(
-  'habits-consistency',
-  queryHabitsConsistency,
-  {
-    tags: (days) => [tags.habits.consistency(days), tags.habits.consistency()],
-    revalidate: CACHE_LIFE.frequent,
-  }
-);
+export async function getHabitsConsistency(
+  days: number
+): Promise<HabitsConsistency> {
+  'use cache';
+  cacheLife('frequent');
+  cacheTag(tags.habits.consistency(days), tags.habits.consistency());
+  return queryHabitsConsistency(days);
+}
 
-export const getHabitsStreaks = cached('habits-streaks', queryHabitsStreaks, {
-  tags: () => [tags.habits.streaks],
-  revalidate: CACHE_LIFE.frequent,
-});
+export async function getHabitsStreaks(): Promise<HabitsStreaks> {
+  'use cache';
+  cacheLife('frequent');
+  cacheTag(tags.habits.streaks);
+  return queryHabitsStreaks();
+}
 
-export const getHabitsTrends = cached('habits-trends', queryHabitsTrends, {
-  tags: (habits, days) => [
-    tags.habits.trends(habits, days),
-    tags.habits.trends(),
-  ],
-  revalidate: CACHE_LIFE.frequent,
-});
+export async function getHabitsTrends(
+  habits: string,
+  days: number
+): Promise<HabitsTrends> {
+  'use cache';
+  cacheLife('frequent');
+  cacheTag(tags.habits.trends(habits, days), tags.habits.trends());
+  return queryHabitsTrends(habits, days);
+}
 
-export const getSleepQuality = cached(
-  'habits-sleep-quality',
-  querySleepQuality,
-  {
-    tags: () => [tags.habits.sleepQuality],
-    revalidate: CACHE_LIFE.frequent,
-  }
-);
+export async function getSleepQuality(): Promise<SleepQuality> {
+  'use cache';
+  cacheLife('frequent');
+  cacheTag(tags.habits.sleepQuality);
+  return querySleepQuality();
+}

@@ -1,3 +1,4 @@
+import { cacheLife } from 'next/cache';
 import { env } from '@/env';
 import { algoliasearch } from 'algoliasearch';
 import type { SearchClient, SearchResponse } from '@algolia/client-search';
@@ -34,28 +35,34 @@ export const searchClient: SearchClient = algoliasearch(
 // Initialize analytics
 aa('init', {
   appId: env.ALGOLIA_APP_ID,
-  apiKey: env.ALGOLIA_SEARCH_KEY
+  apiKey: env.ALGOLIA_SEARCH_KEY,
 });
 
 // Common search parameters
 export const DEFAULT_SEARCH_PARAMS = {
   hitsPerPage: 9,
   clickAnalytics: true,
-  analytics: true
+  analytics: true,
 };
 
 // Helper function for common search operations
-export async function performSearch(query: string, page: number = 0, params: object = {}) {
+export async function performSearch(
+  query: string,
+  page: number = 0,
+  params: object = {}
+) {
   try {
-    const { results } = await searchClient.search<AlgoliaHit>([{
-      indexName: 'www',
-      params: {
-        query,
-        page,
-        ...DEFAULT_SEARCH_PARAMS,
-        ...params
-      }
-    }]);
+    const { results } = await searchClient.search<AlgoliaHit>([
+      {
+        indexName: 'www',
+        params: {
+          query,
+          page,
+          ...DEFAULT_SEARCH_PARAMS,
+          ...params,
+        },
+      },
+    ]);
     return results[0];
   } catch (error) {
     console.error('Search failed:', error);
@@ -68,7 +75,7 @@ export async function performSearch(query: string, page: number = 0, params: obj
       hitsPerPage: 0,
       exhaustiveNbHits: true,
       query: '',
-      params: ''
+      params: '',
     } as SearchResponse<AlgoliaHit>;
   }
 }
@@ -100,7 +107,9 @@ interface ContentfulFields {
 }
 
 // Parse Algolia recommendation hit into our normalized format
-function parseRecommendationHit(hit: Record<string, unknown>): RecommendationHit {
+function parseRecommendationHit(
+  hit: Record<string, unknown>
+): RecommendationHit {
   const fields = hit.fields as ContentfulFields;
 
   return {
@@ -136,14 +145,13 @@ async function fetchRecommendations(
   const response = await fetch(
     `https://${env.ALGOLIA_APP_ID}-dsn.algolia.net/1/indexes/*/recommendations`,
     {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "X-Algolia-Application-Id": env.ALGOLIA_APP_ID,
-        "X-Algolia-API-Key": env.ALGOLIA_SEARCH_KEY,
-        "Content-Type": "application/json",
+        'X-Algolia-Application-Id': env.ALGOLIA_APP_ID,
+        'X-Algolia-API-Key': env.ALGOLIA_SEARCH_KEY,
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(body),
-      next: { revalidate: 3600 }, // Cache for 1 hour
     }
   );
 
@@ -168,10 +176,17 @@ export async function getRelatedPosts(
   objectID: string,
   maxRecommendations: number = 3
 ): Promise<RecommendationHit[]> {
+  'use cache';
+  cacheLife('stable');
   try {
     // Try related-products first (behavior-based, needs sufficient events)
     // Using low threshold (0) for new sites with limited data
-    let results = await fetchRecommendations("related-products", objectID, maxRecommendations, 0);
+    let results = await fetchRecommendations(
+      'related-products',
+      objectID,
+      maxRecommendations,
+      0
+    );
 
     if (results.length >= maxRecommendations) {
       return results.slice(0, maxRecommendations);
@@ -180,13 +195,21 @@ export async function getRelatedPosts(
     // If we need more, try looking-similar (content-based)
     if (results.length < maxRecommendations) {
       const needed = maxRecommendations - results.length;
-      const existingIds = new Set(results.map(r => r.objectID));
+      const existingIds = new Set(results.map((r) => r.objectID));
 
-      const similarResults = await fetchRecommendations("looking-similar", objectID, needed + 2, 0);
+      const similarResults = await fetchRecommendations(
+        'looking-similar',
+        objectID,
+        needed + 2,
+        0
+      );
 
       // Add unique results that we don't already have
       for (const hit of similarResults) {
-        if (!existingIds.has(hit.objectID) && results.length < maxRecommendations) {
+        if (
+          !existingIds.has(hit.objectID) &&
+          results.length < maxRecommendations
+        ) {
           results.push(hit);
           existingIds.add(hit.objectID);
         }
@@ -195,7 +218,7 @@ export async function getRelatedPosts(
 
     return results.slice(0, maxRecommendations);
   } catch (error) {
-    console.error("Failed to get recommendations:", error);
+    console.error('Failed to get recommendations:', error);
     return [];
   }
 }
@@ -223,6 +246,8 @@ export function trackRecommendationClick(objectID: string, userToken?: string) {
 export async function getTrendingPosts(
   maxRecommendations: number = 3
 ): Promise<RecommendationHit[]> {
+  'use cache';
+  cacheLife('stable');
   try {
     const body = {
       requests: [
@@ -238,14 +263,13 @@ export async function getTrendingPosts(
     const response = await fetch(
       `https://${env.ALGOLIA_APP_ID}-dsn.algolia.net/1/indexes/*/recommendations`,
       {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "X-Algolia-Application-Id": env.ALGOLIA_APP_ID,
-          "X-Algolia-API-Key": env.ALGOLIA_SEARCH_KEY,
-          "Content-Type": "application/json",
+          'X-Algolia-Application-Id': env.ALGOLIA_APP_ID,
+          'X-Algolia-API-Key': env.ALGOLIA_SEARCH_KEY,
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(body),
-        next: { revalidate: 3600 }, // Cache for 1 hour
       }
     );
 
@@ -257,7 +281,7 @@ export async function getTrendingPosts(
     const hits = data.results?.[0]?.hits || [];
     return hits.map(parseRecommendationHit);
   } catch (error) {
-    console.error("Failed to get trending posts:", error);
+    console.error('Failed to get trending posts:', error);
     return [];
   }
-} 
+}

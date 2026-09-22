@@ -126,17 +126,12 @@ export const invalidations = {
   countries: [tags.dashboard.countries, tags.dashboard.overview],
 } as const;
 
-/** Revalidation intervals (seconds) for cached dashboard data. */
-export const CACHE_LIFE = {
-  /** Live-ish numbers: today's cups, today's habits. */
-  realtime: 60,
-  /** Charts over recent days. */
-  frequent: 300,
-  /** Expensive analysis (correlations). */
-  standard: 900,
-  /** Reference data: countries, coffee catalogue. */
-  stable: 3600,
-} as const;
+/**
+ * Cache profiles, defined in next.config.mjs (`cacheLife`). Named here so a
+ * data function can't reference a profile that isn't configured.
+ */
+export type CacheProfile =
+  'realtime' | 'frequent' | 'standard' | 'stable' | 'content';
 
 /**
  * Every tag in its general form, for the containment test and for tooling.

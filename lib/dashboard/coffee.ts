@@ -4,8 +4,8 @@
  */
 import { z } from 'zod';
 import { sql } from '@/lib/db/client';
-import { cached } from '@/lib/cache/cached';
-import { tags, CACHE_LIFE } from '@/lib/cache/tags';
+import { cacheLife, cacheTag } from 'next/cache';
+import { tags } from '@/lib/cache/tags';
 import { startOfBerlinDayISO, endOfBerlinDayISO } from '@/lib/time/berlin';
 import { getBodyProfile } from '@/lib/user/profile';
 import { modelCaffeine } from '@/lib/phys/caffeine';
@@ -201,33 +201,40 @@ async function queryCoffeeOrigins(): Promise<CoffeeOrigins> {
 // Cached public API
 // ---------------------------------------------------------------------------
 
-export const getCoffeeSummary = cached('coffee-summary', queryCoffeeSummary, {
-  tags: (date) => [tags.coffee.summary(date), tags.coffee.summary()],
-  revalidate: CACHE_LIFE.realtime,
-});
+export async function getCoffeeSummary(date: string): Promise<CoffeeSummary> {
+  'use cache';
+  cacheLife('realtime');
+  cacheTag(tags.coffee.summary(date), tags.coffee.summary());
+  return queryCoffeeSummary(date);
+}
 
-export const getCoffeeTimeline = cached(
-  'coffee-timeline',
-  queryCoffeeTimeline,
-  {
-    tags: (start, end, granularity) => [
-      tags.coffee.timeline(start, end, granularity),
-      tags.coffee.timeline(),
-    ],
-    revalidate: CACHE_LIFE.frequent,
-  }
-);
+export async function getCoffeeTimeline(
+  start: string,
+  end: string,
+  granularity: TimelineGranularity
+): Promise<CoffeeTimeline> {
+  'use cache';
+  cacheLife('frequent');
+  cacheTag(
+    tags.coffee.timeline(start, end, granularity),
+    tags.coffee.timeline()
+  );
+  return queryCoffeeTimeline(start, end, granularity);
+}
 
-export const getCaffeineCurve = cached(
-  'coffee-caffeine-curve',
-  queryCaffeineCurve,
-  {
-    tags: (date) => [tags.coffee.caffeine(date), tags.coffee.caffeine()],
-    revalidate: CACHE_LIFE.realtime,
-  }
-);
+export async function getCaffeineCurve(
+  date: string,
+  resolution: number
+): Promise<CaffeineCurve> {
+  'use cache';
+  cacheLife('realtime');
+  cacheTag(tags.coffee.caffeine(date), tags.coffee.caffeine());
+  return queryCaffeineCurve(date, resolution);
+}
 
-export const getCoffeeOrigins = cached('coffee-origins', queryCoffeeOrigins, {
-  tags: () => [tags.coffee.origins],
-  revalidate: CACHE_LIFE.frequent,
-});
+export async function getCoffeeOrigins(): Promise<CoffeeOrigins> {
+  'use cache';
+  cacheLife('frequent');
+  cacheTag(tags.coffee.origins);
+  return queryCoffeeOrigins();
+}
