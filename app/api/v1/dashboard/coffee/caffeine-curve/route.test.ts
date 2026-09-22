@@ -264,27 +264,9 @@ describe('GET /api/v1/dashboard/coffee/caffeine-curve', () => {
       );
       const response = await GET(request);
 
-      expect(response.headers.get('Cache-Control')).toContain('s-maxage=60');
-      expect(response.headers.get('Cache-Control')).toContain('stale-while-revalidate');
+      expect(response.headers.get('Cache-Control')).toBe('private, no-store');
     });
 
-    it('should set cache tags', async () => {
-      vi.mocked(sql).mockResolvedValueOnce([{ current_date: '2025-12-05' }] as never);
-
-      const request = new Request(
-        'http://localhost:3000/api/v1/dashboard/coffee/caffeine-curve?date=2025-12-05',
-        {
-          headers: {
-            'x-admin-secret': 'test-dashboard-secret-1234567890',
-          },
-        }
-      );
-      const response = await GET(request);
-
-      const cacheTags = response.headers.get('X-Cache-Tags');
-      expect(cacheTags).toContain('coffee:caffeine:2025-12-05');
-      expect(cacheTags).toContain('coffee:caffeine');
-    });
   });
 
   describe('Error Handling', () => {

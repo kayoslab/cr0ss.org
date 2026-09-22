@@ -1,13 +1,15 @@
-import { revalidateTag, revalidatePath } from "next/cache";
+import { revalidateTag, revalidatePath } from 'next/cache';
 import { hasValidSecret } from '@/lib/auth/secret';
-import { createErrorResponse, createSuccessResponse } from '@/lib/api/middleware';
+import {
+  createErrorResponse,
+  createSuccessResponse,
+} from '@/lib/api/middleware';
 import { getBlog } from '@/lib/contentful/api/blog';
 import { algoliasearch } from 'algoliasearch';
 import { env } from '@/env';
-import { coffeeTags, workoutsTags, habitsTags, goalsTags } from '@/lib/api/cache';
+import { invalidations } from '@/lib/cache/tags';
 import type { CategoryProps } from '@/lib/contentful/api/props/category';
 import type { BlogProps } from '@/lib/contentful/api/props/blog';
-
 
 /**
  * Contentful webhook payload structure
@@ -47,65 +49,23 @@ interface DashboardEvent {
 }
 
 /**
- * Determines which cache tags to revalidate based on dashboard events
+ * Maps a dashboard event onto the registry's invalidation set for it.
+ * Dates are ignored on purpose: invalidation targets the general tags.
  */
+const DASHBOARD_EVENTS: Record<string, readonly string[]> = {
+  'coffee.created': invalidations.coffee,
+  'workout.created': invalidations.workouts,
+  'habits.updated': invalidations.habits,
+  'goals.updated': invalidations.goals,
+};
+
 function getDashboardRevalidationTags(event: DashboardEvent): string[] {
-  const tags: string[] = [];
-  const { event: eventType, date } = event;
-
-  switch (eventType) {
-    case 'coffee.created':
-      // Invalidate coffee summary for the specific date
-      if (date) {
-        tags.push(coffeeTags('summary', date));
-      }
-      // Also invalidate general coffee summary and timeline
-      tags.push(coffeeTags('summary'));
-      tags.push(coffeeTags('timeline'));
-      tags.push(coffeeTags('caffeine-curve'));
-      // Invalidate dashboard overview
-      tags.push('dashboard');
-      break;
-
-    case 'workout.created':
-      // Invalidate workout summary and heatmap
-      if (date) {
-        tags.push(workoutsTags('summary', date));
-        tags.push(workoutsTags('heatmap', date));
-      }
-      tags.push(workoutsTags('summary'));
-      tags.push(workoutsTags('heatmap'));
-      tags.push(workoutsTags('running-stats'));
-      // Invalidate dashboard overview
-      tags.push('dashboard');
-      break;
-
-    case 'habits.updated':
-      // Invalidate all habit-related data
-      if (date) {
-        tags.push(habitsTags('today', date));
-      }
-      tags.push(habitsTags('today'));
-      tags.push(habitsTags('consistency'));
-      tags.push(habitsTags('streaks'));
-      tags.push(habitsTags('trends'));
-      // Invalidate dashboard overview
-      tags.push('dashboard');
-      break;
-
-    case 'goals.updated':
-      // Invalidate goals data
-      tags.push(goalsTags('list'));
-      tags.push(goalsTags('progress'));
-      // Invalidate dashboard overview
-      tags.push('dashboard');
-      break;
-
-    default:
-      console.warn(`Unknown dashboard event type: ${eventType}`);
+  const tags = DASHBOARD_EVENTS[event.event];
+  if (!tags) {
+    console.warn(`Unknown dashboard event type: ${event.event}`);
+    return [];
   }
-
-  return tags;
+  return [...tags];
 }
 
 /**
@@ -200,7 +160,7 @@ async function updateAlgoliaIndex(slug: string): Promise<void> {
       env.ALGOLIA_ADMIN_KEY
     );
 
-    const post = await getBlog(slug) as unknown as BlogProps;
+    const post = (await getBlog(slug)) as unknown as BlogProps;
 
     await algoliaClient.addOrUpdateObject({
       indexName: env.ALGOLIA_INDEX,
@@ -301,7 +261,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const body = await request.json() as ContentfulWebhookPayload;
+    const body = (await request.json()) as ContentfulWebhookPayload;
 
     const tagsToRevalidate = getRevalidationTags(body);
     const pathsToRevalidate = getRevalidationPaths(body);

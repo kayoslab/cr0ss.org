@@ -39,6 +39,8 @@ process.env.NEXT_PUBLIC_SITE_URL = 'http://localhost:3000';
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
   revalidateTag: vi.fn(),
+  // lib/cache/cached.ts wraps every data function; run them straight through in tests.
+  unstable_cache: (fn: (...args: unknown[]) => unknown) => fn,
 }));
 
 // Mock Next.js Link component

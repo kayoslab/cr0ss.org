@@ -1,126 +1,46 @@
 import { createApiRoute } from '@/lib/api/middleware';
-import { apiSuccess, apiError } from '@/lib/api/responses';
-import { dashboardTags, CACHE_DURATIONS } from '@/lib/api/cache';
-import { getAllCoffeeDTO } from '@/lib/contentful/api/coffee';
+import {
+  apiSuccess,
+  validationError,
+  internalError,
+} from '@/lib/api/responses';
 import { z } from 'zod';
+import { getCoffeeConfig } from '@/lib/dashboard/settings';
 
-/**
- * Query parameters schema
- */
 const QueryParamsSchema = z.object({
-  page: z.coerce.number().int().min(1).optional().default(1),
-  limit: z.coerce.number().int().min(1).max(100).optional().default(20),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
 });
 
-/**
- * Response schema for coffee config endpoint
- */
-const CoffeeConfigItemSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  roaster: z.string(),
-});
+/** Secret-gated response: never CDN-cache it (the data cache lives in lib/dashboard). */
+function privateJson<T>(data: T) {
+  const response = apiSuccess(data);
+  response.headers.set('Cache-Control', 'private, no-store');
+  return response;
+}
 
-const CoffeeConfigResponseSchema = z.object({
-  items: z.array(CoffeeConfigItemSchema),
-});
-
-export type CoffeeConfigResponse = z.infer<typeof CoffeeConfigResponseSchema>;
-
-/**
- * GET /api/v1/dashboard/settings/coffee
- *
- * Returns coffee configuration data from Contentful for settings/selection purposes.
- *
- * Query Parameters:
- * - page (optional): Page number for pagination (default: 1)
- * - limit (optional): Number of items per page (default: 20, max: 100)
- *
- * Response:
- * - items: Array of coffee configuration objects
- *
- * Cache:
- * - Duration: 1 hour (STABLE) - Coffee config data changes infrequently
- * - Tags: dashboard:settings:coffee
- *
- * Example:
- * GET /api/v1/dashboard/settings/coffee?page=1&limit=20
- * {
- *   "items": [
- *     {
- *       "id": "abc123",
- *       "name": "Ethiopian Yirgacheffe",
- *       "roaster": "Local Roasters"
- *     }
- *   ]
- * }
- */
+/** GET /api/v1/dashboard/settings/coffee?page&limit — coffee catalogue for the settings form. */
 export const GET = createApiRoute()
   .withAuth()
   .withRateLimit('dashboard-settings-coffee', { windowSec: 60, max: 30 })
   .withTrace('GET /api/v1/dashboard/settings/coffee')
   .handle(async (request) => {
     try {
-      // Parse query parameters
-      const url = new URL(request.url);
-      const pageParam = url.searchParams.get('page');
-      const limitParam = url.searchParams.get('limit');
-
-      // Validate query parameters
-      const paramsResult = QueryParamsSchema.safeParse({
-        page: pageParam,
-        limit: limitParam,
+      const q = new URL(request.url).searchParams;
+      const parsed = QueryParamsSchema.safeParse({
+        ...(q.get('page') !== null && { page: q.get('page') }),
+        ...(q.get('limit') !== null && { limit: q.get('limit') }),
       });
-
-      if (!paramsResult.success) {
-        return apiError(
+      if (!parsed.success)
+        return validationError(
           'Invalid query parameters',
-          400,
-          paramsResult.error.flatten(),
-          'VALIDATION_ERROR'
+          parsed.error.flatten()
         );
-      }
-
-      const { page, limit } = paramsResult.data;
-
-      // Fetch coffee config from Contentful
-      const coffeeData = await getAllCoffeeDTO(page, limit);
-
-      const response = {
-        items: coffeeData.items,
-      };
-
-      // Validate response schema
-      const validatedResponse = CoffeeConfigResponseSchema.parse(response);
-
-      // Generate cache tags
-      const tags = [dashboardTags('settings', 'coffee')];
-
-      // Return response with cache headers
-      const apiResponse = apiSuccess(validatedResponse);
-
-      // Add cache tags via Next.js headers
-      apiResponse.headers.set('X-Cache-Tags', tags.join(','));
-
-      // Add cache control header (1 hour - config data changes infrequently)
-      apiResponse.headers.set(
-        'Cache-Control',
-        `s-maxage=${CACHE_DURATIONS.STABLE}, stale-while-revalidate`
+      return privateJson(
+        await getCoffeeConfig(parsed.data.page, parsed.data.limit)
       );
-
-      return apiResponse;
     } catch (error) {
       console.error('Error fetching coffee config:', error);
-
-      if (error instanceof Error) {
-        return apiError(
-          'Failed to fetch coffee configuration',
-          500,
-          process.env.NODE_ENV === 'development' ? error.message : undefined,
-          'INTERNAL_ERROR'
-        );
-      }
-
-      return apiError('An unexpected error occurred', 500, undefined, 'INTERNAL_ERROR');
+      return internalError('Failed to fetch coffee configuration', error);
     }
   });

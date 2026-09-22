@@ -1,20 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { revalidateDashboard } from './revalidate';
+import {
+  revalidateDashboard,
+  revalidateCoffee,
+  revalidateGoals,
+} from './revalidate';
+import { invalidations } from './tags';
 
-// Mock Next.js cache functions
 vi.mock('next/cache', () => ({
   revalidateTag: vi.fn(),
   revalidatePath: vi.fn(),
-}));
-
-// Mock constants
-vi.mock('@/lib/constants', () => ({
-  CACHE_TAGS: {
-    DASHBOARD: 'dashboard',
-  },
-  PATHS: {
-    DASHBOARD: '/dashboard',
-  },
+  unstable_cache: (fn: unknown) => fn,
 }));
 
 import { revalidateTag, revalidatePath } from 'next/cache';
@@ -23,31 +18,39 @@ describe('revalidateDashboard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
-  it('should call revalidateTag with dashboard tag', () => {
-    revalidateDashboard();
 
+  it('revalidates the overview tag', () => {
+    revalidateDashboard();
     expect(revalidateTag).toHaveBeenCalledWith('dashboard', 'max');
   });
 
-  it('should call revalidatePath with dashboard path and page type', () => {
+  it('revalidates the dashboard page once', () => {
     revalidateDashboard();
-
     expect(revalidatePath).toHaveBeenCalledWith('/dashboard', 'page');
-  });
-
-  it('should call revalidateTag for all dashboard cache tags', () => {
-    revalidateDashboard();
-
-    // Should invalidate all 5 dashboard-related cache tags
-    expect(revalidateTag).toHaveBeenCalledTimes(5);
     expect(revalidatePath).toHaveBeenCalledOnce();
   });
 
-  it('should use constants for tag and path values', () => {
+  it('revalidates each distinct tag exactly once', () => {
     revalidateDashboard();
+    const distinct = new Set(Object.values(invalidations).flat());
+    expect(revalidateTag).toHaveBeenCalledTimes(distinct.size);
+  });
+});
 
-    // Verify it's using the constant values
+describe('event-specific revalidators', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('revalidateCoffee invalidates the coffee set and the overview', () => {
+    revalidateCoffee();
+    for (const tag of invalidations.coffee) {
+      expect(revalidateTag).toHaveBeenCalledWith(tag, 'max');
+    }
     expect(revalidateTag).toHaveBeenCalledWith('dashboard', 'max');
-    expect(revalidatePath).toHaveBeenCalledWith('/dashboard', 'page');
+  });
+
+  it('revalidateGoals reaches the derived habits and running data', () => {
+    revalidateGoals();
+    expect(revalidateTag).toHaveBeenCalledWith('habits:consistency', 'max');
+    expect(revalidateTag).toHaveBeenCalledWith('workouts:running', 'max');
   });
 });

@@ -1,76 +1,45 @@
-import React from "react";
-import { dashboardApi } from "@/lib/api/client";
-import type { LocationResponse, CountriesResponse } from "@/lib/api/types";
-import TravelClient from "./travel.client";
-
-// Force dynamic rendering to fetch data on-demand from API
-// API endpoints handle caching with tag-based invalidation
-export const dynamic = 'force-dynamic';
-
-// Cache configuration - revalidate every 5 minutes
-// Travel data changes infrequently, so caching is beneficial
-export const revalidate = 300; // 5 minutes
+import React from 'react';
+import { getLocation } from '@/lib/dashboard/location';
+import { getCountries } from '@/lib/dashboard/countries';
+import TravelClient from './travel.client';
 
 export const metadata = {
-  title: "Travel | Dashboard",
-  description: "Travel history and visited countries around the world",
+  title: 'Travel | Dashboard',
+  description: 'Travel history and visited countries around the world',
 };
 
 export default async function TravelPage() {
-  // Fetch location and countries data from APIs
-  const [locationData, allCountriesData, visitedCountriesData] = await Promise.all([
-    dashboardApi.get<LocationResponse>("/location", {
-      tags: ["dashboard:location"],
-      revalidate: 300, // 5 minutes
-    }),
-    dashboardApi.get<CountriesResponse>("/countries", {
-      tags: ["dashboard:countries"],
-      revalidate: 3600, // 1 hour
-    }),
-    dashboardApi.get<CountriesResponse>("/countries", {
-      params: { visited: "true" },
-      tags: ["dashboard:countries"],
-      revalidate: 3600, // 1 hour
-    }),
+  const [locationData, allCountries] = await Promise.all([
+    getLocation(),
+    getCountries('all'),
   ]);
 
-  const lat = locationData?.latitude ?? 0;
-  const lon = locationData?.longitude ?? 0;
-  const hasLocation = locationData != null;
-
-  const countriesSlim = allCountriesData.countries.map((c) => ({
-    id: c.id,
-    path: c.path,
-    visited: c.visited,
-  }));
-
-  const travel = {
-    totalCountries: allCountriesData.total,
-    visitedCount: visitedCountriesData.visited_count,
-    recentVisited: visitedCountriesData.countries.slice(0, 5).map((c) => ({ id: c.id, name: c.name })),
-    countries: countriesSlim,
-    lat,
-    lon,
-    hasLocation,
-  };
+  // `all` lists visited countries first, most recent first.
+  const visited = allCountries.countries.filter((c) => c.visited);
 
   return (
-    <div className="w-full space-y-6">
+    <div className='w-full space-y-6'>
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Travel</h2>
-        <p className="text-muted-foreground">
+        <h2 className='text-2xl font-bold tracking-tight'>Travel</h2>
+        <p className='text-muted-foreground'>
           Travel history and countries visited around the world.
         </p>
       </div>
 
       <TravelClient
-        totalCountries={travel.totalCountries}
-        visitedCount={travel.visitedCount}
-        recentVisited={travel.recentVisited}
-        countries={travel.countries}
-        lat={travel.lat}
-        lon={travel.lon}
-        hasLocation={travel.hasLocation}
+        totalCountries={allCountries.total}
+        visitedCount={allCountries.visited_count}
+        recentVisited={visited
+          .slice(0, 5)
+          .map((c) => ({ id: c.id, name: c.name }))}
+        countries={allCountries.countries.map((c) => ({
+          id: c.id,
+          path: c.path,
+          visited: c.visited,
+        }))}
+        lat={locationData?.latitude ?? 0}
+        lon={locationData?.longitude ?? 0}
+        hasLocation={locationData != null}
       />
     </div>
   );

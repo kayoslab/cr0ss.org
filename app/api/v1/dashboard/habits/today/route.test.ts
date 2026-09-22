@@ -213,27 +213,9 @@ describe('GET /api/v1/dashboard/habits/today', () => {
       );
       const response = await GET(request);
 
-      expect(response.headers.get('Cache-Control')).toContain('s-maxage=30');
-      expect(response.headers.get('Cache-Control')).toContain('stale-while-revalidate');
+      expect(response.headers.get('Cache-Control')).toBe('private, no-store');
     });
 
-    it('should set cache tags', async () => {
-      vi.mocked(sql).mockResolvedValueOnce([] as never);
-
-      const request = new Request(
-        'http://localhost:3000/api/v1/dashboard/habits/today?date=2025-12-05',
-        {
-          headers: {
-            'x-admin-secret': 'test-dashboard-secret-1234567890',
-          },
-        }
-      );
-      const response = await GET(request);
-
-      const cacheTags = response.headers.get('X-Cache-Tags');
-      expect(cacheTags).toContain('habits:today:2025-12-05');
-      expect(cacheTags).toContain('habits:today');
-    });
   });
 
   describe('Error Handling', () => {
