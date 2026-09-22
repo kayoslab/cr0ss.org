@@ -23,7 +23,10 @@ async function runMigration() {
   const db = neon(databaseUrl!);
 
   console.log(`📄 Reading migration file...`);
-  const migrationPath = join(process.cwd(), 'db/migrations/013_strava_integration.sql');
+  const migrationPath = join(
+    process.cwd(),
+    'db/migrations/013_strava_integration.sql'
+  );
   const migrationSQL = readFileSync(migrationPath, 'utf-8');
 
   console.log(`🚀 Applying Strava integration migration...`);
@@ -32,7 +35,7 @@ async function runMigration() {
     // Remove SQL comments and normalize whitespace
     const cleanSQL = migrationSQL
       .split('\n')
-      .filter(line => {
+      .filter((line) => {
         const trimmed = line.trim();
         return trimmed && !trimmed.startsWith('--');
       })
@@ -41,8 +44,8 @@ async function runMigration() {
     // Split on semicolon but be careful with function bodies
     const statements = cleanSQL
       .split(/;(?=\s*(?:CREATE|ALTER|DROP|INSERT|UPDATE|DELETE|COMMENT|$))/i)
-      .map(stmt => stmt.trim())
-      .filter(stmt => stmt.length > 0);
+      .map((stmt) => stmt.trim())
+      .filter((stmt) => stmt.length > 0);
 
     console.log(`Found ${statements.length} statements to execute\n`);
 
@@ -55,12 +58,16 @@ async function runMigration() {
       try {
         await db.unsafe(statement);
         console.log(`  ✓ Success`);
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const code = (error as { code?: string }).code;
         // Check if error is about object already existing
-        if (error.code === '42P07' || error.code === '42710') {
+        if (code === '42P07' || code === '42710') {
           console.log(`  ⚠ Already exists, skipping`);
         } else {
-          console.error(`  ✗ Failed:`, error.message);
+          console.error(
+            `  ✗ Failed:`,
+            error instanceof Error ? error.message : error
+          );
           throw error;
         }
       }
@@ -74,7 +81,6 @@ async function runMigration() {
     console.log('');
     console.log('Enhanced tables:');
     console.log('  - workouts (added source, external_id, synced_at columns)');
-
   } catch (error) {
     console.error('\n❌ Migration failed:');
     console.error(error);

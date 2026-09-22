@@ -8,7 +8,6 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
-  Legend,
   Line as RechartsLine,
   LineChart,
   Pie,
@@ -33,7 +32,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { CHART_COLOR_VALUES, getChartColor } from "@/lib/constants/chart-colors";
+import { getChartColor } from "@/lib/constants/chart-colors";
 
 /** Panel wrapper using shadcn Card components */
 export function Panel({ title, children }: { title: string; children: React.ReactNode }) {

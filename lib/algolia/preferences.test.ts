@@ -47,7 +47,7 @@ describe('Search Preferences', () => {
     it('should return default preferences on server side (no window)', () => {
       const originalWindow = global.window;
        
-      delete (global as any).window;
+      delete (global as { window?: unknown }).window;
 
       const prefs = getSearchPreferences();
 
@@ -58,7 +58,7 @@ describe('Search Preferences', () => {
       });
 
        
-      (global as any).window = originalWindow;
+      (global as { window?: unknown }).window = originalWindow;
     });
 
     it('should return stored preferences', () => {

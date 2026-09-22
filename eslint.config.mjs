@@ -1,42 +1,54 @@
-import nextPlugin from "@next/eslint-plugin-next";
-import reactPlugin from "eslint-plugin-react-hooks";
-import typescriptPlugin from "@typescript-eslint/eslint-plugin";
-import typescriptParser from "@typescript-eslint/parser";
-import prettierConfig from "eslint-config-prettier";
+import nextPlugin from '@next/eslint-plugin-next';
+import reactPlugin from 'eslint-plugin-react-hooks';
+import typescriptPlugin from '@typescript-eslint/eslint-plugin';
+import typescriptParser from '@typescript-eslint/parser';
+import prettierConfig from 'eslint-config-prettier';
 
 const eslintConfig = [
   {
     ignores: [
-      "node_modules/**",
-      ".next/**",
-      "out/**",
-      "build/**",
-      "coverage/**",
-      "next-env.d.ts",
-      "eve/**",
+      'node_modules/**',
+      '.next/**',
+      'out/**',
+      'build/**',
+      'coverage/**',
+      'next-env.d.ts',
+      'eve/**',
+      'app/.well-known/**',
+      'scripts/*.js',
     ],
   },
   {
-    files: ["**/*.{js,jsx,ts,tsx}"],
+    files: ['**/*.{js,jsx,ts,tsx}'],
     languageOptions: {
       parser: typescriptParser,
       parserOptions: {
-        ecmaVersion: "latest",
-        sourceType: "module",
+        ecmaVersion: 'latest',
+        sourceType: 'module',
         ecmaFeatures: {
           jsx: true,
         },
       },
     },
     plugins: {
-      "@next/next": nextPlugin,
-      "react-hooks": reactPlugin,
-      "@typescript-eslint": typescriptPlugin,
+      '@next/next': nextPlugin,
+      'react-hooks': reactPlugin,
+      '@typescript-eslint': typescriptPlugin,
     },
     rules: {
       ...nextPlugin.configs.recommended.rules,
-      ...nextPlugin.configs["core-web-vitals"].rules,
+      ...nextPlugin.configs['core-web-vitals'].rules,
       ...reactPlugin.configs.recommended.rules,
+      ...typescriptPlugin.configs.recommended.rules,
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrors: 'none',
+          ignoreRestSiblings: true,
+        },
+      ],
       ...prettierConfig.rules,
     },
   },

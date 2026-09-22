@@ -7,7 +7,6 @@
 
 import {
   fetchDailyMetrics,
-  extractMetricValues,
   getMinimumSampleSize,
   type DailyMetrics,
   AVAILABLE_METRICS,

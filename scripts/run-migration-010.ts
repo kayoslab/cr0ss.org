@@ -5,8 +5,6 @@
 
 import { config } from "dotenv";
 import { neon } from "@neondatabase/serverless";
-import { readFileSync } from "fs";
-import { join } from "path";
 
 // Load environment variables
 config({ path: ".env" });

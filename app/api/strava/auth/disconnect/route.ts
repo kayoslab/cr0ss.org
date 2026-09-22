@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { env } from '@/env';
 import { sql } from '@/lib/db/client';
 import { assertSecret } from '@/lib/auth/secret';
 import { rateLimit } from '@/lib/rate/limit';

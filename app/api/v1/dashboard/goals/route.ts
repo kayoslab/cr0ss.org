@@ -1,9 +1,5 @@
 import { createApiRoute } from '@/lib/api/middleware';
-import {
-  apiSuccess,
-  validationError,
-  internalError,
-} from '@/lib/api/responses';
+import { apiSuccess, internalError } from '@/lib/api/responses';
 import { getGoals } from '@/lib/dashboard/goals';
 
 /** Secret-gated response: never CDN-cache it (the data cache lives in lib/dashboard). */

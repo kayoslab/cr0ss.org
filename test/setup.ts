@@ -44,10 +44,14 @@ vi.mock('next/cache', () => ({
 }));
 
 // Mock Next.js Link component
-vi.mock('next/link', () => {
-  const React = require('react');
+vi.mock('next/link', async () => {
+  const React = await import('react');
   return {
-    default: ({ children, href, ...props }: any) => {
+    default: ({
+      children,
+      href,
+      ...props
+    }: React.PropsWithChildren<{ href: string } & Record<string, unknown>>) => {
       return React.createElement('a', { href, ...props }, children);
     },
   };

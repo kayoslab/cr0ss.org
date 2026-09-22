@@ -2,7 +2,6 @@ import { describe, it, expect, vi } from 'vitest';
 import { validateRequestBody, withErrorHandler, createApiRoute } from './middleware';
 import { apiSuccess as createSuccessResponse } from './responses';
 import { z } from 'zod';
-import { NextResponse } from 'next/server';
 
 // Mock env for auth tests
 vi.mock('@/env', () => ({

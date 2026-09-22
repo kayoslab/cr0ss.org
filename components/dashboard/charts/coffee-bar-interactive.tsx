@@ -108,7 +108,7 @@ export function CoffeeBarInteractive({ data }: CoffeeBarInteractiveProps) {
                       year: "numeric",
                     })
                   }}
-                  formatter={(value, name) => {
+                  formatter={(value) => {
                     return (
                       <div className="flex items-center gap-2 w-full">
                         <div

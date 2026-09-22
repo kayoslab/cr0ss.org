@@ -43,9 +43,9 @@ vi.mock('@/lib/db/queries', () => ({
 }));
 
 vi.mock('@/lib/time/berlin', () => ({
-  startOfBerlinDayISO: vi.fn((date: Date) => '2025-12-05T00:00:00.000Z'),
-  endOfBerlinDayISO: vi.fn((date: Date) => '2025-12-06T00:00:00.000Z'),
-  toBerlinYMD: vi.fn((date: Date) => '2025-12-05'),
+  startOfBerlinDayISO: vi.fn(() => '2025-12-05T00:00:00.000Z'),
+  endOfBerlinDayISO: vi.fn(() => '2025-12-06T00:00:00.000Z'),
+  toBerlinYMD: vi.fn(() => '2025-12-05'),
 }));
 
 import { sql } from '@/lib/db/client';

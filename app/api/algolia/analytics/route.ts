@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { aa } from '@/lib/algolia/client';
-import { HTTP_STATUS, HTTP_MESSAGES } from '@/lib/constants/http';
+import { HTTP_STATUS } from '@/lib/constants/http';
 
 export async function POST(request: Request) {
   try {

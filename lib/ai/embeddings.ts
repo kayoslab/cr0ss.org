@@ -11,7 +11,7 @@ import { env } from "@/env";
 
 // Create gateway instance with API key
 const gateway = createGateway({
-  apiKey: process.env.AI_GATEWAY_API_KEY ?? '',
+  apiKey: env.AI_GATEWAY_API_KEY ?? '',
 });
 
 // Model configuration

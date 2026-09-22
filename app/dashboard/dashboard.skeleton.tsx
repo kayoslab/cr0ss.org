@@ -13,15 +13,6 @@ function SkeletonCard({ children }: { children: React.ReactNode }) {
 }
 
 // Small helper that mimics your Section header styling
-function Header({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="sticky z-30 top-16 bg-white">
-      <h2 className="py-2 text-sm font-medium tracking-wide text-neutral-500 border-b border-neutral-200/70">
-        {children}
-      </h2>
-    </div>
-  );
-}
 
 /**
  * Lightweight visual placeholders while the client dashboard hydrates.

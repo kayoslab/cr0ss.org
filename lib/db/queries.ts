@@ -461,16 +461,6 @@ export async function qMonthlyGoalsObject(): Promise<{
   const monthly: Record<string, number> = {};
   const daily: Record<string, number> = {};
 
-  // Default values for all possible goals
-  const allGoals = [
-    'running_distance_km',
-    'steps',
-    'reading_minutes',
-    'outdoor_minutes',
-    'writing_minutes',
-    'coding_minutes',
-    'focus_minutes',
-  ];
 
   interface GoalRow {
     kind: string;
