@@ -4,8 +4,6 @@ import { assertSecret } from '@/lib/auth/secret';
 import { rateLimit } from '@/lib/rate/limit';
 import { assertStravaConfigured } from '@/lib/strava/config';
 
-export const runtime = 'edge';
-
 /**
  * GET /api/strava/auth/status
  *

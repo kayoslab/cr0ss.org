@@ -6,6 +6,10 @@ export const env = createEnv({
   // can be left blank in Vercel without failing validation at build time.
   emptyStringAsUndefined: true,
   server: {
+    DATABASE_URL: z.string().url(),
+    // Upstash Redis (provisioned as Vercel KV; keeps the KV_* names)
+    KV_REST_API_URL: z.string().url(),
+    KV_REST_API_TOKEN: z.string().min(1),
     ALGOLIA_APP_ID: z.string().length(10),
     ALGOLIA_ADMIN_KEY: z.string().min(20),
     ALGOLIA_SEARCH_KEY: z.string().min(20),
@@ -14,6 +18,7 @@ export const env = createEnv({
     CONTENTFUL_ACCESS_TOKEN: z.string().length(43),
     CONTENTFUL_REVALIDATE_SECRET: z.string().min(20),
     DASHBOARD_API_SECRET: z.string().min(20),
+    OPENWEATHER_API_KEY: z.string().min(1).optional(),
     // AI Gateway (Vercel AI)
     AI_GATEWAY_API_KEY: z.string().min(10).optional(),
     // Networking capture + enrichment (contact-memory system)
@@ -30,14 +35,10 @@ export const env = createEnv({
     TOKEN_ENCRYPTION_KEY: z.string().length(64).optional(),
   },
   client: {},
-  // If you're using Next.js < 13.4.4, you'll need to specify the runtimeEnv manually
-  // runtimeEnv: {
-  //   CONTENTFUL_SPACE_ID: process.env.CONTENTFUL_SPACE_ID,
-  //   CONTENTFUL_ACCESS_TOKEN: process.env.CONTENTFUL_ACCESS_TOKEN,
-  //   CONTENTFUL_REVALIDATE_SECRET: process.env.CONTENTFUL_REVALIDATE_SECRET,
-  // },
-  // For Next.js >= 13.4.4, you only need to destructure client variables:
   experimental__runtimeEnv: {
+    DATABASE_URL: process.env.DATABASE_URL,
+    KV_REST_API_URL: process.env.KV_REST_API_URL,
+    KV_REST_API_TOKEN: process.env.KV_REST_API_TOKEN,
     ALGOLIA_APP_ID: process.env.ALGOLIA_APP_ID,
     ALGOLIA_ADMIN_KEY: process.env.ALGOLIA_ADMIN_KEY,
     ALGOLIA_SEARCH_KEY: process.env.ALGOLIA_SEARCH_KEY,
@@ -46,6 +47,7 @@ export const env = createEnv({
     CONTENTFUL_ACCESS_TOKEN: process.env.CONTENTFUL_ACCESS_TOKEN,
     CONTENTFUL_REVALIDATE_SECRET: process.env.CONTENTFUL_REVALIDATE_SECRET,
     DASHBOARD_API_SECRET: process.env.DASHBOARD_API_SECRET,
+    OPENWEATHER_API_KEY: process.env.OPENWEATHER_API_KEY,
     OWNER_WHATSAPP: process.env.OWNER_WHATSAPP,
     APIFY_TOKEN: process.env.APIFY_TOKEN,
     APIFY_ACTOR_ID: process.env.APIFY_ACTOR_ID,

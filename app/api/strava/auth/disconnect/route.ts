@@ -6,8 +6,6 @@ import { rateLimit } from '@/lib/rate/limit';
 import { revalidateWorkouts } from '@/lib/cache/revalidate';
 import { assertStravaConfigured } from '@/lib/strava/config';
 
-export const runtime = 'edge';
-
 /**
  * POST /api/strava/auth/disconnect
  *

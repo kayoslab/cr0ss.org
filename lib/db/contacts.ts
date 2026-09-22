@@ -1,4 +1,4 @@
-import { neon } from "@neondatabase/serverless";
+import { sql } from './client';
 import {
   ZContactSearchResult,
   type AnchorType,
@@ -6,26 +6,13 @@ import {
   type ContactStatus,
   type ContactSearchResult,
   type ProfileMetadata,
-} from "./models";
-
-// Lazy-load SQL connection so environment variables can be set first.
-let sql: ReturnType<typeof neon> | null = null;
-function getSQL() {
-  if (!sql) {
-    if (!process.env.DATABASE_URL) {
-      throw new Error("DATABASE_URL environment variable is not set");
-    }
-    sql = neon(process.env.DATABASE_URL);
-  }
-  return sql;
-}
+} from './models';
 
 /**
  * Store a captured contact seed (from the public portfolio form).
  * Returns the generated contact id (uuid).
  */
 export async function insertContactSeed(seed: ContactSeed): Promise<string> {
-  const sql = getSQL();
   const rows = (await sql`
     INSERT INTO contacts (name, anchor_type, anchor_value, message, source, campaign_id, status)
     VALUES (
@@ -51,8 +38,7 @@ export async function setContactStatus(
   status: ContactStatus,
   extra: { apifyRunId?: string } = {}
 ): Promise<void> {
-  const sql = getSQL();
-  const enrichedAt = status === "enriched" ? new Date().toISOString() : null;
+  const enrichedAt = status === 'enriched' ? new Date().toISOString() : null;
   await sql`
     UPDATE contacts
     SET status = ${status},
@@ -71,7 +57,6 @@ export async function getContactById(id: string): Promise<{
   message: string | null;
   campaignId: string | null;
 } | null> {
-  const sql = getSQL();
   const rows = (await sql`
     SELECT id, name, anchor_type, anchor_value, message, campaign_id
     FROM contacts
@@ -106,7 +91,6 @@ export async function listPendingContacts(limit = 25): Promise<
     anchorValue: string;
   }>
 > {
-  const sql = getSQL();
   const rows = (await sql`
     SELECT id, name, anchor_type, anchor_value
     FROM contacts
@@ -137,7 +121,6 @@ export async function insertContactEmbedding(
   embedding: number[],
   profile: ProfileMetadata
 ): Promise<number> {
-  const sql = getSQL();
   const rows = (await sql`
     INSERT INTO contact_embeddings (contact_id, content, embedding, profile)
     VALUES (
@@ -170,7 +153,6 @@ export async function searchContacts(
   limit = 5,
   minSimilarity = 0.15
 ): Promise<ContactSearchResult[]> {
-  const sql = getSQL();
   const vec = JSON.stringify(queryEmbedding);
   const rows = (await sql`
     SELECT

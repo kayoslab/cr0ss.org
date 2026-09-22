@@ -1,5 +1,6 @@
 import { Redis } from '@upstash/redis';
 import { getClientId } from './who';
+import { env } from '@/env';
 
 export type RateLimitResult =
   { ok: true } | { ok: false; retryAfterSec: number };
@@ -10,8 +11,8 @@ let redis: Redis | null = null;
 function getRedis(): Redis {
   if (!redis) {
     redis = new Redis({
-      url: process.env.KV_REST_API_URL!,
-      token: process.env.KV_REST_API_TOKEN!,
+      url: env.KV_REST_API_URL,
+      token: env.KV_REST_API_TOKEN,
     });
   }
   return redis;

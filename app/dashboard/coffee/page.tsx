@@ -3,9 +3,6 @@ import { apiGet } from "@/lib/api/client";
 import { isoToBerlinDate } from "@/lib/time/berlin";
 import CoffeeClient from "./coffee.client";
 
-// Use edge runtime for better performance
-export const runtime = "nodejs";
-
 // Force dynamic rendering to fetch data on-demand from API
 // API endpoints handle caching with tag-based invalidation
 export const dynamic = 'force-dynamic';

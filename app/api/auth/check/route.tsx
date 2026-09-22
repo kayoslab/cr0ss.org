@@ -1,5 +1,3 @@
-export const runtime = "edge";
-
 import { NextResponse } from "next/server";
 import { assertSecret } from "@/lib/auth/secret";
 import { HTTP_STATUS } from "@/lib/constants/http";

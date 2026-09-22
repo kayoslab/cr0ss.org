@@ -1,5 +1,3 @@
-export const runtime = 'nodejs';
-
 import { createApiRoute } from '@/lib/api/middleware';
 import { apiSuccess, apiError } from '@/lib/api/responses';
 import { habitsTags, CACHE_DURATIONS } from '@/lib/api/cache';

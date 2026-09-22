@@ -107,7 +107,7 @@ describe('POST /api/revalidate', () => {
       const response = await POST(request);
 
       expect(response.status).toBe(200);
-      expect(revalidateTag).toHaveBeenCalledWith('blogPosts');
+      expect(revalidateTag).toHaveBeenCalledWith('blogPosts', 'max');
 
       const data = await response.json();
       expect(data.tags).toContain('blogPosts');
@@ -137,7 +137,7 @@ describe('POST /api/revalidate', () => {
       const response = await POST(request);
 
       expect(response.status).toBe(200);
-      expect(revalidateTag).toHaveBeenCalledWith('blogPosts');
+      expect(revalidateTag).toHaveBeenCalledWith('blogPosts', 'max');
       expect(revalidatePath).toHaveBeenCalledWith('/blog');
     });
   });
@@ -176,8 +176,8 @@ describe('POST /api/revalidate', () => {
       const response = await POST(request);
 
       expect(response.status).toBe(200);
-      expect(revalidateTag).toHaveBeenCalledWith('blogPosts');
-      expect(revalidateTag).toHaveBeenCalledWith('my-blog-post');
+      expect(revalidateTag).toHaveBeenCalledWith('blogPosts', 'max');
+      expect(revalidateTag).toHaveBeenCalledWith('my-blog-post', 'max');
       expect(revalidatePath).toHaveBeenCalledWith('/blog');
       expect(revalidatePath).toHaveBeenCalledWith('/blog/my-blog-post');
       
@@ -284,8 +284,8 @@ describe('POST /api/revalidate', () => {
       const response = await POST(request);
 
       expect(response.status).toBe(200);
-      expect(revalidateTag).toHaveBeenCalledWith('pages');
-      expect(revalidateTag).toHaveBeenCalledWith('about');
+      expect(revalidateTag).toHaveBeenCalledWith('pages', 'max');
+      expect(revalidateTag).toHaveBeenCalledWith('about', 'max');
       expect(revalidatePath).toHaveBeenCalledWith('/page/about');
       
       const data = await response.json();
@@ -308,7 +308,7 @@ describe('POST /api/revalidate', () => {
       const response = await POST(request);
 
       expect(response.status).toBe(200);
-      expect(revalidateTag).toHaveBeenCalledWith('countries');
+      expect(revalidateTag).toHaveBeenCalledWith('countries', 'max');
       expect(revalidatePath).toHaveBeenCalledWith('/');
       
       const data = await response.json();
@@ -335,8 +335,8 @@ describe('POST /api/revalidate', () => {
       const response = await POST(request);
 
       expect(response.status).toBe(200);
-      expect(revalidateTag).toHaveBeenCalledWith('coffee');
-      expect(revalidateTag).toHaveBeenCalledWith('test-coffee-slug');
+      expect(revalidateTag).toHaveBeenCalledWith('coffee', 'max');
+      expect(revalidateTag).toHaveBeenCalledWith('test-coffee-slug', 'max');
       expect(revalidatePath).toHaveBeenCalledWith('/coffee');
       expect(revalidatePath).toHaveBeenCalledWith('/dashboard');
       expect(revalidatePath).toHaveBeenCalledWith('/coffee/test-coffee-slug');

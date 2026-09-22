@@ -5,8 +5,6 @@ import { rateLimit } from '@/lib/rate/limit';
 import { revalidateWorkouts } from '@/lib/cache/revalidate';
 import { getStravaConfig } from '@/lib/strava/config';
 
-export const runtime = 'edge';
-
 /**
  * GET /api/strava/webhook
  *

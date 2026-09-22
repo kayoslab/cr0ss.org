@@ -1,5 +1,3 @@
-export const runtime = "nodejs";
-
 import { z } from "zod";
 import { start } from "workflow/api";
 import { rateLimit } from "@/lib/rate/limit";
@@ -11,6 +9,7 @@ import {
 import { ZContactSeed } from "@/lib/db/models";
 import { insertContactSeed } from "@/lib/db/contacts";
 import { enrichContactWorkflow } from "@/lib/workflows/enrich-contact";
+import { env } from "@/env";
 
 // The public form also submits a honeypot field which must stay empty.
 const ZCaptureRequest = ZContactSeed.extend({
@@ -47,7 +46,7 @@ export async function POST(request: Request) {
     return createSuccessResponse({ ok: true });
   }
 
-  const ownerNumber = process.env.OWNER_WHATSAPP;
+  const ownerNumber = env.OWNER_WHATSAPP;
   if (!ownerNumber) {
     return createErrorResponse(
       "Capture is not configured yet.",

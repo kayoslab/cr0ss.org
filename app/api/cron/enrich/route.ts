@@ -1,9 +1,8 @@
-export const runtime = "nodejs";
-
 import { start } from "workflow/api";
 import { createErrorResponse, createSuccessResponse } from "@/lib/api/middleware";
 import { listPendingContacts } from "@/lib/db/contacts";
 import { enrichContactWorkflow } from "@/lib/workflows/enrich-contact";
+import { env } from "@/env";
 
 /**
  * Fallback enrichment sweep for any contacts left in `pending`
@@ -13,7 +12,7 @@ import { enrichContactWorkflow } from "@/lib/workflows/enrich-contact";
  * Authenticated with the Vercel-provided `Authorization: Bearer <CRON_SECRET>`.
  */
 export async function GET(request: Request) {
-  const secret = process.env.CRON_SECRET;
+  const secret = env.CRON_SECRET;
   const auth = request.headers.get("authorization");
   if (!secret || auth !== `Bearer ${secret}`) {
     return createErrorResponse("Unauthorized", 401, undefined, "UNAUTHORIZED");

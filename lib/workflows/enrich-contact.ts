@@ -7,6 +7,8 @@ import {
 } from '@/lib/db/contacts';
 import { ZProfileMetadata } from '@/lib/db/models';
 
+// Steps read process.env directly: this file is bundled by the workflow
+// compiler and must stay free of module-level side effects like env validation.
 const APIFY_BASE = 'https://api.apify.com/v2';
 const MAX_POLLS = 40; // 40 × 15s ≈ 10 minutes
 

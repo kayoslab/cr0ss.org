@@ -12,8 +12,6 @@ import {
 } from '@/lib/strava/client';
 import { transformStravaActivityToWorkout } from '@/lib/strava/transform';
 
-export const runtime = 'edge';
-
 /**
  * POST /api/strava/sync
  *

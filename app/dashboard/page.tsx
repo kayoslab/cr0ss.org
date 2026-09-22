@@ -17,9 +17,6 @@ import { Progress } from "@/components/ui/progress";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { ProgressRow } from "@/components/dashboard/progress-row";
 
-// Use nodejs runtime for environment variable access
-export const runtime = "nodejs";
-
 // Force dynamic rendering to fetch data on-demand from API
 // API endpoints handle caching with tag-based invalidation
 export const dynamic = 'force-dynamic';

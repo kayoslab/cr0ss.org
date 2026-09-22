@@ -7,6 +7,7 @@
  */
 
 import { embedMany, embed, createGateway } from 'ai';
+import { env } from "@/env";
 
 // Create gateway instance with API key
 const gateway = createGateway({

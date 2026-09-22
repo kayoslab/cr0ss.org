@@ -1,5 +1,3 @@
-export const runtime = "edge";
-
 import { rateLimit } from "@/lib/rate/limit";
 import { wrapTrace } from "@/lib/obs/trace";
 import { sql } from "@/lib/db/client";

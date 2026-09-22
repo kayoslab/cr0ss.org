@@ -1,22 +1,18 @@
-import { revalidateTag as _revalidateTag, revalidatePath } from "next/cache";
-import { CACHE_TAGS } from "@/lib/constants/cache";
-import { PATHS } from "@/lib/constants/paths";
-
-// Type-safe wrapper for revalidateTag that works in edge runtime
-// Edge runtime doesn't support the second parameter properly despite TypeScript requiring it
-const revalidateTag = (tag: string) => (_revalidateTag as (tag: string) => void)(tag);
+import { revalidateTag, revalidatePath } from 'next/cache';
+import { CACHE_TAGS } from '@/lib/constants/cache';
+import { PATHS } from '@/lib/constants/paths';
 
 /**
  * Revalidate all dashboard caches
  * Use when you're unsure which specific cache to invalidate
  */
 export function revalidateDashboard() {
-  revalidateTag(CACHE_TAGS.DASHBOARD);
-  revalidateTag(CACHE_TAGS.DASHBOARD_SHARED);
-  revalidateTag(CACHE_TAGS.COFFEE);
-  revalidateTag(CACHE_TAGS.HABITS);
-  revalidateTag(CACHE_TAGS.WORKOUTS);
-  revalidatePath(PATHS.DASHBOARD, "page");
+  revalidateTag(CACHE_TAGS.DASHBOARD, 'max');
+  revalidateTag(CACHE_TAGS.DASHBOARD_SHARED, 'max');
+  revalidateTag(CACHE_TAGS.COFFEE, 'max');
+  revalidateTag(CACHE_TAGS.HABITS, 'max');
+  revalidateTag(CACHE_TAGS.WORKOUTS, 'max');
+  revalidatePath(PATHS.DASHBOARD, 'page');
 }
 
 /**
@@ -26,22 +22,24 @@ export function revalidateDashboard() {
 export function revalidateCoffee() {
   // Get current date in Berlin timezone for specific cache invalidation
   const now = new Date();
-  const berlinTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Berlin' }));
+  const berlinTime = new Date(
+    now.toLocaleString('en-US', { timeZone: 'Europe/Berlin' })
+  );
   const today = berlinTime.toISOString().split('T')[0];
 
   // Invalidate granular API endpoint caches
-  revalidateTag(`coffee:summary:${today}`); // Today's summary
-  revalidateTag('coffee:summary'); // All summaries
-  revalidateTag('coffee:timeline'); // All timeline variations (wildcard)
-  revalidateTag(`coffee:caffeine:${today}`); // Today's caffeine curve
-  revalidateTag('coffee:caffeine'); // All caffeine curves
-  revalidateTag('coffee:origins'); // Coffee origins (countries)
+  revalidateTag(`coffee:summary:${today}`, 'max'); // Today's summary
+  revalidateTag('coffee:summary', 'max'); // All summaries
+  revalidateTag('coffee:timeline', 'max'); // All timeline variations (wildcard)
+  revalidateTag(`coffee:caffeine:${today}`, 'max'); // Today's caffeine curve
+  revalidateTag('coffee:caffeine', 'max'); // All caffeine curves
+  revalidateTag('coffee:origins', 'max'); // Coffee origins (countries)
 
   // Invalidate legacy dashboard caches for backward compatibility
-  revalidateTag(CACHE_TAGS.COFFEE);
-  revalidateTag(CACHE_TAGS.DASHBOARD_SHARED); // Shared data includes coffee counts
-  revalidateTag(CACHE_TAGS.DASHBOARD); // Overview page shows coffee data
-  revalidatePath(PATHS.DASHBOARD, "page");
+  revalidateTag(CACHE_TAGS.COFFEE, 'max');
+  revalidateTag(CACHE_TAGS.DASHBOARD_SHARED, 'max'); // Shared data includes coffee counts
+  revalidateTag(CACHE_TAGS.DASHBOARD, 'max'); // Overview page shows coffee data
+  revalidatePath(PATHS.DASHBOARD, 'page');
 }
 
 /**
@@ -51,21 +49,23 @@ export function revalidateCoffee() {
 export function revalidateHabits() {
   // Get current date in Berlin timezone for specific cache invalidation
   const now = new Date();
-  const berlinTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Berlin' }));
+  const berlinTime = new Date(
+    now.toLocaleString('en-US', { timeZone: 'Europe/Berlin' })
+  );
   const today = berlinTime.toISOString().split('T')[0];
 
   // Invalidate granular API endpoint caches
-  revalidateTag(`habits:today:${today}`); // Today's habits data
-  revalidateTag('habits:today'); // All habits today variations
-  revalidateTag('habits:consistency'); // All consistency variations (wildcard)
-  revalidateTag('habits:streaks'); // Streaks data
-  revalidateTag('habits:trends'); // All trends variations (wildcard)
+  revalidateTag(`habits:today:${today}`, 'max'); // Today's habits data
+  revalidateTag('habits:today', 'max'); // All habits today variations
+  revalidateTag('habits:consistency', 'max'); // All consistency variations (wildcard)
+  revalidateTag('habits:streaks', 'max'); // Streaks data
+  revalidateTag('habits:trends', 'max'); // All trends variations (wildcard)
 
   // Invalidate legacy dashboard caches for backward compatibility
-  revalidateTag(CACHE_TAGS.HABITS);
-  revalidateTag(CACHE_TAGS.DASHBOARD_SHARED); // Shared data includes habits
-  revalidateTag(CACHE_TAGS.DASHBOARD); // Overview page shows habits data
-  revalidatePath(PATHS.DASHBOARD, "page");
+  revalidateTag(CACHE_TAGS.HABITS, 'max');
+  revalidateTag(CACHE_TAGS.DASHBOARD_SHARED, 'max'); // Shared data includes habits
+  revalidateTag(CACHE_TAGS.DASHBOARD, 'max'); // Overview page shows habits data
+  revalidatePath(PATHS.DASHBOARD, 'page');
 }
 
 /**
@@ -74,15 +74,15 @@ export function revalidateHabits() {
  */
 export function revalidateWorkouts() {
   // Invalidate granular API endpoint caches
-  revalidateTag('workouts:summary'); // All summary variations (wildcard)
-  revalidateTag('workouts:heatmap'); // All heatmap variations (wildcard)
-  revalidateTag('workouts:running'); // All running stats variations (wildcard)
+  revalidateTag('workouts:summary', 'max'); // All summary variations (wildcard)
+  revalidateTag('workouts:heatmap', 'max'); // All heatmap variations (wildcard)
+  revalidateTag('workouts:running', 'max'); // All running stats variations (wildcard)
 
   // Invalidate legacy dashboard caches for backward compatibility
-  revalidateTag(CACHE_TAGS.WORKOUTS);
-  revalidateTag(CACHE_TAGS.DASHBOARD_SHARED); // Shared data may include workout-related habits
-  revalidateTag(CACHE_TAGS.DASHBOARD); // Overview page shows workout data
-  revalidatePath(PATHS.DASHBOARD, "page");
+  revalidateTag(CACHE_TAGS.WORKOUTS, 'max');
+  revalidateTag(CACHE_TAGS.DASHBOARD_SHARED, 'max'); // Shared data may include workout-related habits
+  revalidateTag(CACHE_TAGS.DASHBOARD, 'max'); // Overview page shows workout data
+  revalidatePath(PATHS.DASHBOARD, 'page');
 }
 
 /**
@@ -90,12 +90,12 @@ export function revalidateWorkouts() {
  * Call after goal updates or body profile changes
  */
 export function revalidateShared() {
-  revalidateTag(CACHE_TAGS.DASHBOARD_SHARED);
-  revalidateTag(CACHE_TAGS.DASHBOARD); // Overview depends on shared data
-  revalidatePath(PATHS.DASHBOARD, "page");
+  revalidateTag(CACHE_TAGS.DASHBOARD_SHARED, 'max');
+  revalidateTag(CACHE_TAGS.DASHBOARD, 'max'); // Overview depends on shared data
+  revalidatePath(PATHS.DASHBOARD, 'page');
 
   // Goal updates affect workout stats (e.g., running monthly progress)
-  revalidateTag('workouts:running'); // All running stats variations
+  revalidateTag('workouts:running', 'max'); // All running stats variations
 }
 
 /**
@@ -104,18 +104,18 @@ export function revalidateShared() {
  */
 export function revalidateGoals() {
   // Invalidate granular API endpoint caches
-  revalidateTag('goals'); // Goals list
-  revalidateTag('goals:progress'); // All progress variations (wildcard)
+  revalidateTag('goals', 'max'); // Goals list
+  revalidateTag('goals:progress', 'max'); // All progress variations (wildcard)
 
   // Goals affect other systems
-  revalidateTag('habits:consistency'); // Consistency depends on daily goals
-  revalidateTag('habits:streaks'); // Streaks depend on daily goals
-  revalidateTag('workouts:running'); // Monthly progress depends on running goals
+  revalidateTag('habits:consistency', 'max'); // Consistency depends on daily goals
+  revalidateTag('habits:streaks', 'max'); // Streaks depend on daily goals
+  revalidateTag('workouts:running', 'max'); // Monthly progress depends on running goals
 
   // Invalidate legacy dashboard caches for backward compatibility
-  revalidateTag(CACHE_TAGS.DASHBOARD_SHARED); // Shared data includes goals
-  revalidateTag(CACHE_TAGS.DASHBOARD); // Overview page shows goal-dependent data
-  revalidatePath(PATHS.DASHBOARD, "page");
+  revalidateTag(CACHE_TAGS.DASHBOARD_SHARED, 'max'); // Shared data includes goals
+  revalidateTag(CACHE_TAGS.DASHBOARD, 'max'); // Overview page shows goal-dependent data
+  revalidatePath(PATHS.DASHBOARD, 'page');
 }
 
 /**
@@ -123,8 +123,8 @@ export function revalidateGoals() {
  * Call when a new country is visited
  */
 export function revalidateCountries() {
-  revalidateTag('dashboard:countries'); // Countries list
-  revalidateTag('dashboard:countries:visited'); // Visited countries filter
-  revalidateTag(CACHE_TAGS.DASHBOARD); // Overview page may show country data
-  revalidatePath(PATHS.DASHBOARD, "page");
+  revalidateTag('dashboard:countries', 'max'); // Countries list
+  revalidateTag('dashboard:countries:visited', 'max'); // Visited countries filter
+  revalidateTag(CACHE_TAGS.DASHBOARD, 'max'); // Overview page may show country data
+  revalidatePath(PATHS.DASHBOARD, 'page');
 }

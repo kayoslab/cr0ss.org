@@ -10,9 +10,6 @@ import { InsightsList } from "@/components/insights/insights-list";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Use nodejs runtime for environment variable access
-export const runtime = "nodejs";
-
 // Force dynamic rendering to fetch data on-demand from API
 // API endpoints handle caching with tag-based invalidation
 export const dynamic = 'force-dynamic';

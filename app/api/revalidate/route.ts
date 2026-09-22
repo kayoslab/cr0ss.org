@@ -1,17 +1,13 @@
-export const runtime = "edge";
-
-import { revalidateTag as _revalidateTag, revalidatePath } from "next/cache";
+import { revalidateTag, revalidatePath } from "next/cache";
 import { hasValidSecret } from '@/lib/auth/secret';
 import { createErrorResponse, createSuccessResponse } from '@/lib/api/middleware';
 import { getBlog } from '@/lib/contentful/api/blog';
 import { algoliasearch } from 'algoliasearch';
 import { env } from '@/env';
+import { coffeeTags, workoutsTags, habitsTags, goalsTags } from '@/lib/api/cache';
 import type { CategoryProps } from '@/lib/contentful/api/props/category';
 import type { BlogProps } from '@/lib/contentful/api/props/blog';
 
-// Type-safe wrapper for revalidateTag that works in edge runtime
-// Edge runtime doesn't support the second parameter properly despite TypeScript requiring it
-const revalidateTag = (tag: string) => (_revalidateTag as (tag: string) => void)(tag);
 
 /**
  * Contentful webhook payload structure
@@ -56,9 +52,6 @@ interface DashboardEvent {
 function getDashboardRevalidationTags(event: DashboardEvent): string[] {
   const tags: string[] = [];
   const { event: eventType, date } = event;
-
-  // Import cache tag helpers
-  const { coffeeTags, workoutsTags, habitsTags, goalsTags } = require('@/lib/api/cache');
 
   switch (eventType) {
     case 'coffee.created':
@@ -334,7 +327,7 @@ export async function POST(request: Request) {
 
     // Revalidate all determined tags
     for (const tag of tagsToRevalidate) {
-      revalidateTag(tag);
+      revalidateTag(tag, 'max');
       console.log(`Revalidated tag: ${tag} at ${Date.now()}`);
     }
 

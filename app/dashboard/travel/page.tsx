@@ -3,9 +3,6 @@ import { dashboardApi } from "@/lib/api/client";
 import type { LocationResponse, CountriesResponse } from "@/lib/api/types";
 import TravelClient from "./travel.client";
 
-// Use edge runtime for better performance
-export const runtime = "nodejs";
-
 // Force dynamic rendering to fetch data on-demand from API
 // API endpoints handle caching with tag-based invalidation
 export const dynamic = 'force-dynamic';

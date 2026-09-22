@@ -1,5 +1,3 @@
-export const runtime = "edge";
-
 import { NextResponse } from 'next/server';
 import { env } from '@/env';
 import { rateLimit } from '@/lib/rate/limit';

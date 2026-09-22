@@ -5,6 +5,8 @@
  * API Documentation: https://openweathermap.org/current
  */
 
+import { env } from "@/env";
+
 export interface WeatherData {
   temp_celsius: number;
   feels_like_celsius: number;
@@ -48,7 +50,7 @@ export async function fetchWeather(
   latitude: number,
   longitude: number
 ): Promise<WeatherData | null> {
-  const apiKey = process.env.OPENWEATHER_API_KEY;
+  const apiKey = env.OPENWEATHER_API_KEY;
 
   if (!apiKey) {
     console.error("OPENWEATHER_API_KEY is not configured");

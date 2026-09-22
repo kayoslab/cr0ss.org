@@ -1,10 +1,10 @@
-export const runtime = "nodejs";
 export const maxDuration = 60;
 
 import { createMcpHandler, withMcpAuth } from "mcp-handler";
 import { z } from "zod";
 import { generateEmbedding } from "@/lib/ai/embeddings";
 import { searchContacts } from "@/lib/db/contacts";
+import { env } from "@/env";
 
 /**
  * MCP server exposing the private "contact memory" as a single read-only tool.
@@ -50,7 +50,7 @@ const handler = createMcpHandler(
  * Vercel brokers a scoped OIDC identity in front of it (see agent/ + docs).
  */
 const verifyToken = async (_req: Request, bearerToken?: string) => {
-  const expected = process.env.MCP_BEARER_TOKEN;
+  const expected = env.MCP_BEARER_TOKEN;
   if (!expected || !bearerToken || bearerToken !== expected) {
     return undefined;
   }

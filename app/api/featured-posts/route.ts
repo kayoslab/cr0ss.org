@@ -1,5 +1,3 @@
-export const runtime = "edge";
-
 import { getTrendingPosts } from '@/lib/algolia/client';
 import { getBlog, getAllBlogs } from '@/lib/contentful/api/blog';
 import { BlogProps } from '@/lib/contentful/api/props/blog';

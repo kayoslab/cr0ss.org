@@ -5,9 +5,6 @@ import SettingsClient from "./settings.client";
 import { dashboardApi } from "@/lib/api/client";
 import type { CoffeeConfigResponse } from "@/lib/api/types";
 
-// Use nodejs runtime for environment variable access
-export const runtime = "nodejs";
-
 // Force dynamic rendering to fetch data on-demand from API
 // API endpoints handle caching with tag-based invalidation
 export const dynamic = 'force-dynamic';
