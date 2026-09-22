@@ -10,7 +10,7 @@ The `/api/revalidate` endpoint handles both cache invalidation AND search index 
 ## Endpoint
 
 ```
-POST https://cr0ssorg-kayoslabs.vercel.app/api/revalidate
+POST https://cr0ss.org/api/revalidate
 ```
 
 ## Authentication
@@ -239,7 +239,7 @@ The endpoint also supports a legacy manual format:
 
 1. Go to **Settings → Webhooks** in your Contentful space
 2. Create a new webhook
-3. Set the URL to: `https://cr0ssorg-kayoslabs.vercel.app/api/revalidate`
+3. Set the URL to: `https://cr0ss.org/api/revalidate`
 4. Add custom header:
    - Name: `x-vercel-revalidation-key`
    - Value: Your `CONTENTFUL_REVALIDATE_SECRET`
@@ -255,7 +255,7 @@ The endpoint also supports a legacy manual format:
 ### Using curl
 
 ```bash
-curl -X POST https://cr0ssorg-kayoslabs.vercel.app/api/revalidate \
+curl -X POST https://cr0ss.org/api/revalidate \
   -H "Content-Type: application/json" \
   -H "x-vercel-revalidation-key: YOUR_SECRET" \
   -d '{

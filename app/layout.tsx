@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Inter } from "next/font/google";
-import { SiteChrome } from './../components/site-chrome';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,7 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} flex flex-col min-h-screen`}>
-        <SiteChrome>{children}</SiteChrome>
+        {children}
         <Analytics/>
         <SpeedInsights/>
       </body>

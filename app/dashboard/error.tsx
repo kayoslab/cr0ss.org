@@ -2,6 +2,11 @@
 
 import { useEffect } from 'react';
 
+/**
+ * Error boundary for the dashboard segment. The message and stack go to the
+ * runtime logs (already captured by Vercel); the visitor sees the digest so a
+ * report can be matched to a log entry.
+ */
 export default function DashboardError({
   error,
   reset,
@@ -10,57 +15,30 @@ export default function DashboardError({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log the error to console for debugging
     console.error('[Dashboard Error]', error);
   }, [error]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full bg-white dark:bg-gray-900 rounded-lg shadow-lg p-8">
-        <h1 className="text-2xl font-bold text-red-600 mb-4">
-          Dashboard Error
+    <div className='flex min-h-[60vh] items-center justify-center p-4'>
+      <div className='w-full max-w-md rounded-xl border border-neutral-200/60 bg-white p-8 shadow-sm'>
+        <h1 className='text-xl font-semibold text-neutral-900'>
+          The dashboard couldn&apos;t load
         </h1>
-
-        <div className="mb-6 space-y-4">
-          <div>
-            <h2 className="font-semibold text-lg mb-2">Error Details:</h2>
-            <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded font-mono text-sm overflow-auto">
-              <p className="mb-2"><strong>Name:</strong> {error.name}</p>
-              <p className="mb-2"><strong>Message:</strong> {error.message}</p>
-              {error.digest && (
-                <p className="mb-2"><strong>Digest:</strong> {error.digest}</p>
-              )}
-            </div>
-          </div>
-
-          {error.stack && (
-            <div>
-              <h2 className="font-semibold text-lg mb-2">Stack Trace:</h2>
-              <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded font-mono text-xs overflow-auto max-h-96">
-                <pre className="whitespace-pre-wrap">{error.stack}</pre>
-              </div>
-            </div>
-          )}
-
-          <div>
-            <h2 className="font-semibold text-lg mb-2">Debug Info:</h2>
-            <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded font-mono text-sm">
-              <p><strong>Environment:</strong> {process.env.NODE_ENV}</p>
-              <p><strong>Timestamp:</strong> {new Date().toISOString()}</p>
-            </div>
-          </div>
-        </div>
-
+        <p className='mt-2 text-sm text-neutral-600'>
+          Something went wrong while loading this page. Trying again usually
+          fixes it.
+        </p>
+        {error.digest && (
+          <p className='mt-4 font-mono text-xs text-neutral-500'>
+            Reference: {error.digest}
+          </p>
+        )}
         <button
           onClick={reset}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded transition-colors"
+          className='mt-6 w-full rounded-md bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-neutral-700'
         >
-          Try Again
+          Try again
         </button>
-
-        <p className="mt-4 text-sm text-gray-600 dark:text-gray-400 text-center">
-          This error page is temporary for debugging on Vercel. Check the server logs for more details.
-        </p>
       </div>
     </div>
   );

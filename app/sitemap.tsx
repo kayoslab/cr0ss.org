@@ -3,6 +3,7 @@ import { getAllBlogs } from '@/lib/contentful/api/blog';
 import { getAllPages } from '@/lib/contentful/api/page';
 import { getAllCategories } from '@/lib/contentful/api/category';
 import { getAllCoffee } from '@/lib/contentful/api/coffee';
+import { getAllProjects } from '@/lib/contentful/api/portfolio';
 import { SITE_URL } from '@/lib/constants';
 import type { BlogProps } from '@/lib/contentful/api/props/blog';
 import type { PageProps } from '@/lib/contentful/api/props/page';
@@ -64,51 +65,70 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       coffeePage++;
     }
 
-  // Static routes
-  const staticRoutes: MetadataRoute.Sitemap = [
-    {
-      url: SITE_URL,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-    {
-      url: `${SITE_URL}/blog`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 1,
-    },
-    {
-      url: `${SITE_URL}/coffee`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.9,
-    },
-  ];
+    // Static routes
+    const staticRoutes: MetadataRoute.Sitemap = [
+      {
+        url: SITE_URL,
+        lastModified: new Date(),
+        changeFrequency: 'monthly',
+        priority: 0.5,
+      },
+      {
+        url: `${SITE_URL}/blog`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 1,
+      },
+      {
+        url: `${SITE_URL}/coffee`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.9,
+      },
+      {
+        url: `${SITE_URL}/portfolio`,
+        lastModified: new Date(),
+        changeFrequency: 'monthly',
+        priority: 0.8,
+      },
+    ];
 
-  // Blog post routes
-    const blogRoutes: MetadataRoute.Sitemap = allBlogs.map((blog) => ({
-    url: `${SITE_URL}/blog/${blog.slug}`,
-    lastModified: new Date(blog.sys.firstPublishedAt),
-    changeFrequency: 'monthly' as const,
-    priority: 0.8,
-  }));
-
-  // Page routes
-  const pageRoutes: MetadataRoute.Sitemap = (pages || []).map((page: { slug: string }) => ({
-    url: `${SITE_URL}/page/${page.slug}`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly' as const,
-    priority: 0.6,
-  }));
-
-    // Category routes
-    const categoryRoutes: MetadataRoute.Sitemap = (categories || []).map((category) => ({
-      url: `${SITE_URL}/blog/category/${category.slug}`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
+    // Portfolio project routes
+    const { items: projects } = await getAllProjects();
+    const projectRoutes: MetadataRoute.Sitemap = projects.map((project) => ({
+      url: `${SITE_URL}/portfolio/${project.slug}`,
+      lastModified: new Date(project.sys.publishedAt),
+      changeFrequency: 'monthly' as const,
       priority: 0.7,
     }));
+
+    // Blog post routes
+    const blogRoutes: MetadataRoute.Sitemap = allBlogs.map((blog) => ({
+      url: `${SITE_URL}/blog/${blog.slug}`,
+      lastModified: new Date(blog.sys.firstPublishedAt),
+      changeFrequency: 'monthly' as const,
+      priority: 0.8,
+    }));
+
+    // Page routes
+    const pageRoutes: MetadataRoute.Sitemap = (pages || []).map(
+      (page: { slug: string }) => ({
+        url: `${SITE_URL}/page/${page.slug}`,
+        lastModified: new Date(),
+        changeFrequency: 'monthly' as const,
+        priority: 0.6,
+      })
+    );
+
+    // Category routes
+    const categoryRoutes: MetadataRoute.Sitemap = (categories || []).map(
+      (category) => ({
+        url: `${SITE_URL}/blog/category/${category.slug}`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly' as const,
+        priority: 0.7,
+      })
+    );
 
     // Coffee routes
     const coffeeRoutes: MetadataRoute.Sitemap = allCoffees.map((coffee) => ({
@@ -118,7 +138,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }));
 
-    return [...staticRoutes, ...blogRoutes, ...pageRoutes, ...categoryRoutes, ...coffeeRoutes];
+    return [
+      ...staticRoutes,
+      ...blogRoutes,
+      ...pageRoutes,
+      ...categoryRoutes,
+      ...coffeeRoutes,
+      ...projectRoutes,
+    ];
   } catch (error) {
     console.error('[Sitemap] Error generating sitemap:', error);
     // Return minimal sitemap on error

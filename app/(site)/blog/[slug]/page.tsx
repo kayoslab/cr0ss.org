@@ -3,27 +3,29 @@ import { getAllBlogs, getBlog } from '@/lib/contentful/api/blog';
 import { getBlogsForCategory } from '@/lib/contentful/api/category';
 import { BlogProps } from '@/lib/contentful/api/props/blog';
 import { Blog } from '@/components/blog/blogarticle';
-import type { Metadata } from 'next'
+import type { Metadata } from 'next';
 import { CategoryProps } from '@/lib/contentful/api/props/category';
 import { BlogViewTracker } from '@/components/blog/blog-view-tracker';
-import { createBlogMetadata, createBlogJsonLd, createBlogBreadcrumbJsonLd } from '@/lib/metadata';
+import {
+  createBlogMetadata,
+  createBlogJsonLd,
+  createBlogBreadcrumbJsonLd,
+} from '@/lib/metadata';
 import { getRelatedPosts } from '@/lib/algolia/client';
 
 type Props = {
-  params: Promise<{ slug: string }>
-}
+  params: Promise<{ slug: string }>;
+};
 
-export async function generateMetadata(
-  { params }: Props
-): Promise<Metadata> {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const { slug } = await params;
-    const blog = await getBlog(slug) as unknown as BlogProps;
+    const blog = (await getBlog(slug)) as unknown as BlogProps;
     if (!blog) {
       return {
         title: 'Blog Not Found',
-        description: 'The requested blog post could not be found'
-      }
+        description: 'The requested blog post could not be found',
+      };
     }
 
     return createBlogMetadata({
@@ -41,8 +43,8 @@ export async function generateMetadata(
     console.error('Error generating metadata:', error);
     return {
       title: 'Blog Error',
-      description: 'Error loading blog post'
-    }
+      description: 'Error loading blog post',
+    };
   }
 }
 
@@ -54,10 +56,16 @@ export async function generateStaticParams() {
   }));
 }
 
-async function getRecommendations(currentBlog: BlogProps, maxRecommendations: number = 3): Promise<BlogProps[]> {
+async function getRecommendations(
+  currentBlog: BlogProps,
+  maxRecommendations: number = 3
+): Promise<BlogProps[]> {
   try {
     // Try Algolia Recommend first
-    const algoliaRecs = await getRelatedPosts(currentBlog.sys.id, maxRecommendations);
+    const algoliaRecs = await getRelatedPosts(
+      currentBlog.sys.id,
+      maxRecommendations
+    );
 
     if (algoliaRecs.length > 0) {
       // Fetch full blog data for each recommendation using slug directly
@@ -68,7 +76,9 @@ async function getRecommendations(currentBlog: BlogProps, maxRecommendations: nu
         });
 
       const blogs = await Promise.all(blogPromises);
-      const validBlogs = blogs.filter((blog): blog is BlogProps => blog !== null);
+      const validBlogs = blogs.filter(
+        (blog): blog is BlogProps => blog !== null
+      );
 
       if (validBlogs.length > 0) {
         return validBlogs.slice(0, maxRecommendations);
@@ -86,7 +96,8 @@ async function getRecommendations(currentBlog: BlogProps, maxRecommendations: nu
 
       const blogMap = new Map<string, BlogProps>();
 
-      categoryResults.flatMap(result => result.items as unknown as BlogProps[])
+      categoryResults
+        .flatMap((result) => result.items as unknown as BlogProps[])
         .forEach((blog: BlogProps) => {
           if (blog.slug !== currentBlog.slug && !blogMap.has(blog.slug)) {
             blogMap.set(blog.slug, blog);
@@ -95,8 +106,16 @@ async function getRecommendations(currentBlog: BlogProps, maxRecommendations: nu
 
       const uniqueBlogs = Array.from(blogMap.values());
       if (uniqueBlogs.length > 0) {
-        const shuffled = uniqueBlogs.sort(() => 0.5 - Math.random());
-        return shuffled.slice(0, maxRecommendations);
+        // Stable per post (the page is statically generated), varied across posts.
+        const rank = (slug: string) => {
+          let h = 0;
+          for (const ch of `${currentBlog.slug}:${slug}`)
+            h = (h * 31 + ch.charCodeAt(0)) | 0;
+          return h;
+        };
+        return uniqueBlogs
+          .sort((a, b) => rank(a.slug) - rank(b.slug))
+          .slice(0, maxRecommendations);
       }
     }
 
@@ -105,7 +124,6 @@ async function getRecommendations(currentBlog: BlogProps, maxRecommendations: nu
     return (recentPosts.items as unknown as BlogProps[])
       .filter((post: BlogProps) => post.slug !== currentBlog.slug)
       .slice(0, maxRecommendations);
-
   } catch (error) {
     console.error('Error getting recommendations:', error);
     return [];
@@ -152,11 +170,11 @@ export default async function BlogContent({
   return (
     <>
       <script
-        type="application/ld+json"
+        type='application/ld+json'
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <script
-        type="application/ld+json"
+        type='application/ld+json'
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <main className='flex min-h-screen flex-col items-center justify-between bg-white pb-24'>

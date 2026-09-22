@@ -29,17 +29,17 @@ be automated here.
    layout: web chat + Better Auth + Vercel Connect).
 
 2. **Deploy the main site** so the MCP endpoint is live at
-   `https://<your-domain>/api/mcp/mcp`, and set `MCP_BEARER_TOKEN` in the site's
+   `https://cr0ss.org/api/mcp/mcp`, and set `MCP_BEARER_TOKEN` in the site's
    Vercel env (used by the baseline hard gate).
 
 3. **Create the Vercel Connect connector** pointing at the MCP endpoint (run from
    this agent folder so Vercel auto-wires project access):
 
    ```bash
-   vercel connect create https://<your-domain>/api/mcp/mcp --name contacts
+   vercel connect create https://cr0ss.org/api/mcp/mcp --name contacts
    ```
 
-   Capture the printed connector id (e.g. `mcp.<your-domain>/contacts`) and use
+   Capture the printed connector id (e.g. `mcp.cr0ss.org/contacts`) and use
    it in `connections/contacts.ts`.
 
 4. **Lock the agent to you only.** In the Eve project, gate the web chat behind

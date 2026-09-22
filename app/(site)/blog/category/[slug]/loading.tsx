@@ -1,4 +1,4 @@
-import BlogGridLoading from '@/app/blog/loading';
+import BlogGridLoading from '@/app/(site)/blog/loading';
 
 /**
  * Loading skeleton for category pages
