@@ -35,13 +35,13 @@ export default defineConfig({
         autoUpdate: false,
 
         // Per-file thresholds for tested modules
-        'lib/phys/caffeine.tsx': {
+        'lib/phys/caffeine.ts': {
           branches: 80,
           functions: 100,
           lines: 100,
           statements: 100,
         },
-        'lib/time/berlin.tsx': {
+        'lib/time/berlin.ts': {
           branches: 63,
           functions: 85,
           lines: 91,
@@ -53,7 +53,7 @@ export default defineConfig({
           lines: 60,
           statements: 60,
         },
-        'lib/validation.tsx': {
+        'lib/db/validation.ts': {
           branches: 90,
           functions: 90,
           lines: 90,

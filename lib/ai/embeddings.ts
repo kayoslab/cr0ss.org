@@ -6,15 +6,15 @@
  * We use dimensions: 384 for compatibility with existing pgvector index.
  */
 
-import { embedMany, embed, createGateway } from "ai";
+import { embedMany, embed, createGateway } from 'ai';
 
 // Create gateway instance with API key
 const gateway = createGateway({
-  apiKey: process.env.AI_GATEWAY_API_KEY ?? "",
+  apiKey: process.env.AI_GATEWAY_API_KEY ?? '',
 });
 
 // Model configuration
-const EMBEDDING_MODEL = "openai/text-embedding-3-small";
+const EMBEDDING_MODEL = 'openai/text-embedding-3-small';
 const EMBEDDING_DIMENSIONS = 384; // Match existing pgvector index
 
 /**
@@ -26,7 +26,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
   const { embedding } = await embed({
     model: gateway.textEmbeddingModel(EMBEDDING_MODEL),
     value: text,
-    experimental_telemetry: { isEnabled: false },
+    telemetry: { isEnabled: false },
   });
 
   // OpenAI text-embedding-3-small returns 1536 dimensions by default
@@ -34,7 +34,9 @@ export async function generateEmbedding(text: string): Promise<number[]> {
   const truncated = embedding.slice(0, EMBEDDING_DIMENSIONS);
 
   if (truncated.length !== EMBEDDING_DIMENSIONS) {
-    throw new Error(`Expected ${EMBEDDING_DIMENSIONS} dimensions, got ${truncated.length}`);
+    throw new Error(
+      `Expected ${EMBEDDING_DIMENSIONS} dimensions, got ${truncated.length}`
+    );
   }
 
   return truncated;
@@ -57,23 +59,29 @@ export async function generateEmbeddingsBatch(
 
   for (let i = 0; i < texts.length; i += batchSize) {
     const batch = texts.slice(i, i + batchSize);
-    console.log(`Processing embeddings batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(texts.length / batchSize)}...`);
+    console.log(
+      `Processing embeddings batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(texts.length / batchSize)}...`
+    );
 
     const { embeddings: batchEmbeddings } = await embedMany({
       model: gateway.textEmbeddingModel(EMBEDDING_MODEL),
       values: batch,
-      experimental_telemetry: { isEnabled: false },
+      telemetry: { isEnabled: false },
     });
 
     // Truncate each embedding to 384 dimensions
-    const truncatedBatch = batchEmbeddings.map(emb => emb.slice(0, EMBEDDING_DIMENSIONS));
+    const truncatedBatch = batchEmbeddings.map((emb) =>
+      emb.slice(0, EMBEDDING_DIMENSIONS)
+    );
     embeddings.push(...truncatedBatch);
   }
 
   // Validate dimensions
   for (const embedding of embeddings) {
     if (embedding.length !== EMBEDDING_DIMENSIONS) {
-      throw new Error(`Expected ${EMBEDDING_DIMENSIONS} dimensions, got ${embedding.length}`);
+      throw new Error(
+        `Expected ${EMBEDDING_DIMENSIONS} dimensions, got ${embedding.length}`
+      );
     }
   }
 
@@ -88,18 +96,21 @@ export async function generateEmbeddingsBatch(
  */
 export function chunkText(text: string, maxChars: number = 1000): string[] {
   // Split by paragraphs first
-  const paragraphs = text.split(/\n\n+/).filter(p => p.trim().length > 0);
+  const paragraphs = text.split(/\n\n+/).filter((p) => p.trim().length > 0);
 
   const chunks: string[] = [];
-  let currentChunk = "";
+  let currentChunk = '';
 
   for (const para of paragraphs) {
     // If adding this paragraph would exceed limit and we have content
-    if (currentChunk.length > 0 && (currentChunk.length + para.length) > maxChars) {
+    if (
+      currentChunk.length > 0 &&
+      currentChunk.length + para.length > maxChars
+    ) {
       chunks.push(currentChunk.trim());
       currentChunk = para;
     } else {
-      currentChunk += (currentChunk ? "\n\n" : "") + para;
+      currentChunk += (currentChunk ? '\n\n' : '') + para;
     }
   }
 
@@ -115,15 +126,20 @@ export function chunkText(text: string, maxChars: number = 1000): string[] {
       finalChunks.push(chunk);
     } else {
       // Split by sentences
-      const sentences = chunk.split(/[.!?]+/).filter(s => s.trim().length > 0);
-      let subChunk = "";
+      const sentences = chunk
+        .split(/[.!?]+/)
+        .filter((s) => s.trim().length > 0);
+      let subChunk = '';
 
       for (const sentence of sentences) {
-        if (subChunk.length > 0 && (subChunk.length + sentence.length) > maxChars) {
+        if (
+          subChunk.length > 0 &&
+          subChunk.length + sentence.length > maxChars
+        ) {
           finalChunks.push(subChunk.trim());
           subChunk = sentence;
         } else {
-          subChunk += (subChunk ? ". " : "") + sentence.trim();
+          subChunk += (subChunk ? '. ' : '') + sentence.trim();
         }
       }
 

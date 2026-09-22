@@ -6,7 +6,6 @@ const jiti = createJiti(fileURLToPath(import.meta.url));
 jiti('./env');
 
 const nextConfig = {
-  transpilePackages: ['@tremor/react'],
   experimental: {
     serverActions: { bodySizeLimit: '2mb' },
     optimizePackageImports: ['@heroicons/react'],

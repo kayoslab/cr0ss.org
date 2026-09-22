@@ -34,8 +34,6 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "lib/contentful/setup.js",
-    "node_modules/@tremor/**/*.{js,ts,jsx,tsx,mjs}",
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [

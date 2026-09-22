@@ -2,6 +2,9 @@ import { createEnv } from '@t3-oss/env-nextjs';
 import { z } from 'zod';
 
 export const env = createEnv({
+  // Treat `FOO=""` as unset so optional integrations (Apify, Strava, ...)
+  // can be left blank in Vercel without failing validation at build time.
+  emptyStringAsUndefined: true,
   server: {
     ALGOLIA_APP_ID: z.string().length(10),
     ALGOLIA_ADMIN_KEY: z.string().min(20),
@@ -52,5 +55,5 @@ export const env = createEnv({
     STRAVA_CLIENT_SECRET: process.env.STRAVA_CLIENT_SECRET,
     STRAVA_WEBHOOK_VERIFY_TOKEN: process.env.STRAVA_WEBHOOK_VERIFY_TOKEN,
     TOKEN_ENCRYPTION_KEY: process.env.TOKEN_ENCRYPTION_KEY,
-  }
+  },
 });

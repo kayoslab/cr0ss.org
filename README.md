@@ -2,7 +2,7 @@
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/kayoslab/cr0ss.org)
 
-Personal and professional website of Simon Krüger, built with Next.js 15, TypeScript, and Contentful CMS. Features a blog, personal dashboard with habit tracking, caffeine metabolism modeling, travel map, and more.
+Personal and professional website of Simon Krüger, built with Next.js 16, TypeScript, and Contentful CMS. Features a blog, personal dashboard with habit tracking, caffeine metabolism modeling, travel map, and more.
 
 🌐 **Live Site:** [cr0ss.org](https://cr0ss.org)
 
@@ -52,15 +52,15 @@ Personal and professional website of Simon Krüger, built with Next.js 15, TypeS
 ## 🛠️ Tech Stack
 
 ### **Core**
-- **[Next.js 15](https://nextjs.org/)** - React framework with App Router
-- **[TypeScript 5.9](https://www.typescriptlang.org/)** - Type-safe development with strict mode
+- **[Next.js 16](https://nextjs.org/)** - React framework with App Router
+- **[TypeScript 6](https://www.typescriptlang.org/)** - Type-safe development with strict mode
 - **[Tailwind CSS 4](https://tailwindcss.com/)** - Utility-first CSS framework
 - **[React 19](https://react.dev/)** - Latest React with Server Components
 
 ### **Content & Data**
 - **[Contentful](https://www.contentful.com/)** - Headless CMS for content management
 - **[Neon](https://neon.tech/)** - Serverless PostgreSQL database with pgvector
-- **[Vercel KV](https://vercel.com/storage/kv)** - Redis for rate limiting and caching
+- **[Upstash Redis](https://upstash.com/)** (via Vercel Marketplace) - Redis for rate limiting
 - **[Algolia](https://www.algolia.com/)** - Search and analytics
 
 ### **AI & Machine Learning**

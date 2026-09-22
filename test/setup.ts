@@ -1,4 +1,4 @@
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
 import { afterEach, beforeAll, afterAll, vi } from 'vitest';
 import { server } from './mocks/server';
@@ -24,7 +24,8 @@ process.env.DATABASE_URL = 'postgresql://test@localhost:5432/test';
 process.env.DASHBOARD_API_SECRET = 'test-dashboard-secret-1234567890'; // Min 20 chars
 process.env.CONTENTFUL_REVALIDATE_SECRET = 'test-revalidate-secret-1234567890'; // Min 20 chars
 process.env.CONTENTFUL_SPACE_ID = 'testspace123'; // Exactly 12 chars
-process.env.CONTENTFUL_ACCESS_TOKEN = 'test-token-1234567890123456789012345678901'; // Exactly 43 chars
+process.env.CONTENTFUL_ACCESS_TOKEN =
+  'test-token-1234567890123456789012345678901'; // Exactly 43 chars
 process.env.CONTENTFUL_ENVIRONMENT = 'test';
 process.env.ALGOLIA_APP_ID = '1234567890'; // Exactly 10 chars
 process.env.ALGOLIA_ADMIN_KEY = 'test-admin-key-12345678901234567890'; // Min 20 chars
@@ -50,19 +51,22 @@ vi.mock('next/link', () => {
   };
 });
 
-// Mock Vercel KV
-vi.mock('@vercel/kv', () => ({
-  kv: {
-    get: vi.fn(),
-    set: vi.fn(),
-    del: vi.fn(),
-    ttl: vi.fn(),
-    multi: vi.fn(() => ({
-      incr: vi.fn(),
-      expire: vi.fn(),
-      exec: vi.fn(async () => [1, 1]), // Return count of 1 (within limit)
-    })),
-  },
+// Mock Upstash Redis (rate limiting)
+vi.mock('@upstash/redis', () => ({
+  // Must be constructable (`new Redis(...)`), so no arrow function here.
+  Redis: vi.fn(function () {
+    return {
+      get: vi.fn(),
+      set: vi.fn(),
+      del: vi.fn(),
+      ttl: vi.fn(),
+      multi: vi.fn(() => ({
+        incr: vi.fn(),
+        expire: vi.fn(),
+        exec: vi.fn(async () => [1, 1]), // Return count of 1 (within limit)
+      })),
+    };
+  }),
 }));
 
 // Suppress console errors in tests unless explicitly needed
