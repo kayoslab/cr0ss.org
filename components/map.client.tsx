@@ -87,8 +87,8 @@ export default function MapClient({
       {/* "You are here" marker, only when a valid location exists */}
       {showLocation && (
         <circle
-          cx={x + r / 2}
-          cy={y + r / 2}
+          cx={x}
+          cy={y}
           r={r}
           fill='oklch(0.646 0.222 41.116)'
           stroke='white'

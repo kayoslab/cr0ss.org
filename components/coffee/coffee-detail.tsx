@@ -4,7 +4,7 @@ import { CoffeeProps } from '@/lib/contentful/api/props/coffee';
 import { CountryProps } from '@/lib/contentful/api/props/country';
 import MapClient from '@/components/map.client';
 import {
-  pathStartPoint as getPathStartPoint,
+  pathAnchor,
   compactSvgPath,
 } from '@/lib/map/projection';
 import Link from 'next/link';
@@ -25,8 +25,8 @@ export default function CoffeeDetail({
   const highlighted = originCountry?.data?.path
     ? [{ id: originCountry.id, path: compactSvgPath(originCountry.data.path) }]
     : [];
-  const pathStartPoint = originCountry?.data?.path
-    ? getPathStartPoint(originCountry.data.path)
+  const anchor = originCountry?.data?.path
+    ? pathAnchor(originCountry.data.path)
     : null;
 
   return (
@@ -100,9 +100,9 @@ export default function CoffeeDetail({
                     showLocation={false}
                     className='h-auto w-full'
                     labelLine={
-                      pathStartPoint
+                      anchor
                         ? {
-                            from: pathStartPoint,
+                            from: anchor,
                             to: { x: 100, y: 100 }, // Position for white label area
                             label: originCountry?.name || '',
                           }

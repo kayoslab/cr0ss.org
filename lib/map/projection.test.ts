@@ -5,6 +5,8 @@ import {
   pathStartPoint,
   MAP_WIDTH,
   MAP_HEIGHT,
+  pathAnchor,
+  pathRings,
 } from './projection';
 
 describe('compactSvgPath', () => {
@@ -61,5 +63,47 @@ describe('geoToPixel', () => {
     expect(x).toBeLessThan(MAP_WIDTH);
     expect(y).toBeGreaterThan(0);
     expect(y).toBeLessThan(MAP_HEIGHT);
+  });
+});
+
+describe('pathRings', () => {
+  it('returns absolute vertices per subpath', () => {
+    expect(pathRings('m10 10h5v5zm1 1l1 0 0 1')).toEqual([
+      [
+        { x: 10, y: 10 },
+        { x: 15, y: 10 },
+        { x: 15, y: 15 },
+      ],
+      [
+        { x: 11, y: 11 },
+        { x: 12, y: 11 },
+        { x: 12, y: 12 },
+      ],
+    ]);
+  });
+
+  it('reads the ring vertices off compacted output too', () => {
+    const d = 'M 0 0 L 10 0 L 10 10 L 0 10 Z';
+    expect(pathRings(compactSvgPath(d))).toEqual(pathRings(d));
+  });
+});
+
+describe('pathAnchor', () => {
+  it('anchors on the largest subpath, not the first', () => {
+    // A tiny island first, the mainland second.
+    const d = 'M100 100h1v1h-1z M0 0h50v50h-50z';
+    expect(pathAnchor(d)).toEqual({ x: 25, y: 25 });
+  });
+
+  it('stays inside a concave outline whose centroid falls outside', () => {
+    // A "C" shape: the centroid sits in the mouth, outside the polygon.
+    const d = 'M0 0h30v10h-20v20h20v10h-30z';
+    const p = pathAnchor(d)!;
+    expect(p.x).toBeGreaterThan(0);
+    expect(p.x).toBeLessThan(10);
+  });
+
+  it('falls back to the start point without a closed ring', () => {
+    expect(pathAnchor('M3 4')).toEqual({ x: 3, y: 4 });
   });
 });
