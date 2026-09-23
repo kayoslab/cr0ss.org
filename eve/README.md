@@ -2,7 +2,7 @@
 
 The private query interface for the contact-memory system. This is a **separate
 Vercel deployment** from the main site — it connects back to the site's MCP
-server (`/api/mcp/mcp`) to search your contacts, and is locked to **you only**.
+server (`/api/mcp`) to search your contacts, and is locked to **you only**.
 
 This folder is excluded from the main site's TypeScript build (`tsconfig.json`),
 because the Eve agent has its own project + tooling.
@@ -29,14 +29,14 @@ be automated here.
    layout: web chat + Better Auth + Vercel Connect).
 
 2. **Deploy the main site** so the MCP endpoint is live at
-   `https://cr0ss.org/api/mcp/mcp`, and set `MCP_BEARER_TOKEN` in the site's
+   `https://cr0ss.org/api/mcp`, and set `MCP_BEARER_TOKEN` in the site's
    Vercel env (used by the baseline hard gate).
 
 3. **Create the Vercel Connect connector** pointing at the MCP endpoint (run from
    this agent folder so Vercel auto-wires project access):
 
    ```bash
-   vercel connect create https://cr0ss.org/api/mcp/mcp --name contacts
+   vercel connect create https://cr0ss.org/api/mcp --name contacts
    ```
 
    Capture the printed connector id (e.g. `mcp.cr0ss.org/contacts`) and use
@@ -55,7 +55,7 @@ be automated here.
 1. **Vercel Connect / Sign in with Vercel** — brokered OIDC identity, single
    subject allowlisted. The model never sees the URL or credentials.
 2. **`MCP_BEARER_TOKEN`** — baseline hard gate on `/api/mcp/*` (returns 401
-   without it). See `app/api/mcp/[transport]/route.ts` → `withMcpAuth`.
+   without it). See `app/api/mcp/route.ts` → `withMcpAuth`.
 3. **Vercel Firewall (WAF)** — optionally restrict `/api/mcp/*` by IP / add a
    rule; the public capture endpoint (`/api/capture`) stays open.
 
