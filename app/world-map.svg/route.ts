@@ -1,13 +1,14 @@
 import { cacheLife, cacheTag } from 'next/cache';
 import { getAllCountries } from '@/lib/contentful/api/country';
 import type { CountryProps } from '@/lib/contentful/api/props/country';
-import { MAP_HEIGHT, MAP_WIDTH } from '@/lib/map/projection';
+import { MAP_HEIGHT, MAP_WIDTH, compactSvgPath } from '@/lib/map/projection';
 import { tags } from '@/lib/cache/tags';
 
 /**
  * The base world map as one cacheable asset. Every country's SVG path lives
  * here (≈400 KB of path data) instead of in the RSC payload of each page that
- * shows a map; pages overlay only the countries they highlight.
+ * shows a map; pages overlay only the countries they highlight. Paths are
+ * rewritten absolute with one decimal (see compactSvgPath): ~60% smaller.
  */
 async function buildWorldMap(): Promise<string> {
   'use cache';
@@ -17,7 +18,7 @@ async function buildWorldMap(): Promise<string> {
   const countries = (await getAllCountries()) as unknown as CountryProps[];
   const paths = countries
     .filter((c) => c.data?.path)
-    .map((c) => `<path id="${c.id}" d="${c.data.path}"/>`)
+    .map((c) => `<path id="${c.id}" d="${compactSvgPath(c.data.path)}"/>`)
     .join('');
 
   return (

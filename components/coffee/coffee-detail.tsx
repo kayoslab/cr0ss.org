@@ -3,7 +3,10 @@
 import { CoffeeProps } from '@/lib/contentful/api/props/coffee';
 import { CountryProps } from '@/lib/contentful/api/props/country';
 import MapClient from '@/components/map.client';
-import { pathStartPoint as getPathStartPoint } from '@/lib/map/projection';
+import {
+  pathStartPoint as getPathStartPoint,
+  compactSvgPath,
+} from '@/lib/map/projection';
 import Link from 'next/link';
 import Image from 'next/image';
 import Markdown from 'react-markdown';
@@ -20,7 +23,7 @@ export default function CoffeeDetail({
 }: CoffeeDetailProps) {
   // The base map is a shared asset; only the origin country is shaded here.
   const highlighted = originCountry?.data?.path
-    ? [{ id: originCountry.id, path: originCountry.data.path }]
+    ? [{ id: originCountry.id, path: compactSvgPath(originCountry.data.path) }]
     : [];
   const pathStartPoint = originCountry?.data?.path
     ? getPathStartPoint(originCountry.data.path)

@@ -2,6 +2,7 @@ import React from 'react';
 import { getLocation } from '@/lib/dashboard/location';
 import { getCountries } from '@/lib/dashboard/countries';
 import TravelClient from './travel.client';
+import { compactSvgPath } from '@/lib/map/projection';
 
 export const metadata = {
   title: 'Travel | Dashboard',
@@ -32,7 +33,10 @@ export default async function TravelPage() {
         recentVisited={visited
           .slice(0, 5)
           .map((c) => ({ id: c.id, name: c.name }))}
-        countries={visited.map((c) => ({ id: c.id, path: c.path }))}
+        countries={visited.map((c) => ({
+          id: c.id,
+          path: compactSvgPath(c.path),
+        }))}
         lat={locationData?.latitude ?? 0}
         lon={locationData?.longitude ?? 0}
         hasLocation={locationData != null}
