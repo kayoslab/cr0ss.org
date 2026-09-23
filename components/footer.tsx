@@ -73,7 +73,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href='./cv.pdf'
+                  href='/cv.pdf'
                   className='text-sm text-gray-600 transition-colors hover:text-gray-900'
                 >
                   Vita
