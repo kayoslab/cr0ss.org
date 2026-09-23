@@ -79,6 +79,23 @@ jobs:
     name: Build Check
     runs-on: ubuntu-latest
     environment: Production
+    env:
+      # Required build-time environment variables from Production environment
+      DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://test@localhost:5432/test' }}
+      DASHBOARD_API_SECRET: ${{ secrets.DASHBOARD_API_SECRET || 'test-secret' }}
+      CONTENTFUL_SPACE_ID: ${{ secrets.CONTENTFUL_SPACE_ID || 'test-space' }}
+      CONTENTFUL_ACCESS_TOKEN: ${{ secrets.CONTENTFUL_ACCESS_TOKEN || 'test-token' }}
+      CONTENTFUL_ENVIRONMENT: ${{ secrets.CONTENTFUL_ENVIRONMENT || 'test' }}
+      CONTENTFUL_PREVIEW_ACCESS_TOKEN: ${{ secrets.CONTENTFUL_PREVIEW_ACCESS_TOKEN || 'test-preview-token' }}
+      CONTENTFUL_REVALIDATE_SECRET: ${{ secrets.CONTENTFUL_REVALIDATE_SECRET || 'test-revalidate-secret' }}
+      CONTENTFUL_MANAGEMENT_TOKEN: ${{ secrets.CONTENTFUL_MANAGEMENT_TOKEN || 'test-management-token' }}
+      ALGOLIA_APP_ID: ${{ secrets.ALGOLIA_APP_ID || 'test-app-id' }}
+      ALGOLIA_ADMIN_KEY: ${{ secrets.ALGOLIA_ADMIN_KEY || 'test-admin-key' }}
+      ALGOLIA_SEARCH_KEY: ${{ secrets.ALGOLIA_SEARCH_KEY || 'test-search-key' }}
+      ALGOLIA_INDEX: ${{ secrets.ALGOLIA_INDEX || 'test-index' }}
+      KV_REST_API_URL: ${{ secrets.KV_REST_API_URL || 'http://localhost:8080' }}
+      KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN || 'test-token' }}
+      NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000' }}
 
     steps:
       - name: Checkout code
@@ -110,20 +127,19 @@ jobs:
 
       - name: Build project
         run: pnpm build
+
+      - name: Install Playwright browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Smoke test the production build
+        run: pnpm e2e
         env:
-          # Required build-time environment variables from Production environment
-          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://test@localhost:5432/test' }}
-          DASHBOARD_API_SECRET: ${{ secrets.DASHBOARD_API_SECRET || 'test-secret' }}
-          CONTENTFUL_SPACE_ID: ${{ secrets.CONTENTFUL_SPACE_ID || 'test-space' }}
-          CONTENTFUL_ACCESS_TOKEN: ${{ secrets.CONTENTFUL_ACCESS_TOKEN || 'test-token' }}
-          CONTENTFUL_ENVIRONMENT: ${{ secrets.CONTENTFUL_ENVIRONMENT || 'test' }}
-          CONTENTFUL_PREVIEW_ACCESS_TOKEN: ${{ secrets.CONTENTFUL_PREVIEW_ACCESS_TOKEN || 'test-preview-token' }}
-          CONTENTFUL_REVALIDATE_SECRET: ${{ secrets.CONTENTFUL_REVALIDATE_SECRET || 'test-revalidate-secret' }}
-          CONTENTFUL_MANAGEMENT_TOKEN: ${{ secrets.CONTENTFUL_MANAGEMENT_TOKEN || 'test-management-token' }}
-          ALGOLIA_APP_ID: ${{ secrets.ALGOLIA_APP_ID || 'test-app-id' }}
-          ALGOLIA_ADMIN_KEY: ${{ secrets.ALGOLIA_ADMIN_KEY || 'test-admin-key' }}
-          ALGOLIA_SEARCH_KEY: ${{ secrets.ALGOLIA_SEARCH_KEY || 'test-search-key' }}
-          ALGOLIA_INDEX: ${{ secrets.ALGOLIA_INDEX || 'test-index' }}
-          KV_REST_API_URL: ${{ secrets.KV_REST_API_URL || 'http://localhost:8080' }}
-          KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN || 'test-token' }}
-          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000' }}
+          CI: true
+
+      - name: Upload Playwright traces
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces
+          path: test-results/
+          retention-days: 7

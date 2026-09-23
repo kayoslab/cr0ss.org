@@ -24,7 +24,8 @@
     "test:coverage:ui": "vitest run --coverage --ui",
     "test:changed": "vitest run --changed",
     "test:ci": "vitest run --coverage --reporter=verbose",
-    "ai:setup": "tsx --import ./scripts/load-env.ts ./scripts/setup-contacts-db.ts"
+    "db:migrate": "tsx --import ./scripts/load-env.ts ./scripts/migrate.ts",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@algolia/client-search": "^5.59.0",
@@ -75,6 +76,7 @@
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^16.3.6",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
@@ -86,6 +88,7 @@
     "@types/rss": "^0.0.32",
     "@typescript-eslint/eslint-plugin": "^8.70.1",
     "@typescript-eslint/parser": "^8.70.1",
+    "@vercel/config": "^0.7.1",
     "@vitejs/plugin-react": "^6.1.1",
     "@vitest/coverage-v8": "^5.0.1",
     "@vitest/ui": "^5.0.1",

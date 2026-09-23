@@ -41,3 +41,7 @@ next-env.d.ts
 .transformers-cache/
 .env*
 /.swc
+
+# playwright
+/playwright-report
+/test-results
