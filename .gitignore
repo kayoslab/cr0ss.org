@@ -45,3 +45,8 @@ next-env.d.ts
 # playwright
 /playwright-report
 /test-results
+
+# Claude Code / graphify (machine-local)
+/CLAUDE.md
+/.claude/settings.json
+/graphify-out/
