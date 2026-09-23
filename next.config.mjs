@@ -43,20 +43,6 @@ const nextConfig = {
     ],
     formats: ['image/avif', 'image/webp'],
   },
-  async redirects() {
-    // Pagination moved from ?page=N to /page/N so list pages prerender.
-    const paged = (source, destination) => ({
-      source,
-      has: [{ type: 'query', key: 'page', value: '(?<page>\\d+)' }],
-      destination: `${destination}/page/:page`,
-      permanent: true,
-    });
-    return [
-      paged('/blog', '/blog'),
-      paged('/coffee', '/coffee'),
-      paged('/blog/category/:slug', '/blog/category/:slug'),
-    ];
-  },
   async headers() {
     return [
       {
