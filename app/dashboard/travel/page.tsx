@@ -32,11 +32,7 @@ export default async function TravelPage() {
         recentVisited={visited
           .slice(0, 5)
           .map((c) => ({ id: c.id, name: c.name }))}
-        countries={allCountries.countries.map((c) => ({
-          id: c.id,
-          path: c.path,
-          visited: c.visited,
-        }))}
+        countries={visited.map((c) => ({ id: c.id, path: c.path }))}
         lat={locationData?.latitude ?? 0}
         lon={locationData?.longitude ?? 0}
         hasLocation={locationData != null}

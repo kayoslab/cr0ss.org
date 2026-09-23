@@ -62,14 +62,29 @@ async function PageBody({ params }: Props) {
 
 function ContentLoading() {
   return (
-    <main className='flex min-h-screen flex-col items-center bg-white pb-24'>
-      <div className='w-full max-w-3xl space-y-6 px-6 pt-10 lg:px-8'>
-        <Skeleton className='h-10 w-3/4' />
-        <Skeleton className='h-6 w-1/2' />
-        <Skeleton className='aspect-video w-full rounded-xl' />
-        <Skeleton className='h-4 w-full' />
-        <Skeleton className='h-4 w-5/6' />
-      </div>
+    <main
+      className='flex min-h-screen flex-col items-center justify-between bg-white pb-24'
+      aria-busy='true'
+    >
+      <section className='mx-auto w-full max-w-7xl'>
+        <div className='space-y-12 px-4 md:px-6'>
+          <div className='space-y-4'>
+            <Skeleton className='h-10 w-2/3 sm:h-12' />
+          </div>
+          <div className='space-y-8 lg:space-y-10'>
+            <Skeleton className='aspect-video w-full rounded-xl' />
+            <div className='space-y-6'>
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className='space-y-2'>
+                  <Skeleton className='h-5 w-full md:h-6' />
+                  <Skeleton className='h-5 w-full md:h-6' />
+                  <Skeleton className='h-5 w-4/5 md:h-6' />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

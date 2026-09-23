@@ -259,11 +259,7 @@ async function CoffeeDetailContent({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <main className='flex min-h-screen flex-col items-center justify-between bg-white pb-24'>
-        <CoffeeDetail
-          coffee={coffee}
-          originCountry={originCountry}
-          allCountries={allCountriesData}
-        />
+        <CoffeeDetail coffee={coffee} originCountry={originCountry} />
       </main>
     </>
   );
@@ -271,13 +267,36 @@ async function CoffeeDetailContent({ params }: Props) {
 
 function ContentLoading() {
   return (
-    <main className='flex min-h-screen flex-col items-center bg-white pb-24'>
-      <div className='w-full max-w-3xl space-y-6 px-6 pt-10 lg:px-8'>
-        <Skeleton className='h-10 w-3/4' />
-        <Skeleton className='h-6 w-1/2' />
-        <Skeleton className='aspect-video w-full rounded-xl' />
-        <Skeleton className='h-4 w-full' />
-        <Skeleton className='h-4 w-5/6' />
+    <main
+      className='flex min-h-screen flex-col items-center justify-between bg-white pb-24'
+      aria-busy='true'
+    >
+      <div className='mx-auto w-full max-w-7xl'>
+        <div className='space-y-12 px-4 py-16 md:px-6'>
+          <div>
+            <Skeleton className='mb-8 h-5 w-40' />
+            <div className='mb-8'>
+              <Skeleton className='mb-2 h-10 w-2/3' />
+              <Skeleton className='h-7 w-1/3' />
+            </div>
+            <div className='mb-12'>
+              <Skeleton className='mb-4 h-8 w-24' />
+              <Skeleton className='aspect-[1010/666] w-full rounded-xl' />
+            </div>
+            <div className='mb-12 grid grid-cols-1 gap-8 md:grid-cols-2'>
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} className='space-y-6'>
+                  <Skeleton className='h-7 w-28' />
+                  <div className='space-y-2'>
+                    {Array.from({ length: 5 }).map((_, j) => (
+                      <Skeleton key={j} className='h-5 w-2/3' />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </main>
   );

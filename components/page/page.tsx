@@ -26,6 +26,7 @@ export const Page = ({ page }: { page: PageProps }) => {
               sizes="100vw"
               style={{ width: '100%', height: 'auto' }}
               priority={true}
+              fetchPriority='high'
             />
           )}
           <div className='space-y-4 md:space-y-6'>

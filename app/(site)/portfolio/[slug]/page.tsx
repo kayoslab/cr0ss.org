@@ -116,14 +116,32 @@ async function ProjectContent({
 
 function ContentLoading() {
   return (
-    <main className='flex min-h-screen flex-col items-center bg-white pb-24'>
-      <div className='w-full max-w-3xl space-y-6 px-6 pt-10 lg:px-8'>
-        <Skeleton className='h-10 w-3/4' />
-        <Skeleton className='h-6 w-1/2' />
-        <Skeleton className='aspect-video w-full rounded-xl' />
-        <Skeleton className='h-4 w-full' />
-        <Skeleton className='h-4 w-5/6' />
-      </div>
+    <main
+      className='flex flex-col items-center bg-white pb-16'
+      aria-busy='true'
+    >
+      <article className='w-full max-w-3xl px-6 pt-10 lg:px-8'>
+        <Skeleton className='h-5 w-24' />
+        <Skeleton className='mt-4 h-9 w-3/4 sm:h-10' />
+        <div className='mt-4 space-y-2'>
+          <Skeleton className='h-7 w-full' />
+          <Skeleton className='h-7 w-5/6' />
+        </div>
+        <Skeleton className='mt-8 aspect-[1200/630] w-full rounded-xl' />
+        <div className='mt-6 flex flex-wrap gap-3'>
+          <Skeleton className='h-10 w-32 rounded-lg' />
+          <Skeleton className='h-10 w-36 rounded-lg' />
+        </div>
+        <div className='mt-8 space-y-6'>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className='space-y-2'>
+              <Skeleton className='h-5 w-full' />
+              <Skeleton className='h-5 w-full' />
+              <Skeleton className='h-5 w-3/4' />
+            </div>
+          ))}
+        </div>
+      </article>
     </main>
   );
 }

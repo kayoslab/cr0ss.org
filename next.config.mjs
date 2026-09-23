@@ -10,6 +10,8 @@ const nextConfig = {
   // cache. Profiles below are referenced by name via cacheLife() — see
   // lib/cache/tags.ts for which data uses which.
   cacheComponents: true,
+  // Links prefetch one reusable shell per route instead of a full payload per link.
+  partialPrefetching: true,
   cacheLife: {
     // Live-ish dashboard numbers (today's cups, today's habits).
     realtime: { stale: 60, revalidate: 60, expire: 86400 },
@@ -23,6 +25,8 @@ const nextConfig = {
     content: { stale: 3600, revalidate: 3600, expire: 604800 },
   },
   experimental: {
+    // Tailwind's sheet is ~17 KB: inlining it removes a render-blocking request.
+    inlineCss: true,
     serverActions: { bodySizeLimit: '2mb' },
     optimizePackageImports: ['@heroicons/react'],
   },
@@ -38,6 +42,20 @@ const nextConfig = {
       },
     ],
     formats: ['image/avif', 'image/webp'],
+  },
+  async redirects() {
+    // Pagination moved from ?page=N to /page/N so list pages prerender.
+    const paged = (source, destination) => ({
+      source,
+      has: [{ type: 'query', key: 'page', value: '(?<page>\\d+)' }],
+      destination: `${destination}/page/:page`,
+      permanent: true,
+    });
+    return [
+      paged('/blog', '/blog'),
+      paged('/coffee', '/coffee'),
+      paged('/blog/category/:slug', '/blog/category/:slug'),
+    ];
   },
   async headers() {
     return [

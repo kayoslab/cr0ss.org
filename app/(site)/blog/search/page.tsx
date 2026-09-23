@@ -1,7 +1,7 @@
 import { BlogProps } from '@/lib/contentful/api/props/blog';
 import BlogGrid from '@/components/blog/blog-grid';
 import { env } from '@/env';
-import { algoliasearch } from "algoliasearch";
+import { algoliasearch } from 'algoliasearch';
 import type { SearchResponse } from '@algolia/client-search';
 import { getBlogById } from '@/lib/contentful/api/blog';
 import { Suspense } from 'react';
@@ -25,7 +25,9 @@ type Props = {
   searchParams: Promise<{ q?: string; page?: string }>;
 };
 
-export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+export async function generateMetadata({
+  searchParams,
+}: Props): Promise<Metadata> {
   const { q } = await searchParams;
   const query = q || '';
 
@@ -49,14 +51,16 @@ export default async function SearchResults({ searchParams }: Props) {
   const query = q || '';
   const currentPage = Number(page) || 1;
 
-  const { results } = await client.search<AlgoliaHit>([{
-    indexName: 'www',
-    params: {
-      query,
-      page: currentPage - 1,
-      hitsPerPage: POSTS_PER_PAGE
-    }
-  }]);
+  const { results } = await client.search<AlgoliaHit>([
+    {
+      indexName: 'www',
+      params: {
+        query,
+        page: currentPage - 1,
+        hitsPerPage: POSTS_PER_PAGE,
+      },
+    },
+  ]);
 
   const { hits, nbHits = 0 } = results[0] as SearchResponse<AlgoliaHit>;
 
@@ -64,9 +68,11 @@ export default async function SearchResults({ searchParams }: Props) {
   if (nbHits === 0) {
     return (
       <main className='flex min-h-screen flex-col items-center justify-between bg-white pb-24'>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <h1 className="text-2xl font-bold mb-4">Search Results for &ldquo;{query}&rdquo;</h1>
-          <p className="text-gray-600">
+        <div className='mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8'>
+          <h1 className='mb-4 text-2xl font-bold'>
+            Search Results for &ldquo;{query}&rdquo;
+          </h1>
+          <p className='text-gray-600'>
             No results found. Try different keywords or check your spelling.
           </p>
         </div>
@@ -76,25 +82,27 @@ export default async function SearchResults({ searchParams }: Props) {
 
   // Fetch full blog posts from Contentful using objectID
   const posts = await Promise.all(
-    hits.map(async hit => {
+    hits.map(async (hit) => {
       try {
-        return await getBlogById(hit.objectID) as unknown as BlogProps;
+        return (await getBlogById(hit.objectID)) as unknown as BlogProps;
       } catch (error) {
         console.error(`Error fetching blog for id ${hit.objectID}:`, error);
         return null;
       }
     })
-  ).then(posts => posts.filter((post): post is BlogProps => post !== null));
+  ).then((posts) => posts.filter((post): post is BlogProps => post !== null));
 
   const totalPages = Math.ceil(nbHits / POSTS_PER_PAGE);
 
   return (
     <main className='flex min-h-screen flex-col items-center justify-between bg-white pb-24'>
-      <Suspense fallback={
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-gray-900"></div>
-        </div>
-      }>
+      <Suspense
+        fallback={
+          <div className='flex min-h-screen items-center justify-center'>
+            <div className='h-32 w-32 animate-spin rounded-full border-t-2 border-b-2 border-gray-900'></div>
+          </div>
+        }
+      >
         <BlogGrid
           posts={posts}
           currentPage={currentPage}
@@ -105,4 +113,4 @@ export default async function SearchResults({ searchParams }: Props) {
       </Suspense>
     </main>
   );
-} 
+}

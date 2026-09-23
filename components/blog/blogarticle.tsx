@@ -52,6 +52,7 @@ export const Blog = ({ blog, recommendations }: { blog: BlogProps, recommendatio
                   sizes="100vw"
                   style={{ width: '100%', height: 'auto' }}
                   priority={true}
+                  fetchPriority='high'
                 />
               </Lightbox>
             )}

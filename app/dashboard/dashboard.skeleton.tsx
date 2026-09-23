@@ -1,149 +1,74 @@
-"use client";
-
-import React from "react";
-import { Skeleton } from "@/components/ui/skeleton";
-
-// Simple card wrapper for skeleton content
-function SkeletonCard({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="rounded-lg border bg-card p-6">
-      {children}
-    </div>
-  );
-}
-
-// Small helper that mimics your Section header styling
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
 /**
- * Lightweight visual placeholders while the client dashboard hydrates.
- * Avoids importing server-only components (e.g., Section) to keep it bulletproof.
+ * Loading state shaped like the dashboard overview (app/dashboard/page.tsx):
+ * heading, four KPI cards, two goal cards, five quick links. The same
+ * primitives (Card, grid classes) keep the geometry identical.
  */
 export default function DashboardSkeleton() {
   return (
-    <div className="space-y-10">
-      {/* Page Title */}
-      <div className="space-y-4">
-        <Skeleton className="h-12 w-48" />
+    <div
+      className='w-full space-y-6'
+      aria-busy='true'
+      aria-label='Loading dashboard'
+    >
+      <div className='space-y-1'>
+        <Skeleton className='h-8 w-40' />
+        <Skeleton className='h-6 w-80 max-w-full' />
       </div>
 
-      {/* 1) Travel */}
-      <section aria-busy="true" aria-live="polite">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <div className="md:col-span-3">
-            <SkeletonCard>
-              <Skeleton className="h-[220px] w-full md:h-[320px]" />
-            </SkeletonCard>
-          </div>
+      {/* KPI tiles: StatCard = header (icon + description) + text-3xl value + text-xs subtitle */}
+      <div className='grid grid-cols-2 gap-4 md:grid-cols-4'>
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Card key={i}>
+            <CardHeader className='pb-2'>
+              <Skeleton className='mb-2 h-4 w-4' />
+              <Skeleton className='h-5 w-24' />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className='h-9 w-16' />
+              <Skeleton className='mt-1 h-4 w-12' />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-          <SkeletonCard>
-            <Skeleton className="h-6 w-32 mb-3" />
-            <Skeleton className="h-8 w-20" />
-          </SkeletonCard>
-
-          <SkeletonCard>
-            <Skeleton className="h-6 w-40 mb-3" />
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-48" />
-              <Skeleton className="h-4 w-40" />
-              <Skeleton className="h-4 w-28" />
+      {/* Goals: two cards, three progress rows each */}
+      <div className='grid gap-6 md:grid-cols-2'>
+        {Array.from({ length: 2 }).map((_, i) => (
+          <div
+            key={i}
+            className='rounded-xl border border-neutral-200/60 bg-white p-6 shadow-sm'
+          >
+            <Skeleton className='mb-4 h-7 w-32' />
+            <div className='space-y-4'>
+              {Array.from({ length: 3 }).map((_, j) => (
+                <div key={j} className='space-y-2'>
+                  <div className='flex justify-between'>
+                    <Skeleton className='h-5 w-24' />
+                    <Skeleton className='h-5 w-16' />
+                  </div>
+                  <Skeleton className='h-2 w-full' />
+                </div>
+              ))}
             </div>
-          </SkeletonCard>
-
-          <SkeletonCard>
-            <Skeleton className="h-6 w-28 mb-3" />
-            <div className="mx-auto h-40 w-40 rounded-full overflow-hidden">
-              <Skeleton className="h-full w-full" />
-            </div>
-          </SkeletonCard>
-        </div>
-      </section>
-
-      {/* 3) Daily Rituals */}
-      <section aria-busy="true">
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <SkeletonCard key={i}>
-              <Skeleton className="h-6 w-40 mb-3" />
-              <Skeleton className="h-4 w-full mb-2" />
-              <Skeleton className="h-3 w-full" />
-            </SkeletonCard>
-          ))}
-        </div>
-
-        <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-          <SkeletonCard>
-            <Skeleton className="h-6 w-44 mb-3" />
-            <Skeleton className="h-40 w-full" />
-          </SkeletonCard>
-          <div className="md:col-span-2">
-            <SkeletonCard>
-              <Skeleton className="h-6 w-56 mb-3" />
-              <Skeleton className="h-48 w-full" />
-            </SkeletonCard>
           </div>
-        </div>
-      </section>
+        ))}
+      </div>
 
-      {/* 3) Morning Brew */}
-      <section aria-busy="true">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <SkeletonCard>
-            <Skeleton className="h-6 w-28 mb-3" />
-            <Skeleton className="h-10 w-24" />
-          </SkeletonCard>
-
-          <SkeletonCard>
-            <Skeleton className="h-6 w-40 mb-3" />
-            <Skeleton className="h-40 w-full" />
-          </SkeletonCard>
-
-          <SkeletonCard>
-            <Skeleton className="h-6 w-40 mb-3" />
-            <div className="mx-auto h-40 w-40 rounded-full overflow-hidden">
-              <Skeleton className="h-full w-full" />
-            </div>
-          </SkeletonCard>
-        </div>
-
-        <div className="mt-4">
-          <SkeletonCard>
-            <Skeleton className="h-6 w-64 mb-3" />
-            <Skeleton className="h-48 w-full" />
-          </SkeletonCard>
-        </div>
-      </section>
-
-      {/* 5) Running & Movement */}
-      <section aria-busy="true">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <SkeletonCard key={i}>
-              <Skeleton className="h-6 w-36 mb-3" />
-              <Skeleton className="h-10 w-24" />
-            </SkeletonCard>
-          ))}
-        </div>
-
-        <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-          <SkeletonCard>
-            <Skeleton className="h-6 w-48 mb-3" />
-            <Skeleton className="h-3.5 w-full mb-2" />
-            <Skeleton className="h-3.5 w-full" />
-          </SkeletonCard>
-          <div className="md:col-span-2">
-            <SkeletonCard>
-              <Skeleton className="h-6 w-40 mb-3" />
-              <Skeleton className="h-48 w-full" />
-            </SkeletonCard>
+      {/* Quick links */}
+      <div className='grid grid-cols-2 gap-4 md:grid-cols-3'>
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div
+            key={i}
+            className='flex flex-col items-center gap-2 rounded-xl border border-neutral-200/60 bg-white p-6 shadow-sm'
+          >
+            <Skeleton className='h-8 w-8' />
+            <Skeleton className='h-6 w-20' />
           </div>
-        </div>
-
-        <div className="mt-4">
-          <SkeletonCard>
-            <Skeleton className="h-4 w-full rounded-sm" />
-          </SkeletonCard>
-        </div>
-      </section>
+        ))}
+      </div>
     </div>
   );
 }

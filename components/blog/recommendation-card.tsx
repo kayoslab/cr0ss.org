@@ -7,6 +7,8 @@ import { optimizeWithPreset } from '@/lib/contentful/image-utils';
 
 interface RecommendationCardProps {
   recommendation: BlogProps;
+  /** Eager, high-priority image (for the card that is the page's LCP). */
+  priority?: boolean;
 }
 
 /**
@@ -45,34 +47,41 @@ async function trackRecommendationClick(objectID: string) {
   }
 }
 
-export function RecommendationCard({ recommendation }: RecommendationCardProps) {
-  const optimizedImageUrl = optimizeWithPreset(recommendation?.heroImage?.url, 'gridThumbnail');
+export function RecommendationCard({
+  recommendation,
+  priority = false,
+}: RecommendationCardProps) {
+  const optimizedImageUrl = optimizeWithPreset(
+    recommendation?.heroImage?.url,
+    'gridThumbnail'
+  );
 
   const handleClick = () => {
     trackRecommendationClick(recommendation.sys.id);
   };
 
   return (
-    <article className="flex h-full flex-col overflow-hidden rounded-lg shadow-lg">
+    <article className='flex h-full flex-col overflow-hidden rounded-lg shadow-lg'>
       <Link href={`/blog/${recommendation.slug}`} onClick={handleClick}>
         <Image
           alt={recommendation.title}
-          className="aspect-4/3 w-full object-cover"
+          className='aspect-4/3 w-full object-cover'
           height={450}
           src={optimizedImageUrl}
           width={600}
-          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          sizes='(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw'
+          priority={priority}
         />
       </Link>
-      <div className="flex-1 p-6">
+      <div className='flex-1 p-6'>
         <Link href={`/blog/${recommendation.slug}`} onClick={handleClick}>
-          <h3 className="py-4 text-2xl font-bold leading-tight text-zinc-900">
+          <h2 className='py-4 text-2xl leading-tight font-bold text-zinc-900'>
             {recommendation.title}
-          </h3>
+          </h2>
         </Link>
-        <div className="flex justify-end">
+        <div className='flex justify-end'>
           <Link
-            className="inline-flex h-10 items-center justify-center text-sm font-medium"
+            className='inline-flex h-10 items-center justify-center text-sm font-medium'
             href={`/blog/${recommendation.slug}`}
             onClick={handleClick}
           >

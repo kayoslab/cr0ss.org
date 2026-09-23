@@ -1,46 +1,41 @@
 import { Skeleton } from '@/components/ui/skeleton';
 
 /**
- * Loading skeleton for individual blog post page
+ * Loading state for a blog post, mirroring components/blog/blogarticle.tsx:
+ * same wrappers and spacing, bars sized to the real line-heights.
  */
 export default function BlogPostLoading() {
   return (
-    <main className='flex min-h-screen flex-col items-center justify-between bg-white pb-24'>
-      <section className='w-full max-w-7xl mx-auto'>
-      <div className='space-y-12 px-4 md:px-6'>
-        {/* Title and metadata */}
-        <div className='space-y-4'>
-          {/* Title skeleton */}
-          <div className='space-y-3'>
-            <Skeleton className='h-12 w-full sm:h-14' />
-            <Skeleton className='h-12 w-4/5 sm:h-14' />
-          </div>
-
-          {/* Metadata (author, date, categories) skeleton */}
-          <div className='space-y-2'>
-            <Skeleton className='h-6 w-full max-w-2xl md:h-7' />
-            <Skeleton className='h-6 w-3/4 max-w-xl md:h-7' />
-          </div>
-        </div>
-
-        <div className='space-y-8 lg:space-y-10'>
-          {/* Hero image skeleton */}
-          <Skeleton className='aspect-video w-full rounded-xl' />
-
-          {/* Summary skeleton */}
-          <div className='flex flex-col justify-between md:flex-row'>
-            <div className='max-w-none space-y-3'>
-              <Skeleton className='h-8 w-full md:h-9 lg:h-10 xl:h-11' />
-              <Skeleton className='h-8 w-full md:h-9 lg:h-10 xl:h-11' />
-              <Skeleton className='h-8 w-4/5 md:h-9 lg:h-10 xl:h-11' />
+    <main
+      className='flex min-h-screen flex-col items-center justify-between bg-white pb-24'
+      aria-busy='true'
+      aria-label='Loading post'
+    >
+      <section className='mx-auto w-full max-w-7xl'>
+        <div className='space-y-12 px-4 md:px-6'>
+          {/* Title (text-4xl → 40px lines, sm:text-5xl → 48px) and byline */}
+          <div className='space-y-4'>
+            <div className='space-y-2'>
+              <Skeleton className='h-10 w-full sm:h-12' />
+              <Skeleton className='h-10 w-2/3 sm:h-12' />
             </div>
+            <Skeleton className='h-6 w-full max-w-lg md:h-7' />
           </div>
 
-          {/* Article content skeleton */}
-          <div className='space-y-4 md:space-y-6'>
-            <div className='space-y-4 max-w-none'>
-              {/* Paragraphs */}
-              {Array.from({ length: 8 }).map((_, i) => (
+          <div className='space-y-8 lg:space-y-10'>
+            {/* Hero image */}
+            <Skeleton className='aspect-video w-full rounded-xl' />
+
+            {/* Summary (md:text-2xl … xl:text-4xl) */}
+            <div className='space-y-2'>
+              <Skeleton className='h-6 w-full md:h-8 lg:h-9 xl:h-10' />
+              <Skeleton className='h-6 w-11/12 md:h-8 lg:h-9 xl:h-10' />
+              <Skeleton className='h-6 w-3/4 md:h-8 lg:h-9 xl:h-10' />
+            </div>
+
+            {/* Article body: prose-lg paragraphs */}
+            <div className='space-y-6'>
+              {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className='space-y-2'>
                   <Skeleton className='h-5 w-full md:h-6' />
                   <Skeleton className='h-5 w-full md:h-6' />
@@ -48,26 +43,10 @@ export default function BlogPostLoading() {
                   <Skeleton className='h-5 w-4/5 md:h-6' />
                 </div>
               ))}
-
-              {/* Code block placeholder */}
-              <div className='my-6'>
-                <Skeleton className='h-48 w-full rounded-lg' />
-              </div>
-
-              {/* More paragraphs */}
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={`p2-${i}`} className='space-y-2'>
-                  <Skeleton className='h-5 w-full md:h-6' />
-                  <Skeleton className='h-5 w-full md:h-6' />
-                  <Skeleton className='h-5 w-3/4 md:h-6' />
-                </div>
-              ))}
             </div>
-          </div>
 
-          {/* Author quote skeleton */}
-          <div className='flex flex-col justify-between md:flex-row'>
-            <div className="max-w-none space-y-4">
+            {/* Author quote */}
+            <div className='space-y-4'>
               <Skeleton className='h-8 w-8' />
               <div className='space-y-2'>
                 <Skeleton className='h-7 w-full' />
@@ -77,24 +56,22 @@ export default function BlogPostLoading() {
           </div>
         </div>
 
-        {/* Recommendations section skeleton */}
+        {/* "Continue reading" recommendations */}
         <div className='space-y-12 px-4 md:py-24'>
-          <Skeleton className='h-8 w-48' />
-
+          <Skeleton className='h-7 w-44' />
           <div className='grid gap-8 md:grid-cols-2 lg:grid-cols-3'>
             {Array.from({ length: 3 }).map((_, i) => (
               <article
                 key={i}
-                className='flex h-full flex-col overflow-hidden rounded-lg shadow-lg border border-neutral-200/60'
+                className='flex h-full flex-col overflow-hidden rounded-lg shadow-lg'
               >
                 <Skeleton className='aspect-4/3 w-full rounded-none' />
-                <div className='flex-1 p-6 space-y-4'>
-                  <Skeleton className='h-4 w-32' />
-                  <div className='space-y-2'>
+                <div className='flex-1 p-6'>
+                  <div className='space-y-1.5 py-4'>
                     <Skeleton className='h-6 w-full' />
                     <Skeleton className='h-6 w-3/4' />
                   </div>
-                  <div className='flex justify-end pt-2'>
+                  <div className='flex h-10 items-center justify-end'>
                     <Skeleton className='h-5 w-24' />
                   </div>
                 </div>
@@ -102,8 +79,7 @@ export default function BlogPostLoading() {
             ))}
           </div>
         </div>
-      </div>
-    </section>
+      </section>
     </main>
   );
 }
