@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import { ContentfulImage } from '@/components/ui/contentful-image';
 import Link from 'next/link';
 import { BlogProps } from '@/lib/contentful/api/props/blog';
 import { optimizeWithPreset } from '@/lib/contentful/image-utils';
@@ -63,13 +63,13 @@ export function RecommendationCard({
   return (
     <article className='flex h-full flex-col overflow-hidden rounded-lg shadow-lg'>
       <Link href={`/blog/${recommendation.slug}`} onClick={handleClick}>
-        <Image
+        <ContentfulImage
           alt={recommendation.title}
           className='aspect-4/3 w-full object-cover'
           height={450}
           src={optimizedImageUrl}
           width={600}
-          sizes='(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw'
+          sizes='(max-width: 768px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 400px'
           priority={priority}
         />
       </Link>

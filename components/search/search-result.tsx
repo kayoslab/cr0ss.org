@@ -1,5 +1,5 @@
 'use client';
-import Image from 'next/image';
+import { ContentfulImage } from '@/components/ui/contentful-image';
 import { AlgoliaHit } from '@/lib/algolia/client';
 import { optimizeWithPreset } from '@/lib/contentful/image-utils';
 import { Badge } from '@/components/ui';
@@ -23,7 +23,7 @@ export function SearchResult({ hit, onClick, isSelected }: Props) {
       {/* Thumbnail */}
       {thumbnailUrl && (
         <div className="shrink-0 overflow-hidden rounded">
-          <Image
+          <ContentfulImage
             src={thumbnailUrl}
             alt={hit.title ? `${hit.title} thumbnail` : 'Blog post thumbnail'}
             width={48}

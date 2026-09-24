@@ -1,5 +1,5 @@
 import { documentToReactComponents } from '@contentful/rich-text-react-renderer';
-import Image from 'next/image';
+import { ContentfulImage } from '@/components/ui/contentful-image';
 import { BlogProps } from '@/lib/contentful/api/props/blog';
 import Link from 'next/link';
 import { CategoryProps } from '@/lib/contentful/api/props/category';
@@ -43,13 +43,14 @@ export const Blog = ({ blog, recommendations }: { blog: BlogProps, recommendatio
           <div className='space-y-8 lg:space-y-10'>
             {blog.heroImage?.url && (
               <Lightbox src={blog.heroImage.url} alt={blog.title}>
-                <Image
+                <ContentfulImage
                   alt={blog.title}
                   className='aspect-video w-full overflow-hidden rounded-xl object-cover'
                   src={optimizeWithPreset(blog.heroImage.url, 'hero')}
                   width={0}
                   height={0}
-                  sizes="100vw"
+                  // max-w-7xl minus md:px-6 gutters.
+                  sizes="(max-width: 1280px) 100vw, 1232px"
                   style={{ width: '100%', height: 'auto' }}
                   priority={true}
                   fetchPriority='high'

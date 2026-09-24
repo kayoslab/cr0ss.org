@@ -35,6 +35,8 @@ const nextConfig = {
     removeConsole: process.env.NODE_ENV === 'production',
   },
   images: {
+    // Contentful assets use lib/contentful/image-loader.ts, so the Vercel
+    // optimizer only ever sees local files (the home avatar).
     remotePatterns: [
       {
         protocol: 'https',
@@ -42,6 +44,10 @@ const nextConfig = {
       },
     ],
     formats: ['image/avif', 'image/webp'],
+    // Content is capped at max-w-7xl (1280 CSS px); 2560 covers it at 2x.
+    // Anything wider is a cache-fragmenting transformation that no layout
+    // can select.
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 2560],
   },
   async headers() {
     return [

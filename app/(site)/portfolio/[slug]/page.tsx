@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
+import { ContentfulImage } from '@/components/ui/contentful-image';
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
@@ -58,7 +58,7 @@ async function ProjectContent({
         <p className='mt-4 text-lg text-gray-600'>{project.summary}</p>
 
         {project.heroImage?.url && (
-          <Image
+          <ContentfulImage
             src={project.heroImage.url}
             alt={project.heroImage.title || project.title}
             width={1200}

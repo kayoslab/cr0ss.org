@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import Image from 'next/image';
+import { ContentfulImage } from '@/components/ui/contentful-image';
 import { createPortal } from 'react-dom';
 
 interface LightboxProps {
@@ -82,7 +82,7 @@ export function Lightbox({ src, alt, children }: LightboxProps) {
         className="relative max-w-[90vw] max-h-[90vh] p-4"
         onClick={(e) => e.stopPropagation()}
       >
-        <Image
+        <ContentfulImage
           src={src}
           alt={alt}
           width={0}

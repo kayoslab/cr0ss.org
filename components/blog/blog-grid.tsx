@@ -1,5 +1,5 @@
 import { BlogProps } from '@/lib/contentful/api/props/blog';
-import Image from 'next/image';
+import { ContentfulImage } from '@/components/ui/contentful-image';
 import Link from 'next/link';
 import { optimizeWithPreset } from '@/lib/contentful/image-utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -72,13 +72,15 @@ export default function BlogGrid({
               return (
                 <article key={blog.sys.id} className={layout.card}>
                   <Link href={`/blog/${blog.slug}`}>
-                    <Image
+                    <ContentfulImage
                       alt={blog.title}
                       className={layout.image}
                       height={450}
                       src={optimizedImageUrl}
                       width={600}
-                      sizes='(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw'
+                      // Three columns inside max-w-7xl with gap-8: a card
+                      // never exceeds ~400px.
+                      sizes='(max-width: 768px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 400px'
                       // The first card is the page's LCP image.
                       priority={index === 0}
                       fetchPriority={index === 0 ? 'high' : undefined}

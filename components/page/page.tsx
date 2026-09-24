@@ -1,5 +1,5 @@
 import { documentToReactComponents } from '@contentful/rich-text-react-renderer';
-import Image from 'next/image';
+import { ContentfulImage } from '@/components/ui/contentful-image';
 import { PageProps } from '@/lib/contentful/api/props/page';
 import { createRichTextOptions, PAGE_STYLES } from '@/lib/contentful/rich-text-renderer';
 import { optimizeWithPreset } from '@/lib/contentful/image-utils';
@@ -17,13 +17,13 @@ export const Page = ({ page }: { page: PageProps }) => {
         </div>
         <div className='space-y-8 lg:space-y-10'>
           {page.heroImage?.url && (
-            <Image
+            <ContentfulImage
               alt={page.title}
               className='aspect-video w-full overflow-hidden rounded-xl object-cover'
               src={optimizeWithPreset(page.heroImage.url, 'hero')}
               width={0}
               height={0}
-              sizes="100vw"
+              sizes="(max-width: 1280px) 100vw, 1232px"
               style={{ width: '100%', height: 'auto' }}
               priority={true}
               fetchPriority='high'

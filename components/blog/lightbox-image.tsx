@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import { ContentfulImage } from '@/components/ui/contentful-image';
 import { Lightbox } from '@/components/ui/lightbox';
 import { optimizeWithPreset } from '@/lib/contentful/image-utils';
 
@@ -16,7 +16,7 @@ interface LightboxImageProps {
 export function LightboxImage({ src, alt }: LightboxImageProps) {
   return (
     <Lightbox src={src} alt={alt}>
-      <Image
+      <ContentfulImage
         src={optimizeWithPreset(src, 'embedded')}
         alt={alt}
         width={0}

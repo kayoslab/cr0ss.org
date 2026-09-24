@@ -9,37 +9,25 @@ import {
 } from './constants';
 
 /**
- * Ensures image URL is absolute and converts to social media compatible format
- * LinkedIn and other platforms don't support AVIF, so we convert to JPEG
+ * Ensures image URL is absolute and, for Contentful assets, asks the Images
+ * API for the exact Open Graph rendition: a 1200×630 JPEG crop. The metadata
+ * declares those dimensions, so the file must match them, and crawlers should
+ * never be handed the raw multi-megabyte upload. JPEG because LinkedIn and
+ * others don't render AVIF previews.
  */
 export function ensureAbsoluteUrl(url: string | undefined | null): string | null {
   if (!url) return null;
 
-  // Make URL absolute
-  let absoluteUrl = url.startsWith('http') ? url : `https:${url}`;
+  const absoluteUrl = url.startsWith('http') ? url : `https:${url}`;
+  if (!absoluteUrl.includes('ctfassets.net')) return absoluteUrl;
 
-  // Check if this is a Contentful image URL
-  if (absoluteUrl.includes('ctfassets.net')) {
-    // Convert AVIF to JPEG for better social media compatibility
-    // LinkedIn doesn't support AVIF images for Open Graph previews
-    if (absoluteUrl.endsWith('.avif') || absoluteUrl.includes('fm=avif')) {
-      // Parse URL to add/modify query parameters
-      const urlObj = new URL(absoluteUrl);
-
-      // Set format to JPEG and quality for optimal social sharing
-      urlObj.searchParams.set('fm', 'jpg');
-      urlObj.searchParams.set('q', '85');
-
-      // Ensure proper dimensions for Open Graph
-      if (!urlObj.searchParams.has('w')) {
-        urlObj.searchParams.set('w', String(OG_IMAGE_WIDTH));
-      }
-
-      absoluteUrl = urlObj.toString();
-    }
-  }
-
-  return absoluteUrl;
+  const urlObj = new URL(absoluteUrl);
+  urlObj.searchParams.set('w', String(OG_IMAGE_WIDTH));
+  urlObj.searchParams.set('h', String(OG_IMAGE_HEIGHT));
+  urlObj.searchParams.set('fit', 'fill');
+  urlObj.searchParams.set('fm', 'jpg');
+  urlObj.searchParams.set('q', '85');
+  return urlObj.toString();
 }
 
 /**

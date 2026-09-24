@@ -8,7 +8,7 @@ import {
   compactSvgPath,
 } from '@/lib/map/projection';
 import Link from 'next/link';
-import Image from 'next/image';
+import { ContentfulImage } from '@/components/ui/contentful-image';
 import Markdown from 'react-markdown';
 import { optimizeWithPreset } from '@/lib/contentful/image-utils';
 
@@ -216,7 +216,7 @@ export default function CoffeeDetail({
           <div className='space-y-6'>
             {coffee.photo?.url && (
               <div className='overflow-hidden rounded-xl border border-neutral-200 shadow-sm'>
-                <Image
+                <ContentfulImage
                   src={optimizeWithPreset(coffee.photo.url, 'gridThumbnail')}
                   alt={coffee.photo.title || coffee.name}
                   width={350}

@@ -16,12 +16,8 @@ export async function FeaturedPosts() {
         {isTrending ? 'Trending Posts' : 'Featured Posts'}
       </h2>
       <div className='grid gap-8 md:grid-cols-2 lg:grid-cols-3'>
-        {posts.map((post, index) => (
-          <RecommendationCard
-            key={post.slug}
-            recommendation={post}
-            priority={index === 0}
-          />
+        {posts.map((post) => (
+          <RecommendationCard key={post.slug} recommendation={post} />
         ))}
       </div>
     </div>
