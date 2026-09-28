@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 /**
  * Dashboard App Sidebar
@@ -6,8 +6,8 @@
  * Navigation sidebar for the dashboard with sections for different data views.
  */
 
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   MapPin,
@@ -16,7 +16,7 @@ import {
   BookOpen,
   Lightbulb,
   Settings2,
-} from "lucide-react";
+} from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -27,48 +27,48 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar";
+} from '@/components/ui/sidebar';
 
 const navigationItems = [
   {
-    title: "Dashboard",
-    href: "/dashboard",
+    title: 'Dashboard',
+    href: '/dashboard',
     icon: LayoutDashboard,
   },
   {
-    title: "Travel",
-    href: "/dashboard/travel",
+    title: 'Travel',
+    href: '/dashboard/travel',
     icon: MapPin,
   },
   {
-    title: "Coffee & Caffeine",
-    href: "/dashboard/coffee",
+    title: 'Coffee & Caffeine',
+    href: '/dashboard/coffee',
     icon: Coffee,
   },
   {
-    title: "Workouts",
-    href: "/dashboard/workouts",
+    title: 'Workouts',
+    href: '/dashboard/workouts',
     icon: Activity,
   },
   {
-    title: "Habits & Productivity",
-    href: "/dashboard/habits",
+    title: 'Habits & Productivity',
+    href: '/dashboard/habits',
     icon: BookOpen,
   },
   {
-    title: "Insights",
-    href: "/dashboard/insights",
+    title: 'Insights',
+    href: '/dashboard/insights',
     icon: Lightbulb,
   },
 ];
 
 const footerItems = [
   {
-    title: "Settings",
-    href: "/dashboard/settings",
+    title: 'Settings',
+    href: '/dashboard/settings',
     icon: Settings2,
   },
-]
+];
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -104,7 +104,7 @@ export function AppSidebar() {
                         prefetch={true}
                         onClick={(e) => handleNavigation(e, item.href)}
                       >
-                        <item.icon className="h-4 w-4" />
+                        <item.icon className='h-4 w-4' />
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
@@ -127,7 +127,7 @@ export function AppSidebar() {
                     prefetch={true}
                     onClick={(e) => handleNavigation(e, item.href)}
                   >
-                    <item.icon className="h-4 w-4" />
+                    <item.icon className='h-4 w-4' />
                     <span>{item.title}</span>
                   </Link>
                 </SidebarMenuButton>

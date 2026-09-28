@@ -24,21 +24,28 @@ describe('GET /api/v1/dashboard/habits/today', () => {
 
   describe('Authentication', () => {
     it('should require authentication', async () => {
-      const request = new Request('http://localhost:3000/api/v1/dashboard/habits/today');
+      const request = new Request(
+        'http://localhost:3000/api/v1/dashboard/habits/today'
+      );
       const response = await GET(request);
 
       expect(response.status).toBe(401);
     });
 
     it('should accept valid secret', async () => {
-      vi.mocked(sql).mockResolvedValueOnce([{ current_date: '2025-12-05' }] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { current_date: '2025-12-05' },
+      ] as never);
       vi.mocked(sql).mockResolvedValueOnce([] as never);
 
-      const request = new Request('http://localhost:3000/api/v1/dashboard/habits/today', {
-        headers: {
-          'x-admin-secret': 'test-dashboard-secret-1234567890',
-        },
-      });
+      const request = new Request(
+        'http://localhost:3000/api/v1/dashboard/habits/today',
+        {
+          headers: {
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
+          },
+        }
+      );
       const response = await GET(request);
 
       expect(response.status).toBe(200);
@@ -47,14 +54,19 @@ describe('GET /api/v1/dashboard/habits/today', () => {
 
   describe('Query Parameters', () => {
     it('should use today as default date', async () => {
-      vi.mocked(sql).mockResolvedValueOnce([{ current_date: '2025-12-05' }] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { current_date: '2025-12-05' },
+      ] as never);
       vi.mocked(sql).mockResolvedValueOnce([] as never);
 
-      const request = new Request('http://localhost:3000/api/v1/dashboard/habits/today', {
-        headers: {
-          'x-admin-secret': 'test-dashboard-secret-1234567890',
-        },
-      });
+      const request = new Request(
+        'http://localhost:3000/api/v1/dashboard/habits/today',
+        {
+          headers: {
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
+          },
+        }
+      );
       const response = await GET(request);
       const data = await response.json();
 
@@ -215,12 +227,13 @@ describe('GET /api/v1/dashboard/habits/today', () => {
 
       expect(response.headers.get('Cache-Control')).toBe('private, no-store');
     });
-
   });
 
   describe('Error Handling', () => {
     it('should return 500 on database error', async () => {
-      vi.mocked(sql).mockRejectedValueOnce(new Error('Database connection failed'));
+      vi.mocked(sql).mockRejectedValueOnce(
+        new Error('Database connection failed')
+      );
 
       const request = new Request(
         'http://localhost:3000/api/v1/dashboard/habits/today?date=2025-12-05',

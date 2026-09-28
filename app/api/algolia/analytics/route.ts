@@ -27,14 +27,21 @@ export const POST = createApiRoute()
     if (!body.success) return body.response;
 
     const { objectID, eventType, userToken } = body.data;
-    const event = { index: env.ALGOLIA_INDEX, objectIDs: [objectID], userToken };
+    const event = {
+      index: env.ALGOLIA_INDEX,
+      objectIDs: [objectID],
+      userToken,
+    };
 
     switch (eventType) {
       case 'click':
         aa('clickedObjectIDs', { ...event, eventName: 'Blog Clicked' });
         break;
       case 'recommendation_click':
-        aa('clickedObjectIDs', { ...event, eventName: 'Recommendation Clicked' });
+        aa('clickedObjectIDs', {
+          ...event,
+          eventName: 'Recommendation Clicked',
+        });
         break;
       case 'view':
         aa('viewedObjectIDs', { ...event, eventName: 'Blog Viewed' });

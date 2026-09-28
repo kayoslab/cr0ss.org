@@ -7,11 +7,13 @@ OpenAPI 3.0 specification for the CR0SS.org API.
 ### Option 1: Swagger UI (Recommended)
 
 Visit the online Swagger Editor with your spec:
+
 ```bash
 https://editor.swagger.io/
 ```
 
 Then:
+
 1. Click **File → Import file**
 2. Select `openapi.yaml`
 3. View interactive documentation with Try-It-Out features
@@ -19,11 +21,13 @@ Then:
 ### Option 2: Swagger UI Locally
 
 Install Swagger UI:
+
 ```bash
 npm install -g swagger-ui-watcher
 ```
 
 Run from this directory:
+
 ```bash
 swagger-ui-watcher openapi.yaml
 ```
@@ -37,6 +41,7 @@ Install the "Swagger Viewer" extension and open `openapi.yaml` to preview.
 ### Option 4: Redoc
 
 For a clean documentation view:
+
 ```bash
 npx @redocly/cli preview-docs openapi.yaml
 ```
@@ -44,17 +49,20 @@ npx @redocly/cli preview-docs openapi.yaml
 ## API Overview
 
 ### Base URLs
+
 - **Production:** `https://cr0ss.org/api`
 - **Development:** `http://localhost:3000/api`
 
 ### Authentication
 
 Most endpoints require the `X-Secret` header:
+
 ```bash
 curl -H "X-Secret: your-secret-token" https://cr0ss.org/api/habits/coffee
 ```
 
 Public endpoints (no auth required):
+
 - `/chat` - AI chat
 - `/algolia/search` - Search
 - `/algolia/analytics` - Analytics tracking
@@ -62,28 +70,31 @@ Public endpoints (no auth required):
 
 ### Rate Limits
 
-| Endpoint Category | Limit | Window |
-|------------------|-------|--------|
-| AI Chat | 10 requests | 12 hours |
-| Search | 100 requests | 60 seconds |
-| Habits (coffee, workouts, goals) | 30 requests | 60 seconds |
-| Revalidation | 5 requests | 5 minutes |
-| Location | 10 requests | 60 seconds |
+| Endpoint Category                | Limit        | Window     |
+| -------------------------------- | ------------ | ---------- |
+| AI Chat                          | 10 requests  | 12 hours   |
+| Search                           | 100 requests | 60 seconds |
+| Habits (coffee, workouts, goals) | 30 requests  | 60 seconds |
+| Revalidation                     | 5 requests   | 5 minutes  |
+| Location                         | 10 requests  | 60 seconds |
 
 When rate limited, the `Retry-After` header indicates seconds until retry.
 
 ## API Categories
 
 ### 🤖 AI
+
 - `POST /chat` - Chat with AI assistant (RAG-powered)
 - `POST /ai/reindex-blog` - Reindex blog for vector search
 - `POST /ai/reindex-knowledge` - Reindex knowledge base
 
 ### 🔍 Search
+
 - `GET /algolia/search` - Search blog posts
 - `POST /algolia/analytics` - Track search analytics
 
 ### 📊 Habits
+
 - `GET/POST /habits/coffee` - Coffee consumption tracking
 - `POST /habits/workout` - Workout logging
 - `POST /habits/day` - Daily habit tracking
@@ -91,18 +102,22 @@ When rate limited, the `Retry-After` header indicates seconds until retry.
 - `GET/POST /habits/body` - Body profile tracking
 
 ### 📝 Content
+
 - `GET /featured-posts` - Get trending/recent posts
 - `POST /revalidate` - Trigger cache revalidation
 
 ### 📍 Location
+
 - `POST /location` - Update location
 
 ### 🔐 Auth
+
 - `GET /auth/check` - Verify authentication
 
 ## Example Requests
 
 ### Chat with AI
+
 ```bash
 curl -X POST https://cr0ss.org/api/chat \
   -H "Content-Type: application/json" \
@@ -110,11 +125,13 @@ curl -X POST https://cr0ss.org/api/chat \
 ```
 
 ### Search Blog Posts
+
 ```bash
 curl "https://cr0ss.org/api/algolia/search?q=typescript"
 ```
 
 ### Log Coffee Consumption
+
 ```bash
 curl -X POST https://cr0ss.org/api/habits/coffee \
   -H "Content-Type: application/json" \
@@ -128,6 +145,7 @@ curl -X POST https://cr0ss.org/api/habits/coffee \
 ```
 
 ### Log Workout
+
 ```bash
 curl -X POST https://cr0ss.org/api/habits/workout \
   -H "Content-Type: application/json" \
@@ -142,6 +160,7 @@ curl -X POST https://cr0ss.org/api/habits/workout \
 ```
 
 ### Update Monthly Goals
+
 ```bash
 curl -X POST https://cr0ss.org/api/habits/goal \
   -H "Content-Type: application/json" \
@@ -167,6 +186,7 @@ All endpoints return errors in a consistent format:
 ```
 
 ### Common Error Codes
+
 - `UNAUTHORIZED` - Missing or invalid authentication
 - `VALIDATION_ERROR` - Invalid request data
 - `RATE_LIMIT_EXCEEDED` - Too many requests
@@ -196,6 +216,7 @@ To update the API documentation:
 ## Tools
 
 ### Validation
+
 ```bash
 # Install Redocly CLI
 npm install -g @redocly/cli

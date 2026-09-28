@@ -6,7 +6,7 @@ export interface CountryProps {
   name: string;
   data: {
     path: string;
-  }
+  };
 }
 
 export const COUNTRY_GRAPHQL_FIELDS = `

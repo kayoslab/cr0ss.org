@@ -55,10 +55,7 @@ export function apiError(
  * return apiSuccess({ id: 123, created: true }, 201);
  * ```
  */
-export function apiSuccess<T>(
-  data: T,
-  status: number = 200
-): NextResponse<T> {
+export function apiSuccess<T>(data: T, status: number = 200): NextResponse<T> {
   return NextResponse.json(data, { status });
 }
 
@@ -172,6 +169,7 @@ export function internalError(
   details?: unknown
 ): NextResponse<ApiError> {
   // Only include details in development mode
-  const includeDetails = process.env.NODE_ENV === 'development' ? details : undefined;
+  const includeDetails =
+    process.env.NODE_ENV === 'development' ? details : undefined;
   return apiError(message, 500, includeDetails, 'INTERNAL_ERROR');
 }

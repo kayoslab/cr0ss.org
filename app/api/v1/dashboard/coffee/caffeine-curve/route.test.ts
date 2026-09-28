@@ -66,7 +66,9 @@ describe('GET /api/v1/dashboard/coffee/caffeine-curve', () => {
     });
 
     it('should accept valid secret', async () => {
-      vi.mocked(sql).mockResolvedValueOnce([{ current_date: '2025-12-05' }] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { current_date: '2025-12-05' },
+      ] as never);
 
       const request = new Request(
         'http://localhost:3000/api/v1/dashboard/coffee/caffeine-curve',
@@ -84,7 +86,9 @@ describe('GET /api/v1/dashboard/coffee/caffeine-curve', () => {
 
   describe('Query Parameters', () => {
     it('should use today as default date', async () => {
-      vi.mocked(sql).mockResolvedValueOnce([{ current_date: '2025-12-05' }] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { current_date: '2025-12-05' },
+      ] as never);
 
       const request = new Request(
         'http://localhost:3000/api/v1/dashboard/coffee/caffeine-curve',
@@ -133,7 +137,9 @@ describe('GET /api/v1/dashboard/coffee/caffeine-curve', () => {
     });
 
     it('should default to 60 minute resolution', async () => {
-      vi.mocked(sql).mockResolvedValueOnce([{ current_date: '2025-12-05' }] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { current_date: '2025-12-05' },
+      ] as never);
 
       const request = new Request(
         'http://localhost:3000/api/v1/dashboard/coffee/caffeine-curve',
@@ -151,7 +157,9 @@ describe('GET /api/v1/dashboard/coffee/caffeine-curve', () => {
     });
 
     it('should accept valid resolution parameter', async () => {
-      vi.mocked(sql).mockResolvedValueOnce([{ current_date: '2025-12-05' }] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { current_date: '2025-12-05' },
+      ] as never);
 
       const request = new Request(
         'http://localhost:3000/api/v1/dashboard/coffee/caffeine-curve?resolution=30',
@@ -203,7 +211,9 @@ describe('GET /api/v1/dashboard/coffee/caffeine-curve', () => {
 
   describe('Response Data', () => {
     it('should return correct caffeine curve structure', async () => {
-      vi.mocked(sql).mockResolvedValueOnce([{ current_date: '2025-12-05' }] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { current_date: '2025-12-05' },
+      ] as never);
 
       const request = new Request(
         'http://localhost:3000/api/v1/dashboard/coffee/caffeine-curve?date=2025-12-05',
@@ -228,7 +238,9 @@ describe('GET /api/v1/dashboard/coffee/caffeine-curve', () => {
     });
 
     it('should return series data with correct structure', async () => {
-      vi.mocked(sql).mockResolvedValueOnce([{ current_date: '2025-12-05' }] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { current_date: '2025-12-05' },
+      ] as never);
 
       const request = new Request(
         'http://localhost:3000/api/v1/dashboard/coffee/caffeine-curve?date=2025-12-05',
@@ -252,7 +264,9 @@ describe('GET /api/v1/dashboard/coffee/caffeine-curve', () => {
 
   describe('Cache Headers', () => {
     it('should set correct cache headers (1 minute for realtime data)', async () => {
-      vi.mocked(sql).mockResolvedValueOnce([{ current_date: '2025-12-05' }] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { current_date: '2025-12-05' },
+      ] as never);
 
       const request = new Request(
         'http://localhost:3000/api/v1/dashboard/coffee/caffeine-curve?date=2025-12-05',
@@ -266,13 +280,13 @@ describe('GET /api/v1/dashboard/coffee/caffeine-curve', () => {
 
       expect(response.headers.get('Cache-Control')).toBe('private, no-store');
     });
-
   });
 
   describe('Error Handling', () => {
     it('should return 500 on database error', async () => {
       // Mock qCoffeeEventsForDayWithLookback to fail (from @/lib/db/queries)
-      const { qCoffeeEventsForDayWithLookback } = await import('@/lib/db/queries');
+      const { qCoffeeEventsForDayWithLookback } =
+        await import('@/lib/db/queries');
       vi.mocked(qCoffeeEventsForDayWithLookback).mockRejectedValueOnce(
         new Error('Database connection failed')
       );

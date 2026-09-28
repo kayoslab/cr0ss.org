@@ -1,6 +1,6 @@
 import { fetchGraphQL } from './api';
 import { COFFEE_GRAPHQL_FIELDS } from './props/coffee';
-import type { CoffeeListDTO } from "./coffee-types";
+import type { CoffeeListDTO } from './coffee-types';
 
 interface CoffeeItem {
   sys?: {
@@ -32,26 +32,29 @@ interface GraphQLCoffeeResponse {
   };
 }
 
-export async function getAllCoffeeDTO(page = 1, limit = 20): Promise<CoffeeListDTO> {
+export async function getAllCoffeeDTO(
+  page = 1,
+  limit = 20
+): Promise<CoffeeListDTO> {
   const raw = await getAllCoffee(page, limit); // your existing function
   const items = (raw?.items ?? []).map((c) => ({
-    id: String(c?.sys?.id ?? c?.id ?? ""),
-    name: String(c?.name ?? ""),
-    roaster: String(c?.roaster ?? ""),
+    id: String(c?.sys?.id ?? c?.id ?? ''),
+    name: String(c?.name ?? ''),
+    roaster: String(c?.roaster ?? ''),
   }));
   return { items };
 }
 
-
-function extractCoffeeCollection(fetchResponse: GraphQLCoffeeResponse): CoffeeCollection {
-
+function extractCoffeeCollection(
+  fetchResponse: GraphQLCoffeeResponse
+): CoffeeCollection {
   if (!fetchResponse?.data?.coffeeCollection) {
     // Return empty collection if no data
     return {
       items: [],
       total: 0,
       skip: 0,
-      limit: 0
+      limit: 0,
     };
   }
   return fetchResponse.data.coffeeCollection;
@@ -74,21 +77,21 @@ export async function getAllCoffee(page = 1, limit = 9) {
         }
       }
     }`;
-    
+
     const coffees = await fetchGraphQL(query, ['coffee']);
     if (!coffees?.data?.coffeeCollection) {
       throw new Error('Invalid response structure');
     }
 
     const collection = extractCoffeeCollection(coffees);
-    
+
     return collection;
   } catch (error) {
     console.error('Error fetching coffees:', error);
     if (error instanceof Error) {
       console.error('Error details:', {
         message: error.message,
-        stack: error.stack
+        stack: error.stack,
       });
     }
     // Return empty collection on error
@@ -96,15 +99,15 @@ export async function getAllCoffee(page = 1, limit = 9) {
       items: [],
       total: 0,
       skip: 0,
-      limit: limit
+      limit: limit,
     };
   }
 }
 
 export async function getCoffees(coffeeIds: string[]) {
-  try {    
-    const ids = (coffeeIds ?? []).map(id => `"${id}"`).join(",");
-    
+  try {
+    const ids = (coffeeIds ?? []).map((id) => `"${id}"`).join(',');
+
     const query = `query {
       coffeeCollection(
         where: {
@@ -131,14 +134,14 @@ export async function getCoffees(coffeeIds: string[]) {
     }
 
     const collection = extractCoffeeCollection(response);
-    
+
     return collection;
   } catch (error) {
     console.error('Error fetching coffee:', error);
     if (error instanceof Error) {
       console.error('Error details:', {
         message: error.message,
-        stack: error.stack
+        stack: error.stack,
       });
     }
     throw error;
@@ -173,7 +176,7 @@ export async function getCoffee(slug: string) {
     if (error instanceof Error) {
       console.error('Error details:', {
         message: error.message,
-        stack: error.stack
+        stack: error.stack,
       });
     }
     throw error;

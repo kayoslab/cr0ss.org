@@ -2,7 +2,14 @@ import { HTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
-  variant?: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'outline';
+  variant?:
+    | 'default'
+    | 'primary'
+    | 'secondary'
+    | 'success'
+    | 'warning'
+    | 'danger'
+    | 'outline';
   size?: 'sm' | 'md' | 'lg';
 }
 
@@ -36,7 +43,8 @@ export function Badge({
     success: 'bg-green-100 text-green-700 hover:bg-green-200',
     warning: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200',
     danger: 'bg-red-100 text-red-700 hover:bg-red-200',
-    outline: 'border border-gray-300 text-gray-700 bg-transparent hover:bg-gray-50',
+    outline:
+      'border border-gray-300 text-gray-700 bg-transparent hover:bg-gray-50',
   };
 
   const sizeStyles = {

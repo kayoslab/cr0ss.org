@@ -1,12 +1,12 @@
-import { sql } from "@/lib/db/client";
-import { ZBodyProfileRow, ZBodyProfileUpsert } from "@/lib/db/validation";
-import { z } from "zod";
+import { sql } from '@/lib/db/client';
+import { ZBodyProfileRow, ZBodyProfileUpsert } from '@/lib/db/validation';
+import { z } from 'zod';
 
 /**
  * Get the most recent body profile entry
  */
 export async function getBodyProfileDB() {
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     SELECT
       id,
       measured_at,
@@ -28,7 +28,9 @@ export async function getBodyProfileDB() {
   `;
 
   if (!rows[0]) {
-    throw new Error("No body profile data found. Please create an initial entry.");
+    throw new Error(
+      'No body profile data found. Please create an initial entry.'
+    );
   }
 
   // Neon returns numeric as strings; normalize to numbers
@@ -38,12 +40,17 @@ export async function getBodyProfileDB() {
     measured_at: new Date(r.measured_at).toISOString(),
     weight_kg: Number(r.weight_kg),
     height_cm: r.height_cm === null ? null : Number(r.height_cm),
-    body_fat_percentage: r.body_fat_percentage === null ? null : Number(r.body_fat_percentage),
-    muscle_percentage: r.muscle_percentage === null ? null : Number(r.muscle_percentage),
+    body_fat_percentage:
+      r.body_fat_percentage === null ? null : Number(r.body_fat_percentage),
+    muscle_percentage:
+      r.muscle_percentage === null ? null : Number(r.muscle_percentage),
     vd_l_per_kg: r.vd_l_per_kg === null ? null : Number(r.vd_l_per_kg),
-    half_life_hours: r.half_life_hours === null ? null : Number(r.half_life_hours),
-    caffeine_sensitivity: r.caffeine_sensitivity === null ? null : Number(r.caffeine_sensitivity),
-    bioavailability: r.bioavailability === null ? null : Number(r.bioavailability),
+    half_life_hours:
+      r.half_life_hours === null ? null : Number(r.half_life_hours),
+    caffeine_sensitivity:
+      r.caffeine_sensitivity === null ? null : Number(r.caffeine_sensitivity),
+    bioavailability:
+      r.bioavailability === null ? null : Number(r.bioavailability),
     age: r.age === null ? null : Number(r.age),
     sex: r.sex === null ? null : String(r.sex),
     notes: r.notes === null ? null : String(r.notes),
@@ -57,10 +64,12 @@ export async function getBodyProfileDB() {
  * Insert a new body profile measurement
  * Creates a historical record
  */
-export async function upsertBodyProfileDB(p: Partial<z.infer<typeof ZBodyProfileUpsert>>) {
+export async function upsertBodyProfileDB(
+  p: Partial<z.infer<typeof ZBodyProfileUpsert>>
+) {
   const measuredAt = p.measured_at ? new Date(p.measured_at) : new Date();
 
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     INSERT INTO body_profile (
       measured_at,
       weight_kg,
@@ -111,12 +120,17 @@ export async function upsertBodyProfileDB(p: Partial<z.infer<typeof ZBodyProfile
     measured_at: new Date(r.measured_at).toISOString(),
     weight_kg: Number(r.weight_kg),
     height_cm: r.height_cm === null ? null : Number(r.height_cm),
-    body_fat_percentage: r.body_fat_percentage === null ? null : Number(r.body_fat_percentage),
-    muscle_percentage: r.muscle_percentage === null ? null : Number(r.muscle_percentage),
+    body_fat_percentage:
+      r.body_fat_percentage === null ? null : Number(r.body_fat_percentage),
+    muscle_percentage:
+      r.muscle_percentage === null ? null : Number(r.muscle_percentage),
     vd_l_per_kg: r.vd_l_per_kg === null ? null : Number(r.vd_l_per_kg),
-    half_life_hours: r.half_life_hours === null ? null : Number(r.half_life_hours),
-    caffeine_sensitivity: r.caffeine_sensitivity === null ? null : Number(r.caffeine_sensitivity),
-    bioavailability: r.bioavailability === null ? null : Number(r.bioavailability),
+    half_life_hours:
+      r.half_life_hours === null ? null : Number(r.half_life_hours),
+    caffeine_sensitivity:
+      r.caffeine_sensitivity === null ? null : Number(r.caffeine_sensitivity),
+    bioavailability:
+      r.bioavailability === null ? null : Number(r.bioavailability),
     age: r.age === null ? null : Number(r.age),
     sex: r.sex === null ? null : String(r.sex),
     notes: r.notes === null ? null : String(r.notes),
@@ -130,7 +144,7 @@ export async function upsertBodyProfileDB(p: Partial<z.infer<typeof ZBodyProfile
  * Get body profile history (last N entries)
  */
 export async function getBodyProfileHistoryDB(limit: number = 30) {
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     SELECT
       id,
       measured_at,
@@ -143,12 +157,14 @@ export async function getBodyProfileHistoryDB(limit: number = 30) {
     LIMIT ${limit}
   `;
 
-  return rows.map(r => ({
+  return rows.map((r) => ({
     id: Number(r.id),
     measured_at: new Date(r.measured_at).toISOString(),
     weight_kg: Number(r.weight_kg),
-    body_fat_percentage: r.body_fat_percentage === null ? null : Number(r.body_fat_percentage),
-    muscle_percentage: r.muscle_percentage === null ? null : Number(r.muscle_percentage),
+    body_fat_percentage:
+      r.body_fat_percentage === null ? null : Number(r.body_fat_percentage),
+    muscle_percentage:
+      r.muscle_percentage === null ? null : Number(r.muscle_percentage),
     created_at: new Date(r.created_at).toISOString(),
   }));
 }

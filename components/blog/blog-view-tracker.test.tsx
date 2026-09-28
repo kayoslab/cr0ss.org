@@ -15,7 +15,9 @@ describe('BlogViewTracker', () => {
     const mockStorage: Record<string, string> = {};
     vi.stubGlobal('localStorage', {
       getItem: vi.fn((key: string) => mockStorage[key] || null),
-      setItem: vi.fn((key: string, value: string) => { mockStorage[key] = value; }),
+      setItem: vi.fn((key: string, value: string) => {
+        mockStorage[key] = value;
+      }),
     });
   });
 
@@ -80,7 +82,9 @@ describe('BlogViewTracker', () => {
       .mockRejectedValueOnce(new Error('Network error'))
       .mockResolvedValueOnce({ ok: true });
 
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
     render(<BlogViewTracker blog={mockBlog} />);
 
@@ -98,7 +102,9 @@ describe('BlogViewTracker', () => {
   it('should retry up to MAX_RETRIES times', async () => {
     mockFetch.mockRejectedValue(new Error('Network error'));
 
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
     render(<BlogViewTracker blog={mockBlog} />);
 
@@ -130,8 +136,14 @@ describe('BlogViewTracker', () => {
   it('should track view with different blog IDs', async () => {
     mockFetch.mockResolvedValue({ ok: true });
 
-    const blog1 = { ...mockBlog, sys: { id: 'blog-1' } } as unknown as BlogProps;
-    const blog2 = { ...mockBlog, sys: { id: 'blog-2' } } as unknown as BlogProps;
+    const blog1 = {
+      ...mockBlog,
+      sys: { id: 'blog-1' },
+    } as unknown as BlogProps;
+    const blog2 = {
+      ...mockBlog,
+      sys: { id: 'blog-2' },
+    } as unknown as BlogProps;
 
     const { rerender } = render(<BlogViewTracker blog={blog1} />);
     await vi.runAllTimersAsync();

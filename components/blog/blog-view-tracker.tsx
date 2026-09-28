@@ -19,7 +19,10 @@ function getOrCreateUserToken(): string {
 
   if (!token) {
     // Generate a random token
-    token = 'user_' + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+    token =
+      'user_' +
+      Math.random().toString(36).substring(2, 15) +
+      Date.now().toString(36);
     localStorage.setItem(STORAGE_KEY, token);
   }
 
@@ -41,17 +44,17 @@ export function BlogViewTracker({ blog }: { blog: BlogProps }) {
             objectID: blog.sys.id,
             eventType: 'view',
             userToken,
-          })
+          }),
         });
 
         if (!response.ok && retryCount < MAX_RETRIES) {
-          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+          await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
           return trackView(retryCount + 1);
         }
       } catch (error) {
         console.error('Error tracking view:', error);
         if (retryCount < MAX_RETRIES) {
-          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+          await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
           return trackView(retryCount + 1);
         }
       }
@@ -61,4 +64,4 @@ export function BlogViewTracker({ blog }: { blog: BlogProps }) {
   }, [blog.sys.id]);
 
   return null;
-} 
+}

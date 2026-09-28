@@ -21,9 +21,9 @@ export function LightboxImage({ src, alt }: LightboxImageProps) {
         alt={alt}
         width={0}
         height={0}
-        sizes="(max-width: 900px) 100vw, 900px"
+        sizes='(max-width: 900px) 100vw, 900px'
         style={{ width: '100%', height: 'auto' }}
-        className="rounded-lg"
+        className='rounded-lg'
       />
     </Lightbox>
   );

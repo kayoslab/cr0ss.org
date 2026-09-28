@@ -33,7 +33,9 @@ export async function getStravaAuth(): Promise<StravaAuth | null> {
 /**
  * Refreshes the access token if it's expired or about to expire
  */
-export async function refreshAccessTokenIfNeeded(auth: StravaAuth): Promise<string> {
+export async function refreshAccessTokenIfNeeded(
+  auth: StravaAuth
+): Promise<string> {
   const expiresAt = new Date(auth.expires_at);
   const needsRefresh = expiresAt < new Date(Date.now() + 5 * 60 * 1000); // Refresh if expires in < 5 minutes
 
@@ -83,16 +85,21 @@ export async function refreshAccessTokenIfNeeded(auth: StravaAuth): Promise<stri
 /**
  * Fetches a single activity from Strava by ID
  */
-export async function fetchStravaActivity(activityId: number, accessToken: string) {
+export async function fetchStravaActivity(
+  activityId: number,
+  accessToken: string
+) {
   const activityUrl = `https://www.strava.com/api/v3/activities/${activityId}`;
   const response = await fetch(activityUrl, {
     headers: {
-      'Authorization': `Bearer ${accessToken}`,
+      Authorization: `Bearer ${accessToken}`,
     },
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch activity ${activityId}: ${response.statusText}`);
+    throw new Error(
+      `Failed to fetch activity ${activityId}: ${response.statusText}`
+    );
   }
 
   const activityData = await response.json();
@@ -119,7 +126,7 @@ export async function fetchStravaActivities(
 
   const response = await fetch(url.toString(), {
     headers: {
-      'Authorization': `Bearer ${accessToken}`,
+      Authorization: `Bearer ${accessToken}`,
     },
   });
 
@@ -130,7 +137,9 @@ export async function fetchStravaActivities(
   const activitiesData = await response.json();
 
   // Validate each activity
-  return activitiesData.map((activity: unknown) => ZStravaActivity.parse(activity));
+  return activitiesData.map((activity: unknown) =>
+    ZStravaActivity.parse(activity)
+  );
 }
 
 /**

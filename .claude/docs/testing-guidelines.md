@@ -16,6 +16,7 @@ This document outlines testing standards and best practices for this Next.js 15 
 ## Testing Philosophy
 
 **Write tests that:**
+
 - Verify behavior, not implementation
 - Test user-facing functionality
 - Catch regressions before production
@@ -23,6 +24,7 @@ This document outlines testing standards and best practices for this Next.js 15 
 - Are fast, reliable, and maintainable
 
 **Avoid tests that:**
+
 - Test framework internals
 - Are tightly coupled to implementation details
 - Require excessive mocking
@@ -32,17 +34,20 @@ This document outlines testing standards and best practices for this Next.js 15 
 ## Testing Stack
 
 ### Core Framework
+
 - **Vitest** - Fast, modern test runner with first-class TypeScript support
 - **@testing-library/react** - User-centric component testing
 - **@testing-library/user-event** - Realistic user interaction simulation
 - **@testing-library/jest-dom** - Custom DOM matchers
 
 ### Additional Tools
+
 - **MSW (Mock Service Worker)** - API mocking at the network level
 - **@testing-library/react-hooks** - Hook testing utilities
 - **node-mocks-http** - HTTP request/response mocking for API routes
 
 ### Why Vitest over Jest?
+
 - Native ESM support (better for Next.js 15)
 - Faster execution with smart parallelization
 - Better TypeScript integration
@@ -52,7 +57,9 @@ This document outlines testing standards and best practices for this Next.js 15 
 ## What to Test
 
 ### Priority 1: Business Logic (Utility Functions)
+
 ✅ **Test extensively:**
+
 - Pure functions in `/lib`
 - Data transformations
 - Calculations (caffeine modeling, date/time utilities)
@@ -60,13 +67,16 @@ This document outlines testing standards and best practices for this Next.js 15 
 - Type coercion and parsing
 
 **Example files to test:**
+
 - `/lib/phys/caffeine.ts` - Caffeine metabolism calculations
 - `/lib/time/berlin.ts` - Timezone conversions
 - `/lib/db/validation.ts` - Zod schemas
 - `/lib/map/centroid.ts` - Geographic calculations
 
 ### Priority 2: API Routes
+
 ✅ **Test:**
+
 - Request validation
 - Authentication/authorization
 - Error handling
@@ -74,11 +84,14 @@ This document outlines testing standards and best practices for this Next.js 15 
 - Rate limiting behavior
 
 **Example routes:**
+
 - `/app/api/habits/*/route.tsx`
 - `/app/api/dashboard/route.tsx`
 
 ### Priority 3: React Components
+
 ✅ **Test:**
+
 - User interactions
 - Conditional rendering
 - Error states
@@ -86,17 +99,21 @@ This document outlines testing standards and best practices for this Next.js 15 
 - Client-side state management
 
 **Focus on:**
+
 - Client components with complex logic
 - Form handling components
 - Interactive UI (search, filters, modals)
 
 ### Priority 4: Integration Tests
+
 ✅ **Test:**
+
 - Database queries (with test database)
 - External API integration (with MSW)
 - End-to-end user flows (critical paths)
 
 ### ❌ Lower Priority (Don't Test)
+
 - Server Components (test the underlying logic instead)
 - Simple presentational components
 - Third-party library internals
@@ -106,6 +123,7 @@ This document outlines testing standards and best practices for this Next.js 15 
 ## Test Structure
 
 ### File Organization
+
 ```
 /lib
   /phys
@@ -128,12 +146,14 @@ This document outlines testing standards and best practices for this Next.js 15 
 ```
 
 ### Naming Conventions
+
 - Test files: `*.test.ts`, `*.test.tsx`
 - Test suites: `describe('ComponentName', () => {})`
 - Test cases: `it('should do something when condition', () => {})`
 - Use descriptive names that explain the behavior
 
 ### Test Anatomy
+
 ```typescript
 describe('functionName', () => {
   // Arrange - Setup
@@ -160,31 +180,35 @@ import { modelCaffeine } from './caffeine';
 describe('modelCaffeine', () => {
   it('should calculate caffeine decay over time', () => {
     const events = [
-      { time: '2024-01-01T08:00:00Z', amount_ml: 200, type: 'espresso' }
+      { time: '2024-01-01T08:00:00Z', amount_ml: 200, type: 'espresso' },
     ];
     const body = { weight_kg: 70, half_life_hours: 5 };
     const options = {
       startISO: '2024-01-01T08:00:00Z',
       endISO: '2024-01-01T14:00:00Z',
-      gridMinutes: 60
+      gridMinutes: 60,
     };
 
     const result = modelCaffeine(events, body, options);
 
     expect(result).toHaveLength(7); // 6 hours + initial
     expect(result[0].body_mg).toBeGreaterThan(result[6].body_mg);
-    expect(result.every(p => p.body_mg >= 0)).toBe(true);
+    expect(result.every((p) => p.body_mg >= 0)).toBe(true);
   });
 
   it('should handle empty events array', () => {
-    const result = modelCaffeine([], { weight_kg: 70 }, {
-      startISO: '2024-01-01T00:00:00Z',
-      endISO: '2024-01-01T01:00:00Z',
-      gridMinutes: 60
-    });
+    const result = modelCaffeine(
+      [],
+      { weight_kg: 70 },
+      {
+        startISO: '2024-01-01T00:00:00Z',
+        endISO: '2024-01-01T01:00:00Z',
+        gridMinutes: 60,
+      }
+    );
 
     expect(result).toHaveLength(2);
-    expect(result.every(p => p.body_mg === 0)).toBe(true);
+    expect(result.every((p) => p.body_mg === 0)).toBe(true);
   });
 });
 ```
@@ -209,7 +233,7 @@ describe('GET /api/habits/day', () => {
     const { req } = createMocks({
       method: 'GET',
       url: '/api/habits/day?date=2024-01-01',
-      headers: { 'x-api-secret': 'test-secret' }
+      headers: { 'x-api-secret': 'test-secret' },
     });
 
     const response = await GET(req as any);
@@ -223,7 +247,7 @@ describe('GET /api/habits/day', () => {
   it('should return 401 without valid secret', async () => {
     const { req } = createMocks({
       method: 'GET',
-      url: '/api/habits/day?date=2024-01-01'
+      url: '/api/habits/day?date=2024-01-01',
     });
 
     const response = await GET(req as any);
@@ -326,7 +350,7 @@ describe('qHabitsToday', () => {
     expect(habits).toMatchObject({
       steps: expect.any(Number),
       sleep_score: expect.any(Number),
-      focus_minutes: expect.any(Number)
+      focus_minutes: expect.any(Number),
     });
   });
 });
@@ -335,7 +359,9 @@ describe('qHabitsToday', () => {
 ## Mocking Guidelines
 
 ### When to Mock
+
 ✅ **Mock:**
+
 - External APIs (Contentful, Algolia, Vercel KV)
 - Database connections in unit tests
 - Authentication/authorization
@@ -343,6 +369,7 @@ describe('qHabitsToday', () => {
 - Date/time (for predictable tests)
 
 ❌ **Don't Mock:**
+
 - The code you're testing
 - Simple utility functions
 - TypeScript types
@@ -351,6 +378,7 @@ describe('qHabitsToday', () => {
 ### Mocking Patterns
 
 #### External APIs (MSW)
+
 ```typescript
 // test/mocks/handlers.ts
 import { http, HttpResponse } from 'msw';
@@ -360,15 +388,16 @@ export const handlers = [
     return HttpResponse.json({
       data: {
         blogPostCollection: {
-          items: [{ title: 'Test Post', slug: 'test' }]
-        }
-      }
+          items: [{ title: 'Test Post', slug: 'test' }],
+        },
+      },
     });
   }),
 ];
 ```
 
 #### Database Mocking
+
 ```typescript
 import { vi } from 'vitest';
 
@@ -376,11 +405,12 @@ vi.mock('@/lib/db/client', () => ({
   sql: vi.fn((strings, ...values) => {
     // Return mock data based on query
     return Promise.resolve([{ id: 1, date: '2024-01-01' }]);
-  })
+  }),
 }));
 ```
 
 #### Date Mocking
+
 ```typescript
 import { vi } from 'vitest';
 
@@ -397,6 +427,7 @@ afterEach(() => {
 ## Test Coverage Goals
 
 ### Minimum Coverage Targets
+
 - **Critical business logic**: 90%+
 - **API routes**: 80%+
 - **Utility functions**: 85%+
@@ -404,6 +435,7 @@ afterEach(() => {
 - **Overall**: 75%+
 
 ### Coverage Commands
+
 ```bash
 # Generate coverage report
 pnpm test:coverage
@@ -413,6 +445,7 @@ pnpm test:coverage:ui
 ```
 
 ### What Coverage Doesn't Mean
+
 - High coverage ≠ good tests
 - Focus on meaningful assertions
 - Test behavior, not just execution paths
@@ -420,12 +453,14 @@ pnpm test:coverage:ui
 ## CI/CD Integration
 
 ### Pre-commit
+
 ```bash
 # Run tests before commit
 pnpm test:changed
 ```
 
 ### Pull Request
+
 ```bash
 # Run all tests
 pnpm test
@@ -435,6 +470,7 @@ pnpm test:coverage
 ```
 
 ### Deployment
+
 ```bash
 # Run tests + lint + type-check
 pnpm test:ci
@@ -443,6 +479,7 @@ pnpm test:ci
 ## Best Practices Checklist
 
 ### General
+
 - [ ] Tests are deterministic (no random data)
 - [ ] Tests are isolated (no shared state)
 - [ ] Tests are fast (<5s for unit tests)
@@ -450,17 +487,20 @@ pnpm test:ci
 - [ ] Tests follow AAA pattern (Arrange, Act, Assert)
 
 ### TypeScript
+
 - [ ] No `any` types in test files
 - [ ] Use proper type inference
 - [ ] Mock types match real types
 
 ### React
+
 - [ ] Query by accessibility roles/labels
 - [ ] Await async operations
 - [ ] Clean up after tests
 - [ ] Test user interactions, not implementation
 
 ### API
+
 - [ ] Test validation errors
 - [ ] Test authentication
 - [ ] Test rate limiting
@@ -469,6 +509,7 @@ pnpm test:ci
 ## Common Pitfalls
 
 ### ❌ Don't: Test Implementation Details
+
 ```typescript
 // Bad - testing internal state
 expect(component.state.isLoading).toBe(true);
@@ -478,6 +519,7 @@ expect(screen.getByText('Loading...')).toBeInTheDocument();
 ```
 
 ### ❌ Don't: Over-mock
+
 ```typescript
 // Bad - mocking everything
 vi.mock('./utils/formatDate');
@@ -490,6 +532,7 @@ vi.mock('@/lib/api/external-api');
 ```
 
 ### ❌ Don't: Write Brittle Selectors
+
 ```typescript
 // Bad - brittle CSS selectors
 const button = container.querySelector('.btn-primary.submit-btn');

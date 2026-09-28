@@ -8,10 +8,7 @@ vi.mock('@/lib/auth/secret', () => ({
     const adminSecret = headers.get('x-vercel-revalidation-key');
     const contentfulSecret = headers.get('x-vercel-revalidation-key');
 
-    if (
-      !adminSecret &&
-      !contentfulSecret
-    ) {
+    if (!adminSecret && !contentfulSecret) {
       throw { status: 401 };
     }
   }),

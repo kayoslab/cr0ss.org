@@ -5,7 +5,7 @@
  * API Documentation: https://openweathermap.org/current
  */
 
-import { env } from "@/env";
+import { env } from '@/env';
 
 export interface WeatherData {
   temp_celsius: number;
@@ -53,16 +53,16 @@ export async function fetchWeather(
   const apiKey = env.OPENWEATHER_API_KEY;
 
   if (!apiKey) {
-    console.error("OPENWEATHER_API_KEY is not configured");
+    console.error('OPENWEATHER_API_KEY is not configured');
     return null;
   }
 
   try {
-    const url = new URL("https://api.openweathermap.org/data/2.5/weather");
-    url.searchParams.set("lat", latitude.toString());
-    url.searchParams.set("lon", longitude.toString());
-    url.searchParams.set("appid", apiKey);
-    url.searchParams.set("units", "metric"); // Use Celsius
+    const url = new URL('https://api.openweathermap.org/data/2.5/weather');
+    url.searchParams.set('lat', latitude.toString());
+    url.searchParams.set('lon', longitude.toString());
+    url.searchParams.set('appid', apiKey);
+    url.searchParams.set('units', 'metric'); // Use Celsius
 
     const response = await fetch(url.toString(), {
       next: { revalidate: 3600 }, // Cache for 1 hour
@@ -81,15 +81,15 @@ export async function fetchWeather(
       temp_celsius: data.main.temp,
       feels_like_celsius: data.main.feels_like,
       humidity: data.main.humidity,
-      weather_main: data.weather[0]?.main || "Unknown",
-      weather_description: data.weather[0]?.description || "Unknown",
+      weather_main: data.weather[0]?.main || 'Unknown',
+      weather_description: data.weather[0]?.description || 'Unknown',
       wind_speed_mps: data.wind.speed,
       cloudiness: data.clouds.all,
       country_code: data.sys.country || null,
       weather_raw: data as unknown as Record<string, unknown>,
     };
   } catch (error) {
-    console.error("Failed to fetch weather data:", error);
+    console.error('Failed to fetch weather data:', error);
     return null;
   }
 }

@@ -70,7 +70,7 @@ paths:
             type: string
             format: date
             pattern: '^\d{4}-\d{2}-\d{2}$'
-          example: "2025-12-05"
+          example: '2025-12-05'
       responses:
         '200':
           description: Coffee summary
@@ -83,7 +83,7 @@ paths:
                     type: string
                     format: date
                     description: Date of the summary
-                    example: "2025-12-05"
+                    example: '2025-12-05'
                   cups:
                     type: integer
                     minimum: 0
@@ -98,7 +98,7 @@ paths:
                         type:
                           type: string
                           description: Brew method type
-                          example: "espresso"
+                          example: 'espresso'
                         count:
                           type: integer
                           minimum: 0
@@ -134,7 +134,7 @@ paths:
             type: string
             format: date
             pattern: '^\d{4}-\d{2}-\d{2}$'
-          example: "2025-12-01"
+          example: '2025-12-01'
         - name: end_date
           in: query
           required: true
@@ -143,7 +143,7 @@ paths:
             type: string
             format: date
             pattern: '^\d{4}-\d{2}-\d{2}$'
-          example: "2025-12-05"
+          example: '2025-12-05'
         - name: granularity
           in: query
           description: Time period granularity
@@ -151,7 +151,7 @@ paths:
             type: string
             enum: [day, week, month]
             default: day
-          example: "day"
+          example: 'day'
       responses:
         '200':
           description: Coffee timeline
@@ -168,7 +168,7 @@ paths:
                         period:
                           type: string
                           description: Time period (YYYY-MM-DD for day, YYYY-Www for week, YYYY-MM for month)
-                          example: "2025-12-01"
+                          example: '2025-12-01'
                         cups_count:
                           type: integer
                           minimum: 0
@@ -219,7 +219,7 @@ paths:
             type: string
             format: date
             pattern: '^\d{4}-\d{2}-\d{2}$'
-          example: "2025-12-05"
+          example: '2025-12-05'
         - name: resolution
           in: query
           description: Minutes between data points
@@ -241,7 +241,7 @@ paths:
                     type: string
                     format: date
                     description: Date of the curve
-                    example: "2025-12-05"
+                    example: '2025-12-05'
                   series:
                     type: array
                     description: Time series data points
@@ -252,7 +252,7 @@ paths:
                           type: string
                           format: date-time
                           description: ISO timestamp in Berlin timezone
-                          example: "2025-12-05T08:00:00.000Z"
+                          example: '2025-12-05T08:00:00.000Z'
                         intake_mg:
                           type: integer
                           minimum: 0
@@ -311,7 +311,7 @@ paths:
             type: string
             enum: [today, week, month]
             default: month
-          example: "week"
+          example: 'week'
       responses:
         '200':
           description: Workouts summary
@@ -323,7 +323,7 @@ paths:
                   period:
                     type: string
                     description: Period of the summary
-                    example: "week"
+                    example: 'week'
                   workout_types:
                     type: array
                     description: Breakdown by workout type
@@ -333,7 +333,7 @@ paths:
                         type:
                           type: string
                           description: Workout type
-                          example: "running"
+                          example: 'running'
                         count:
                           type: integer
                           minimum: 0
@@ -410,7 +410,7 @@ paths:
           description: Filter by specific workout type
           schema:
             type: string
-          example: "running"
+          example: 'running'
       responses:
         '200':
           description: Workouts heatmap
@@ -429,7 +429,7 @@ paths:
                           type: string
                           format: date
                           description: Date
-                          example: "2025-10-06"
+                          example: '2025-10-06'
                         duration_min:
                           type: integer
                           minimum: 0
@@ -490,7 +490,7 @@ paths:
             type: string
             enum: [month, year, all]
             default: month
-          example: "month"
+          example: 'month'
       responses:
         '200':
           description: Running statistics
@@ -502,7 +502,7 @@ paths:
                   period:
                     type: string
                     description: Period of the stats
-                    example: "month"
+                    example: 'month'
                   total_runs:
                     type: integer
                     minimum: 0
@@ -539,7 +539,7 @@ paths:
                         type: string
                         format: date
                         description: Date of longest run
-                        example: "2025-11-15"
+                        example: '2025-11-15'
                       fastest_pace_sec_per_km:
                         type: number
                         format: float
@@ -550,7 +550,7 @@ paths:
                         type: string
                         format: date
                         description: Date of fastest pace
-                        example: "2025-10-20"
+                        example: '2025-10-20'
                   monthly_progress:
                     type: object
                     description: Monthly goal progress (only included when period=month)
@@ -608,7 +608,7 @@ paths:
             type: string
             format: date
             pattern: '^\d{4}-\d{2}-\d{2}$'
-          example: "2025-12-05"
+          example: '2025-12-05'
       responses:
         '200':
           description: Habits data
@@ -621,7 +621,7 @@ paths:
                     type: string
                     format: date
                     description: Date of the data
-                    example: "2025-12-05"
+                    example: '2025-12-05'
                   steps:
                     type: integer
                     minimum: 0
@@ -711,7 +711,7 @@ paths:
                         name:
                           type: string
                           description: Habit name
-                          example: "Steps"
+                          example: 'Steps'
                         target:
                           type: number
                           format: float
@@ -767,7 +767,7 @@ paths:
                         habit:
                           type: string
                           description: Habit name
-                          example: "Steps"
+                          example: 'Steps'
                         current:
                           type: integer
                           minimum: 0
@@ -810,7 +810,7 @@ paths:
           schema:
             type: string
             minLength: 1
-          example: "writing_minutes,focus_minutes"
+          example: 'writing_minutes,focus_minutes'
         - name: days
           in: query
           description: Number of days to fetch
@@ -838,7 +838,7 @@ paths:
                           type: string
                           format: date
                           description: Date
-                          example: "2025-12-01"
+                          example: '2025-12-01'
                         values:
                           type: object
                           description: Habit values for this date
@@ -924,7 +924,7 @@ paths:
           schema:
             type: string
             enum: [daily, monthly]
-          example: "daily"
+          example: 'daily'
       responses:
         '200':
           description: Goal progress
@@ -942,7 +942,7 @@ paths:
                         goal:
                           type: string
                           description: Goal name
-                          example: "Steps"
+                          example: 'Steps'
                         target:
                           type: number
                           format: float
@@ -963,7 +963,7 @@ paths:
                         unit:
                           type: string
                           description: Unit of measurement
-                          example: "steps"
+                          example: 'steps'
                   monthly:
                     type: array
                     description: Monthly goal progress (optional)
@@ -973,7 +973,7 @@ paths:
                         goal:
                           type: string
                           description: Goal name
-                          example: "Running Distance Km"
+                          example: 'Running Distance Km'
                         target:
                           type: number
                           format: float
@@ -994,7 +994,7 @@ paths:
                         unit:
                           type: string
                           description: Unit of measurement
-                          example: "km"
+                          example: 'km'
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
@@ -1027,7 +1027,7 @@ paths:
                   minLength: 1
                   maxLength: 500
                   description: User's question or message
-                  example: "What are your thoughts on TypeScript?"
+                  example: 'What are your thoughts on TypeScript?'
       responses:
         '200':
           description: Successful response
@@ -1044,10 +1044,10 @@ paths:
                     properties:
                       name:
                         type: string
-                        example: "gpt-4o-mini"
+                        example: 'gpt-4o-mini'
                       provider:
                         type: string
-                        example: "openai"
+                        example: 'openai'
                   sources:
                     type: array
                     items:
@@ -1084,7 +1084,7 @@ paths:
           description: Search query
           schema:
             type: string
-          example: "typescript"
+          example: 'typescript'
         - name: objectID
           in: query
           description: Object ID for click tracking (when provided, tracks click instead of searching)
@@ -1632,11 +1632,11 @@ components:
         date:
           type: string
           format: date
-          example: "2025-01-15"
+          example: '2025-01-15'
         time:
           type: string
           description: Berlin time (HH:MM) or full ISO timestamp
-          example: "14:30"
+          example: '14:30'
         type:
           type: string
           enum: [espresso, v60, chemex, moka, aero, cold_brew, other]
@@ -1655,10 +1655,20 @@ components:
         date:
           type: string
           format: date
-          example: "2025-01-15"
+          example: '2025-01-15'
         workout_type:
           type: string
-          enum: [running, climbing, bouldering, rowing, cycling, hiking, strength, other]
+          enum:
+            [
+              running,
+              climbing,
+              bouldering,
+              rowing,
+              cycling,
+              hiking,
+              strength,
+              other,
+            ]
         duration_min:
           type: integer
           minimum: 1
@@ -1841,8 +1851,8 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
           example:
-            error: "Unauthorized"
-            code: "UNAUTHORIZED"
+            error: 'Unauthorized'
+            code: 'UNAUTHORIZED'
             timestamp: 1706184000000
 
     ValidationError:
@@ -1852,11 +1862,11 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
           example:
-            error: "Invalid request"
-            code: "VALIDATION_ERROR"
+            error: 'Invalid request'
+            code: 'VALIDATION_ERROR'
             details:
               fieldErrors:
-                message: ["String must contain at least 1 character(s)"]
+                message: ['String must contain at least 1 character(s)']
             timestamp: 1706184000000
 
     RateLimitError:
@@ -1871,8 +1881,8 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
           example:
-            error: "Too many requests"
-            code: "RATE_LIMIT_EXCEEDED"
+            error: 'Too many requests'
+            code: 'RATE_LIMIT_EXCEEDED'
             details:
               retryAfterSec: 300
               limit: 10
@@ -1886,6 +1896,6 @@ components:
           schema:
             $ref: '#/components/schemas/Error'
           example:
-            error: "Internal server error"
-            code: "INTERNAL_ERROR"
+            error: 'Internal server error'
+            code: 'INTERNAL_ERROR'
             timestamp: 1706184000000

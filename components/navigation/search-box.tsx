@@ -192,7 +192,12 @@ export function SearchBox({ variant, inputId, onNavigate }: SearchBoxProps) {
           </div>
         </form>
 
-        <div role='status' aria-live='polite' aria-atomic='true' className='sr-only'>
+        <div
+          role='status'
+          aria-live='polite'
+          aria-atomic='true'
+          className='sr-only'
+        >
           {status}
         </div>
 
@@ -212,7 +217,9 @@ export function SearchBox({ variant, inputId, onNavigate }: SearchBoxProps) {
                 />
               ))
             ) : (
-              <div className='px-4 py-2 text-sm text-gray-500'>No results found</div>
+              <div className='px-4 py-2 text-sm text-gray-500'>
+                No results found
+              </div>
             )}
           </div>
         )}

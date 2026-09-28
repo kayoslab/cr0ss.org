@@ -13,8 +13,9 @@ export interface CorrelationResult {
   r: number; // Pearson correlation coefficient (-1 to 1)
   pValue: number; // Statistical significance (0 to 1)
   n: number; // Sample size
-  confidence: "strong" | "moderate" | "exploratory" | "none";
-  strength: "very strong" | "strong" | "moderate" | "weak" | "very weak" | "none";
+  confidence: 'strong' | 'moderate' | 'exploratory' | 'none';
+  strength:
+    'very strong' | 'strong' | 'moderate' | 'weak' | 'very weak' | 'none';
 }
 
 /**
@@ -28,7 +29,7 @@ export function calculatePearsonCorrelation(
   y: number[]
 ): CorrelationResult {
   if (x.length !== y.length) {
-    throw new Error("Arrays must have equal length");
+    throw new Error('Arrays must have equal length');
   }
 
   const n = x.length;
@@ -39,8 +40,8 @@ export function calculatePearsonCorrelation(
       r: 0,
       pValue: 1,
       n,
-      confidence: "none",
-      strength: "none",
+      confidence: 'none',
+      strength: 'none',
     };
   }
 
@@ -69,8 +70,8 @@ export function calculatePearsonCorrelation(
       r: 0,
       pValue: 1,
       n,
-      confidence: "none",
-      strength: "none",
+      confidence: 'none',
+      strength: 'none',
     };
   }
 
@@ -114,7 +115,7 @@ function tDistributionCDF(t: number, df: number): number {
   // Special cases
   if (t === 0) return 0.5;
   if (df === 1) return 0.5 + Math.atan(t) / Math.PI;
-  if (df === 2) return 0.5 + (t / (2 * Math.sqrt(2 + t * t)));
+  if (df === 2) return 0.5 + t / (2 * Math.sqrt(2 + t * t));
 
   // For larger df, use approximation via beta distribution
   const x = df / (df + t * t);
@@ -142,9 +143,7 @@ function incompleteBeta(x: number, a: number, b: number): number {
 
   // Continued fraction approximation
   const lbeta = logBeta(a, b);
-  const front = Math.exp(
-    Math.log(x) * a + Math.log(1 - x) * b - lbeta
-  ) / a;
+  const front = Math.exp(Math.log(x) * a + Math.log(1 - x) * b - lbeta) / a;
 
   let f = 1;
   let c = 1;
@@ -159,7 +158,8 @@ function incompleteBeta(x: number, a: number, b: number): number {
     } else if (i % 2 === 0) {
       numerator = (m * (b - m) * x) / ((a + 2 * m - 1) * (a + 2 * m));
     } else {
-      numerator = -((a + m) * (a + b + m) * x) / ((a + 2 * m) * (a + 2 * m + 1));
+      numerator =
+        -((a + m) * (a + b + m) * x) / ((a + 2 * m) * (a + 2 * m + 1));
     }
 
     d = 1 + numerator * d;
@@ -199,7 +199,9 @@ function logGamma(x: number): number {
   ];
 
   if (x < 0.5) {
-    return Math.log(Math.PI) - Math.log(Math.sin(Math.PI * x)) - logGamma(1 - x);
+    return (
+      Math.log(Math.PI) - Math.log(Math.sin(Math.PI * x)) - logGamma(1 - x)
+    );
   }
 
   x -= 1;
@@ -228,11 +230,11 @@ function mean(values: number[]): number {
  */
 function classifyConfidence(
   pValue: number
-): "strong" | "moderate" | "exploratory" | "none" {
-  if (pValue < 0.01) return "strong";
-  if (pValue < 0.05) return "moderate";
-  if (pValue < 0.1) return "exploratory";
-  return "none";
+): 'strong' | 'moderate' | 'exploratory' | 'none' {
+  if (pValue < 0.01) return 'strong';
+  if (pValue < 0.05) return 'moderate';
+  if (pValue < 0.1) return 'exploratory';
+  return 'none';
 }
 
 /**
@@ -241,14 +243,14 @@ function classifyConfidence(
  */
 function classifyStrength(
   r: number
-): "very strong" | "strong" | "moderate" | "weak" | "very weak" | "none" {
+): 'very strong' | 'strong' | 'moderate' | 'weak' | 'very weak' | 'none' {
   const abs_r = Math.abs(r);
-  if (abs_r >= 0.9) return "very strong";
-  if (abs_r >= 0.7) return "strong";
-  if (abs_r >= 0.5) return "moderate";
-  if (abs_r >= 0.3) return "weak";
-  if (abs_r >= 0.1) return "very weak";
-  return "none";
+  if (abs_r >= 0.9) return 'very strong';
+  if (abs_r >= 0.7) return 'strong';
+  if (abs_r >= 0.5) return 'moderate';
+  if (abs_r >= 0.3) return 'weak';
+  if (abs_r >= 0.1) return 'very weak';
+  return 'none';
 }
 
 /**
@@ -267,7 +269,7 @@ export function calculatePointBiserialCorrelation(
   continuous: number[]
 ): CorrelationResult {
   if (binary.length !== continuous.length) {
-    throw new Error("Arrays must have equal length");
+    throw new Error('Arrays must have equal length');
   }
 
   const n = binary.length;
@@ -277,13 +279,15 @@ export function calculatePointBiserialCorrelation(
       r: 0,
       pValue: 1,
       n,
-      confidence: "none",
-      strength: "none",
+      confidence: 'none',
+      strength: 'none',
     };
   }
 
   // Convert binary to 0/1 if boolean
-  const binaryNumeric = binary.map(v => typeof v === 'boolean' ? (v ? 1 : 0) : v);
+  const binaryNumeric = binary.map((v) =>
+    typeof v === 'boolean' ? (v ? 1 : 0) : v
+  );
 
   // Check if binary variable has both values (need variation)
   const uniqueValues = new Set(binaryNumeric);
@@ -293,8 +297,8 @@ export function calculatePointBiserialCorrelation(
       r: 0,
       pValue: 1,
       n,
-      confidence: "none",
-      strength: "none",
+      confidence: 'none',
+      strength: 'none',
     };
   }
 
@@ -318,8 +322,8 @@ export function calculatePointBiserialCorrelation(
       r: 0,
       pValue: 1,
       n,
-      confidence: "none",
-      strength: "none",
+      confidence: 'none',
+      strength: 'none',
     };
   }
 
@@ -329,7 +333,8 @@ export function calculatePointBiserialCorrelation(
   const meanTotal = mean(continuous);
 
   // Calculate standard deviation of continuous variable
-  const variance = continuous.reduce((sum, val) => sum + Math.pow(val - meanTotal, 2), 0) / n;
+  const variance =
+    continuous.reduce((sum, val) => sum + Math.pow(val - meanTotal, 2), 0) / n;
   const sd = Math.sqrt(variance);
 
   if (sd === 0) {
@@ -338,8 +343,8 @@ export function calculatePointBiserialCorrelation(
       r: 0,
       pValue: 1,
       n,
-      confidence: "none",
-      strength: "none",
+      confidence: 'none',
+      strength: 'none',
     };
   }
 
@@ -373,6 +378,6 @@ export function isSignificant(result: CorrelationResult): boolean {
  * Helper function to format correlation for display
  */
 export function formatCorrelation(result: CorrelationResult): string {
-  const direction = result.r > 0 ? "positive" : "negative";
+  const direction = result.r > 0 ? 'positive' : 'negative';
   return `${result.strength} ${direction} correlation (r=${result.r.toFixed(3)}, p=${result.pValue.toFixed(4)}, n=${result.n})`;
 }

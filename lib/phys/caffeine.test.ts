@@ -103,7 +103,9 @@ describe('caffeine modeling', () => {
         });
 
         // At 10:00, should have second dose plus decayed first dose
-        const at10 = result.find((p) => p.timeISO === '2024-01-15T10:00:00.000Z');
+        const at10 = result.find(
+          (p) => p.timeISO === '2024-01-15T10:00:00.000Z'
+        );
         expect(at10).toBeDefined();
         expect(at10!.body_mg).toBeGreaterThan(0);
 
@@ -232,7 +234,9 @@ describe('caffeine modeling', () => {
         });
 
         // Low bioavailability should reduce dose
-        expect(lowBioResult[0].intake_mg).toBeLessThan(normalResult[0].intake_mg);
+        expect(lowBioResult[0].intake_mg).toBeLessThan(
+          normalResult[0].intake_mg
+        );
       });
     });
 

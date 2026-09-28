@@ -3,7 +3,7 @@
  * Tracks country visits based on location history
  */
 
-import { sql } from "./client";
+import { sql } from './client';
 
 export interface VisitedCountryRecord {
   id: number;
@@ -22,7 +22,7 @@ export interface VisitedCountryRecord {
 export async function upsertVisitedCountry(
   countryCode: string
 ): Promise<VisitedCountryRecord> {
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toISOString().split('T')[0];
 
   const rows = await sql`
     INSERT INTO visited_countries (

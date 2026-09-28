@@ -16,6 +16,7 @@ This document outlines the comprehensive testing strategy for cr0ss.org, includi
 ## Overview
 
 ### Goals
+
 1. **Prevent Regressions**: Catch bugs before they reach production
 2. **Enable Refactoring**: Safely improve code with confidence
 3. **Document Behavior**: Tests serve as executable specifications
@@ -23,6 +24,7 @@ This document outlines the comprehensive testing strategy for cr0ss.org, includi
 5. **Faster Development**: Quick feedback loop for changes
 
 ### Current State
+
 - ✅ TypeScript strict mode enabled
 - ✅ ESLint configured
 - ✅ Zod validation in place
@@ -30,6 +32,7 @@ This document outlines the comprehensive testing strategy for cr0ss.org, includi
 - ❌ No existing tests
 
 ### Target State
+
 - ✅ Vitest + Testing Library configured
 - ✅ 75%+ code coverage
 - ✅ All critical paths tested
@@ -55,11 +58,13 @@ This document outlines the comprehensive testing strategy for cr0ss.org, includi
 ```
 
 ### Unit Tests (75%)
+
 **What**: Pure functions, utilities, validation logic
 **Why**: Fast, reliable, easy to maintain
 **Tools**: Vitest
 
 **Examples**:
+
 - Caffeine metabolism calculations
 - Date/time conversions
 - Zod schema validation
@@ -67,11 +72,13 @@ This document outlines the comprehensive testing strategy for cr0ss.org, includi
 - Data transformations
 
 ### Integration Tests (20%)
+
 **What**: API routes, database queries, external API integration
 **Why**: Test how components work together
 **Tools**: Vitest + MSW + Test Database
 
 **Examples**:
+
 - API routes with authentication
 - Database query results
 - Contentful API integration
@@ -79,11 +86,13 @@ This document outlines the comprehensive testing strategy for cr0ss.org, includi
 - Cache behavior
 
 ### E2E Tests (5%)
+
 **What**: Critical user flows
 **Why**: Verify complete system behavior
 **Tools**: Playwright (future)
 
 **Examples**:
+
 - View dashboard with data
 - Search and filter blog posts
 - Navigate between pages
@@ -92,9 +101,11 @@ This document outlines the comprehensive testing strategy for cr0ss.org, includi
 ## Implementation Roadmap
 
 ### Phase 1: Foundation (Week 1)
+
 **Goal**: Set up testing infrastructure
 
 1. **Install Dependencies**
+
    ```bash
    pnpm add -D vitest @vitejs/plugin-react
    pnpm add -D @testing-library/react @testing-library/jest-dom
@@ -121,41 +132,49 @@ This document outlines the comprehensive testing strategy for cr0ss.org, includi
    - ✅ npm scripts configured
 
 ### Phase 2: Core Business Logic (Week 2-3)
+
 **Goal**: Test critical utilities and calculations
 
 **Priority 1: Caffeine Modeling**
+
 - `lib/phys/caffeine.ts` - Core algorithm
 - Test decay calculations
 - Test edge cases (empty events, negative values)
 - Test with various body parameters
 
 **Priority 2: Time Utilities**
+
 - `lib/time/berlin.ts` - Timezone conversions
 - Test UTC ↔ Berlin conversions
 - Test DST transitions
 - Test date formatting
 
 **Priority 3: Validation**
+
 - `lib/db/validation.ts` - Zod schemas
 - Test schema validation
 - Test error messages
 - Test type inference
 
 **Priority 4: Database Queries**
+
 - `lib/db/queries.tsx` - Data fetching
 - Test with mock SQL responses
 - Test data transformations
 - Test error handling
 
 **Deliverables**:
+
 - ✅ 90%+ coverage on utilities
 - ✅ All business logic tested
 - ✅ Edge cases covered
 
 ### Phase 3: API Routes (Week 4)
+
 **Goal**: Test all API endpoints
 
 **Routes to Test**:
+
 1. `/api/habits/day` - Daily habits CRUD
 2. `/api/habits/coffee` - Coffee logging
 3. `/api/habits/run` - Running data
@@ -166,6 +185,7 @@ This document outlines the comprehensive testing strategy for cr0ss.org, includi
 8. `/api/auth/check` - Authentication
 
 **Test Cases Per Route**:
+
 - ✅ Successful requests
 - ✅ Validation errors
 - ✅ Authentication failures
@@ -174,14 +194,17 @@ This document outlines the comprehensive testing strategy for cr0ss.org, includi
 - ✅ Edge cases
 
 **Deliverables**:
+
 - ✅ 80%+ coverage on API routes
 - ✅ All endpoints tested
 - ✅ Security validated
 
 ### Phase 4: Components (Week 5)
+
 **Goal**: Test interactive UI components
 
 **Priority Components**:
+
 1. **Search Bar** - User input, async search
 2. **Dashboard Charts** - Data visualization
 3. **Settings Forms** - Complex state management
@@ -189,6 +212,7 @@ This document outlines the comprehensive testing strategy for cr0ss.org, includi
 5. **Map Component** - Interactive visualization
 
 **Test Focus**:
+
 - User interactions
 - Conditional rendering
 - Error states
@@ -196,14 +220,17 @@ This document outlines the comprehensive testing strategy for cr0ss.org, includi
 - Accessibility
 
 **Deliverables**:
+
 - ✅ 70%+ coverage on components
 - ✅ Critical interactions tested
 - ✅ A11y validated
 
 ### Phase 5: Integration (Week 6)
+
 **Goal**: Test system integration points
 
 **Integration Points**:
+
 1. **Contentful CMS** - Content fetching
 2. **Algolia Search** - Search functionality
 3. **Vercel KV** - Caching
@@ -211,17 +238,20 @@ This document outlines the comprehensive testing strategy for cr0ss.org, includi
 5. **External APIs** - Third-party services
 
 **Approach**:
+
 - Use MSW for API mocking
 - Test database with test instance
 - Test cache invalidation
 - Test error recovery
 
 **Deliverables**:
+
 - ✅ Integration tests for all external deps
 - ✅ Mock handlers comprehensive
 - ✅ Error scenarios covered
 
 ### Phase 6: CI/CD & Automation (Week 7)
+
 **Goal**: Automate testing in pipeline
 
 1. **GitHub Actions**
@@ -239,6 +269,7 @@ This document outlines the comprehensive testing strategy for cr0ss.org, includi
    - Track trends over time
 
 **Deliverables**:
+
 - ✅ CI pipeline running tests
 - ✅ Coverage reporting configured
 - ✅ Pre-commit hooks active
@@ -246,6 +277,7 @@ This document outlines the comprehensive testing strategy for cr0ss.org, includi
 ## Test Infrastructure
 
 ### Directory Structure
+
 ```
 /
 ├── lib/
@@ -280,6 +312,7 @@ This document outlines the comprehensive testing strategy for cr0ss.org, includi
 ### Configuration Files
 
 #### `vitest.config.ts`
+
 ```typescript
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
@@ -300,25 +333,26 @@ export default defineConfig({
         '**/*.d.ts',
         '**/*.config.*',
         '**/mockData',
-        'lib/contentful/setup.ts'
+        'lib/contentful/setup.ts',
       ],
       thresholds: {
         branches: 75,
         functions: 75,
         lines: 75,
-        statements: 75
-      }
-    }
+        statements: 75,
+      },
+    },
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './')
-    }
-  }
+      '@': path.resolve(__dirname, './'),
+    },
+  },
 });
 ```
 
 #### `test/setup.ts`
+
 ```typescript
 import '@testing-library/jest-dom';
 import { cleanup } from '@testing-library/react';
@@ -345,6 +379,7 @@ process.env.CONTENTFUL_ACCESS_TOKEN = 'test-token';
 ```
 
 #### `package.json` Scripts
+
 ```json
 {
   "scripts": {
@@ -364,6 +399,7 @@ process.env.CONTENTFUL_ACCESS_TOKEN = 'test-token';
 ### Must Test (Priority 1)
 
 #### Business Logic
+
 - [x] `lib/phys/caffeine.ts` - Caffeine metabolism
   - Decay calculations
   - Multiple dose accumulation
@@ -380,6 +416,7 @@ process.env.CONTENTFUL_ACCESS_TOKEN = 'test-token';
   - Type inference
 
 #### API Routes
+
 - [x] `/api/habits/*` - All habit tracking endpoints
   - Authentication
   - Validation
@@ -394,6 +431,7 @@ process.env.CONTENTFUL_ACCESS_TOKEN = 'test-token';
 ### Should Test (Priority 2)
 
 #### Components
+
 - [x] Search functionality
 - [x] Form submissions
 - [x] Interactive charts
@@ -401,6 +439,7 @@ process.env.CONTENTFUL_ACCESS_TOKEN = 'test-token';
 - [x] Error boundaries
 
 #### Integration
+
 - [x] Contentful API
 - [x] Algolia search
 - [x] Database queries
@@ -409,6 +448,7 @@ process.env.CONTENTFUL_ACCESS_TOKEN = 'test-token';
 ### Nice to Have (Priority 3)
 
 #### E2E Flows
+
 - [ ] Complete user journeys
 - [ ] Mobile experience
 - [ ] Performance metrics
@@ -419,13 +459,14 @@ process.env.CONTENTFUL_ACCESS_TOKEN = 'test-token';
 ### External Dependencies
 
 #### Contentful CMS
+
 ```typescript
 // test/mocks/contentful.ts
 export const mockBlogPost = {
   sys: { id: '1', firstPublishedAt: '2024-01-01' },
   title: 'Test Post',
   slug: 'test-post',
-  content: { json: { nodeType: 'document', content: [] } }
+  content: { json: { nodeType: 'document', content: [] } },
 };
 
 export const contentfulHandlers = [
@@ -434,15 +475,16 @@ export const contentfulHandlers = [
       data: {
         blogPostCollection: {
           items: [mockBlogPost],
-          total: 1
-        }
-      }
+          total: 1,
+        },
+      },
     });
-  })
+  }),
 ];
 ```
 
 #### Database
+
 ```typescript
 // test/mocks/db.ts
 import { vi } from 'vitest';
@@ -452,7 +494,7 @@ export const mockSql = vi.fn((strings, ...values) => {
 
   if (query.includes('SELECT') && query.includes('days')) {
     return Promise.resolve([
-      { date: '2024-01-01', steps: 10000, sleep_score: 85 }
+      { date: '2024-01-01', steps: 10000, sleep_score: 85 },
     ]);
   }
 
@@ -461,42 +503,45 @@ export const mockSql = vi.fn((strings, ...values) => {
 ```
 
 #### Algolia
+
 ```typescript
 // test/mocks/algolia.ts
 export const algoliaHandlers = [
   http.post('*/1/indexes/*/query', () => {
     return HttpResponse.json({
       hits: [{ objectID: '1', title: 'Test' }],
-      nbHits: 1
+      nbHits: 1,
     });
-  })
+  }),
 ];
 ```
 
 ## Performance Testing
 
 ### Load Testing
+
 ```typescript
 // test/performance/api-load.test.ts
 import { describe, it, expect } from 'vitest';
 
 describe('API Performance', () => {
   it('should handle 100 concurrent requests', async () => {
-    const requests = Array(100).fill(null).map(() =>
-      fetch('/api/dashboard')
-    );
+    const requests = Array(100)
+      .fill(null)
+      .map(() => fetch('/api/dashboard'));
 
     const start = Date.now();
     const responses = await Promise.all(requests);
     const duration = Date.now() - start;
 
-    expect(responses.every(r => r.ok)).toBe(true);
+    expect(responses.every((r) => r.ok)).toBe(true);
     expect(duration).toBeLessThan(5000); // 5s for 100 requests
   });
 });
 ```
 
 ### Memory Leaks
+
 ```typescript
 // test/performance/memory.test.ts
 describe('Memory Management', () => {
@@ -520,6 +565,7 @@ describe('Memory Management', () => {
 ### Test Health Monitoring
 
 #### Red Flags
+
 - ⚠️ Flaky tests (pass/fail inconsistently)
 - ⚠️ Slow tests (>5s for unit tests)
 - ⚠️ Brittle tests (break on refactoring)
@@ -527,6 +573,7 @@ describe('Memory Management', () => {
 - ⚠️ Excessive mocking
 
 #### Green Flags
+
 - ✅ Fast execution (<1s per test)
 - ✅ Clear, focused tests
 - ✅ Meaningful assertions
@@ -536,12 +583,14 @@ describe('Memory Management', () => {
 ### Updating Tests
 
 #### When Code Changes
+
 1. Run affected tests first
 2. Update test if behavior changed
 3. Add tests for new functionality
 4. Remove tests for deleted code
 
 #### When Tests Fail
+
 1. Understand why it failed
 2. Fix the bug OR update the test
 3. Never just skip failing tests
@@ -550,6 +599,7 @@ describe('Memory Management', () => {
 ### Test Review Checklist
 
 #### For New Tests
+
 - [ ] Tests behavior, not implementation
 - [ ] Has clear, descriptive name
 - [ ] Follows AAA pattern
@@ -559,6 +609,7 @@ describe('Memory Management', () => {
 - [ ] Has no unnecessary mocks
 
 #### For Test Updates
+
 - [ ] Still testing correct behavior
 - [ ] Not introducing brittleness
 - [ ] Maintaining coverage
@@ -567,6 +618,7 @@ describe('Memory Management', () => {
 ## Metrics & KPIs
 
 ### Track Over Time
+
 - Test count (unit, integration, e2e)
 - Code coverage %
 - Test execution time
@@ -574,6 +626,7 @@ describe('Memory Management', () => {
 - Bug escape rate
 
 ### Success Criteria
+
 - ✅ 75%+ code coverage
 - ✅ <5 minute test suite runtime
 - ✅ <1% flaky test rate

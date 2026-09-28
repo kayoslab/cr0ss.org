@@ -1,5 +1,9 @@
 import { fetchGraphQL } from './api';
-import { KNOWLEDGE_BASE_GRAPHQL_FIELDS, type KnowledgeBaseProps, type KnowledgeBaseCategory } from './props/knowledge-base';
+import {
+  KNOWLEDGE_BASE_GRAPHQL_FIELDS,
+  type KnowledgeBaseProps,
+  type KnowledgeBaseCategory,
+} from './props/knowledge-base';
 
 export async function getAllKnowledgeBase(): Promise<KnowledgeBaseProps[]> {
   const result = await fetchGraphQL(
@@ -16,7 +20,9 @@ export async function getAllKnowledgeBase(): Promise<KnowledgeBaseProps[]> {
   return result.data?.knowledgeBaseCollection?.items ?? [];
 }
 
-export async function getKnowledgeBaseBySlug(slug: string): Promise<KnowledgeBaseProps | null> {
+export async function getKnowledgeBaseBySlug(
+  slug: string
+): Promise<KnowledgeBaseProps | null> {
   const result = await fetchGraphQL(
     `query {
       knowledgeBaseCollection(where: { slug: "${slug}" }, limit: 1, preview: false) {
@@ -31,7 +37,9 @@ export async function getKnowledgeBaseBySlug(slug: string): Promise<KnowledgeBas
   return result.data?.knowledgeBaseCollection?.items?.[0] ?? null;
 }
 
-export async function getKnowledgeBaseByCategory(category: KnowledgeBaseCategory): Promise<KnowledgeBaseProps | null> {
+export async function getKnowledgeBaseByCategory(
+  category: KnowledgeBaseCategory
+): Promise<KnowledgeBaseProps | null> {
   const result = await fetchGraphQL(
     `query {
       knowledgeBaseCollection(where: { category: "${category}" }, limit: 1, preview: false) {

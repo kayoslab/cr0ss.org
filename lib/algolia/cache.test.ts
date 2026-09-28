@@ -208,7 +208,7 @@ describe('SearchCache', () => {
       expect(cache.get('key')).toBe('value');
 
       // Advance to 24 hours + 1ms
-      vi.advanceTimersByTime((60 * 60 * 1000) + 1);
+      vi.advanceTimersByTime(60 * 60 * 1000 + 1);
       expect(cache.get('key')).toBeNull();
     });
   });
@@ -249,7 +249,7 @@ describe('SearchCache', () => {
     it('should handle large objects', () => {
       const cache = new SearchCache();
       const largeObject = {
-        data: Array(1000).fill({ nested: { value: 'test' } })
+        data: Array(1000).fill({ nested: { value: 'test' } }),
       };
 
       cache.set('large', largeObject);

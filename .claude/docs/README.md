@@ -48,6 +48,7 @@ These documents ensure consistency, quality, and adherence to established patter
 ### Import Paths
 
 Always use path aliases:
+
 ```typescript
 // ✅ Good
 import { BlogProps } from '@/lib/contentful/api/props/blog';

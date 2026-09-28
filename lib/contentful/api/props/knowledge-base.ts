@@ -1,9 +1,5 @@
 export type KnowledgeBaseCategory =
-  | 'about-me'
-  | 'professional'
-  | 'skills'
-  | 'philosophy'
-  | 'projects';
+  'about-me' | 'professional' | 'skills' | 'philosophy' | 'projects';
 
 export interface KnowledgeBaseProps {
   sys: {

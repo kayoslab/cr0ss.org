@@ -103,7 +103,11 @@ describe('POST /api/location', () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data).toEqual({ error: 'Invalid coordinates', code: 'VALIDATION_ERROR', details: expect.any(Object) });
+      expect(data).toEqual({
+        error: 'Invalid coordinates',
+        code: 'VALIDATION_ERROR',
+        details: expect.any(Object),
+      });
     });
 
     it('should return 400 without longitude', async () => {
@@ -120,7 +124,11 @@ describe('POST /api/location', () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data).toEqual({ error: 'Invalid coordinates', code: 'VALIDATION_ERROR', details: expect.any(Object) });
+      expect(data).toEqual({
+        error: 'Invalid coordinates',
+        code: 'VALIDATION_ERROR',
+        details: expect.any(Object),
+      });
     });
 
     it('should return 400 with empty body', async () => {
@@ -137,7 +145,11 @@ describe('POST /api/location', () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data).toEqual({ error: 'Invalid coordinates', code: 'VALIDATION_ERROR', details: expect.any(Object) });
+      expect(data).toEqual({
+        error: 'Invalid coordinates',
+        code: 'VALIDATION_ERROR',
+        details: expect.any(Object),
+      });
     });
 
     it('should return 400 with null latitude', async () => {
@@ -154,7 +166,11 @@ describe('POST /api/location', () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data).toEqual({ error: 'Invalid coordinates', code: 'VALIDATION_ERROR', details: expect.any(Object) });
+      expect(data).toEqual({
+        error: 'Invalid coordinates',
+        code: 'VALIDATION_ERROR',
+        details: expect.any(Object),
+      });
     });
 
     it('should accept valid string coordinates', async () => {
@@ -189,7 +205,11 @@ describe('POST /api/location', () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data).toEqual({ error: 'Invalid coordinates', code: 'VALIDATION_ERROR', details: expect.any(Object) });
+      expect(data).toEqual({
+        error: 'Invalid coordinates',
+        code: 'VALIDATION_ERROR',
+        details: expect.any(Object),
+      });
     });
 
     it('should return 400 with NaN values', async () => {
@@ -206,7 +226,11 @@ describe('POST /api/location', () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data).toEqual({ error: 'Invalid coordinates', code: 'VALIDATION_ERROR', details: expect.any(Object) });
+      expect(data).toEqual({
+        error: 'Invalid coordinates',
+        code: 'VALIDATION_ERROR',
+        details: expect.any(Object),
+      });
     });
   });
 
@@ -599,7 +623,11 @@ describe('POST /api/location', () => {
       expect(response.status).toBe(200);
       expect(data.revalidated).toBe(true);
 
-      expect(insertLocationHistory).toHaveBeenCalledWith(52.520008, 13.404954, null);
+      expect(insertLocationHistory).toHaveBeenCalledWith(
+        52.520008,
+        13.404954,
+        null
+      );
     });
   });
 });

@@ -1,4 +1,4 @@
-import { CategoryProps } from "./category";
+import { CategoryProps } from './category';
 import { Document } from '@contentful/rich-text-types';
 import type { ContentfulLinks } from '../../rich-text-renderer';
 

@@ -6,25 +6,25 @@ import { WorkoutUpsert } from '@/lib/db/validation';
  */
 export function mapStravaTypeToWorkoutType(stravaType: string): string {
   const typeMap: Record<string, string> = {
-    'Run': 'running',
-    'TrailRun': 'running',
-    'VirtualRun': 'running',
-    'Ride': 'cycling',
-    'VirtualRide': 'cycling',
-    'MountainBikeRide': 'cycling',
-    'GravelRide': 'cycling',
-    'EBikeRide': 'cycling',
-    'Hike': 'hiking',
-    'Walk': 'hiking',
-    'RockClimbing': 'climbing',
-    'IceClimbing': 'climbing',
-    'Bouldering': 'bouldering',
-    'Workout': 'strength',
-    'WeightTraining': 'strength',
-    'Crossfit': 'strength',
-    'Rowing': 'rowing',
-    'Swim': 'other',
-    'Yoga': 'other',
+    Run: 'running',
+    TrailRun: 'running',
+    VirtualRun: 'running',
+    Ride: 'cycling',
+    VirtualRide: 'cycling',
+    MountainBikeRide: 'cycling',
+    GravelRide: 'cycling',
+    EBikeRide: 'cycling',
+    Hike: 'hiking',
+    Walk: 'hiking',
+    RockClimbing: 'climbing',
+    IceClimbing: 'climbing',
+    Bouldering: 'bouldering',
+    Workout: 'strength',
+    WeightTraining: 'strength',
+    Crossfit: 'strength',
+    Rowing: 'rowing',
+    Swim: 'other',
+    Yoga: 'other',
   };
 
   return typeMap[stravaType] || 'other';
@@ -34,7 +34,9 @@ export function mapStravaTypeToWorkoutType(stravaType: string): string {
  * Estimates workout intensity based on average heart rate
  * This is a simplified estimation - actual intensity depends on individual max HR
  */
-export function estimateIntensity(averageHR?: number): 'low' | 'moderate' | 'high' | 'max' | undefined {
+export function estimateIntensity(
+  averageHR?: number
+): 'low' | 'moderate' | 'high' | 'max' | undefined {
   if (!averageHR) return undefined;
 
   // Rough zones based on typical HR ranges (assuming max HR ~190)
@@ -82,7 +84,9 @@ export function estimatePerceivedEffort(
 /**
  * Transforms a Strava activity into our workout format
  */
-export function transformStravaActivityToWorkout(activity: StravaActivity): WorkoutUpsert {
+export function transformStravaActivityToWorkout(
+  activity: StravaActivity
+): WorkoutUpsert {
   const workoutType = mapStravaTypeToWorkoutType(activity.type);
   const durationMin = Math.round(activity.moving_time / 60);
   const dateLocal = activity.start_date_local.split('T')[0];
@@ -99,7 +103,8 @@ export function transformStravaActivityToWorkout(activity: StravaActivity): Work
   // Add optional metrics
   if (activity.average_speed) details.avg_speed_mps = activity.average_speed;
   if (activity.max_speed) details.max_speed_mps = activity.max_speed;
-  if (activity.average_heartrate) details.avg_heartrate = activity.average_heartrate;
+  if (activity.average_heartrate)
+    details.avg_heartrate = activity.average_heartrate;
   if (activity.max_heartrate) details.max_heartrate = activity.max_heartrate;
   if (activity.average_cadence) details.avg_cadence = activity.average_cadence;
   if (activity.elev_high) details.elev_high_m = activity.elev_high;
@@ -108,12 +113,15 @@ export function transformStravaActivityToWorkout(activity: StravaActivity): Work
 
   // Calculate pace for running activities (min/km)
   if (workoutType === 'running' && activity.distance > 0) {
-    const paceSecPerKm = (activity.moving_time / (activity.distance / 1000));
+    const paceSecPerKm = activity.moving_time / (activity.distance / 1000);
     details.pace_sec_per_km = Math.round(paceSecPerKm);
   }
 
   // Calculate average power for cycling (if available)
-  if ('average_watts' in activity && typeof activity.average_watts === 'number') {
+  if (
+    'average_watts' in activity &&
+    typeof activity.average_watts === 'number'
+  ) {
     details.avg_watts = activity.average_watts;
   }
 

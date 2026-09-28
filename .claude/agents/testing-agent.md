@@ -31,12 +31,14 @@ expect(component.state.isLoading).toBe(true);
 ```
 
 **Focus on**:
+
 - User-facing functionality
 - Business logic correctness
 - Error handling
 - Edge cases
 
 **Avoid**:
+
 - Implementation details
 - Framework internals
 - Trivial getters/setters
@@ -53,27 +55,35 @@ import { modelCaffeine } from './caffeine';
 describe('modelCaffeine', () => {
   it('should calculate caffeine decay over time', () => {
     const events = [
-      { time: '2024-01-01T08:00:00Z', amount_ml: 200, type: 'espresso' }
+      { time: '2024-01-01T08:00:00Z', amount_ml: 200, type: 'espresso' },
     ];
 
-    const result = modelCaffeine(events, { weight_kg: 70 }, {
-      startISO: '2024-01-01T08:00:00Z',
-      endISO: '2024-01-01T14:00:00Z',
-      gridMinutes: 60
-    });
+    const result = modelCaffeine(
+      events,
+      { weight_kg: 70 },
+      {
+        startISO: '2024-01-01T08:00:00Z',
+        endISO: '2024-01-01T14:00:00Z',
+        gridMinutes: 60,
+      }
+    );
 
     expect(result).toHaveLength(7);
     expect(result[0].body_mg).toBeGreaterThan(result[6].body_mg);
   });
 
   it('should handle empty events', () => {
-    const result = modelCaffeine([], { weight_kg: 70 }, {
-      startISO: '2024-01-01T00:00:00Z',
-      endISO: '2024-01-01T01:00:00Z',
-      gridMinutes: 60
-    });
+    const result = modelCaffeine(
+      [],
+      { weight_kg: 70 },
+      {
+        startISO: '2024-01-01T00:00:00Z',
+        endISO: '2024-01-01T01:00:00Z',
+        gridMinutes: 60,
+      }
+    );
 
-    expect(result.every(p => p.body_mg === 0)).toBe(true);
+    expect(result.every((p) => p.body_mg === 0)).toBe(true);
   });
 });
 ```
@@ -105,7 +115,7 @@ describe('GET /api/dashboard', () => {
     vi.mocked(getDashboardData).mockResolvedValue({ coffee: { cupsToday: 3 } });
 
     const request = new Request('http://localhost/api/dashboard', {
-      headers: { 'x-admin-secret': 'valid' }
+      headers: { 'x-admin-secret': 'valid' },
     });
 
     const response = await GET(request);
@@ -120,7 +130,7 @@ describe('GET /api/dashboard', () => {
     vi.mocked(getDashboardData).mockRejectedValue(new Error('DB error'));
 
     const request = new Request('http://localhost/api/dashboard', {
-      headers: { 'x-admin-secret': 'valid' }
+      headers: { 'x-admin-secret': 'valid' },
     });
 
     const response = await GET(request);
@@ -265,9 +275,7 @@ it('should fetch and display data', async () => {
   const result = await fetchBlogPost('test-slug');
 
   expect(result).toEqual(mockData);
-  expect(fetch).toHaveBeenCalledWith(
-    expect.stringContaining('test-slug')
-  );
+  expect(fetch).toHaveBeenCalledWith(expect.stringContaining('test-slug'));
 });
 ```
 
@@ -307,7 +315,7 @@ vi.mock('@/lib/db/client', () => ({
 }));
 
 // ❌ Don't mock the code you're testing
-vi.mock('./my-function');  // Testing my-function
+vi.mock('./my-function'); // Testing my-function
 ```
 
 ### MSW for Network Mocking
@@ -321,16 +329,16 @@ export const handlers = [
     return HttpResponse.json({
       data: {
         blogPostCollection: {
-          items: [{ title: 'Test Post', slug: 'test' }]
-        }
-      }
+          items: [{ title: 'Test Post', slug: 'test' }],
+        },
+      },
     });
   }),
 
   http.post('/api/search', async ({ request }) => {
     const { query } = await request.json();
     return HttpResponse.json({
-      hits: [{ objectID: '1', title: `Result for ${query}` }]
+      hits: [{ objectID: '1', title: `Result for ${query}` }],
     });
   }),
 ];
@@ -429,6 +437,7 @@ it('should show loading then data', async () => {
 ## Coverage Goals
 
 ### Minimum Targets
+
 - **Business logic** (lib/): 90%+
 - **API routes** (app/api/): 80%+
 - **Utilities**: 85%+
@@ -513,16 +522,19 @@ describe('ComponentName', () => {
 ### When Code Changes
 
 **Added new feature?**
+
 - Add tests for new functionality
 - Test edge cases
 - Test error handling
 
 **Fixed bug?**
+
 - Add regression test
 - Test that bug is fixed
 - Test related functionality still works
 
 **Refactored code?**
+
 - Existing tests should still pass
 - If tests break, update them
 - Don't delete tests without replacement
@@ -548,21 +560,25 @@ it('should calculate all mathematical operations', async () => {
 ## Collaboration
 
 ### With Product Manager
+
 - Receive: Acceptance criteria
 - Provide: Test coverage reports, quality metrics
 - Confirm: All requirements have test coverage
 
 ### With Architect
+
 - Ensure: Code is testable (proper separation)
 - Consult: On testing strategy for complex features
 - Validate: Architectural patterns don't hinder testing
 
 ### With Frontend/Backend Developers
+
 - Review: Code for testability
 - Request: Refactoring when code is hard to test
 - Support: Write tests alongside implementation
 
 ### With Documentation Agent
+
 - Provide: Test coverage metrics
 - Document: Testing patterns and strategies
 - Update: Testing guidelines
@@ -642,12 +658,14 @@ pnpm test:ci
 ## Remember
 
 You are the **quality gatekeeper**. Your tests:
+
 - Prevent regressions
 - Document behavior
 - Enable confident refactoring
 - Catch bugs before production
 
 Write tests that:
+
 - Are reliable (no flakiness)
 - Are meaningful (test behavior)
 - Are maintainable (not brittle)

@@ -1,22 +1,22 @@
-import type { BodyProfile } from "@/lib/user/profile";
-import { alignToBerlinHour } from "@/lib/time/berlin";
+import type { BodyProfile } from '@/lib/user/profile';
+import { alignToBerlinHour } from '@/lib/time/berlin';
 
 /** A brew event from the DB. */
 export type BrewEvent = {
-  timeISO: string;                 // ISO timestamp (UTC)
-  type: string;                    // espresso | v60 | moka | aero | cold_brew | other
-  amount_ml?: number | null;       // poured amount if present
-  mg?: number | null;              // explicit dose if available
+  timeISO: string; // ISO timestamp (UTC)
+  type: string; // espresso | v60 | moka | aero | cold_brew | other
+  amount_ml?: number | null; // poured amount if present
+  mg?: number | null; // explicit dose if available
 };
 
 export type CaffeineOptions = {
-  halfLifeHours?: number;                 // override; else use body.half_life_hours or 5
-  gridMinutes?: number;                   // resolution; if alignToHour=true and not set, defaults to 60
-  mgPerMl?: Record<string, number>;       // dose density per type (mg/mL)
+  halfLifeHours?: number; // override; else use body.half_life_hours or 5
+  gridMinutes?: number; // resolution; if alignToHour=true and not set, defaults to 60
+  mgPerMl?: Record<string, number>; // dose density per type (mg/mL)
   defaultShotMl?: Record<string, number>; // fallback volume per type if amount_ml missing
-  startMs?: number;                       // inclusive window start (ms since epoch)
-  endMs?: number;                         // exclusive window end (ms since epoch)
-  alignToHour?: boolean;                  // snap grid to :00 for start/end and steps
+  startMs?: number; // inclusive window start (ms since epoch)
+  endMs?: number; // exclusive window end (ms since epoch)
+  alignToHour?: boolean; // snap grid to :00 for start/end and steps
 };
 
 const LN2 = Math.log(2);
@@ -44,25 +44,25 @@ export const DEFAULT_SHOT_ML: Record<string, number> = {
 
 export type CaffeinePoint = {
   timeISO: string;
-  intake_mg: number;       // mg consumed at this step (instantaneous bucket)
-  body_mg: number;         // mg remaining in body after elimination
-  blood_mg_per_l: number;  // modeled concentration (mg/L)
+  intake_mg: number; // mg consumed at this step (instantaneous bucket)
+  body_mg: number; // mg remaining in body after elimination
+  blood_mg_per_l: number; // modeled concentration (mg/L)
 };
 
 export function modelCaffeine(
   events: BrewEvent[],
   body: BodyProfile,
-  opts: CaffeineOptions = {},
+  opts: CaffeineOptions = {}
 ): CaffeinePoint[] {
   // ---- parameters
-  const half_life_hours = (opts.halfLifeHours ?? body.half_life_hours ?? 5);
+  const half_life_hours = opts.halfLifeHours ?? body.half_life_hours ?? 5;
   const kPerMinute = LN2 / (half_life_hours * 60);
 
   const mgPerMl = { ...DEFAULT_MG_PER_ML, ...(opts.mgPerMl ?? {}) };
   const shotMl = { ...DEFAULT_SHOT_ML, ...(opts.defaultShotMl ?? {}) };
 
   const sensitivity = body.caffeine_sensitivity ?? 1.0; // 0.5..2
-  const bioavailability = body.bioavailability ?? 0.9;  // 0..1
+  const bioavailability = body.bioavailability ?? 0.9; // 0..1
 
   const weight_kg = body.weight_kg || 75;
   const vd_l_per_kg = body.vd_l_per_kg ?? 0.6;
@@ -70,32 +70,38 @@ export function modelCaffeine(
   // Calculate lean body mass if body fat percentage is available
   // Caffeine distributes primarily in lean tissue, not fat
   const body_fat_pct = body.body_fat_percentage;
-  const lean_body_mass_kg = (body_fat_pct !== null && body_fat_pct !== undefined)
-    ? weight_kg * (1 - body_fat_pct / 100)
-    : weight_kg; // fallback to total weight if no body fat data
+  const lean_body_mass_kg =
+    body_fat_pct !== null && body_fat_pct !== undefined
+      ? weight_kg * (1 - body_fat_pct / 100)
+      : weight_kg; // fallback to total weight if no body fat data
 
   // Use lean body mass for more accurate Vd calculation
   const Vd_L = Math.max(1, vd_l_per_kg * Math.max(30, lean_body_mass_kg)); // total distribution volume (L)
 
   // ---- normalize events and compute per-event dose (mg)
   const evts = [...events]
-    .filter(e => e?.timeISO)
+    .filter((e) => e?.timeISO)
     .sort((a, b) => Date.parse(a.timeISO) - Date.parse(b.timeISO))
-    .map(e => {
-      const type = (e.type || "other") as string;
-      const explicit = (typeof e.mg === "number" && e.mg > 0) ? e.mg : undefined;
-      const fromAmount = (typeof e.amount_ml === "number" && e.amount_ml! > 0)
-        ? e.amount_ml! * (mgPerMl[type] ?? mgPerMl.other)
-        : undefined;
-      const fallback = (shotMl[type] ?? shotMl.other) * (mgPerMl[type] ?? mgPerMl.other);
-      const baseDose = (explicit ?? fromAmount ?? fallback);
+    .map((e) => {
+      const type = (e.type || 'other') as string;
+      const explicit = typeof e.mg === 'number' && e.mg > 0 ? e.mg : undefined;
+      const fromAmount =
+        typeof e.amount_ml === 'number' && e.amount_ml! > 0
+          ? e.amount_ml! * (mgPerMl[type] ?? mgPerMl.other)
+          : undefined;
+      const fallback =
+        (shotMl[type] ?? shotMl.other) * (mgPerMl[type] ?? mgPerMl.other);
+      const baseDose = explicit ?? fromAmount ?? fallback;
       const doseMg = baseDose * bioavailability * sensitivity;
       return { t: Date.parse(e.timeISO), mg: doseMg };
     });
 
   // ---- window selection (prefer explicit bounds if provided)
-  let endMs = typeof opts.endMs === "number" ? opts.endMs : Date.now();
-  let startMs = typeof opts.startMs === "number" ? opts.startMs : (endMs - 24 * 60 * 60 * 1000);
+  let endMs = typeof opts.endMs === 'number' ? opts.endMs : Date.now();
+  let startMs =
+    typeof opts.startMs === 'number'
+      ? opts.startMs
+      : endMs - 24 * 60 * 60 * 1000;
 
   if (opts.alignToHour) {
     // Align to Berlin hour boundaries, not UTC
@@ -145,16 +151,16 @@ export function modelCaffeine(
 // Uses the same defaults you've been using elsewhere (e.g. espresso≈80 mg @38 ml, etc.).
 export function estimateIntakeMgFor(type: string, amount_ml: number): number {
   const defaults = {
-    espresso:   { ml: 38,  mg: 80 },
-    v60:        { ml: 250, mg: 120 },
-    chemex:     { ml: 300, mg: 200 },
-    moka:       { ml: 60,  mg: 100 },
-    aero:       { ml: 200, mg: 110 },
-    cold_brew:  { ml: 250, mg: 150 },
-    other:      { ml: 200, mg: 90 },
+    espresso: { ml: 38, mg: 80 },
+    v60: { ml: 250, mg: 120 },
+    chemex: { ml: 300, mg: 200 },
+    moka: { ml: 60, mg: 100 },
+    aero: { ml: 200, mg: 110 },
+    cold_brew: { ml: 250, mg: 150 },
+    other: { ml: 200, mg: 90 },
   } as const;
 
-  const key = (type || "other") as keyof typeof defaults;
+  const key = (type || 'other') as keyof typeof defaults;
   const base = defaults[key] ?? defaults.other;
 
   const ml = Math.max(0, Number(amount_ml) || base.ml);

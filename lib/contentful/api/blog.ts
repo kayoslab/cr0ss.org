@@ -25,7 +25,7 @@ function extractBlogCollection(fetchResponse: GraphQLResponse): BlogCollection {
       items: [],
       total: 0,
       skip: 0,
-      limit: 0
+      limit: 0,
     };
   }
   return fetchResponse.data.blogPostCollection;
@@ -57,7 +57,7 @@ export async function getAllBlogs(page = 1, limit = 9) {
     if (error instanceof Error) {
       console.error('Error details:', {
         message: error.message,
-        stack: error.stack
+        stack: error.stack,
       });
     }
     // Return empty collection on error
@@ -65,7 +65,7 @@ export async function getAllBlogs(page = 1, limit = 9) {
       items: [],
       total: 0,
       skip: 0,
-      limit: limit
+      limit: limit,
     };
   }
 }
@@ -103,7 +103,7 @@ export async function getBlog(slug: string) {
     if (error instanceof Error) {
       console.error('Error details:', {
         message: error.message,
-        stack: error.stack
+        stack: error.stack,
       });
     }
     throw error;
@@ -129,7 +129,7 @@ export async function getBlogById(id: string) {
     if (error instanceof Error) {
       console.error('Error details:', {
         message: error.message,
-        stack: error.stack
+        stack: error.stack,
       });
     }
     throw error;

@@ -95,6 +95,8 @@ export const RATE_LIMIT_STATUS = {
 /**
  * Helper to get rate limit config by endpoint name
  */
-export function getRateLimitConfig(endpoint: keyof typeof RATE_LIMITS): RateLimitConfig {
+export function getRateLimitConfig(
+  endpoint: keyof typeof RATE_LIMITS
+): RateLimitConfig {
   return RATE_LIMITS[endpoint] || RATE_LIMITS.DEFAULT;
 }

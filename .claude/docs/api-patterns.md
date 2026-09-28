@@ -18,9 +18,12 @@ All API routes in this project follow consistent patterns for authentication, va
 
 ```typescript
 // app/api/example/route.ts
-export const runtime = "edge";
+export const runtime = 'edge';
 
-import { createErrorResponse, createSuccessResponse } from '@/lib/api/middleware';
+import {
+  createErrorResponse,
+  createSuccessResponse,
+} from '@/lib/api/middleware';
 import { assertSecret } from '@/lib/auth/secret';
 import { rateLimit } from '@/lib/rate/limit';
 import { z } from 'zod';
@@ -37,7 +40,7 @@ type Input = z.infer<typeof ZInputSchema>;
 export async function GET(request: Request) {
   try {
     // Rate limiting
-    const rl = await rateLimit(request, "example-get", {
+    const rl = await rateLimit(request, 'example-get', {
       windowSec: 60,
       max: 10,
     });
@@ -73,7 +76,7 @@ export async function POST(request: Request) {
     assertSecret(request);
 
     // Rate limiting
-    const rl = await rateLimit(request, "example-post", {
+    const rl = await rateLimit(request, 'example-post', {
       windowSec: 60,
       max: 5,
     });
@@ -107,7 +110,12 @@ export async function POST(request: Request) {
   } catch (error) {
     // Check if it's an auth error
     if (error instanceof Error && error.message === 'Unauthorized') {
-      return createErrorResponse('Unauthorized', 401, undefined, 'UNAUTHORIZED');
+      return createErrorResponse(
+        'Unauthorized',
+        401,
+        undefined,
+        'UNAUTHORIZED'
+      );
     }
 
     console.error('POST /api/example failed:', error);
@@ -128,7 +136,7 @@ export async function POST(request: Request) {
 ```typescript
 // No authentication, but rate-limited
 export async function GET(request: Request) {
-  const rl = await rateLimit(request, "public-endpoint", {
+  const rl = await rateLimit(request, 'public-endpoint', {
     windowSec: 60,
     max: 20,
   });
@@ -208,20 +216,10 @@ return createErrorResponse(
 );
 
 // Unauthorized (401)
-return createErrorResponse(
-  'Unauthorized',
-  401,
-  undefined,
-  'UNAUTHORIZED'
-);
+return createErrorResponse('Unauthorized', 401, undefined, 'UNAUTHORIZED');
 
 // Not found (404)
-return createErrorResponse(
-  'Resource not found',
-  404,
-  undefined,
-  'NOT_FOUND'
-);
+return createErrorResponse('Resource not found', 404, undefined, 'NOT_FOUND');
 
 // Rate limit (429)
 return createErrorResponse(
@@ -313,25 +311,25 @@ const input = validation.data;
 
 ```typescript
 // Public endpoints - 20 requests per minute
-const rl = await rateLimit(request, "public", {
+const rl = await rateLimit(request, 'public', {
   windowSec: 60,
   max: 20,
 });
 
 // Search endpoints - 10 requests per minute
-const rl = await rateLimit(request, "search", {
+const rl = await rateLimit(request, 'search', {
   windowSec: 60,
   max: 10,
 });
 
 // Mutation endpoints - 5 requests per minute
-const rl = await rateLimit(request, "mutation", {
+const rl = await rateLimit(request, 'mutation', {
   windowSec: 60,
   max: 5,
 });
 
 // Webhook endpoints - 100 requests per minute
-const rl = await rateLimit(request, "webhook", {
+const rl = await rateLimit(request, 'webhook', {
   windowSec: 60,
   max: 100,
 });
@@ -365,7 +363,7 @@ export async function POST(request: Request) {
     assertSecret(request);
 
     // 2. Rate limiting
-    const rl = await rateLimit(request, "endpoint");
+    const rl = await rateLimit(request, 'endpoint');
     if (!rl.ok) {
       return createErrorResponse('Too many requests', 429);
     }
@@ -382,7 +380,6 @@ export async function POST(request: Request) {
 
     // 5. Success response
     return createSuccessResponse(result);
-
   } catch (error) {
     // Handle specific errors
     if (error instanceof Error) {
@@ -469,7 +466,6 @@ export async function POST(request: Request) {
       paths: pathsToRevalidate,
       timestamp: Date.now(),
     });
-
   } catch (error) {
     console.error('Webhook processing failed:', error);
     return createErrorResponse('Webhook processing failed', 500);
@@ -489,11 +485,15 @@ const ZContentfulPayload = z.object({
       }),
     }),
   }),
-  fields: z.object({
-    slug: z.object({
-      'en-US': z.string(),
-    }).optional(),
-  }).optional(),
+  fields: z
+    .object({
+      slug: z
+        .object({
+          'en-US': z.string(),
+        })
+        .optional(),
+    })
+    .optional(),
 });
 
 // Extract helper
@@ -679,7 +679,7 @@ export async function POST(request: Request) {
 // ❌ No validation
 export async function POST(request: Request) {
   const body = await request.json();
-  await saveData(body);  // Unvalidated!
+  await saveData(body); // Unvalidated!
   return Response.json({ success: true });
 }
 
@@ -688,7 +688,7 @@ export async function GET(request: Request) {
   if (error) {
     return Response.json({ message: 'Failed' }, { status: 500 });
   }
-  return Response.json({ data: result });  // Different format!
+  return Response.json({ data: result }); // Different format!
 }
 
 // ❌ No rate limiting on public endpoints
@@ -701,7 +701,7 @@ export async function GET(request: Request) {
 return createErrorResponse(
   'Failed',
   500,
-  error,  // Always exposing error details!
+  error // Always exposing error details!
 );
 ```
 
@@ -712,7 +712,7 @@ return createErrorResponse(
 export async function POST(request: Request) {
   try {
     assertSecret(request);
-    const rl = await rateLimit(request, "endpoint");
+    const rl = await rateLimit(request, 'endpoint');
     if (!rl.ok) return createErrorResponse('Rate limited', 429);
 
     const body = await request.json();

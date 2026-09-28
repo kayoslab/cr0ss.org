@@ -228,10 +228,10 @@ describe('lib/contentful/api/blog', () => {
 
       await getBlog('test-slug');
 
-      expect(fetchGraphQL).toHaveBeenCalledWith(
-        expect.any(String),
-        ['blogPosts', 'test-slug']
-      );
+      expect(fetchGraphQL).toHaveBeenCalledWith(expect.any(String), [
+        'blogPosts',
+        'test-slug',
+      ]);
     });
   });
 });

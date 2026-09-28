@@ -24,24 +24,33 @@ describe('GET /api/v1/dashboard/workouts/summary', () => {
 
   describe('Authentication', () => {
     it('should require authentication', async () => {
-      const request = new Request('http://localhost:3000/api/v1/dashboard/workouts/summary');
+      const request = new Request(
+        'http://localhost:3000/api/v1/dashboard/workouts/summary'
+      );
       const response = await GET(request);
 
       expect(response.status).toBe(401);
     });
 
     it('should accept valid secret', async () => {
-      vi.mocked(sql).mockResolvedValueOnce([{ current_date: '2025-12-05' }] as never);
-      vi.mocked(sql).mockResolvedValueOnce([{ month_start: '2025-12-01' }] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { current_date: '2025-12-05' },
+      ] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { month_start: '2025-12-01' },
+      ] as never);
       vi.mocked(sql).mockResolvedValueOnce([] as never); // all distinct workout types
       vi.mocked(sql).mockResolvedValueOnce([] as never); // workout types for period
       vi.mocked(sql).mockResolvedValueOnce([] as never); // streaks
 
-      const request = new Request('http://localhost:3000/api/v1/dashboard/workouts/summary', {
-        headers: {
-          'x-admin-secret': 'test-dashboard-secret-1234567890',
-        },
-      });
+      const request = new Request(
+        'http://localhost:3000/api/v1/dashboard/workouts/summary',
+        {
+          headers: {
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
+          },
+        }
+      );
       const response = await GET(request);
 
       expect(response.status).toBe(200);
@@ -50,17 +59,24 @@ describe('GET /api/v1/dashboard/workouts/summary', () => {
 
   describe('Query Parameters', () => {
     it('should default to month period', async () => {
-      vi.mocked(sql).mockResolvedValueOnce([{ current_date: '2025-12-05' }] as never);
-      vi.mocked(sql).mockResolvedValueOnce([{ month_start: '2025-12-01' }] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { current_date: '2025-12-05' },
+      ] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { month_start: '2025-12-01' },
+      ] as never);
       vi.mocked(sql).mockResolvedValueOnce([] as never); // all distinct workout types
       vi.mocked(sql).mockResolvedValueOnce([] as never); // workout types for period
       vi.mocked(sql).mockResolvedValueOnce([] as never); // streaks
 
-      const request = new Request('http://localhost:3000/api/v1/dashboard/workouts/summary', {
-        headers: {
-          'x-admin-secret': 'test-dashboard-secret-1234567890',
-        },
-      });
+      const request = new Request(
+        'http://localhost:3000/api/v1/dashboard/workouts/summary',
+        {
+          headers: {
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
+          },
+        }
+      );
       const response = await GET(request);
       const data = await response.json();
 
@@ -68,7 +84,9 @@ describe('GET /api/v1/dashboard/workouts/summary', () => {
     });
 
     it('should accept today period', async () => {
-      vi.mocked(sql).mockResolvedValueOnce([{ current_date: '2025-12-05' }] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { current_date: '2025-12-05' },
+      ] as never);
       vi.mocked(sql).mockResolvedValueOnce([] as never); // all distinct workout types
       vi.mocked(sql).mockResolvedValueOnce([] as never); // workout types for period
       vi.mocked(sql).mockResolvedValueOnce([] as never); // streaks
@@ -88,8 +106,12 @@ describe('GET /api/v1/dashboard/workouts/summary', () => {
     });
 
     it('should accept week period', async () => {
-      vi.mocked(sql).mockResolvedValueOnce([{ current_date: '2025-12-05' }] as never);
-      vi.mocked(sql).mockResolvedValueOnce([{ week_start: '2025-11-29' }] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { current_date: '2025-12-05' },
+      ] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { week_start: '2025-11-29' },
+      ] as never);
       vi.mocked(sql).mockResolvedValueOnce([] as never); // all distinct workout types
       vi.mocked(sql).mockResolvedValueOnce([] as never); // workout types for period
       vi.mocked(sql).mockResolvedValueOnce([] as never); // streaks
@@ -128,17 +150,24 @@ describe('GET /api/v1/dashboard/workouts/summary', () => {
 
   describe('Response Data', () => {
     it('should return correct summary with no workouts', async () => {
-      vi.mocked(sql).mockResolvedValueOnce([{ current_date: '2025-12-05' }] as never);
-      vi.mocked(sql).mockResolvedValueOnce([{ month_start: '2025-12-01' }] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { current_date: '2025-12-05' },
+      ] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { month_start: '2025-12-01' },
+      ] as never);
       vi.mocked(sql).mockResolvedValueOnce([] as never); // all distinct workout types
       vi.mocked(sql).mockResolvedValueOnce([] as never); // workout types for period
       vi.mocked(sql).mockResolvedValueOnce([] as never); // streaks
 
-      const request = new Request('http://localhost:3000/api/v1/dashboard/workouts/summary', {
-        headers: {
-          'x-admin-secret': 'test-dashboard-secret-1234567890',
-        },
-      });
+      const request = new Request(
+        'http://localhost:3000/api/v1/dashboard/workouts/summary',
+        {
+          headers: {
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
+          },
+        }
+      );
       const response = await GET(request);
       const data = await response.json();
 
@@ -155,15 +184,29 @@ describe('GET /api/v1/dashboard/workouts/summary', () => {
     });
 
     it('should return correct summary with workouts', async () => {
-      vi.mocked(sql).mockResolvedValueOnce([{ current_date: '2025-12-05' }] as never);
-      vi.mocked(sql).mockResolvedValueOnce([{ month_start: '2025-12-01' }] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { current_date: '2025-12-05' },
+      ] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { month_start: '2025-12-01' },
+      ] as never);
       vi.mocked(sql).mockResolvedValueOnce([
         { type: 'running' },
         { type: 'climbing' },
       ] as never); // all distinct workout types
       vi.mocked(sql).mockResolvedValueOnce([
-        { type: 'running', count: 5, total_duration_min: 250, avg_duration_min: 50 },
-        { type: 'climbing', count: 2, total_duration_min: 120, avg_duration_min: 60 },
+        {
+          type: 'running',
+          count: 5,
+          total_duration_min: 250,
+          avg_duration_min: 50,
+        },
+        {
+          type: 'climbing',
+          count: 2,
+          total_duration_min: 120,
+          avg_duration_min: 60,
+        },
       ] as never); // workout types for period
       vi.mocked(sql).mockResolvedValueOnce([
         { date: new Date('2025-12-05'), days_diff: null },
@@ -171,11 +214,14 @@ describe('GET /api/v1/dashboard/workouts/summary', () => {
         { date: new Date('2025-12-02'), days_diff: 2 },
       ] as never); // streaks
 
-      const request = new Request('http://localhost:3000/api/v1/dashboard/workouts/summary', {
-        headers: {
-          'x-admin-secret': 'test-dashboard-secret-1234567890',
-        },
-      });
+      const request = new Request(
+        'http://localhost:3000/api/v1/dashboard/workouts/summary',
+        {
+          headers: {
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
+          },
+        }
+      );
       const response = await GET(request);
       const data = await response.json();
 
@@ -187,19 +233,26 @@ describe('GET /api/v1/dashboard/workouts/summary', () => {
     });
 
     it('should calculate current streak correctly', async () => {
-      vi.mocked(sql).mockResolvedValueOnce([{ current_date: '2025-12-05' }] as never);
-      vi.mocked(sql).mockResolvedValueOnce([{ month_start: '2025-12-01' }] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { current_date: '2025-12-05' },
+      ] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { month_start: '2025-12-01' },
+      ] as never);
       vi.mocked(sql).mockResolvedValueOnce([] as never); // all distinct workout types
       vi.mocked(sql).mockResolvedValueOnce([] as never); // workout types for period
       vi.mocked(sql).mockResolvedValueOnce([
         { date: new Date('2025-12-05'), days_diff: null },
       ] as never); // streaks
 
-      const request = new Request('http://localhost:3000/api/v1/dashboard/workouts/summary', {
-        headers: {
-          'x-admin-secret': 'test-dashboard-secret-1234567890',
-        },
-      });
+      const request = new Request(
+        'http://localhost:3000/api/v1/dashboard/workouts/summary',
+        {
+          headers: {
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
+          },
+        }
+      );
       const response = await GET(request);
       const data = await response.json();
 
@@ -211,33 +264,44 @@ describe('GET /api/v1/dashboard/workouts/summary', () => {
 
   describe('Cache Headers', () => {
     it('should set correct cache headers', async () => {
-      vi.mocked(sql).mockResolvedValueOnce([{ current_date: '2025-12-05' }] as never);
-      vi.mocked(sql).mockResolvedValueOnce([{ month_start: '2025-12-01' }] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { current_date: '2025-12-05' },
+      ] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { month_start: '2025-12-01' },
+      ] as never);
       vi.mocked(sql).mockResolvedValueOnce([] as never); // all distinct workout types
       vi.mocked(sql).mockResolvedValueOnce([] as never); // workout types for period
       vi.mocked(sql).mockResolvedValueOnce([] as never); // streaks
 
-      const request = new Request('http://localhost:3000/api/v1/dashboard/workouts/summary', {
-        headers: {
-          'x-admin-secret': 'test-dashboard-secret-1234567890',
-        },
-      });
+      const request = new Request(
+        'http://localhost:3000/api/v1/dashboard/workouts/summary',
+        {
+          headers: {
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
+          },
+        }
+      );
       const response = await GET(request);
 
       expect(response.headers.get('Cache-Control')).toBe('private, no-store');
     });
-
   });
 
   describe('Error Handling', () => {
     it('should return 500 on database error', async () => {
-      vi.mocked(sql).mockRejectedValueOnce(new Error('Database connection failed'));
+      vi.mocked(sql).mockRejectedValueOnce(
+        new Error('Database connection failed')
+      );
 
-      const request = new Request('http://localhost:3000/api/v1/dashboard/workouts/summary', {
-        headers: {
-          'x-admin-secret': 'test-dashboard-secret-1234567890',
-        },
-      });
+      const request = new Request(
+        'http://localhost:3000/api/v1/dashboard/workouts/summary',
+        {
+          headers: {
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
+          },
+        }
+      );
       const response = await GET(request);
 
       expect(response.status).toBe(500);

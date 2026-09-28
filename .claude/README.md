@@ -25,6 +25,7 @@ Personal and professional website of Simon Krüger, built with Next.js 15, TypeS
 All detailed documentation is in `.claude/docs/`:
 
 ### Architecture & Patterns
+
 - **[architecture.md](docs/architecture.md)** - System architecture, data flow, and design patterns
 - **[tech-stack.md](docs/tech-stack.md)** - Detailed technology choices and rationale
 - **[api-patterns.md](docs/api-patterns.md)** - API route patterns, authentication, rate limiting
@@ -32,6 +33,7 @@ All detailed documentation is in `.claude/docs/`:
 - **[database-patterns.md](docs/database-patterns.md)** - Database schema, queries, and migrations
 
 ### Development Standards
+
 - **[coding-standards.md](docs/coding-standards.md)** - TypeScript conventions, naming, file organization
 - **[testing.md](docs/testing.md)** - Testing philosophy and current approach
 - **[testing-guidelines.md](docs/testing-guidelines.md)** - Comprehensive testing standards with Vitest
@@ -41,6 +43,7 @@ All detailed documentation is in `.claude/docs/`:
 ## Quick Reference
 
 ### File Structure
+
 ```
 ├── app/                    # Next.js App Router
 │   ├── api/               # API routes (Edge runtime)
@@ -61,21 +64,25 @@ All detailed documentation is in `.claude/docs/`:
 ### Key Concepts
 
 **Authentication**:
+
 - Standard endpoints: `x-vercel-revalidation-key` header with `DASHBOARD_API_SECRET`
 - Contentful webhooks: `x-vercel-revalidation-key` header with `CONTENTFUL_REVALIDATE_SECRET`
 - See `lib/auth/secret.tsx` for implementation
 
 **Timezone Handling**:
+
 - All times stored in UTC in database
 - UI displays in Berlin timezone (Europe/Berlin)
 - Use `lib/time/berlin.tsx` utilities for conversions
 
 **Cache Strategy**:
+
 - Next.js cache tags for granular invalidation
 - Vercel KV for rate limiting and geolocation
 - Webhooks trigger revalidation on content changes
 
 **Testing Strategy**:
+
 - Vitest for fast unit/integration tests
 - Testing Library for component tests
 - MSW for API mocking
@@ -85,6 +92,7 @@ All detailed documentation is in `.claude/docs/`:
 ### Environment Variables
 
 Required for development:
+
 ```bash
 # Contentful
 CONTENTFUL_SPACE_ID
@@ -115,6 +123,7 @@ KV_REST_API_TOKEN
    - Review test coverage for similar features
 
 2. **Code Quality Checks**:
+
    ```bash
    pnpm tsc --noEmit    # Type checking
    pnpm lint            # Linting
@@ -137,18 +146,21 @@ KV_REST_API_TOKEN
 ## Special Features
 
 ### Caffeine Metabolism Modeling
+
 - Located in `lib/phys/caffeine.tsx`
 - Models caffeine decay over time using pharmacokinetic equations
 - Supports custom half-life, body composition, and sensitivity
 - Comprehensive test coverage in `lib/phys/caffeine.test.ts`
 
 ### Berlin Timezone Utilities
+
 - All dashboard times use Berlin timezone
 - Utilities in `lib/time/berlin.tsx`
 - Handles DST transitions correctly
 - Tested extensively
 
 ### Geographic Calculations
+
 - Centroid calculations for map visualization
 - Distance calculations for location tracking
 - Bug fix: Proper handling of coordinates at 0,0 (Null Island)
@@ -156,8 +168,9 @@ KV_REST_API_TOKEN
 ## Common Patterns
 
 ### API Routes
+
 ```typescript
-export const runtime = "edge";
+export const runtime = 'edge';
 
 export async function GET(req: Request) {
   try {
@@ -171,18 +184,20 @@ export async function GET(req: Request) {
 ```
 
 ### Data Validation
+
 ```typescript
 import { z } from 'zod';
 
 const Schema = z.object({
   field: z.string().min(1),
-  number: z.coerce.number().positive()
+  number: z.coerce.number().positive(),
 });
 
 const validated = Schema.parse(data);
 ```
 
 ### Testing
+
 ```typescript
 import { describe, it, expect, vi } from 'vitest';
 

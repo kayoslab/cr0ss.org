@@ -29,7 +29,10 @@ vi.mock('@/lib/cache/revalidate', () => ({
 }));
 
 vi.mock('@/lib/obs/trace', () => ({
-  wrapTrace: <T extends (...args: unknown[]) => unknown>(_name: string, fn: T): T => fn,
+  wrapTrace: <T extends (...args: unknown[]) => unknown>(
+    _name: string,
+    fn: T
+  ): T => fn,
 }));
 
 vi.mock('@/lib/contentful/api/coffee', () => ({
@@ -37,7 +40,9 @@ vi.mock('@/lib/contentful/api/coffee', () => ({
 }));
 
 vi.mock('@/lib/time/berlin', () => ({
-  berlinDateTimeToUTCISO: vi.fn((date: string, time: string) => `${date}T${time}:00.000Z`),
+  berlinDateTimeToUTCISO: vi.fn(
+    (date: string, time: string) => `${date}T${time}:00.000Z`
+  ),
 }));
 
 import { rateLimit } from '@/lib/rate/limit';
@@ -53,13 +58,13 @@ describe('GET /api/habits/coffee', () => {
     vi.mocked(assertSecret).mockImplementation(() => {});
   });
 
-  describe("Authentication", () => {
-    it("should require authentication", async () => {
+  describe('Authentication', () => {
+    it('should require authentication', async () => {
       vi.mocked(assertSecret).mockImplementation(() => {
-        throw { status: 401, message: "Unauthorized" };
+        throw { status: 401, message: 'Unauthorized' };
       });
 
-      const request = new Request("http://localhost:3000/api/habits/coffee");
+      const request = new Request('http://localhost:3000/api/habits/coffee');
       const response = await GET(request);
 
       expect(response.status).toBe(401);
@@ -84,11 +89,10 @@ describe('GET /api/habits/coffee', () => {
       const request = new Request('http://localhost:3000/api/habits/coffee');
       await GET(request);
 
-      expect(rateLimit).toHaveBeenCalledWith(
-        request,
-        'get-coffees',
-        { windowSec: 60, max: 30 }
-      );
+      expect(rateLimit).toHaveBeenCalledWith(request, 'get-coffees', {
+        windowSec: 60,
+        max: 30,
+      });
     });
   });
 
@@ -119,15 +123,19 @@ describe('POST /api/habits/coffee', () => {
     vi.mocked(revalidateCoffee).mockImplementation(() => {});
   });
 
-  describe("Authentication", () => {
-    it("should require authentication", async () => {
+  describe('Authentication', () => {
+    it('should require authentication', async () => {
       vi.mocked(assertSecret).mockImplementation(() => {
-        throw { status: 401, message: "Unauthorized" };
+        throw { status: 401, message: 'Unauthorized' };
       });
 
-      const request = new Request("http://localhost:3000/api/habits/coffee", {
-        method: "POST",
-        body: JSON.stringify({ date: "2025-01-15", type: "espresso", amount_ml: 30 }),
+      const request = new Request('http://localhost:3000/api/habits/coffee', {
+        method: 'POST',
+        body: JSON.stringify({
+          date: '2025-01-15',
+          type: 'espresso',
+          amount_ml: 30,
+        }),
       });
       const response = await POST(request);
 
@@ -142,7 +150,12 @@ describe('POST /api/habits/coffee', () => {
       const request = new Request('http://localhost:3000/api/habits/coffee', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date: '2025-01-15', time: '10:30', type: 'espresso', amount_ml: 30 }),
+        body: JSON.stringify({
+          date: '2025-01-15',
+          time: '10:30',
+          type: 'espresso',
+          amount_ml: 30,
+        }),
       });
       const response = await POST(request);
 
@@ -156,7 +169,12 @@ describe('POST /api/habits/coffee', () => {
       const request = new Request('http://localhost:3000/api/habits/coffee', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date: 'invalid', time: '10:30', type: 'espresso', amount_ml: 30 }),
+        body: JSON.stringify({
+          date: 'invalid',
+          time: '10:30',
+          type: 'espresso',
+          amount_ml: 30,
+        }),
       });
       const response = await POST(request);
 
@@ -169,7 +187,12 @@ describe('POST /api/habits/coffee', () => {
       const request = new Request('http://localhost:3000/api/habits/coffee', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date: '2025-01-15', time: '10:30', type: 'invalid', amount_ml: 30 }),
+        body: JSON.stringify({
+          date: '2025-01-15',
+          time: '10:30',
+          type: 'invalid',
+          amount_ml: 30,
+        }),
       });
       const response = await POST(request);
 
@@ -180,7 +203,12 @@ describe('POST /api/habits/coffee', () => {
       const request = new Request('http://localhost:3000/api/habits/coffee', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date: '2025-01-15', time: '10:30', type: 'espresso', amount_ml: -10 }),
+        body: JSON.stringify({
+          date: '2025-01-15',
+          time: '10:30',
+          type: 'espresso',
+          amount_ml: -10,
+        }),
       });
       const response = await POST(request);
 
@@ -195,7 +223,12 @@ describe('POST /api/habits/coffee', () => {
       const request = new Request('http://localhost:3000/api/habits/coffee', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date: '2025-01-15', time: '10:30', type: 'espresso', amount_ml: 30 }),
+        body: JSON.stringify({
+          date: '2025-01-15',
+          time: '10:30',
+          type: 'espresso',
+          amount_ml: 30,
+        }),
       });
       const response = await POST(request);
 
@@ -212,7 +245,12 @@ describe('POST /api/habits/coffee', () => {
       const request = new Request('http://localhost:3000/api/habits/coffee', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date: '2025-01-15', time: '14:30', type: 'v60', amount_ml: 200 }),
+        body: JSON.stringify({
+          date: '2025-01-15',
+          time: '14:30',
+          type: 'v60',
+          amount_ml: 200,
+        }),
       });
       const response = await POST(request);
 

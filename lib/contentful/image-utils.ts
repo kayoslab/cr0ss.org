@@ -41,14 +41,7 @@ export function optimizeContentfulImage(
 ): string {
   if (!url) return '';
 
-  const {
-    width,
-    height,
-    quality = 80,
-    fit,
-    focus,
-    format = 'webp',
-  } = options;
+  const { width, height, quality = 80, fit, focus, format = 'webp' } = options;
 
   const params = new URLSearchParams();
 

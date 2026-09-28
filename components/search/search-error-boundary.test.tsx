@@ -25,7 +25,9 @@ describe('SearchErrorBoundary', () => {
 
   it('should render error message when child throws error', () => {
     // Suppress console.error for this test
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
     const { getByText, queryByText } = render(
       <SearchErrorBoundary>
@@ -40,7 +42,9 @@ describe('SearchErrorBoundary', () => {
   });
 
   it('should have correct error message styling', () => {
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
     const { container } = render(
       <SearchErrorBoundary>
@@ -56,7 +60,9 @@ describe('SearchErrorBoundary', () => {
   });
 
   it('should catch errors from nested children', () => {
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
     const { getByText } = render(
       <SearchErrorBoundary>
@@ -74,7 +80,9 @@ describe('SearchErrorBoundary', () => {
   });
 
   it('should maintain error state after re-render', () => {
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
 
     const { getByText, rerender } = render(
       <SearchErrorBoundary>

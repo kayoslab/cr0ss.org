@@ -60,7 +60,6 @@ function createMockAlgoliaResponse(
   };
 }
 
-
 describe('GET /api/algolia/search', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -80,7 +79,9 @@ describe('GET /api/algolia/search', () => {
     it('should return 429 when rate limit is exceeded', async () => {
       vi.mocked(rateLimit).mockResolvedValue({ ok: false, retryAfterSec: 30 });
 
-      const request = new Request('http://localhost:3000/api/algolia/search?q=test');
+      const request = new Request(
+        'http://localhost:3000/api/algolia/search?q=test'
+      );
       const response = await GET(request);
 
       expect(response.status).toBe(429);
@@ -96,14 +97,15 @@ describe('GET /api/algolia/search', () => {
         json: async () => createMockAlgoliaResponse([], 'test-query-id'),
       });
 
-      const request = new Request('http://localhost:3000/api/algolia/search?q=test');
+      const request = new Request(
+        'http://localhost:3000/api/algolia/search?q=test'
+      );
       await GET(request);
 
-      expect(rateLimit).toHaveBeenCalledWith(
-        request,
-        'algolia-search',
-        { windowSec: 60, max: 100 }
-      );
+      expect(rateLimit).toHaveBeenCalledWith(request, 'algolia-search', {
+        windowSec: 60,
+        max: 100,
+      });
     });
   });
 
@@ -111,7 +113,9 @@ describe('GET /api/algolia/search', () => {
     it('should track click when objectID is provided', async () => {
       mockFetch.mockResolvedValueOnce({ ok: true });
 
-      const request = new Request('http://localhost:3000/api/algolia/search?objectID=123');
+      const request = new Request(
+        'http://localhost:3000/api/algolia/search?objectID=123'
+      );
       const response = await GET(request);
 
       expect(response.status).toBe(200);
@@ -133,7 +137,9 @@ describe('GET /api/algolia/search', () => {
     it('should not perform search when objectID is provided', async () => {
       mockFetch.mockResolvedValueOnce({ ok: true });
 
-      const request = new Request('http://localhost:3000/api/algolia/search?objectID=123');
+      const request = new Request(
+        'http://localhost:3000/api/algolia/search?objectID=123'
+      );
       await GET(request);
 
       // Only insights API should be called, not search API
@@ -154,10 +160,13 @@ describe('GET /api/algolia/search', () => {
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => createMockAlgoliaResponse(mockHits, 'test-query-id-123'),
+        json: async () =>
+          createMockAlgoliaResponse(mockHits, 'test-query-id-123'),
       });
 
-      const request = new Request('http://localhost:3000/api/algolia/search?q=typescript');
+      const request = new Request(
+        'http://localhost:3000/api/algolia/search?q=typescript'
+      );
       const response = await GET(request);
 
       expect(response.status).toBe(200);
@@ -206,7 +215,9 @@ describe('GET /api/algolia/search', () => {
         json: async () => createMockAlgoliaResponse([], 'empty-query-id'),
       });
 
-      const request = new Request('http://localhost:3000/api/algolia/search?q=nonexistent');
+      const request = new Request(
+        'http://localhost:3000/api/algolia/search?q=nonexistent'
+      );
       const response = await GET(request);
 
       expect(response.status).toBe(200);
@@ -220,7 +231,13 @@ describe('GET /api/algolia/search', () => {
 
     it('should normalize Algolia index structure', async () => {
       const mockHits = [
-        createMockHit('1', 'Flat Title', 'Flat Summary', 'flat-post', 'Test Author'),
+        createMockHit(
+          '1',
+          'Flat Title',
+          'Flat Summary',
+          'flat-post',
+          'Test Author'
+        ),
       ];
 
       mockFetch.mockResolvedValueOnce({
@@ -228,7 +245,9 @@ describe('GET /api/algolia/search', () => {
         json: async () => createMockAlgoliaResponse(mockHits, 'flat-query-id'),
       });
 
-      const request = new Request('http://localhost:3000/api/algolia/search?q=flat');
+      const request = new Request(
+        'http://localhost:3000/api/algolia/search?q=flat'
+      );
       const response = await GET(request);
 
       const data = await response.json();
@@ -245,7 +264,14 @@ describe('GET /api/algolia/search', () => {
 
     it('should include image URLs from Algolia index', async () => {
       const mockHits = [
-        createMockHit('1', 'Post with Image', 'Summary', 'post-with-image', 'Author', 'https://images.ctfassets.net/test/image.jpg'),
+        createMockHit(
+          '1',
+          'Post with Image',
+          'Summary',
+          'post-with-image',
+          'Author',
+          'https://images.ctfassets.net/test/image.jpg'
+        ),
       ];
 
       mockFetch.mockResolvedValueOnce({
@@ -253,11 +279,15 @@ describe('GET /api/algolia/search', () => {
         json: async () => createMockAlgoliaResponse(mockHits, 'image-query-id'),
       });
 
-      const request = new Request('http://localhost:3000/api/algolia/search?q=image');
+      const request = new Request(
+        'http://localhost:3000/api/algolia/search?q=image'
+      );
       const response = await GET(request);
 
       const data = await response.json();
-      expect(data.hits[0].image).toBe('https://images.ctfassets.net/test/image.jpg');
+      expect(data.hits[0].image).toBe(
+        'https://images.ctfassets.net/test/image.jpg'
+      );
 
       // Only Algolia should be called (no Contentful lookup needed)
       expect(mockFetch).toHaveBeenCalledTimes(1);
@@ -271,7 +301,8 @@ describe('GET /api/algolia/search', () => {
       // First call: Algolia search
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => createMockAlgoliaResponse(mockHits, 'no-image-query-id'),
+        json: async () =>
+          createMockAlgoliaResponse(mockHits, 'no-image-query-id'),
       });
 
       // Second call: Contentful to fetch missing image
@@ -280,7 +311,9 @@ describe('GET /api/algolia/search', () => {
         json: async () => ({ data: { post0: { items: [] } } }),
       });
 
-      const request = new Request('http://localhost:3000/api/algolia/search?q=test');
+      const request = new Request(
+        'http://localhost:3000/api/algolia/search?q=test'
+      );
       const response = await GET(request);
 
       expect(response.status).toBe(200);
@@ -299,7 +332,9 @@ describe('GET /api/algolia/search', () => {
         status: 503,
       });
 
-      const request = new Request('http://localhost:3000/api/algolia/search?q=test');
+      const request = new Request(
+        'http://localhost:3000/api/algolia/search?q=test'
+      );
       const response = await GET(request);
 
       expect(response.status).toBe(500);
@@ -314,7 +349,9 @@ describe('GET /api/algolia/search', () => {
     it('should handle network errors gracefully', async () => {
       mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
-      const request = new Request('http://localhost:3000/api/algolia/search?q=test');
+      const request = new Request(
+        'http://localhost:3000/api/algolia/search?q=test'
+      );
       const response = await GET(request);
 
       expect(response.status).toBe(500);
@@ -324,26 +361,34 @@ describe('GET /api/algolia/search', () => {
     });
 
     it('should handle hits with categories', async () => {
-      const mockHits = [{
-        objectID: '1',
-        title: 'Post with Categories',
-        summary: 'Summary',
-        author: 'Author',
-        url: '/blog/categories-post/',
-        categories: 'Tech,JavaScript,Web Development',
-      }];
+      const mockHits = [
+        {
+          objectID: '1',
+          title: 'Post with Categories',
+          summary: 'Summary',
+          author: 'Author',
+          url: '/blog/categories-post/',
+          categories: 'Tech,JavaScript,Web Development',
+        },
+      ];
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => createMockAlgoliaResponse(mockHits, 'query-id'),
       });
 
-      const request = new Request('http://localhost:3000/api/algolia/search?q=test');
+      const request = new Request(
+        'http://localhost:3000/api/algolia/search?q=test'
+      );
       const response = await GET(request);
 
       expect(response.status).toBe(200);
       const data = await response.json();
-      expect(data.hits[0].categories).toEqual(['Tech', 'JavaScript', 'Web Development']);
+      expect(data.hits[0].categories).toEqual([
+        'Tech',
+        'JavaScript',
+        'Web Development',
+      ]);
     });
   });
 
@@ -354,7 +399,9 @@ describe('GET /api/algolia/search', () => {
         json: async () => createMockAlgoliaResponse([], 'special-query-id'),
       });
 
-      const request = new Request('http://localhost:3000/api/algolia/search?q=test%20%26%20special');
+      const request = new Request(
+        'http://localhost:3000/api/algolia/search?q=test%20%26%20special'
+      );
       await GET(request);
 
       expect(mockFetch).toHaveBeenCalledWith(
@@ -372,7 +419,9 @@ describe('GET /api/algolia/search', () => {
     it('should handle both q and objectID parameters (objectID takes precedence)', async () => {
       mockFetch.mockResolvedValueOnce({ ok: true });
 
-      const request = new Request('http://localhost:3000/api/algolia/search?q=test&objectID=456');
+      const request = new Request(
+        'http://localhost:3000/api/algolia/search?q=test&objectID=456'
+      );
       const response = await GET(request);
 
       // Should call insights API, not search API

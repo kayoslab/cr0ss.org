@@ -29,7 +29,7 @@ import { assertSecret, hasValidSecret } from '@/lib/auth/secret';
 
 // Admin endpoints (throws on failure)
 export async function POST(request: Request) {
-  assertSecret(request);  // Throws "Unauthorized" if invalid
+  assertSecret(request); // Throws "Unauthorized" if invalid
   // ... protected logic
 }
 
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
   const body = await request.json();
   const result = await expensiveOperation(body);
 
-  assertSecret(request);  // Too late!
+  assertSecret(request); // Too late!
   return createSuccessResponse(result);
 }
 
@@ -98,13 +98,13 @@ export const env = createEnv({
     // Contentful
     CONTENTFUL_SPACE_ID: z.string().min(1),
     CONTENTFUL_ACCESS_TOKEN: z.string().min(1),
-    CONTENTFUL_REVALIDATE_SECRET: z.string().min(32),  // Minimum length
+    CONTENTFUL_REVALIDATE_SECRET: z.string().min(32), // Minimum length
 
     // Database
     DATABASE_URL: z.string().url(),
 
     // API Secrets
-    DASHBOARD_API_SECRET: z.string().min(32),  // Strong secrets
+    DASHBOARD_API_SECRET: z.string().min(32), // Strong secrets
 
     // External services
     ALGOLIA_APP_ID: z.string().min(1),
@@ -128,20 +128,20 @@ export const env = createEnv({
 ```typescript
 // ✅ Good: Server-only secrets
 import { env } from '@/env';
-const secret = env.DASHBOARD_API_SECRET;  // Only on server
+const secret = env.DASHBOARD_API_SECRET; // Only on server
 
 // ✅ Good: Public client variables (prefixed with NEXT_PUBLIC_)
 const searchKey = process.env.NEXT_PUBLIC_ALGOLIA_SEARCH_KEY;
 
 // ❌ Bad: Exposing secrets to client
-'use client';
-const secret = process.env.DASHBOARD_API_SECRET;  // Leaked to browser!
+('use client');
+const secret = process.env.DASHBOARD_API_SECRET; // Leaked to browser!
 
 // ❌ Bad: Hardcoding secrets
-const apiKey = "abc123-secret-key";  // Never do this!
+const apiKey = 'abc123-secret-key'; // Never do this!
 
 // ❌ Bad: Weak secrets
-DASHBOARD_API_SECRET=weak  // Too short, not random
+DASHBOARD_API_SECRET = weak; // Too short, not random
 ```
 
 ### Secret Generation
@@ -179,17 +179,13 @@ git add .env.local  # Don't do this!
 import { z } from 'zod';
 
 const ZBlogInput = z.object({
-  slug: z.string()
+  slug: z
+    .string()
     .min(1)
     .max(200)
-    .regex(/^[a-z0-9-]+$/),  // Only safe characters
-  title: z.string()
-    .min(1)
-    .max(200)
-    .trim(),  // Sanitize whitespace
-  content: z.string()
-    .min(1)
-    .max(50000),
+    .regex(/^[a-z0-9-]+$/), // Only safe characters
+  title: z.string().min(1).max(200).trim(), // Sanitize whitespace
+  content: z.string().min(1).max(50000),
 });
 
 export async function POST(request: Request) {
@@ -207,7 +203,7 @@ export async function POST(request: Request) {
 // ❌ Bad: No validation
 export async function POST(request: Request) {
   const body = await request.json();
-  await saveToDatabase(body);  // Dangerous!
+  await saveToDatabase(body); // Dangerous!
 }
 ```
 
@@ -233,10 +229,9 @@ const ZId = z.number().int().positive();
 const ZStatus = z.enum(['draft', 'published', 'archived']);
 
 // Date strings
-const ZDate = z.string().refine(
-  (val) => !isNaN(Date.parse(val)),
-  { message: 'Invalid date format' }
-);
+const ZDate = z
+  .string()
+  .refine((val) => !isNaN(Date.parse(val)), { message: 'Invalid date format' });
 
 // Arrays with limits
 const ZTags = z.array(z.string()).min(1).max(10);
@@ -300,7 +295,7 @@ export async function getCoffeeEvents(startDate: string, endDate: string) {
 // ❌ Bad: String interpolation (SQL injection risk!)
 export async function getUser(id: number) {
   const query = `SELECT * FROM users WHERE id = ${id}`;
-  const { rows } = await sql.unsafe(query);  // Dangerous!
+  const { rows } = await sql.unsafe(query); // Dangerous!
 }
 
 // ❌ Bad: String concatenation
@@ -329,7 +324,7 @@ export async function getUser(id: number) {
     throw new Error('User not found');
   }
 
-  return ZUserRow.parse(rows[0]);  // Validate structure
+  return ZUserRow.parse(rows[0]); // Validate structure
 }
 ```
 
@@ -356,8 +351,8 @@ const connectionString = "postgresql://admin:password123@localhost/mydb";
 import { kv } from '@vercel/kv';
 
 interface RateLimitConfig {
-  windowSec: number;  // Time window in seconds
-  max: number;        // Max requests in window
+  windowSec: number; // Time window in seconds
+  max: number; // Max requests in window
 }
 
 export async function rateLimit(
@@ -384,7 +379,7 @@ export async function rateLimit(
   return {
     ok: count <= config.max,
     remaining: Math.max(0, config.max - count),
-    reset: Date.now() + (ttl * 1000),
+    reset: Date.now() + ttl * 1000,
     max: config.max,
   };
 }
@@ -395,7 +390,7 @@ export async function rateLimit(
 ```typescript
 // ✅ Public endpoints - Moderate limits
 export async function GET(request: Request) {
-  const rl = await rateLimit(request, "public-api", {
+  const rl = await rateLimit(request, 'public-api', {
     windowSec: 60,
     max: 20,
   });
@@ -408,7 +403,7 @@ export async function GET(request: Request) {
 
 // ✅ Search endpoints - Stricter limits
 export async function POST(request: Request) {
-  const rl = await rateLimit(request, "search", {
+  const rl = await rateLimit(request, 'search', {
     windowSec: 60,
     max: 10,
   });
@@ -423,7 +418,7 @@ export async function POST(request: Request) {
 export async function POST(request: Request) {
   assertSecret(request);
 
-  const rl = await rateLimit(request, "mutation", {
+  const rl = await rateLimit(request, 'mutation', {
     windowSec: 60,
     max: 5,
   });
@@ -440,7 +435,7 @@ export async function POST(request: Request) {
     return createErrorResponse('Unauthorized', 401);
   }
 
-  const rl = await rateLimit(request, "webhook", {
+  const rl = await rateLimit(request, 'webhook', {
     windowSec: 60,
     max: 100,
   });
@@ -462,27 +457,27 @@ export async function POST(request: Request) {
 const securityHeaders = [
   {
     key: 'X-DNS-Prefetch-Control',
-    value: 'on'
+    value: 'on',
   },
   {
     key: 'Strict-Transport-Security',
-    value: 'max-age=63072000; includeSubDomains; preload'
+    value: 'max-age=63072000; includeSubDomains; preload',
   },
   {
     key: 'X-Frame-Options',
-    value: 'SAMEORIGIN'
+    value: 'SAMEORIGIN',
   },
   {
     key: 'X-Content-Type-Options',
-    value: 'nosniff'
+    value: 'nosniff',
   },
   {
     key: 'X-XSS-Protection',
-    value: '1; mode=block'
+    value: '1; mode=block',
   },
   {
     key: 'Referrer-Policy',
-    value: 'origin-when-cross-origin'
+    value: 'origin-when-cross-origin',
   },
 ];
 
@@ -548,7 +543,7 @@ export async function POST(request: Request) {
     return createErrorResponse(
       'An error occurred processing your request',
       500,
-      process.env.NODE_ENV === 'development' ? error : undefined,  // Details only in dev
+      process.env.NODE_ENV === 'development' ? error : undefined, // Details only in dev
       'INTERNAL_ERROR'
     );
   }
@@ -561,9 +556,9 @@ export async function POST(request: Request) {
     return createSuccessResponse(result);
   } catch (error) {
     return createErrorResponse(
-      error.message,  // Might expose sensitive info!
+      error.message, // Might expose sensitive info!
       500,
-      error  // Exposing stack traces!
+      error // Exposing stack traces!
     );
   }
 }
@@ -620,7 +615,7 @@ export async function POST(request: Request) {
   }
 
   // 3. Rate limit
-  const rl = await rateLimit(request, "webhook");
+  const rl = await rateLimit(request, 'webhook');
   if (!rl.ok) {
     return createErrorResponse('Rate limit exceeded', 429);
   }
@@ -643,11 +638,15 @@ const ZContentfulWebhook = z.object({
       }),
     }),
   }),
-  fields: z.object({
-    slug: z.object({
-      'en-US': z.string().optional(),
-    }).optional(),
-  }).optional(),
+  fields: z
+    .object({
+      slug: z
+        .object({
+          'en-US': z.string().optional(),
+        })
+        .optional(),
+    })
+    .optional(),
 });
 ```
 
@@ -847,4 +846,3 @@ export async function POST(request: Request) {
   await deleteAllData();
 }
 ```
-

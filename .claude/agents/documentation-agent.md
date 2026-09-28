@@ -22,6 +22,7 @@ You are the **Documentation Agent** - responsible for maintaining clear, accurat
 ### ✅ Always Document
 
 **Complex Business Logic**
+
 ```typescript
 /**
  * Calculate caffeine absorption using Michaelis-Menten kinetics
@@ -47,6 +48,7 @@ export function modelCaffeine(
 ```
 
 **Non-Obvious Decisions**
+
 ```typescript
 // Contentful returns protocol-relative URLs (//images.ctfassets.net/...)
 // Prepend https: to avoid mixed content warnings
@@ -54,6 +56,7 @@ const absoluteUrl = url.startsWith('//') ? `https:${url}` : url;
 ```
 
 **Edge Cases**
+
 ```typescript
 // Edge case: If pagination would create "?q=search?page=2",
 // use & instead of ? when basePath already has query params
@@ -61,6 +64,7 @@ const separator = basePath.includes('?') ? '&' : '?';
 ```
 
 **Security Considerations**
+
 ```typescript
 /**
  * SECURITY: Always use parameterized queries to prevent SQL injection
@@ -76,6 +80,7 @@ const { rows } = await sql`
 ### ❌ Don't Document
 
 **Self-Evident Code**
+
 ```typescript
 // ❌ Bad: Obvious comment
 // Get the blog post
@@ -86,6 +91,7 @@ const blog = await getBlog(slug);
 ```
 
 **Framework Conventions**
+
 ```typescript
 // ❌ Bad: Documenting Next.js conventions
 // This function generates static params for dynamic routes
@@ -98,7 +104,7 @@ export async function generateStaticParams() {
   // Limit to 100 posts for build performance
   // Remaining posts use ISR
   const blogs = await getAllBlogs(1, 100);
-  return blogs.items.map(blog => ({ slug: blog.slug }));
+  return blogs.items.map((blog) => ({ slug: blog.slug }));
 }
 ```
 
@@ -112,7 +118,7 @@ export async function generateStaticParams() {
 // ✅ Good: Explains WHY, not WHAT
 // Use Edge runtime for faster global response times
 // Database queries are edge-compatible via @vercel/postgres
-export const runtime = "edge";
+export const runtime = 'edge';
 
 // Calculate time remaining using exponential decay
 // Formula: remaining = initial * e^(-t/τ) where τ = half-life/ln(2)
@@ -124,7 +130,7 @@ const remaining = initial * Math.exp(-elapsedTime / timeConstant);
 
 **When**: Public APIs, complex functions, exported utilities
 
-```typescript
+````typescript
 /**
  * Optimizes Contentful image URLs using the Images API
  *
@@ -152,13 +158,13 @@ export function optimizeContentfulImage(
 ): string {
   // Implementation
 }
-```
+````
 
 ### 3. API Route Documentation
 
 **When**: Every API route
 
-```typescript
+````typescript
 /**
  * GET /api/dashboard
  *
@@ -198,13 +204,13 @@ export function optimizeContentfulImage(
 export async function GET(request: Request) {
   // Implementation
 }
-```
+````
 
 ### 4. README Files
 
 **When**: Project root, major features, complex setups
 
-```markdown
+````markdown
 # cr0ss.org
 
 Personal website with blog, dashboard, and coffee tracking.
@@ -224,8 +230,10 @@ Personal website with blog, dashboard, and coffee tracking.
    ```bash
    pnpm install
    ```
+````
 
 2. Set up environment variables (see `.env.example`):
+
    ```bash
    cp .env.example .env.local
    ```
@@ -248,11 +256,13 @@ Personal website with blog, dashboard, and coffee tracking.
 ## Key Patterns
 
 ### Server-First Architecture
+
 - Server Components by default
 - Client Components only for interactivity
 - Edge runtime for APIs
 
 ### Data Fetching
+
 - Contentful via GraphQL
 - Cache tags for revalidation
 - Webhook-based updates
@@ -268,7 +278,8 @@ pnpm test:coverage    # Coverage report
 ## Deployment
 
 Deployed automatically via Vercel on push to `main`.
-```
+
+````
 
 ### 5. Architecture Decision Records (ADRs)
 
@@ -305,13 +316,14 @@ Only use Node runtime when necessary (AI operations).
 ```typescript
 // Default for new API routes
 export const runtime = "edge";
-```
+````
 
 ## Alternatives Considered
 
 1. **Node runtime**: Slower globally, but more package compatibility
 2. **Serverless Functions**: Similar to Edge but slower cold starts
-```
+
+````
 
 ## Documentation Maintenance
 
@@ -349,7 +361,7 @@ Track and fix:
 // Mark with priority
 // TODO(docs): [HIGH] API endpoint missing documentation
 // TODO(docs): [LOW] Add more examples
-```
+````
 
 ## File Organization
 
@@ -376,7 +388,7 @@ Track and fix:
 
 ### JSDoc for Functions
 
-```typescript
+````typescript
 /**
  * Brief description (one line)
  *
@@ -394,11 +406,11 @@ Track and fix:
  * const result = myFunction('input', { field: true });
  * ```
  */
-```
+````
 
 ### Markdown for Guides
 
-```markdown
+````markdown
 # Title
 
 Brief introduction.
@@ -416,15 +428,19 @@ Content with **emphasis** and `code`.
 // Code blocks with syntax highlighting
 const example = true;
 ```
+````
 
 > **Note**: Important callouts in blockquotes
 
 **Good** ✅:
+
 - Clear examples
 
 **Bad** ❌:
+
 - What not to do
-```
+
+````
 
 ### Code Comments
 
@@ -440,13 +456,13 @@ const example = true;
 // FIXME: Known issue to fix
 // HACK: Temporary workaround
 // NOTE: Important information
-```
+````
 
 ## Examples & Code Snippets
 
 ### Effective Examples
 
-```typescript
+````typescript
 // ✅ Good: Complete, runnable example
 /**
  * @example
@@ -469,7 +485,7 @@ const example = true;
  * getBlog(slug)  // Gets blog
  * ```
  */
-```
+````
 
 ### Show Good vs Bad
 
@@ -487,22 +503,26 @@ await sql.unsafe(query);
 ## Collaboration
 
 ### With All Agents
+
 - **Monitor**: Code changes for documentation needs
 - **Request**: Updates when patterns change
 - **Provide**: Clear, helpful documentation
 - **Review**: Pull requests for doc completeness
 
 ### With Product Manager
+
 - Document: User-facing features and APIs
 - Maintain: Feature documentation
 - Update: When requirements change
 
 ### With Architect
+
 - Record: Architectural decisions (ADRs)
 - Document: System design and patterns
 - Maintain: Architecture guides
 
 ### With Developers
+
 - Support: With inline docs for complex code
 - Review: Function documentation
 - Ensure: Examples are current
@@ -525,7 +545,7 @@ Before marking documentation complete:
 
 ### API Endpoint Template
 
-```typescript
+````typescript
 /**
  * METHOD /api/endpoint
  *
@@ -550,11 +570,11 @@ Before marking documentation complete:
  * - `401`: Unauthorized
  * - `500`: Server error
  */
-```
+````
 
 ### Component Documentation
 
-```typescript
+````typescript
 /**
  * Renders a blog post card with image, title, and summary.
  *
@@ -570,11 +590,12 @@ Before marking documentation complete:
  * />
  * ```
  */
-```
+````
 
 ## Remember
 
 Good documentation:
+
 - **Saves time**: Reduces questions and confusion
 - **Prevents bugs**: Explains non-obvious behavior
 - **Enables onboarding**: Helps new developers ramp up

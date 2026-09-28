@@ -61,7 +61,11 @@ const post = {
 } as unknown as BlogProps & Record<string, unknown>;
 
 const project = {
-  sys: { id: 'x', firstPublishedAt: '2026-01-01T00:00:00Z', publishedAt: '2026-02-01T00:00:00Z' },
+  sys: {
+    id: 'x',
+    firstPublishedAt: '2026-01-01T00:00:00Z',
+    publishedAt: '2026-02-01T00:00:00Z',
+  },
   slug: 'swag-store',
   title: 'Swag Store',
   summary: 'A shop.',
@@ -129,9 +133,15 @@ describe('buildLlmsIndex', () => {
 
     expect(lines[0]).toBe('# cr0ss.mind');
     expect(lines[2]).toMatch(/^> /);
-    expect(index).toContain('## Blog\n\n- [Hello \\[World\\]](https://cr0ss.org/blog/hello-world.md): SEO summary');
-    expect(index).toContain('## Portfolio\n\n- [Swag Store](https://cr0ss.org/portfolio/swag-store.md): A shop.');
-    expect(index).toContain('## Pages\n\n- [About](https://cr0ss.org/page/about.md)');
+    expect(index).toContain(
+      '## Blog\n\n- [Hello \\[World\\]](https://cr0ss.org/blog/hello-world.md): SEO summary'
+    );
+    expect(index).toContain(
+      '## Portfolio\n\n- [Swag Store](https://cr0ss.org/portfolio/swag-store.md): A shop.'
+    );
+    expect(index).toContain(
+      '## Pages\n\n- [About](https://cr0ss.org/page/about.md)'
+    );
     expect(index).toContain('## Optional');
   });
 });
@@ -141,8 +151,12 @@ describe('buildLlmsFull', () => {
     const full = await buildLlmsFull();
 
     expect(full.indexOf('# About')).toBeGreaterThan(0);
-    expect(full.indexOf('# Hello [World]')).toBeGreaterThan(full.indexOf('# About'));
-    expect(full.indexOf('# Swag Store')).toBeGreaterThan(full.indexOf('# Hello [World]'));
+    expect(full.indexOf('# Hello [World]')).toBeGreaterThan(
+      full.indexOf('# About')
+    );
+    expect(full.indexOf('# Swag Store')).toBeGreaterThan(
+      full.indexOf('# Hello [World]')
+    );
     expect(full).toContain('Project body.');
     expect(getProject).toHaveBeenCalledWith('swag-store');
   });

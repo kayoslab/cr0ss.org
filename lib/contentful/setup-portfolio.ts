@@ -10,8 +10,11 @@
 
 import { createClient } from 'contentful-management';
 
-const { CONTENTFUL_SPACE_ID, CONTENTFUL_MANAGEMENT_TOKEN, CONTENTFUL_ENVIRONMENT } =
-  process.env;
+const {
+  CONTENTFUL_SPACE_ID,
+  CONTENTFUL_MANAGEMENT_TOKEN,
+  CONTENTFUL_ENVIRONMENT,
+} = process.env;
 
 if (!CONTENTFUL_SPACE_ID || !CONTENTFUL_MANAGEMENT_TOKEN) {
   throw new Error(
@@ -108,10 +111,14 @@ const seedProjects: SeedProject[] = [
 
 async function ensureContentType() {
   try {
-    const existing = await client.contentType.get({ contentTypeId: CONTENT_TYPE_ID });
+    const existing = await client.contentType.get({
+      contentTypeId: CONTENT_TYPE_ID,
+    });
     // Idempotently add any newly-introduced fields (e.g. githubUrl).
     if (existing.fields.some((f) => f.id === 'githubUrl')) {
-      console.log(`ℹ️  Content type '${CONTENT_TYPE_ID}' up to date — skipping.`);
+      console.log(
+        `ℹ️  Content type '${CONTENT_TYPE_ID}' up to date — skipping.`
+      );
       return;
     }
     console.log(`Adding 'githubUrl' field to '${CONTENT_TYPE_ID}'...`);
@@ -131,12 +138,20 @@ async function ensureContentType() {
         ],
       }
     );
-    await client.contentType.publish({ contentTypeId: CONTENT_TYPE_ID }, updated);
+    await client.contentType.publish(
+      { contentTypeId: CONTENT_TYPE_ID },
+      updated
+    );
     console.log(`✅ 'githubUrl' field added and published.`);
     return;
   } catch (error) {
     // A genuine "not found" means we create the type below; anything else rethrows.
-    if (error && typeof error === 'object' && 'name' in error && error.name !== 'NotFound') {
+    if (
+      error &&
+      typeof error === 'object' &&
+      'name' in error &&
+      error.name !== 'NotFound'
+    ) {
       throw error;
     }
   }
@@ -149,7 +164,13 @@ async function ensureContentType() {
       description: 'A project shown on the /portfolio page.',
       displayField: 'title',
       fields: [
-        { id: 'title', name: 'Title', type: 'Symbol', required: true, localized: false },
+        {
+          id: 'title',
+          name: 'Title',
+          type: 'Symbol',
+          required: true,
+          localized: false,
+        },
         {
           id: 'slug',
           name: 'Slug',
@@ -158,7 +179,13 @@ async function ensureContentType() {
           localized: false,
           validations: [{ unique: true }],
         },
-        { id: 'summary', name: 'Summary', type: 'Text', required: true, localized: false },
+        {
+          id: 'summary',
+          name: 'Summary',
+          type: 'Text',
+          required: true,
+          localized: false,
+        },
         {
           id: 'description',
           name: 'Description',
@@ -166,7 +193,13 @@ async function ensureContentType() {
           required: false,
           localized: false,
         },
-        { id: 'url', name: 'URL', type: 'Symbol', required: false, localized: false },
+        {
+          id: 'url',
+          name: 'URL',
+          type: 'Symbol',
+          required: false,
+          localized: false,
+        },
         {
           id: 'external',
           name: 'External',
@@ -174,7 +207,13 @@ async function ensureContentType() {
           required: false,
           localized: false,
         },
-        { id: 'order', name: 'Order', type: 'Integer', required: false, localized: false },
+        {
+          id: 'order',
+          name: 'Order',
+          type: 'Integer',
+          required: false,
+          localized: false,
+        },
         {
           id: 'heroImage',
           name: 'Hero Image',
@@ -187,7 +226,9 @@ async function ensureContentType() {
     }
   );
 
-  const created = await client.contentType.get({ contentTypeId: CONTENT_TYPE_ID });
+  const created = await client.contentType.get({
+    contentTypeId: CONTENT_TYPE_ID,
+  });
   await client.contentType.publish({ contentTypeId: CONTENT_TYPE_ID }, created);
   console.log(`✅ Content type '${CONTENT_TYPE_ID}' created and published.`);
 }
@@ -198,7 +239,9 @@ async function seedEntries() {
   });
   const existingSlugs = new Set(
     existing.items
-      .map((e) => (e.fields.slug as { 'en-US'?: string } | undefined)?.['en-US'])
+      .map(
+        (e) => (e.fields.slug as { 'en-US'?: string } | undefined)?.['en-US']
+      )
       .filter(Boolean)
   );
 

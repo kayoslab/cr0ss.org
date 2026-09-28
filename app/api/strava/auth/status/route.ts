@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
         { error: 'Rate limit exceeded' },
         {
           status: 429,
-          headers: { 'Retry-After': rateLimitResult.retryAfterSec.toString() }
+          headers: { 'Retry-After': rateLimitResult.retryAfterSec.toString() },
         }
       );
     }
@@ -75,14 +75,10 @@ export async function GET(request: NextRequest) {
       webhookSubscribed: auth.webhook_subscribed,
       connectedSince: auth.created_at,
     });
-
   } catch (error) {
     if (typeof error === 'object' && error !== null && 'status' in error) {
       const err = error as { status: number; message: string };
-      return NextResponse.json(
-        { error: err.message },
-        { status: err.status }
-      );
+      return NextResponse.json({ error: err.message }, { status: err.status });
     }
 
     console.error('Strava status error:', error);

@@ -30,6 +30,7 @@ export default async function BlogPage({ params }: Props) {
 ```
 
 **Use Server Components For**:
+
 - ✅ Fetching data from databases or APIs
 - ✅ Accessing backend resources directly
 - ✅ Keeping sensitive information on server (API keys, tokens)
@@ -62,6 +63,7 @@ export function SearchBar() {
 ```
 
 **Use Client Components For**:
+
 - ✅ Interactive UI elements (forms, buttons with state)
 - ✅ Event listeners (onClick, onChange, etc.)
 - ✅ Browser APIs (localStorage, navigator, window)
@@ -119,13 +121,13 @@ components/
 
 ```typescript
 // ✅ Good: PascalCase component names
-export function BlogArticle({ blog }: Props) { }
-export const BlogCard = ({ blog }: Props) => { };
-export default function BlogGrid({ posts }: Props) { }
+export function BlogArticle({ blog }: Props) {}
+export const BlogCard = ({ blog }: Props) => {};
+export default function BlogGrid({ posts }: Props) {}
 
 // ❌ Bad: Wrong casing
-export function blogArticle() { }  // Should be PascalCase
-export const blog_card = () => { };  // Should be PascalCase
+export function blogArticle() {} // Should be PascalCase
+export const blog_card = () => {}; // Should be PascalCase
 ```
 
 ## Component Structure
@@ -190,7 +192,12 @@ interface BlogCardProps {
   className?: string;
 }
 
-export function BlogCard({ blog, variant = 'default', onSelect, className }: BlogCardProps) {
+export function BlogCard({
+  blog,
+  variant = 'default',
+  onSelect,
+  className,
+}: BlogCardProps) {
   // ...
 }
 
@@ -215,7 +222,7 @@ export function BlogCard({
   blog,
   featured = false,
   variant = 'default',
-  className = ''
+  className = '',
 }: BlogCardProps) {
   // ...
 }

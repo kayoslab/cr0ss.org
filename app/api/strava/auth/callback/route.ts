@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
         { error: 'Rate limit exceeded' },
         {
           status: 429,
-          headers: { 'Retry-After': rateLimitResult.retryAfterSec.toString() }
+          headers: { 'Retry-After': rateLimitResult.retryAfterSec.toString() },
         }
       );
     }
@@ -90,8 +90,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Store tokens in database
-    console.log('Storing tokens in database for athlete:', validatedData.athlete.id);
-    const athleteName = `${validatedData.athlete.firstname || ''} ${validatedData.athlete.lastname || ''}`.trim();
+    console.log(
+      'Storing tokens in database for athlete:',
+      validatedData.athlete.id
+    );
+    const athleteName =
+      `${validatedData.athlete.firstname || ''} ${validatedData.athlete.lastname || ''}`.trim();
     await sql`
       INSERT INTO strava_auth (
         athlete_id,
@@ -134,14 +138,10 @@ export async function GET(request: NextRequest) {
         name: `${validatedData.athlete.firstname || ''} ${validatedData.athlete.lastname || ''}`.trim(),
       },
     });
-
   } catch (error) {
     if (typeof error === 'object' && error !== null && 'status' in error) {
       const err = error as { status: number; message: string };
-      return NextResponse.json(
-        { error: err.message },
-        { status: err.status }
-      );
+      return NextResponse.json({ error: err.message }, { status: err.status });
     }
 
     console.error('Strava callback error:', error);

@@ -15,4 +15,4 @@ export const PATHS = {
 /**
  * Type-safe helper for path values
  */
-export type AppPath = typeof PATHS[keyof typeof PATHS];
+export type AppPath = (typeof PATHS)[keyof typeof PATHS];

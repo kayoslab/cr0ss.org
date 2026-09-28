@@ -59,6 +59,7 @@ cr0ss.org is a Next.js 15 application using the App Router with a headless CMS (
 **Purpose**: Next.js App Router pages and API routes
 
 **Rules**:
+
 - One `page.tsx` per route
 - API routes in `route.ts` files
 - Metadata generation via `generateMetadata()`
@@ -66,6 +67,7 @@ cr0ss.org is a Next.js 15 application using the App Router with a headless CMS (
 - Layout files for shared UI
 
 **Example**:
+
 ```typescript
 // app/blog/[slug]/page.tsx
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -89,12 +91,14 @@ export default async function BlogPage({ params }: Props) {
 **Purpose**: Reusable UI components
 
 **Rules**:
+
 - Organized by feature (e.g., `blog/`, `dashboard/`)
 - Server Components by default
 - Client Components marked with `'use client'`
 - Props interfaces defined inline or imported
 
 **Naming**:
+
 - Files: `kebab-case.tsx`
 - Components: `PascalCase`
 
@@ -103,6 +107,7 @@ export default async function BlogPage({ params }: Props) {
 **Purpose**: Shared logic, data fetching, utilities
 
 **Structure**:
+
 ```
 lib/
 ├── api/                  # API utilities
@@ -143,6 +148,7 @@ export async function getBlog(slug: string) {
 ```
 
 **Rules**:
+
 - All Contentful queries go through `fetchGraphQL()`
 - Always provide cache tags for revalidation
 - Use GraphQL fields constants (e.g., `BLOG_GRAPHQL_FIELDS`)
@@ -171,6 +177,7 @@ export async function qCupsToday() {
 ```
 
 **Rules**:
+
 - Use parameterized queries (template literals)
 - Validate responses with Zod schemas
 - Define schemas in `lib/db/models.tsx`
@@ -198,6 +205,7 @@ export async function GET(request: Request) {
 ```
 
 **Rules**:
+
 - Use `createErrorResponse()` and `createSuccessResponse()`
 - Validate inputs with Zod schemas
 - Apply rate limiting where needed
@@ -208,22 +216,25 @@ export async function GET(request: Request) {
 ### Cache Tags
 
 **Pattern**:
+
 - Collection tags: `blogPosts`, `pages`, `countries`, `coffee`
 - Item tags: slug or ID (e.g., `my-blog-post`)
 
 **Example**:
+
 ```typescript
 // Fetch with cache tags
 await fetchGraphQL(query, ['blogPosts', slug]);
 
 // Revalidate on webhook
-revalidateTag('blogPosts');  // Invalidate collection
-revalidateTag(slug);         // Invalidate specific item
+revalidateTag('blogPosts'); // Invalidate collection
+revalidateTag(slug); // Invalidate specific item
 ```
 
 ### Path Revalidation
 
 **When to use**:
+
 - Index pages: `/blog`
 - Detail pages: `/blog/{slug}`
 - Related pages: `/dashboard` for coffee updates

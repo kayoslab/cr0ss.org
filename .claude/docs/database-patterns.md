@@ -99,8 +99,8 @@ COMMENT ON COLUMN workouts.details IS 'Activity-specific metrics in JSON format'
 
 ```typescript
 // lib/db/entity.tsx
-import { neon } from "@neondatabase/serverless";
-import { ZEntityRow } from "@/lib/db/validation";
+import { neon } from '@neondatabase/serverless';
+import { ZEntityRow } from '@/lib/db/validation';
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -108,7 +108,7 @@ const sql = neon(process.env.DATABASE_URL!);
  * Get entity by ID
  */
 export async function getEntityDB(id: number) {
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     SELECT
       id,
       name,
@@ -139,7 +139,7 @@ export async function getEntityDB(id: number) {
 export async function insertEntityDB(data: EntityInput) {
   const parsed = ZEntityInput.parse(data);
 
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     INSERT INTO entities (
       name,
       description
@@ -171,7 +171,7 @@ export async function insertEntityDB(data: EntityInput) {
 ```typescript
 // Extract from JSONB field
 export async function getWorkoutsWithDistanceDB(minKm: number) {
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     SELECT
       id,
       date,
@@ -183,7 +183,7 @@ export async function getWorkoutsWithDistanceDB(minKm: number) {
     ORDER BY date DESC
   `;
 
-  return rows.map(r => ({
+  return rows.map((r) => ({
     id: Number(r.id),
     date: new Date(r.date),
     workout_type: r.workout_type,
@@ -198,7 +198,7 @@ export async function getWorkoutsWithDistanceDB(minKm: number) {
 
 ```typescript
 // lib/db/validation.tsx
-import { z } from "zod";
+import { z } from 'zod';
 
 // Database row schema (as returned from DB)
 export const ZEntityRow = z.object({
@@ -258,8 +258,8 @@ const out = {
 ```typescript
 // Always convert to ISO strings for consistency
 const out = {
-  date: new Date(r.date),  // For Date objects
-  created_at: new Date(r.created_at).toISOString(),  // For timestamps
+  date: new Date(r.date), // For Date objects
+  created_at: new Date(r.created_at).toISOString(), // For timestamps
 };
 ```
 
@@ -268,7 +268,8 @@ const out = {
 ```typescript
 // Use null coalescence for optional fields
 const out = {
-  optional_field: r.optional_field === null ? undefined : String(r.optional_field),
+  optional_field:
+    r.optional_field === null ? undefined : String(r.optional_field),
 };
 ```
 
@@ -277,12 +278,14 @@ const out = {
 ### When to Use JSONB
 
 ✅ **Good use cases**:
+
 - Activity-specific metrics that vary by type (workouts)
 - Extensible metadata that doesn't need indexing
 - Schema-flexible data (configuration, settings)
 - Array of structured data (exercise lists)
 
 ❌ **Avoid JSONB for**:
+
 - Frequently queried/filtered fields → Use regular columns
 - Foreign key relationships → Use proper relations
 - Simple boolean flags → Use boolean columns
@@ -321,7 +324,7 @@ For data that should be tracked over time (measurements, logs):
 ```typescript
 // ❌ Bad: UPDATE pattern (loses history)
 export async function updateBodyWeightDB(weight_kg: number) {
-  await sql/*sql*/`
+  await sql /*sql*/ `
     UPDATE body_profile
     SET weight_kg = ${weight_kg}
     WHERE id = 1
@@ -332,7 +335,7 @@ export async function updateBodyWeightDB(weight_kg: number) {
 export async function insertBodyMeasurementDB(data: MeasurementInput) {
   const measuredAt = data.measured_at ? new Date(data.measured_at) : new Date();
 
-  await sql/*sql*/`
+  await sql /*sql*/ `
     INSERT INTO body_profile (
       measured_at,
       weight_kg,
@@ -347,7 +350,7 @@ export async function insertBodyMeasurementDB(data: MeasurementInput) {
 
 // Get current (most recent)
 export async function getCurrentBodyProfileDB() {
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     SELECT * FROM body_profile
     ORDER BY measured_at DESC
     LIMIT 1
@@ -357,7 +360,7 @@ export async function getCurrentBodyProfileDB() {
 
 // Get history
 export async function getBodyProfileHistoryDB(limit: number = 30) {
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     SELECT * FROM body_profile
     ORDER BY measured_at DESC
     LIMIT ${limit}
@@ -373,7 +376,7 @@ export async function getBodyProfileHistoryDB(limit: number = 30) {
 ```typescript
 export async function getEntityDB(id: number) {
   try {
-    const rows = await sql/*sql*/`
+    const rows = await sql /*sql*/ `
       SELECT * FROM entities WHERE id = ${id}
     `;
 
@@ -384,7 +387,7 @@ export async function getEntityDB(id: number) {
     return ZEntityRow.parse(rows[0]);
   } catch (error) {
     if (error instanceof Error && error.message.includes('not found')) {
-      throw error;  // Re-throw for handling in API layer
+      throw error; // Re-throw for handling in API layer
     }
     console.error('Database query failed:', error);
     throw new Error('Failed to fetch entity');

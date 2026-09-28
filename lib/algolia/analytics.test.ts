@@ -74,7 +74,9 @@ describe('lib/algolia/analytics', () => {
     it('should handle network errors gracefully', async () => {
       mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
 
       await trackSearch('test query', 5);
 
@@ -93,7 +95,9 @@ describe('lib/algolia/analytics', () => {
         statusText: 'Internal Server Error',
       } as Response);
 
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
 
       await trackSearch('test query', 5);
 
@@ -168,7 +172,9 @@ describe('lib/algolia/analytics', () => {
     it('should not throw when fetch fails', async () => {
       mockFetch.mockRejectedValueOnce(new Error('Fetch failed'));
 
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
 
       // Should not throw
       await expect(trackSearch('test', 1)).resolves.not.toThrow();

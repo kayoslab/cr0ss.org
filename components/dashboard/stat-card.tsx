@@ -5,8 +5,14 @@
  * Consolidates the stat card pattern used across dashboard pages.
  */
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import type { LucideIcon } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import type { LucideIcon } from 'lucide-react';
 
 interface StatCardProps {
   /**
@@ -48,16 +54,24 @@ interface StatCardProps {
  * />
  * ```
  */
-export function StatCard({ title, value, subtitle, icon: Icon, className }: StatCardProps) {
+export function StatCard({
+  title,
+  value,
+  subtitle,
+  icon: Icon,
+  className,
+}: StatCardProps) {
   return (
     <Card className={className}>
-      <CardHeader className="pb-2">
-        {Icon && <Icon className="h-4 w-4 text-muted-foreground mb-2" />}
+      <CardHeader className='pb-2'>
+        {Icon && <Icon className='text-muted-foreground mb-2 h-4 w-4' />}
         <CardDescription>{title}</CardDescription>
       </CardHeader>
       <CardContent>
-        <CardTitle className="text-3xl">{value}</CardTitle>
-        {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
+        <CardTitle className='text-3xl'>{value}</CardTitle>
+        {subtitle && (
+          <p className='text-muted-foreground mt-1 text-xs'>{subtitle}</p>
+        )}
       </CardContent>
     </Card>
   );

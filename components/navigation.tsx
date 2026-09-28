@@ -39,7 +39,7 @@ export default function Navigation() {
             <Link
               key={link.href}
               href={link.href}
-              className='text-sm font-semibold leading-6 text-gray-900'
+              className='text-sm leading-6 font-semibold text-gray-900'
             >
               {link.label}
             </Link>

@@ -36,7 +36,6 @@ export async function GET(request: NextRequest) {
       { error: 'Invalid verification token' },
       { status: 403 }
     );
-
   } catch (error) {
     console.error('Strava webhook verification error:', error);
     return NextResponse.json(
@@ -66,7 +65,7 @@ export async function POST(request: NextRequest) {
         { error: 'Rate limit exceeded' },
         {
           status: 429,
-          headers: { 'Retry-After': rateLimitResult.retryAfterSec.toString() }
+          headers: { 'Retry-After': rateLimitResult.retryAfterSec.toString() },
         }
       );
     }
@@ -85,7 +84,10 @@ export async function POST(request: NextRequest) {
 
     // Only process activity events
     if (event.object_type !== 'activity') {
-      return NextResponse.json({ ok: true, message: 'Event ignored (not an activity)' });
+      return NextResponse.json({
+        ok: true,
+        message: 'Event ignored (not an activity)',
+      });
     }
 
     // Check if we have auth for this athlete
@@ -124,7 +126,6 @@ export async function POST(request: NextRequest) {
     revalidateWorkouts();
 
     return NextResponse.json({ ok: true });
-
   } catch (error) {
     console.error('Strava webhook processing error:', error);
 
@@ -138,7 +139,12 @@ export async function POST(request: NextRequest) {
  */
 async function handleActivitySync(
   event: { object_id: number; owner_id: number; aspect_type: string },
-  auth: { athlete_id: number; access_token: string; refresh_token: string; expires_at: string }
+  auth: {
+    athlete_id: number;
+    access_token: string;
+    refresh_token: string;
+    expires_at: string;
+  }
 ) {
   try {
     // Check if token needs refresh
@@ -148,7 +154,10 @@ async function handleActivitySync(
     let accessToken = auth.access_token;
 
     if (needsRefresh) {
-      const refreshResult = await refreshAccessToken(auth.athlete_id, auth.refresh_token);
+      const refreshResult = await refreshAccessToken(
+        auth.athlete_id,
+        auth.refresh_token
+      );
       if (refreshResult) {
         accessToken = refreshResult.access_token;
       }
@@ -158,12 +167,14 @@ async function handleActivitySync(
     const activityUrl = `https://www.strava.com/api/v3/activities/${event.object_id}`;
     const activityResponse = await fetch(activityUrl, {
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     });
 
     if (!activityResponse.ok) {
-      throw new Error(`Failed to fetch activity: ${activityResponse.statusText}`);
+      throw new Error(
+        `Failed to fetch activity: ${activityResponse.statusText}`
+      );
     }
 
     const activityData = await activityResponse.json();
@@ -172,7 +183,9 @@ async function handleActivitySync(
     // Only sync running activities
     const runningTypes = ['Run', 'TrailRun', 'VirtualRun'];
     if (!runningTypes.includes(activity.type)) {
-      console.log(`Skipping non-running activity ${activity.id}: ${activity.type}`);
+      console.log(
+        `Skipping non-running activity ${activity.id}: ${activity.type}`
+      );
       return;
     }
 
@@ -189,9 +202,11 @@ async function handleActivitySync(
 
     if (activity.average_speed) details.avg_speed_mps = activity.average_speed;
     if (activity.max_speed) details.max_speed_mps = activity.max_speed;
-    if (activity.average_heartrate) details.avg_heartrate = activity.average_heartrate;
+    if (activity.average_heartrate)
+      details.avg_heartrate = activity.average_heartrate;
     if (activity.max_heartrate) details.max_heartrate = activity.max_heartrate;
-    if (activity.average_cadence) details.avg_cadence = activity.average_cadence;
+    if (activity.average_cadence)
+      details.avg_cadence = activity.average_cadence;
 
     // Check if workout already exists
     const existingWorkout = await sql`
@@ -258,7 +273,6 @@ async function handleActivitySync(
     `;
 
     console.log(`Successfully synced activity ${event.object_id}`);
-
   } catch (error) {
     console.error('Activity sync error:', error);
 
@@ -285,7 +299,10 @@ async function handleActivitySync(
 /**
  * Deletes an activity from the database
  */
-async function handleActivityDelete(event: { object_id: number; owner_id: number }) {
+async function handleActivityDelete(event: {
+  object_id: number;
+  owner_id: number;
+}) {
   try {
     await sql`
       DELETE FROM workouts
@@ -310,7 +327,6 @@ async function handleActivityDelete(event: { object_id: number; owner_id: number
     `;
 
     console.log(`Successfully deleted activity ${event.object_id}`);
-
   } catch (error) {
     console.error('Activity deletion error:', error);
 
@@ -376,7 +392,6 @@ async function refreshAccessToken(athleteId: number, refreshToken: string) {
       access_token: tokenData.access_token,
       expires_at: tokenData.expires_at,
     };
-
   } catch (error) {
     console.error('Token refresh error:', error);
     return null;
@@ -388,17 +403,17 @@ async function refreshAccessToken(athleteId: number, refreshToken: string) {
  */
 function mapStravaTypeToWorkoutType(stravaType: string): string {
   const typeMap: Record<string, string> = {
-    'Run': 'running',
-    'TrailRun': 'running',
-    'VirtualRun': 'running',
-    'Ride': 'cycling',
-    'VirtualRide': 'cycling',
-    'Hike': 'hiking',
-    'Walk': 'hiking',
-    'RockClimbing': 'climbing',
-    'Workout': 'strength',
-    'WeightTraining': 'strength',
-    'Rowing': 'rowing',
+    Run: 'running',
+    TrailRun: 'running',
+    VirtualRun: 'running',
+    Ride: 'cycling',
+    VirtualRide: 'cycling',
+    Hike: 'hiking',
+    Walk: 'hiking',
+    RockClimbing: 'climbing',
+    Workout: 'strength',
+    WeightTraining: 'strength',
+    Rowing: 'rowing',
   };
 
   return typeMap[stravaType] || 'other';

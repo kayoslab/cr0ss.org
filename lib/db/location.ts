@@ -3,8 +3,8 @@
  * Stores location data with weather information
  */
 
-import { sql } from "./client";
-import type { WeatherData } from "../services/openweathermap";
+import { sql } from './client';
+import type { WeatherData } from '../services/openweathermap';
 
 export interface LocationHistoryRecord {
   id: number;

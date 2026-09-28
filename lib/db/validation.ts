@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const ZDay = z.object({
   date: z.coerce.date(),
@@ -26,9 +26,17 @@ export const ZRituals = z.object({
 export const ZCoffee = z.object({
   date: z.coerce.date(),
   time: z.union([z.string(), z.coerce.date()]).optional(),
-  type: z.enum(["espresso", "v60", "chemex", "moka", "aero", "cold_brew", "other"]),
+  type: z.enum([
+    'espresso',
+    'v60',
+    'chemex',
+    'moka',
+    'aero',
+    'cold_brew',
+    'other',
+  ]),
   amount_ml: z.coerce.number().int().min(0).optional(),
-  coffee_cf_id: z.string().min(1).optional(),    // Contentful Entry ID (if known)
+  coffee_cf_id: z.string().min(1).optional(), // Contentful Entry ID (if known)
 });
 
 export type TCoffee = z.infer<typeof ZCoffee>;
@@ -96,16 +104,16 @@ export type WorkoutUpsert = z.infer<typeof ZWorkoutUpsert>;
 export const ZGoal = z.object({
   month: z.coerce.date(),
   kind: z.enum([
-    "running_distance_km",
-    "steps",
-    "reading_minutes",
-    "outdoor_minutes",
-    "writing_minutes",
-    "focus_minutes",
-    "coding_minutes",
+    'running_distance_km',
+    'steps',
+    'reading_minutes',
+    'outdoor_minutes',
+    'writing_minutes',
+    'focus_minutes',
+    'coding_minutes',
   ]),
   target: z.coerce.number().min(0),
-  period: z.enum(["monthly", "daily"]),
+  period: z.enum(['monthly', 'daily']),
 });
 
 export const ZSubjectiveMetrics = z.object({
@@ -165,17 +173,29 @@ export const ZDayUpsert = z.object({
 // Individual goal with value and period
 const ZGoalInput = z.object({
   target: z.coerce.number().min(0),
-  period: z.enum(["monthly", "daily"]),
+  period: z.enum(['monthly', 'daily']),
 });
 
 export const ZMonthlyGoalsUpsert = z.object({
-  running_distance_km: z.union([z.coerce.number().min(0), ZGoalInput]).optional(),
+  running_distance_km: z
+    .union([z.coerce.number().min(0), ZGoalInput])
+    .optional(),
   steps: z.union([z.coerce.number().int().min(0), ZGoalInput]).optional(),
-  reading_minutes: z.union([z.coerce.number().int().min(0), ZGoalInput]).optional(),
-  outdoor_minutes: z.union([z.coerce.number().int().min(0), ZGoalInput]).optional(),
-  writing_minutes: z.union([z.coerce.number().int().min(0), ZGoalInput]).optional(),
-  coding_minutes: z.union([z.coerce.number().int().min(0), ZGoalInput]).optional(),
-  focus_minutes: z.union([z.coerce.number().int().min(0), ZGoalInput]).optional(),
+  reading_minutes: z
+    .union([z.coerce.number().int().min(0), ZGoalInput])
+    .optional(),
+  outdoor_minutes: z
+    .union([z.coerce.number().int().min(0), ZGoalInput])
+    .optional(),
+  writing_minutes: z
+    .union([z.coerce.number().int().min(0), ZGoalInput])
+    .optional(),
+  coding_minutes: z
+    .union([z.coerce.number().int().min(0), ZGoalInput])
+    .optional(),
+  focus_minutes: z
+    .union([z.coerce.number().int().min(0), ZGoalInput])
+    .optional(),
 });
 
 // ===== Strava Integration Schemas =====

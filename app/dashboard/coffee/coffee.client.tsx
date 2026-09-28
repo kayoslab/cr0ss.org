@@ -1,16 +1,27 @@
-"use client";
+'use client';
 
-import React from "react";
-import Link from "next/link";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Line } from "@/components/dashboard/charts/shadcn-charts";
-import { CoffeeBarInteractive } from "@/components/dashboard/charts/coffee-bar-interactive";
-import { BrewMethodsRadial } from "@/components/dashboard/charts/brew-methods-radial";
-import { Pie, PieChart, Cell } from "recharts";
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { CHART_COLOR_VALUES } from "@/lib/constants/chart-colors";
+import React from 'react';
+import Link from 'next/link';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Line } from '@/components/dashboard/charts/shadcn-charts';
+import { CoffeeBarInteractive } from '@/components/dashboard/charts/coffee-bar-interactive';
+import { BrewMethodsRadial } from '@/components/dashboard/charts/brew-methods-radial';
+import { Pie, PieChart, Cell } from 'recharts';
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart';
+import { CHART_COLOR_VALUES } from '@/lib/constants/chart-colors';
 
 type CoffeeClientProps = {
   cupsToday: number;
@@ -28,14 +39,14 @@ export default function CoffeeClient({
   dailyCoffee30Days,
 }: CoffeeClientProps) {
   // Check for late caffeine (after 6 PM = 18:00)
-  const lateCaffeineData = caffeineDual.filter(point => {
+  const lateCaffeineData = caffeineDual.filter((point) => {
     const hour = parseInt(point.time.split(':')[0]);
     return hour >= 18 && point.body_mg > 200;
   });
 
   const hasLateCaffeine = lateCaffeineData.length > 0;
   const maxLateCaffeine = hasLateCaffeine
-    ? Math.max(...lateCaffeineData.map(p => p.body_mg))
+    ? Math.max(...lateCaffeineData.map((p) => p.body_mg))
     : 0;
 
   // Check for high daily intake
@@ -49,43 +60,48 @@ export default function CoffeeClient({
   }));
 
   // Create chart config for coffee origins
-  const originsChartConfig: ChartConfig = originsDonut.reduce((acc, item, index) => {
-    acc[item.name] = {
-      label: item.name,
-      color: CHART_COLOR_VALUES[index % CHART_COLOR_VALUES.length],
-    };
-    return acc;
-  }, {} as ChartConfig);
+  const originsChartConfig: ChartConfig = originsDonut.reduce(
+    (acc, item, index) => {
+      acc[item.name] = {
+        label: item.name,
+        color: CHART_COLOR_VALUES[index % CHART_COLOR_VALUES.length],
+      };
+      return acc;
+    },
+    {} as ChartConfig
+  );
 
   return (
-    <div className="space-y-6">
+    <div className='space-y-6'>
       {/* Daily Coffee - Last 30 Days */}
       <CoffeeBarInteractive data={dailyCoffee30Days} />
 
       {/* Health Alerts */}
       {(hasLateCaffeine || highIntake) && (
-        <div className="space-y-3">
+        <div className='space-y-3'>
           {hasLateCaffeine && (
-            <Alert variant="warning">
-              <AlertTitle className="flex items-center gap-2">
+            <Alert variant='warning'>
+              <AlertTitle className='flex items-center gap-2'>
                 ⚠️ High Evening Caffeine
-                <Badge variant="warning">{Math.round(maxLateCaffeine)}mg</Badge>
+                <Badge variant='warning'>{Math.round(maxLateCaffeine)}mg</Badge>
               </AlertTitle>
               <AlertDescription>
-                Body caffeine level of {Math.round(maxLateCaffeine)}mg after 6 PM may affect sleep quality.
-                Consider avoiding coffee after 2 PM for better rest.
+                Body caffeine level of {Math.round(maxLateCaffeine)}mg after 6
+                PM may affect sleep quality. Consider avoiding coffee after 2 PM
+                for better rest.
               </AlertDescription>
             </Alert>
           )}
 
           {highIntake && (
-            <Alert variant="warning">
-              <AlertTitle className="flex items-center gap-2">
+            <Alert variant='warning'>
+              <AlertTitle className='flex items-center gap-2'>
                 ⚠️ High Daily Caffeine Intake
-                <Badge variant="warning">{Math.round(totalIntake)}mg</Badge>
+                <Badge variant='warning'>{Math.round(totalIntake)}mg</Badge>
               </AlertTitle>
               <AlertDescription>
-                Daily caffeine intake of {Math.round(totalIntake)}mg exceeds the FDA recommended maximum of 400mg per day.
+                Daily caffeine intake of {Math.round(totalIntake)}mg exceeds the
+                FDA recommended maximum of 400mg per day.
               </AlertDescription>
             </Alert>
           )}
@@ -93,21 +109,23 @@ export default function CoffeeClient({
       )}
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className='pb-2'>
             <CardDescription>Cups Today</CardDescription>
-            <CardTitle className="text-4xl">{cupsToday}</CardTitle>
+            <CardTitle className='text-4xl'>{cupsToday}</CardTitle>
           </CardHeader>
           <CardContent>
             {cupsToday >= 5 && (
-              <Badge variant="warning">High consumption</Badge>
+              <Badge variant='warning'>High consumption</Badge>
             )}
             {cupsToday === 0 && (
-              <p className="text-sm text-muted-foreground">No coffee yet today</p>
+              <p className='text-muted-foreground text-sm'>
+                No coffee yet today
+              </p>
             )}
             {cupsToday > 0 && cupsToday < 5 && (
-              <p className="text-sm text-muted-foreground">
+              <p className='text-muted-foreground text-sm'>
                 {cupsToday === 1 ? '1 cup' : `${cupsToday} cups`} consumed
               </p>
             )}
@@ -115,13 +133,13 @@ export default function CoffeeClient({
         </Card>
         <BrewMethodsRadial data={methodsBar} />
         <Card>
-          <CardHeader className="pb-4">
+          <CardHeader className='pb-4'>
             <CardTitle>Coffee origins (7d)</CardTitle>
           </CardHeader>
-          <CardContent className="pb-0">
+          <CardContent className='pb-0'>
             <ChartContainer
               config={originsChartConfig}
-              className="mx-auto aspect-square max-h-[250px]"
+              className='mx-auto aspect-square max-h-[250px]'
             >
               <PieChart>
                 <ChartTooltip
@@ -130,13 +148,17 @@ export default function CoffeeClient({
                       hideLabel
                       formatter={(value, name, item) => {
                         return (
-                          <div className="flex items-center gap-2">
+                          <div className='flex items-center gap-2'>
                             <div
-                              className="h-2.5 w-2.5 rounded-full"
+                              className='h-2.5 w-2.5 rounded-full'
                               style={{ backgroundColor: item.payload.fill }}
                             />
-                            <span className="text-muted-foreground">{name}</span>
-                            <span className="ml-auto font-mono font-medium">{value}</span>
+                            <span className='text-muted-foreground'>
+                              {name}
+                            </span>
+                            <span className='ml-auto font-mono font-medium'>
+                              {value}
+                            </span>
                           </div>
                         );
                       }}
@@ -145,19 +167,16 @@ export default function CoffeeClient({
                 />
                 <Pie
                   data={originsDonutWithColor}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
+                  dataKey='value'
+                  nameKey='name'
+                  cx='50%'
+                  cy='50%'
                   innerRadius={60}
                   outerRadius={80}
                   paddingAngle={2}
                 >
                   {originsDonutWithColor.map((entry) => (
-                    <Cell
-                      key={`cell-${entry.name}`}
-                      fill={entry.fill}
-                    />
+                    <Cell key={`cell-${entry.name}`} fill={entry.fill} />
                   ))}
                 </Pie>
               </PieChart>
@@ -169,31 +188,37 @@ export default function CoffeeClient({
       {/* Caffeine Timeline */}
       <div>
         <Line
-          title="Caffeine: intake vs body load (00:00–24:00)"
+          title='Caffeine: intake vs body load (00:00–24:00)'
           data={caffeineDual}
-          index="time"
-          categories={["intake_mg", "body_mg"]}
+          index='time'
+          categories={['intake_mg', 'body_mg']}
         />
-        <p className="mt-2 text-xs text-neutral-500">
-          Intake: caffeine consumed (mg) at that time. Body: modeled remaining caffeine (mg) in body over the day.
+        <p className='mt-2 text-xs text-neutral-500'>
+          Intake: caffeine consumed (mg) at that time. Body: modeled remaining
+          caffeine (mg) in body over the day.
         </p>
       </div>
 
       {/* Link to Collection */}
-      <div className="gap-4">
+      <div className='gap-4'>
         <Link
-          href="/coffee"
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-neutral-900 bg-neutral-100 border border-neutral-200 rounded-lg hover:bg-neutral-200 hover:border-neutral-300 transition-all shadow-sm"
+          href='/coffee'
+          className='inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-100 px-4 py-2 text-sm font-medium text-neutral-900 shadow-sm transition-all hover:border-neutral-300 hover:bg-neutral-200'
         >
           View Coffee Collection
           <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
+            className='h-4 w-4'
+            fill='none'
+            stroke='currentColor'
+            viewBox='0 0 24 24'
+            xmlns='http://www.w3.org/2000/svg'
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            <path
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              strokeWidth={2}
+              d='M9 5l7 7-7 7'
+            />
           </svg>
         </Link>
       </div>

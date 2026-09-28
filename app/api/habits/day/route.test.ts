@@ -34,7 +34,10 @@ vi.mock('@/lib/cache/revalidate', () => ({
 }));
 
 vi.mock('@/lib/obs/trace', () => ({
-  wrapTrace: <T extends (...args: unknown[]) => unknown>(_name: string, fn: T): T => fn,
+  wrapTrace: <T extends (...args: unknown[]) => unknown>(
+    _name: string,
+    fn: T
+  ): T => fn,
 }));
 
 import { rateLimit } from '@/lib/rate/limit';
@@ -81,28 +84,31 @@ describe('GET /api/habits/day', () => {
       const request = new Request('http://localhost:3000/api/habits/day');
       await GET(request);
 
-      expect(rateLimit).toHaveBeenCalledWith(
-        request,
-        'get-day',
-        { windowSec: 60, max: 30 }
-      );
+      expect(rateLimit).toHaveBeenCalledWith(request, 'get-day', {
+        windowSec: 60,
+        max: 30,
+      });
     });
   });
 
   describe('Date Parameter', () => {
     it('should use provided date parameter', async () => {
-      vi.mocked(sql).mockResolvedValue([{
-        date: '2025-01-15',
-        sleep_score: 8,
-        focus_minutes: 120,
-        steps: 10000,
-        reading_minutes: 30,
-        outdoor_minutes: 60,
-        writing_minutes: 45,
-        coding_minutes: 180,
-      }]);
+      vi.mocked(sql).mockResolvedValue([
+        {
+          date: '2025-01-15',
+          sleep_score: 8,
+          focus_minutes: 120,
+          steps: 10000,
+          reading_minutes: 30,
+          outdoor_minutes: 60,
+          writing_minutes: 45,
+          coding_minutes: 180,
+        },
+      ]);
 
-      const request = new Request('http://localhost:3000/api/habits/day?date=2025-01-15');
+      const request = new Request(
+        'http://localhost:3000/api/habits/day?date=2025-01-15'
+      );
       const response = await GET(request);
 
       expect(response.status).toBe(200);
@@ -113,7 +119,9 @@ describe('GET /api/habits/day', () => {
     it('should return zero values when no data exists for date', async () => {
       vi.mocked(sql).mockResolvedValue([]);
 
-      const request = new Request('http://localhost:3000/api/habits/day?date=2025-01-20');
+      const request = new Request(
+        'http://localhost:3000/api/habits/day?date=2025-01-20'
+      );
       const response = await GET(request);
 
       expect(response.status).toBe(200);
@@ -216,16 +224,18 @@ describe('POST /api/habits/day', () => {
   describe('Partial Updates', () => {
     it('should allow updating only sleep_score', async () => {
       vi.mocked(sql).mockResolvedValueOnce(undefined as unknown as never); // INSERT
-      vi.mocked(sql).mockResolvedValueOnce([{
-        date: '2025-01-15',
-        sleep_score: 9,
-        focus_minutes: 0,
-        steps: 0,
-        reading_minutes: 0,
-        outdoor_minutes: 0,
-        writing_minutes: 0,
-        coding_minutes: 0,
-      }]);
+      vi.mocked(sql).mockResolvedValueOnce([
+        {
+          date: '2025-01-15',
+          sleep_score: 9,
+          focus_minutes: 0,
+          steps: 0,
+          reading_minutes: 0,
+          outdoor_minutes: 0,
+          writing_minutes: 0,
+          coding_minutes: 0,
+        },
+      ]);
 
       const request = new Request('http://localhost:3000/api/habits/day', {
         method: 'POST',
@@ -241,16 +251,18 @@ describe('POST /api/habits/day', () => {
 
     it('should allow updating multiple fields', async () => {
       vi.mocked(sql).mockResolvedValueOnce(undefined as unknown as never);
-      vi.mocked(sql).mockResolvedValueOnce([{
-        date: '2025-01-15',
-        sleep_score: 8,
-        focus_minutes: 180,
-        steps: 12000,
-        reading_minutes: 45,
-        outdoor_minutes: 90,
-        writing_minutes: 60,
-        coding_minutes: 240,
-      }]);
+      vi.mocked(sql).mockResolvedValueOnce([
+        {
+          date: '2025-01-15',
+          sleep_score: 8,
+          focus_minutes: 180,
+          steps: 12000,
+          reading_minutes: 45,
+          outdoor_minutes: 90,
+          writing_minutes: 60,
+          coding_minutes: 240,
+        },
+      ]);
 
       const request = new Request('http://localhost:3000/api/habits/day', {
         method: 'POST',

@@ -22,7 +22,7 @@ describe('Badge', () => {
 
   describe('variants', () => {
     it('should render primary variant', () => {
-      const { getByText } = render(<Badge variant="primary">Primary</Badge>);
+      const { getByText } = render(<Badge variant='primary'>Primary</Badge>);
       const badge = getByText('Primary');
 
       expect(badge).toHaveClass('bg-blue-100');
@@ -30,7 +30,9 @@ describe('Badge', () => {
     });
 
     it('should render secondary variant', () => {
-      const { getByText } = render(<Badge variant="secondary">Secondary</Badge>);
+      const { getByText } = render(
+        <Badge variant='secondary'>Secondary</Badge>
+      );
       const badge = getByText('Secondary');
 
       expect(badge).toHaveClass('bg-gray-600');
@@ -38,7 +40,7 @@ describe('Badge', () => {
     });
 
     it('should render success variant', () => {
-      const { getByText } = render(<Badge variant="success">Success</Badge>);
+      const { getByText } = render(<Badge variant='success'>Success</Badge>);
       const badge = getByText('Success');
 
       expect(badge).toHaveClass('bg-green-100');
@@ -46,7 +48,7 @@ describe('Badge', () => {
     });
 
     it('should render warning variant', () => {
-      const { getByText } = render(<Badge variant="warning">Warning</Badge>);
+      const { getByText } = render(<Badge variant='warning'>Warning</Badge>);
       const badge = getByText('Warning');
 
       expect(badge).toHaveClass('bg-yellow-100');
@@ -54,7 +56,7 @@ describe('Badge', () => {
     });
 
     it('should render danger variant', () => {
-      const { getByText } = render(<Badge variant="danger">Danger</Badge>);
+      const { getByText } = render(<Badge variant='danger'>Danger</Badge>);
       const badge = getByText('Danger');
 
       expect(badge).toHaveClass('bg-red-100');
@@ -62,7 +64,7 @@ describe('Badge', () => {
     });
 
     it('should render outline variant', () => {
-      const { getByText } = render(<Badge variant="outline">Outline</Badge>);
+      const { getByText } = render(<Badge variant='outline'>Outline</Badge>);
       const badge = getByText('Outline');
 
       expect(badge).toHaveClass('border');
@@ -73,7 +75,7 @@ describe('Badge', () => {
 
   describe('sizes', () => {
     it('should render small size', () => {
-      const { getByText } = render(<Badge size="sm">Small</Badge>);
+      const { getByText } = render(<Badge size='sm'>Small</Badge>);
       const badge = getByText('Small');
 
       expect(badge).toHaveClass('px-2');
@@ -82,7 +84,7 @@ describe('Badge', () => {
     });
 
     it('should render medium size (default)', () => {
-      const { getByText } = render(<Badge size="md">Medium</Badge>);
+      const { getByText } = render(<Badge size='md'>Medium</Badge>);
       const badge = getByText('Medium');
 
       expect(badge).toHaveClass('px-2.5');
@@ -91,7 +93,7 @@ describe('Badge', () => {
     });
 
     it('should render large size', () => {
-      const { getByText } = render(<Badge size="lg">Large</Badge>);
+      const { getByText } = render(<Badge size='lg'>Large</Badge>);
       const badge = getByText('Large');
 
       expect(badge).toHaveClass('px-3');
@@ -118,7 +120,7 @@ describe('Badge', () => {
 
     it('should merge custom className', () => {
       const { getByText } = render(
-        <Badge className="custom-class">Custom</Badge>
+        <Badge className='custom-class'>Custom</Badge>
       );
       const badge = getByText('Custom');
 
@@ -135,7 +137,7 @@ describe('Badge', () => {
 
     it('should pass through HTML attributes', () => {
       const { getByText } = render(
-        <Badge data-testid="test-badge" title="Tooltip text">
+        <Badge data-testid='test-badge' title='Tooltip text'>
           Attributes
         </Badge>
       );
@@ -147,20 +149,31 @@ describe('Badge', () => {
 
     it('should support aria attributes', () => {
       const { getByText } = render(
-        <Badge aria-label="Status indicator">Active</Badge>
+        <Badge aria-label='Status indicator'>Active</Badge>
       );
 
-      expect(getByText('Active')).toHaveAttribute('aria-label', 'Status indicator');
+      expect(getByText('Active')).toHaveAttribute(
+        'aria-label',
+        'Status indicator'
+      );
     });
   });
 
   describe('combinations', () => {
     it('should support all variant and size combinations', () => {
-      const variants = ['default', 'primary', 'secondary', 'success', 'warning', 'danger', 'outline'] as const;
+      const variants = [
+        'default',
+        'primary',
+        'secondary',
+        'success',
+        'warning',
+        'danger',
+        'outline',
+      ] as const;
       const sizes = ['sm', 'md', 'lg'] as const;
 
-      variants.forEach(variant => {
-        sizes.forEach(size => {
+      variants.forEach((variant) => {
+        sizes.forEach((size) => {
           const { getByText } = render(
             <Badge variant={variant} size={size}>
               {variant}-{size}

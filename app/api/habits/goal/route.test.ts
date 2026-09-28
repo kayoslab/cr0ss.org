@@ -30,7 +30,10 @@ vi.mock('@/lib/cache/revalidate', () => ({
 }));
 
 vi.mock('@/lib/obs/trace', () => ({
-  wrapTrace: <T extends (...args: unknown[]) => unknown>(_name: string, fn: T): T => fn,
+  wrapTrace: <T extends (...args: unknown[]) => unknown>(
+    _name: string,
+    fn: T
+  ): T => fn,
 }));
 
 import { rateLimit } from '@/lib/rate/limit';
@@ -77,11 +80,10 @@ describe('GET /api/habits/goal', () => {
       const request = new Request('http://localhost:3000/api/habits/goal');
       await GET(request);
 
-      expect(rateLimit).toHaveBeenCalledWith(
-        request,
-        'get-goal',
-        { windowSec: 60, max: 30 }
-      );
+      expect(rateLimit).toHaveBeenCalledWith(request, 'get-goal', {
+        windowSec: 60,
+        max: 30,
+      });
     });
   });
 
@@ -147,7 +149,10 @@ describe('GET /api/habits/goal', () => {
 
       expect(response.status).toBe(200);
       const data = await response.json();
-      expect(data.running_distance_km).toEqual({ target: 100, period: 'monthly' });
+      expect(data.running_distance_km).toEqual({
+        target: 100,
+        period: 'monthly',
+      });
       expect(data.steps).toEqual({ target: 400000, period: 'daily' });
       expect(data.reading_minutes).toEqual({ target: 800, period: 'daily' });
       expect(data.outdoor_minutes).toEqual({ target: 600, period: 'daily' });

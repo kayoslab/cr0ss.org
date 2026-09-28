@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { BLOCKS, INLINES, MARKS, type Document } from '@contentful/rich-text-types';
+import {
+  BLOCKS,
+  INLINES,
+  MARKS,
+  type Document,
+} from '@contentful/rich-text-types';
 import { richTextToMarkdown } from './rich-text-markdown';
 import type { ContentfulLinks } from './rich-text-renderer';
 
@@ -59,7 +64,10 @@ describe('richTextToMarkdown', () => {
           ]),
           block(BLOCKS.LIST_ITEM, [paragraph(text('second'))]),
         ]),
-        block(BLOCKS.QUOTE, [paragraph(text('quoted')), paragraph(text('twice'))])
+        block(BLOCKS.QUOTE, [
+          paragraph(text('quoted')),
+          paragraph(text('twice')),
+        ])
       )
     );
 

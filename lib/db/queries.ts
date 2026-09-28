@@ -1,32 +1,42 @@
-import { sql } from "@/lib/db/client";
-import { z } from "zod";
+import { sql } from '@/lib/db/client';
+import { z } from 'zod';
 import {
-  ZBrewMethodsToday, ZConsistency,
-  ZTrend, ZScatter, ZBlocks, ZStreak, ZMonthlyProgress, ZPaceSeries, ZHeat,
+  ZBrewMethodsToday,
+  ZConsistency,
+  ZTrend,
+  ZScatter,
+  ZBlocks,
+  ZStreak,
+  ZMonthlyProgress,
+  ZPaceSeries,
+  ZHeat,
   ZDayHabits,
-} from "./models";
-import { getCoffees } from "../contentful/api/coffee";
+} from './models';
+import { getCoffees } from '../contentful/api/coffee';
 
 // ---- Morning Brew
 export async function qBrewMethodsToday() {
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     select type::text, count(*)::int as count
     from coffee_log
     where date = current_date
     group by type
     order by count desc
   `;
-  return ZBrewMethodsToday.parse(rows.map(r => ({ type: r.type, count: Number(r.count) })));
+  return ZBrewMethodsToday.parse(
+    rows.map((r) => ({ type: r.type, count: Number(r.count) }))
+  );
 }
 
 export async function qCupsToday() {
-  const [{ cups }] = await sql/*sql*/`select count(*)::int as cups from coffee_log where date = current_date`;
+  const [{ cups }] =
+    await sql /*sql*/ `select count(*)::int as cups from coffee_log where date = current_date`;
   return Number(cups) || 0;
 }
 
 // Weekly origins via Contentful IDs on brews
 export async function qCoffeeOriginThisWeek() {
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     select coffee_cf_id, count(*)::int as count
     from coffee_log
     where date >= current_date - interval '6 days'
@@ -39,7 +49,12 @@ export async function qCoffeeOriginThisWeek() {
     count: number;
   }
 
-  const idCounts = new Map<string, number>(rows.map((r) => [String((r as CoffeeCountRow).coffee_cf_id), Number((r as CoffeeCountRow).count)]));
+  const idCounts = new Map<string, number>(
+    rows.map((r) => [
+      String((r as CoffeeCountRow).coffee_cf_id),
+      Number((r as CoffeeCountRow).count),
+    ])
+  );
   if (idCounts.size === 0) return [] as { name: string; value: number }[];
 
   const coffees = await getCoffees(Array.from(idCounts.keys()) as [string]);
@@ -48,13 +63,16 @@ export async function qCoffeeOriginThisWeek() {
   const byCountry = new Map<string, number>();
 
   for (const [cid, n] of Array.from(idCounts.entries())) {
-    const coffee = coffees.items.find(c => c.sys?.id === cid);
-    const countryName = coffee?.country?.name ?? "Unknown";
+    const coffee = coffees.items.find((c) => c.sys?.id === cid);
+    const countryName = coffee?.country?.name ?? 'Unknown';
     byCountry.set(countryName, (byCountry.get(countryName) ?? 0) + n);
   }
 
-  const out = Array.from(byCountry.entries()).map(([name, value]) => ({ name, value }));
-  out.sort((a,b)=> b.value - a.value);
+  const out = Array.from(byCountry.entries()).map(([name, value]) => ({
+    name,
+    value,
+  }));
+  out.sort((a, b) => b.value - a.value);
   return out;
 }
 
@@ -73,10 +91,11 @@ export async function qCoffeeEventsForDayWithLookback(
   lookbackHours: number,
   filterDecaf = true
 ) {
-  const startMs = Date.parse(dayStartISO) - Math.max(0, lookbackHours) * 3600_000;
+  const startMs =
+    Date.parse(dayStartISO) - Math.max(0, lookbackHours) * 3600_000;
   const lookbackStartISO = new Date(startMs).toISOString();
 
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     select time, type, amount_ml, coffee_cf_id::text as coffee_cf_id
     from coffee_log
     where time >= ${lookbackStartISO}::timestamptz
@@ -104,7 +123,11 @@ export async function qCoffeeEventsForDayWithLookback(
   if (filterDecaf) {
     // Resolve only linked bags (ignore "0" or empty → treated as caffeinated)
     const ids = Array.from(
-      new Set(events.map(e => e.coffee_cf_id).filter((x): x is string => !!x && x !== "0"))
+      new Set(
+        events
+          .map((e) => e.coffee_cf_id)
+          .filter((x): x is string => !!x && x !== '0')
+      )
     );
 
     if (ids.length > 0) {
@@ -113,24 +136,29 @@ export async function qCoffeeEventsForDayWithLookback(
       // Adjust this accessor if your Contentful model stores the flag under fields.decaffeinated
       const decafIds = new Set(
         items
-          .filter((c) => c?.decaffeinated === true || c?.fields?.decaffeinated === true)
+          .filter(
+            (c) =>
+              c?.decaffeinated === true || c?.fields?.decaffeinated === true
+          )
           .map((c) => c?.sys?.id)
           .filter((id): id is string => Boolean(id))
       );
 
-      events = events.filter(e => !(e.coffee_cf_id && decafIds.has(e.coffee_cf_id)));
+      events = events.filter(
+        (e) => !(e.coffee_cf_id && decafIds.has(e.coffee_cf_id))
+      );
     }
   }
 
   // Strip the helper field before returning and validate
-   
+
   const out = events.map(({ coffee_cf_id, ...rest }) => rest);
   return z.array(ZCoffeeEvent).parse(out);
 }
 
 // ---- Daily Habits
 export async function qHabitsToday() {
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     select
       to_char(date,'YYYY-MM-DD') as date,
       steps, reading_minutes, outdoor_minutes, writing_minutes, coding_minutes,
@@ -140,8 +168,8 @@ export async function qHabitsToday() {
     limit 1
   `;
   const r = rows[0] ?? {
-    date: new Date().toISOString().slice(0,10),
-    steps: 0, 
+    date: new Date().toISOString().slice(0, 10),
+    steps: 0,
     reading_minutes: 0,
     outdoor_minutes: 0,
     writing_minutes: 0,
@@ -152,7 +180,7 @@ export async function qHabitsToday() {
 }
 
 export async function qHabitConsistencyThisWeek() {
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     select
       to_char(date,'YYYY-MM-DD') as date,
       steps, reading_minutes, outdoor_minutes, writing_minutes, coding_minutes
@@ -181,29 +209,29 @@ export async function qHabitConsistencyThisWeek() {
 
   const total = Math.max(1, days.length);
   const kept = {
-    Steps: days.filter(d=> d.steps >= 8000).length,
-    Reading: days.filter(d=> d.read >= 30).length,
-    Outdoors: days.filter(d=> d.outdoor >= 30).length,
-    Writing: days.filter(d=> d.write >= 30).length,
-    Coding: days.filter(d=> d.code >= 30).length,
+    Steps: days.filter((d) => d.steps >= 8000).length,
+    Reading: days.filter((d) => d.read >= 30).length,
+    Outdoors: days.filter((d) => d.outdoor >= 30).length,
+    Writing: days.filter((d) => d.write >= 30).length,
+    Coding: days.filter((d) => d.code >= 30).length,
   };
   const arr = [
-    { name: "Steps", kept: kept.Steps, total },
-    { name: "Reading", kept: kept.Reading, total },
-    { name: "Outdoors", kept: kept.Outdoors, total },
-    { name: "Writing", kept: kept.Writing, total },
-    { name: "Coding", kept: kept.Coding, total },
+    { name: 'Steps', kept: kept.Steps, total },
+    { name: 'Reading', kept: kept.Reading, total },
+    { name: 'Outdoors', kept: kept.Outdoors, total },
+    { name: 'Writing', kept: kept.Writing, total },
+    { name: 'Coding', kept: kept.Coding, total },
   ];
   return ZConsistency.parse(arr);
 }
 
-export async function qWritingVsFocusTrend(days=14) {
+export async function qWritingVsFocusTrend(days = 14) {
   const start = new Date();
-  start.setUTCHours(0,0,0,0);
-  start.setDate(start.getDate() - (days-1));
-  const startStr = start.toISOString().slice(0,10);
+  start.setUTCHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - (days - 1));
+  const startStr = start.toISOString().slice(0, 10);
 
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     select to_char(date,'YYYY-MM-DD') as date,
            coalesce(writing_minutes,0)::int as writing_minutes,
            coalesce(focus_minutes,0)::int as focus_minutes
@@ -217,14 +245,16 @@ export async function qWritingVsFocusTrend(days=14) {
     focus_minutes: number;
   }
 
-  return ZTrend.parse(rows.map((r) => {
-    const row = r as TrendRow;
-    return {
-      date: row.date,
-      writing_minutes: Number(row.writing_minutes),
-      focus_minutes: Number(row.focus_minutes)
-    };
-  }));
+  return ZTrend.parse(
+    rows.map((r) => {
+      const row = r as TrendRow;
+      return {
+        date: row.date,
+        writing_minutes: Number(row.writing_minutes),
+        focus_minutes: Number(row.focus_minutes),
+      };
+    })
+  );
 }
 
 // ---- Focus & Flow
@@ -234,7 +264,7 @@ export async function qSleepVsFocusScatter(days = 30) {
   start.setDate(start.getDate() - (days - 1));
   const startStr = start.toISOString().slice(0, 10);
 
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     select to_char(date,'YYYY-MM-DD') as date,
            coalesce(sleep_score,0)::int as sleep_score,
            coalesce(focus_minutes,0)::int as focus_minutes
@@ -248,18 +278,20 @@ export async function qSleepVsFocusScatter(days = 30) {
     focus_minutes: number;
   }
 
-  return ZScatter.parse(rows.map((r) => {
-    const row = r as ScatterRow;
-    return {
-      date: row.date,
-      sleep_score: Number(row.sleep_score),
-      focus_minutes: Number(row.focus_minutes),
-    };
-  }));
+  return ZScatter.parse(
+    rows.map((r) => {
+      const row = r as ScatterRow;
+      return {
+        date: row.date,
+        sleep_score: Number(row.sleep_score),
+        focus_minutes: Number(row.focus_minutes),
+      };
+    })
+  );
 }
 
 export async function qCoffeeInRange(startISO: string, endISO: string) {
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     select date::date as date, time, type::text as type, coalesce(amount_ml,0)::int as amount_ml
     from coffee_log
     where time >= ${startISO}::timestamptz
@@ -285,7 +317,7 @@ export async function qCoffeeInRange(startISO: string, endISO: string) {
 }
 
 export async function qDeepWorkBlocksThisWeek() {
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     select to_char(date,'YYYY-MM-DD') as date, coalesce(focus_minutes,0)::int as focus
     from days
     where date >= current_date - interval '6 days'
@@ -305,24 +337,25 @@ export async function qDeepWorkBlocksThisWeek() {
 
 // Start of current month in Europe/Berlin (as DATE)
 async function currentMonthStart(): Promise<string> {
-  const [{ month_start }] = await sql/*sql*/`
+  const [{ month_start }] = await sql /*sql*/ `
     SELECT (date_trunc('month', timezone('Europe/Berlin', now()))::date) AS month_start
   `;
   return month_start as string; // e.g. "2025-09-01"
 }
 
 // Read a monthly goal by kind for the current month; default 0 if missing
-async function currentGoal(kind:
-  | 'focus_minutes'
-  | 'running_distance_km'
-  | 'steps'
-  | 'reading_minutes'
-  | 'outdoor_minutes'
-  | 'writing_minutes'
-  | 'coding_minutes'
+async function currentGoal(
+  kind:
+    | 'focus_minutes'
+    | 'running_distance_km'
+    | 'steps'
+    | 'reading_minutes'
+    | 'outdoor_minutes'
+    | 'writing_minutes'
+    | 'coding_minutes'
 ): Promise<number> {
   const monthStart = await currentMonthStart();
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     SELECT target::numeric AS target
     FROM monthly_goals
     WHERE month = ${monthStart}::date AND kind = ${kind}::goal_kind
@@ -333,7 +366,7 @@ async function currentGoal(kind:
 
 export async function qFocusStreak(target?: number) {
   const threshold = target ?? (await currentGoal('focus_minutes')); // default to DB goal (or 0)
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     SELECT date, coalesce(focus_minutes,0)::int AS focus
     FROM days
     WHERE date <= current_date
@@ -355,7 +388,7 @@ export async function qFocusStreak(target?: number) {
 }
 
 export async function qRunningMonthlyProgress() {
-  const [progress] = await sql/*sql*/`
+  const [progress] = await sql /*sql*/ `
     WITH m AS (
       SELECT date_trunc('month', timezone('Europe/Berlin', now()))::date AS month_start
     )
@@ -374,8 +407,8 @@ export async function qRunningMonthlyProgress() {
     FROM m
   `;
   const target = Number(progress.target_km);
-  const total  = Number(progress.total_km);
-  const pct    = target > 0 ? Math.min(1, total / target) : 0;
+  const total = Number(progress.total_km);
+  const pct = target > 0 ? Math.min(1, total / target) : 0;
 
   return ZMonthlyProgress.parse({
     month: progress.month,
@@ -386,8 +419,8 @@ export async function qRunningMonthlyProgress() {
   });
 }
 
-export async function qPaceLastRuns(limit=10) {
-  const rows = await sql/*sql*/`
+export async function qPaceLastRuns(limit = 10) {
+  const rows = await sql /*sql*/ `
     select to_char(date,'YYYY-MM-DD') as date,
            coalesce((details->>'avg_pace_sec_per_km')::int, 0) as avg_pace_sec_per_km
     from workouts
@@ -401,10 +434,15 @@ export async function qPaceLastRuns(limit=10) {
     avg_pace_sec_per_km: number;
   }
 
-  const data = rows.map((r) => {
-    const row = r as PaceRow;
-    return { date: row.date, avg_pace_sec_per_km: Number(row.avg_pace_sec_per_km) };
-  }).reverse();
+  const data = rows
+    .map((r) => {
+      const row = r as PaceRow;
+      return {
+        date: row.date,
+        avg_pace_sec_per_km: Number(row.avg_pace_sec_per_km),
+      };
+    })
+    .reverse();
   return ZPaceSeries.parse(data);
 }
 
@@ -414,7 +452,7 @@ export async function qRunningHeatmap(days = 42) {
   start.setDate(start.getDate() - (days - 1));
   const startStr = start.toISOString().slice(0, 10);
 
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     select to_char(date,'YYYY-MM-DD') as date,
            coalesce(sum((details->>'distance_km')::numeric),0)::numeric as km
     from workouts
@@ -428,10 +466,12 @@ export async function qRunningHeatmap(days = 42) {
     km: number;
   }
 
-  const byDate = new Map(rows.map((r) => {
-    const row = r as HeatmapRow;
-    return [row.date, Number(row.km)] as [string, number];
-  }));
+  const byDate = new Map(
+    rows.map((r) => {
+      const row = r as HeatmapRow;
+      return [row.date, Number(row.km)] as [string, number];
+    })
+  );
 
   const today = new Date();
   const out = Array.from({ length: days }, (_, i) => {
@@ -448,11 +488,11 @@ export async function qMonthlyGoalsObject(): Promise<{
   monthly: Record<string, number>;
   daily: Record<string, number>;
 }> {
-  const [{ month_start }] = await sql/*sql*/`
+  const [{ month_start }] = await sql /*sql*/ `
     SELECT (date_trunc('month', timezone('Europe/Berlin', now()))::date) AS month_start
   `;
 
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     SELECT kind::text, target::numeric, period::text
     FROM monthly_goals
     WHERE month = ${month_start}::date
@@ -460,7 +500,6 @@ export async function qMonthlyGoalsObject(): Promise<{
 
   const monthly: Record<string, number> = {};
   const daily: Record<string, number> = {};
-
 
   interface GoalRow {
     kind: string;
@@ -500,7 +539,7 @@ export async function qWorkoutHeatmap(days = 42) {
   start.setDate(start.getDate() - (days - 1));
   const startStr = start.toISOString().slice(0, 10);
 
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     select to_char(date,'YYYY-MM-DD') as date,
            workout_type,
            coalesce(sum(duration_min), 0)::int as duration_min
@@ -516,7 +555,10 @@ export async function qWorkoutHeatmap(days = 42) {
   }
 
   // Group by date, keeping individual workout types and durations
-  const byDate = new Map<string, Array<{ type: string; duration_min: number }>>();
+  const byDate = new Map<
+    string,
+    Array<{ type: string; duration_min: number }>
+  >();
 
   for (const r of rows) {
     const row = r as HeatmapRow;
@@ -526,7 +568,7 @@ export async function qWorkoutHeatmap(days = 42) {
     }
     byDate.get(date)!.push({
       type: String(row.workout_type),
-      duration_min: Number(row.duration_min)
+      duration_min: Number(row.duration_min),
     });
   }
 
@@ -541,18 +583,24 @@ export async function qWorkoutHeatmap(days = 42) {
     return {
       date: key,
       duration_min: total_duration,
-      workouts: workouts
+      workouts: workouts,
     };
   });
 
-  return z.array(z.object({
-    date: z.string(),
-    duration_min: z.number().int().min(0),
-    workouts: z.array(z.object({
-      type: z.string(),
-      duration_min: z.number().int().min(0)
-    }))
-  })).parse(out);
+  return z
+    .array(
+      z.object({
+        date: z.string(),
+        duration_min: z.number().int().min(0),
+        workouts: z.array(
+          z.object({
+            type: z.string(),
+            duration_min: z.number().int().min(0),
+          })
+        ),
+      })
+    )
+    .parse(out);
 }
 
 /**
@@ -565,14 +613,14 @@ export async function qWorkoutTypesPresent(days = 42) {
   start.setDate(start.getDate() - (days - 1));
   const startStr = start.toISOString().slice(0, 10);
 
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     select distinct workout_type
     from workouts
     where date >= ${startStr}::date
     order by workout_type
   `;
 
-  return rows.map(r => String(r.workout_type));
+  return rows.map((r) => String(r.workout_type));
 }
 
 /**
@@ -585,7 +633,7 @@ export async function qWorkoutStatsByType(workoutType: string, days = 42) {
   start.setDate(start.getDate() - (days - 1));
   const startStr = start.toISOString().slice(0, 10);
 
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     select
       count(*)::int as count,
       coalesce(sum(duration_min), 0)::int as total_duration_min,
@@ -610,7 +658,7 @@ export async function qWorkoutStatsByType(workoutType: string, days = 42) {
  */
 export async function qHabitStreaks() {
   // Get the last 365 days of data to calculate streaks
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     select
       date,
       steps,
@@ -660,14 +708,24 @@ export async function qHabitStreaks() {
     return { current, longest };
   };
 
-  const habitData = rows.map(r => r as HabitRow);
+  const habitData = rows.map((r) => r as HabitRow);
 
   return {
-    reading: calculateStreak(habitData.map(d => (d.reading_minutes || 0) >= thresholds.reading)),
-    outdoor: calculateStreak(habitData.map(d => (d.outdoor_minutes || 0) >= thresholds.outdoor)),
-    writing: calculateStreak(habitData.map(d => (d.writing_minutes || 0) >= thresholds.writing)),
-    coding: calculateStreak(habitData.map(d => (d.coding_minutes || 0) >= thresholds.coding)),
-    steps: calculateStreak(habitData.map(d => (d.steps || 0) >= thresholds.steps)),
+    reading: calculateStreak(
+      habitData.map((d) => (d.reading_minutes || 0) >= thresholds.reading)
+    ),
+    outdoor: calculateStreak(
+      habitData.map((d) => (d.outdoor_minutes || 0) >= thresholds.outdoor)
+    ),
+    writing: calculateStreak(
+      habitData.map((d) => (d.writing_minutes || 0) >= thresholds.writing)
+    ),
+    coding: calculateStreak(
+      habitData.map((d) => (d.coding_minutes || 0) >= thresholds.coding)
+    ),
+    steps: calculateStreak(
+      habitData.map((d) => (d.steps || 0) >= thresholds.steps)
+    ),
   };
 }
 
@@ -682,7 +740,7 @@ export async function qWorkoutStreaks(days = 365) {
   const startStr = start.toISOString().slice(0, 10);
 
   // Get all dates with workouts
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     select date, sum(duration_min)::int as total_duration
     from workouts
     where date >= ${startStr}::date
@@ -695,7 +753,9 @@ export async function qWorkoutStreaks(days = 365) {
     total_duration: number;
   }
 
-  const workoutDates = new Set(rows.map(r => (r as WorkoutRow).date.toISOString().slice(0, 10)));
+  const workoutDates = new Set(
+    rows.map((r) => (r as WorkoutRow).date.toISOString().slice(0, 10))
+  );
 
   // Generate all dates in range
   const allDates: string[] = [];
@@ -730,7 +790,7 @@ export async function qWorkoutStreaks(days = 365) {
  */
 export async function qRunningPersonalRecords() {
   // Get all running workouts with distance and duration
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     select
       date,
       duration_min,
@@ -754,7 +814,7 @@ export async function qRunningPersonalRecords() {
     return null;
   }
 
-  const runs = rows.map(r => r as RunningRow);
+  const runs = rows.map((r) => r as RunningRow);
 
   // Find longest run
   const longestRun = runs.reduce((max, run) =>
@@ -762,12 +822,15 @@ export async function qRunningPersonalRecords() {
   );
 
   // Find fastest pace (lowest sec/km)
-  const runsWithPace = runs.filter(r => r.avg_pace_sec_per_km && r.avg_pace_sec_per_km > 0);
-  const fastestPace = runsWithPace.length > 0
-    ? runsWithPace.reduce((min, run) =>
-        run.avg_pace_sec_per_km! < min.avg_pace_sec_per_km! ? run : min
-      )
-    : null;
+  const runsWithPace = runs.filter(
+    (r) => r.avg_pace_sec_per_km && r.avg_pace_sec_per_km > 0
+  );
+  const fastestPace =
+    runsWithPace.length > 0
+      ? runsWithPace.reduce((min, run) =>
+          run.avg_pace_sec_per_km! < min.avg_pace_sec_per_km! ? run : min
+        )
+      : null;
 
   return {
     longestRun: {
@@ -775,12 +838,14 @@ export async function qRunningPersonalRecords() {
       date: longestRun.date.toISOString().slice(0, 10),
       duration_min: Number(longestRun.duration_min),
     },
-    fastestPace: fastestPace ? {
-      pace_min_per_km: Number(fastestPace.avg_pace_sec_per_km) / 60,
-      pace_sec_per_km: Number(fastestPace.avg_pace_sec_per_km),
-      date: fastestPace.date.toISOString().slice(0, 10),
-      distance_km: Number(fastestPace.distance_km),
-    } : null,
+    fastestPace: fastestPace
+      ? {
+          pace_min_per_km: Number(fastestPace.avg_pace_sec_per_km) / 60,
+          pace_sec_per_km: Number(fastestPace.avg_pace_sec_per_km),
+          date: fastestPace.date.toISOString().slice(0, 10),
+          distance_km: Number(fastestPace.distance_km),
+        }
+      : null,
   };
 }
 
@@ -789,7 +854,7 @@ export async function qRunningPersonalRecords() {
  * Shows which days you drink the most coffee
  */
 export async function qCoffeeWeeklyRhythm(weeks = 12) {
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     select
       extract(dow from date)::int as day_of_week,
       count(*)::int as cup_count,
@@ -806,9 +871,17 @@ export async function qCoffeeWeeklyRhythm(weeks = 12) {
     avg_hour: number;
   }
 
-  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const dayNames = [
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+  ];
 
-  return rows.map(r => {
+  return rows.map((r) => {
     const row = r as RhythmRow;
     return {
       day: dayNames[row.day_of_week],
@@ -824,7 +897,7 @@ export async function qCoffeeWeeklyRhythm(weeks = 12) {
  * Returns one row per day with cup count
  */
 export async function qCoffeeLast30Days(days = 30) {
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     WITH date_range AS (
       SELECT generate_series(
         current_date - interval '1 day' * (${days} - 1),
@@ -846,7 +919,7 @@ export async function qCoffeeLast30Days(days = 30) {
     cups: number;
   }
 
-  return rows.map(r => {
+  return rows.map((r) => {
     const row = r as DailyCoffeeRow;
     return {
       date: row.date.toISOString().split('T')[0], // YYYY-MM-DD format

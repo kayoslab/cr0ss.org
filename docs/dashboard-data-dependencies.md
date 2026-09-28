@@ -1,7 +1,9 @@
 # Dashboard Data Dependencies Analysis
 
 ## Overview Page (`/dashboard`)
+
 **Data Used:**
+
 - `cupsToday` - Coffee cups today
 - `habitsToday.steps` - Steps today
 - `habitsToday.reading_minutes` - Reading minutes today
@@ -14,7 +16,9 @@
 **Not Used:** caffeineSeries, brewMethodsToday, coffeeOriginThisWeek, workoutStats, etc.
 
 ## Coffee Page (`/dashboard/coffee`)
+
 **Data Used:**
+
 - `cupsToday` - Cups consumed today
 - `brewMethodsToday` - Brew methods with counts
 - `coffeeOriginThisWeek` - Coffee origins (7 days)
@@ -24,7 +28,9 @@
 **Not Used:** habits, workouts, running data
 
 ## Travel Page (`/dashboard/travel`)
+
 **Data Used:**
+
 - **NONE from getDashboardData()**
 - All data from Contentful (countries, visited)
 - Location data (separate query)
@@ -32,7 +38,9 @@
 **Not Used:** Everything from getDashboardData()
 
 ## Workouts Page (`/dashboard/workouts`)
+
 **Data Used:**
+
 - `workoutTypes` - Types of workouts present
 - `workoutStats` - Stats by type
 - `workoutHeatmap` - 60-day heatmap
@@ -42,7 +50,9 @@
 **Not Used:** coffee, habits (except workouts), caffeine data
 
 ## Habits Page (`/dashboard/habits`)
+
 **Data Used:**
+
 - `monthlyGoals.*` - All monthly goals
 - `habitsToday.*` - All today's habits
 - `habitsConsistency` - Weekly consistency
@@ -55,6 +65,7 @@
 ---
 
 ## Shared Data (Multiple Pages)
+
 - `monthlyGoals` - Used by Overview, Habits
 - `habitsToday` - Used by Overview, Habits
 - `runningProgress` - Used by Overview (implicitly via workouts)
@@ -65,7 +76,9 @@
 ## Optimization Strategy
 
 ### Shared Data Module
+
 Create `lib/db/dashboard/shared.ts` for data used by multiple pages:
+
 - `getMonthlyGoals()` - cached separately
 - `getHabitsToday()` - cached separately
 
@@ -97,17 +110,18 @@ Create `lib/db/dashboard/shared.ts` for data used by multiple pages:
 
 ```typescript
 export const CACHE_TAGS = {
-  DASHBOARD: 'dashboard',        // Keep for overview page
-  COFFEE: 'coffee',               // Coffee-specific
-  HABITS: 'habits',               // Habits-specific
-  WORKOUTS: 'workouts',           // Workouts-specific
-  SHARED: 'dashboard-shared',     // Shared data (goals, today)
-}
+  DASHBOARD: 'dashboard', // Keep for overview page
+  COFFEE: 'coffee', // Coffee-specific
+  HABITS: 'habits', // Habits-specific
+  WORKOUTS: 'workouts', // Workouts-specific
+  SHARED: 'dashboard-shared', // Shared data (goals, today)
+};
 ```
 
 ## Cache Invalidation Strategy
 
 **POST Endpoints:**
+
 - `/api/habits/coffee` → Invalidate `COFFEE` + `SHARED`
 - `/api/habits/day` → Invalidate `HABITS` + `SHARED`
 - `/api/habits/workout` → Invalidate `WORKOUTS` + `SHARED`
@@ -120,10 +134,12 @@ export const CACHE_TAGS = {
 ## Expected Performance Improvement
 
 **Current (Phase 1):**
+
 - Cache MISS: 300-600ms (all 18 queries)
 - Cache HIT: <50ms
 
 **Phase 2:**
+
 - Coffee page cache MISS: ~100ms (5 queries instead of 18)
 - Workouts page cache MISS: ~150ms (8 queries instead of 18)
 - Habits page cache MISS: ~200ms (10 queries instead of 18)

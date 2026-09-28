@@ -134,7 +134,9 @@ describe('getBodyProfile', () => {
 
   describe('Database Failure - Environment Fallbacks', () => {
     it('should fall back to default values when database fails', async () => {
-      vi.mocked(getBodyProfileDB).mockRejectedValue(new Error('Database error'));
+      vi.mocked(getBodyProfileDB).mockRejectedValue(
+        new Error('Database error')
+      );
 
       const result = await getBodyProfile();
 
@@ -149,7 +151,9 @@ describe('getBodyProfile', () => {
     });
 
     it('should use environment variables when database fails', async () => {
-      vi.mocked(getBodyProfileDB).mockRejectedValue(new Error('Database error'));
+      vi.mocked(getBodyProfileDB).mockRejectedValue(
+        new Error('Database error')
+      );
 
       process.env.BODY_WEIGHT_KG = '82';
       process.env.BODY_HEIGHT_CM = '190';
@@ -171,7 +175,9 @@ describe('getBodyProfile', () => {
     });
 
     it('should handle partial environment variables with defaults', async () => {
-      vi.mocked(getBodyProfileDB).mockRejectedValue(new Error('Database error'));
+      vi.mocked(getBodyProfileDB).mockRejectedValue(
+        new Error('Database error')
+      );
 
       process.env.BODY_WEIGHT_KG = '85';
       process.env.BODY_HALF_LIFE_H = '5.5';
@@ -189,7 +195,9 @@ describe('getBodyProfile', () => {
     });
 
     it('should handle invalid environment variable values', async () => {
-      vi.mocked(getBodyProfileDB).mockRejectedValue(new Error('Database error'));
+      vi.mocked(getBodyProfileDB).mockRejectedValue(
+        new Error('Database error')
+      );
 
       process.env.BODY_WEIGHT_KG = 'not-a-number';
       process.env.BODY_HEIGHT_CM = 'invalid';
@@ -209,7 +217,9 @@ describe('getBodyProfile', () => {
     });
 
     it('should handle empty string environment variables', async () => {
-      vi.mocked(getBodyProfileDB).mockRejectedValue(new Error('Database error'));
+      vi.mocked(getBodyProfileDB).mockRejectedValue(
+        new Error('Database error')
+      );
 
       process.env.BODY_WEIGHT_KG = '';
       process.env.BODY_HEIGHT_CM = '';
@@ -222,7 +232,9 @@ describe('getBodyProfile', () => {
     });
 
     it('should handle Infinity and -Infinity as invalid numbers', async () => {
-      vi.mocked(getBodyProfileDB).mockRejectedValue(new Error('Database error'));
+      vi.mocked(getBodyProfileDB).mockRejectedValue(
+        new Error('Database error')
+      );
 
       process.env.BODY_WEIGHT_KG = 'Infinity';
       process.env.BODY_HEIGHT_CM = '-Infinity';
@@ -265,7 +277,9 @@ describe('getBodyProfile', () => {
     });
 
     it('should handle very large valid numbers from environment', async () => {
-      vi.mocked(getBodyProfileDB).mockRejectedValue(new Error('Database error'));
+      vi.mocked(getBodyProfileDB).mockRejectedValue(
+        new Error('Database error')
+      );
 
       process.env.BODY_WEIGHT_KG = '999999';
       process.env.BODY_HEIGHT_CM = '999999';
@@ -277,7 +291,9 @@ describe('getBodyProfile', () => {
     });
 
     it('should handle decimal values from environment', async () => {
-      vi.mocked(getBodyProfileDB).mockRejectedValue(new Error('Database error'));
+      vi.mocked(getBodyProfileDB).mockRejectedValue(
+        new Error('Database error')
+      );
 
       process.env.BODY_WEIGHT_KG = '75.5';
       process.env.BODY_CAFFEINE_SENSITIVITY = '1.25';
@@ -289,7 +305,9 @@ describe('getBodyProfile', () => {
     });
 
     it('should handle negative numbers from environment as valid', async () => {
-      vi.mocked(getBodyProfileDB).mockRejectedValue(new Error('Database error'));
+      vi.mocked(getBodyProfileDB).mockRejectedValue(
+        new Error('Database error')
+      );
 
       process.env.BODY_WEIGHT_KG = '-75';
 
@@ -302,7 +320,9 @@ describe('getBodyProfile', () => {
 
   describe('Error Scenarios', () => {
     it('should handle database connection timeout', async () => {
-      vi.mocked(getBodyProfileDB).mockRejectedValue(new Error('Connection timeout'));
+      vi.mocked(getBodyProfileDB).mockRejectedValue(
+        new Error('Connection timeout')
+      );
 
       const result = await getBodyProfile();
 
@@ -311,7 +331,9 @@ describe('getBodyProfile', () => {
     });
 
     it('should handle database returning undefined', async () => {
-      vi.mocked(getBodyProfileDB).mockRejectedValue(new Error('No profile found'));
+      vi.mocked(getBodyProfileDB).mockRejectedValue(
+        new Error('No profile found')
+      );
 
       const result = await getBodyProfile();
 

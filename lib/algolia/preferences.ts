@@ -12,10 +12,10 @@ const DEFAULT_PREFERENCES: SearchPreferences = {
 
 export function getSearchPreferences(): SearchPreferences {
   if (typeof window === 'undefined') return DEFAULT_PREFERENCES;
-  
+
   const stored = localStorage.getItem('search-preferences');
   if (!stored) return DEFAULT_PREFERENCES;
-  
+
   try {
     return JSON.parse(stored);
   } catch {
@@ -27,4 +27,4 @@ export function saveSearchPreferences(prefs: Partial<SearchPreferences>) {
   const current = getSearchPreferences();
   const updated = { ...current, ...prefs };
   localStorage.setItem('search-preferences', JSON.stringify(updated));
-} 
+}

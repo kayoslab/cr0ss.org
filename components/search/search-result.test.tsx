@@ -38,7 +38,11 @@ describe('SearchResult', () => {
     const hitWithoutSummary = { ...mockHit, summary: undefined };
 
     const { queryByText } = render(
-      <SearchResult hit={hitWithoutSummary} onClick={mockOnClick} isSelected={false} />
+      <SearchResult
+        hit={hitWithoutSummary}
+        onClick={mockOnClick}
+        isSelected={false}
+      />
     );
 
     expect(queryByText('This is a test summary')).not.toBeInTheDocument();
@@ -57,7 +61,11 @@ describe('SearchResult', () => {
     const hitWithoutCategories = { ...mockHit, categories: [] };
 
     const { container } = render(
-      <SearchResult hit={hitWithoutCategories} onClick={mockOnClick} isSelected={false} />
+      <SearchResult
+        hit={hitWithoutCategories}
+        onClick={mockOnClick}
+        isSelected={false}
+      />
     );
 
     // Check no category badges are rendered
@@ -110,7 +118,11 @@ describe('SearchResult', () => {
     };
 
     const { getByText, queryByText } = render(
-      <SearchResult hit={hitWithManyCategories} onClick={mockOnClick} isSelected={false} />
+      <SearchResult
+        hit={hitWithManyCategories}
+        onClick={mockOnClick}
+        isSelected={false}
+      />
     );
 
     // Should show first 2 categories
@@ -157,7 +169,11 @@ describe('SearchResult', () => {
     };
 
     const { container } = render(
-      <SearchResult hit={hitWithImage} onClick={mockOnClick} isSelected={false} />
+      <SearchResult
+        hit={hitWithImage}
+        onClick={mockOnClick}
+        isSelected={false}
+      />
     );
 
     const img = container.querySelector('img');

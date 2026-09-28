@@ -48,7 +48,7 @@ be automated here.
    only your brokered identity can obtain a token to reach the MCP server.
 
 5. **Deploy the agent** (`vercel deploy`) and open its web chat. Ask:
-   *"who did I meet building AI agents in London?"*
+   _"who did I meet building AI agents in London?"_
 
 ## Security layers (defense in depth)
 

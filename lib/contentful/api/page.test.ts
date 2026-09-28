@@ -156,7 +156,9 @@ describe('lib/contentful/api/page', () => {
 
       await getPage('test-page');
 
-      expect(fetchGraphQL).toHaveBeenCalledWith(expect.any(String), ['test-page']);
+      expect(fetchGraphQL).toHaveBeenCalledWith(expect.any(String), [
+        'test-page',
+      ]);
     });
   });
 });

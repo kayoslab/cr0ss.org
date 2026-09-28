@@ -14,12 +14,16 @@ vi.mock('@/lib/auth/secret', () => ({
 
 vi.mock('@/lib/api/responses', () => {
   return {
-    apiError: vi.fn((error: string, status: number, details?: unknown, code?: string) => {
-      const response: { error: string; details?: unknown; code?: string } = { error };
-      if (details !== undefined) response.details = details;
-      if (code) response.code = code;
-      return NextResponse.json(response, { status });
-    }),
+    apiError: vi.fn(
+      (error: string, status: number, details?: unknown, code?: string) => {
+        const response: { error: string; details?: unknown; code?: string } = {
+          error,
+        };
+        if (details !== undefined) response.details = details;
+        if (code) response.code = code;
+        return NextResponse.json(response, { status });
+      }
+    ),
     apiSuccess: vi.fn((data: unknown, status: number = 200) => {
       return NextResponse.json(data, { status });
     }),
@@ -45,7 +49,10 @@ vi.mock('@/env', () => ({
 }));
 
 vi.mock('@/lib/obs/trace', () => ({
-  wrapTrace: <T extends (...args: unknown[]) => unknown>(_name: string, fn: T): T => fn,
+  wrapTrace: <T extends (...args: unknown[]) => unknown>(
+    _name: string,
+    fn: T
+  ): T => fn,
 }));
 
 import { revalidatePath, revalidateTag } from 'next/cache';
@@ -57,7 +64,7 @@ describe('POST /api/revalidate', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(hasValidSecret).mockReturnValue(true);
-    
+
     // Setup Algolia mock
     const mockAlgoliaClient = {
       addOrUpdateObject: vi.fn().mockResolvedValue(undefined),
@@ -78,7 +85,7 @@ describe('POST /api/revalidate', () => {
 
       expect(response.status).toBe(401);
       expect(hasValidSecret).toHaveBeenCalledWith(request);
-      
+
       const data = await response.json();
       expect(data.error).toBe('Unauthorized');
       expect(data.code).toBe('UNAUTHORIZED');
@@ -123,7 +130,7 @@ describe('POST /api/revalidate', () => {
 
       expect(response.status).toBe(200);
       expect(revalidatePath).toHaveBeenCalledWith('/blog');
-      
+
       const data = await response.json();
       expect(data.paths).toContain('/blog');
     });
@@ -180,7 +187,7 @@ describe('POST /api/revalidate', () => {
       expect(revalidateTag).toHaveBeenCalledWith('my-blog-post', 'max');
       expect(revalidatePath).toHaveBeenCalledWith('/blog');
       expect(revalidatePath).toHaveBeenCalledWith('/blog/my-blog-post');
-      
+
       const data = await response.json();
       expect(data.tags).toEqual(['blogPosts', 'my-blog-post']);
       expect(data.paths).toEqual(['/blog', '/blog/my-blog-post']);
@@ -196,10 +203,7 @@ describe('POST /api/revalidate', () => {
         author: 'Test Author',
         heroImage: { url: 'https://example.com/image.jpg' },
         categoriesCollection: {
-          items: [
-            { title: 'Tech' },
-            { title: 'Design' },
-          ],
+          items: [{ title: 'Tech' }, { title: 'Design' }],
         },
       };
       vi.mocked(getBlog).mockResolvedValue(mockBlogPost as never);
@@ -238,7 +242,7 @@ describe('POST /api/revalidate', () => {
           objectID: 'blog-123',
         },
       });
-      
+
       const data = await response.json();
       expect(data.algoliaIndexed).toBe(true);
     });
@@ -287,7 +291,7 @@ describe('POST /api/revalidate', () => {
       expect(revalidateTag).toHaveBeenCalledWith('pages', 'max');
       expect(revalidateTag).toHaveBeenCalledWith('about', 'max');
       expect(revalidatePath).toHaveBeenCalledWith('/page/about');
-      
+
       const data = await response.json();
       expect(data.tags).toEqual(['pages', 'about']);
       expect(data.paths).toEqual(['/page/about']);
@@ -310,7 +314,7 @@ describe('POST /api/revalidate', () => {
       expect(response.status).toBe(200);
       expect(revalidateTag).toHaveBeenCalledWith('countries', 'max');
       expect(revalidatePath).toHaveBeenCalledWith('/');
-      
+
       const data = await response.json();
       expect(data.tags).toEqual(['countries']);
       expect(data.paths).toEqual(['/']);
@@ -343,7 +347,11 @@ describe('POST /api/revalidate', () => {
 
       const data = await response.json();
       expect(data.tags).toEqual(['coffee', 'test-coffee-slug']);
-      expect(data.paths).toEqual(['/coffee', '/dashboard', '/coffee/test-coffee-slug']);
+      expect(data.paths).toEqual([
+        '/coffee',
+        '/dashboard',
+        '/coffee/test-coffee-slug',
+      ]);
     });
   });
 
@@ -359,9 +367,11 @@ describe('POST /api/revalidate', () => {
       expect(response.status).toBe(400);
       expect(revalidateTag).not.toHaveBeenCalled();
       expect(revalidatePath).not.toHaveBeenCalled();
-      
+
       const data = await response.json();
-      expect(data.error).toBe('No revalidation targets determined from payload');
+      expect(data.error).toBe(
+        'No revalidation targets determined from payload'
+      );
       expect(data.code).toBe('MISSING_TARGETS');
       expect(data.details).toEqual({ payload: {} });
     });
@@ -391,7 +401,7 @@ describe('POST /api/revalidate', () => {
       const response = await POST(request);
 
       expect(response.status).toBe(500);
-      
+
       const data = await response.json();
       expect(data.error).toBe('Failed to revalidate');
       expect(data.code).toBe('REVALIDATION_ERROR');

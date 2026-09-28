@@ -24,22 +24,29 @@ describe('GET /api/v1/dashboard/coffee/summary', () => {
 
   describe('Authentication', () => {
     it('should require authentication', async () => {
-      const request = new Request('http://localhost:3000/api/v1/dashboard/coffee/summary');
+      const request = new Request(
+        'http://localhost:3000/api/v1/dashboard/coffee/summary'
+      );
       const response = await GET(request);
 
       expect(response.status).toBe(401);
     });
 
     it('should accept valid secret', async () => {
-      vi.mocked(sql).mockResolvedValueOnce([{ current_date: '2025-12-05' }] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { current_date: '2025-12-05' },
+      ] as never);
       vi.mocked(sql).mockResolvedValueOnce([{ cups: 0 }] as never);
       vi.mocked(sql).mockResolvedValueOnce([] as never);
 
-      const request = new Request('http://localhost:3000/api/v1/dashboard/coffee/summary', {
-        headers: {
-          'x-admin-secret': 'test-dashboard-secret-1234567890',
-        },
-      });
+      const request = new Request(
+        'http://localhost:3000/api/v1/dashboard/coffee/summary',
+        {
+          headers: {
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
+          },
+        }
+      );
       const response = await GET(request);
 
       expect(response.status).toBe(200);
@@ -48,15 +55,20 @@ describe('GET /api/v1/dashboard/coffee/summary', () => {
 
   describe('Query Parameters', () => {
     it('should use today as default date', async () => {
-      vi.mocked(sql).mockResolvedValueOnce([{ current_date: '2025-12-05' }] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { current_date: '2025-12-05' },
+      ] as never);
       vi.mocked(sql).mockResolvedValueOnce([{ cups: 0 }] as never);
       vi.mocked(sql).mockResolvedValueOnce([] as never);
 
-      const request = new Request('http://localhost:3000/api/v1/dashboard/coffee/summary', {
-        headers: {
-          'x-admin-secret': 'test-dashboard-secret-1234567890',
-        },
-      });
+      const request = new Request(
+        'http://localhost:3000/api/v1/dashboard/coffee/summary',
+        {
+          headers: {
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
+          },
+        }
+      );
       const response = await GET(request);
       const data = await response.json();
 
@@ -170,12 +182,13 @@ describe('GET /api/v1/dashboard/coffee/summary', () => {
 
       expect(response.headers.get('Cache-Control')).toBe('private, no-store');
     });
-
   });
 
   describe('Error Handling', () => {
     it('should return 500 on database error', async () => {
-      vi.mocked(sql).mockRejectedValueOnce(new Error('Database connection failed'));
+      vi.mocked(sql).mockRejectedValueOnce(
+        new Error('Database connection failed')
+      );
 
       const request = new Request(
         'http://localhost:3000/api/v1/dashboard/coffee/summary?date=2025-12-05',

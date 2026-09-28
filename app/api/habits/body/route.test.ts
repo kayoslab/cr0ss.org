@@ -19,7 +19,10 @@ vi.mock('@/lib/cache/revalidate', () => ({
 }));
 
 vi.mock('@/lib/obs/trace', () => ({
-  wrapTrace: <T extends (...args: unknown[]) => unknown>(_name: string, fn: T): T => fn,
+  wrapTrace: <T extends (...args: unknown[]) => unknown>(
+    _name: string,
+    fn: T
+  ): T => fn,
 }));
 
 vi.mock('@/lib/db/profile', () => ({
@@ -85,11 +88,10 @@ describe('GET /api/habits/body', () => {
       const request = new Request('http://localhost:3000/api/habits/body');
       await GET(request);
 
-      expect(rateLimit).toHaveBeenCalledWith(
-        request,
-        'get-body',
-        { windowSec: 60, max: 30 }
-      );
+      expect(rateLimit).toHaveBeenCalledWith(request, 'get-body', {
+        windowSec: 60,
+        max: 30,
+      });
     });
   });
 

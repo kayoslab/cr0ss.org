@@ -290,7 +290,7 @@ describe('API Response Helpers', () => {
 
     it('status codes should match HTTP standards', async () => {
       const cases = [
-        { fn: () => apiSuccess({}) , expected: 200 },
+        { fn: () => apiSuccess({}), expected: 200 },
         { fn: () => apiSuccess({}, 201), expected: 201 },
         { fn: () => validationError(), expected: 400 },
         { fn: () => unauthorized(), expected: 401 },

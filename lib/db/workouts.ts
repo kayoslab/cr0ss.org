@@ -1,5 +1,9 @@
-import { sql } from "@/lib/db/client";
-import { ZWorkout, ZWorkoutUpsert, type WorkoutUpsert } from "@/lib/db/validation";
+import { sql } from '@/lib/db/client';
+import {
+  ZWorkout,
+  ZWorkoutUpsert,
+  type WorkoutUpsert,
+} from '@/lib/db/validation';
 
 /**
  * Get workouts within a date range, optionally filtered by type
@@ -10,7 +14,7 @@ export async function getWorkoutsDB(
   workoutType?: string
 ) {
   const rows = workoutType
-    ? await sql/*sql*/`
+    ? await sql /*sql*/ `
         SELECT
           id,
           date,
@@ -27,7 +31,7 @@ export async function getWorkoutsDB(
           AND workout_type = ${workoutType}
         ORDER BY date DESC
       `
-    : await sql/*sql*/`
+    : await sql /*sql*/ `
         SELECT
           id,
           date,
@@ -44,13 +48,14 @@ export async function getWorkoutsDB(
         ORDER BY date DESC
       `;
 
-  return rows.map(r => ({
+  return rows.map((r) => ({
     id: Number(r.id),
     date: new Date(r.date),
     workout_type: r.workout_type,
     duration_min: Number(r.duration_min),
     intensity: r.intensity || undefined,
-    perceived_effort: r.perceived_effort === null ? undefined : Number(r.perceived_effort),
+    perceived_effort:
+      r.perceived_effort === null ? undefined : Number(r.perceived_effort),
     details: r.details || undefined,
     notes: r.notes || undefined,
     created_at: new Date(r.created_at).toISOString(),
@@ -63,7 +68,7 @@ export async function getWorkoutsDB(
 export async function insertWorkoutDB(workout: WorkoutUpsert) {
   const parsed = ZWorkoutUpsert.parse(workout);
 
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     INSERT INTO workouts (
       date,
       workout_type,
@@ -100,7 +105,8 @@ export async function insertWorkoutDB(workout: WorkoutUpsert) {
     workout_type: r.workout_type,
     duration_min: Number(r.duration_min),
     intensity: r.intensity || undefined,
-    perceived_effort: r.perceived_effort === null ? undefined : Number(r.perceived_effort),
+    perceived_effort:
+      r.perceived_effort === null ? undefined : Number(r.perceived_effort),
     details: r.details || undefined,
     notes: r.notes || undefined,
     created_at: new Date(r.created_at).toISOString(),
@@ -113,7 +119,7 @@ export async function insertWorkoutDB(workout: WorkoutUpsert) {
  * Get a specific workout by ID
  */
 export async function getWorkoutByIdDB(id: number) {
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     SELECT
       id,
       date,
@@ -142,7 +148,8 @@ export async function getWorkoutByIdDB(id: number) {
     workout_type: r.workout_type,
     duration_min: Number(r.duration_min),
     intensity: r.intensity || undefined,
-    perceived_effort: r.perceived_effort === null ? undefined : Number(r.perceived_effort),
+    perceived_effort:
+      r.perceived_effort === null ? undefined : Number(r.perceived_effort),
     details: r.details || undefined,
     notes: r.notes || undefined,
     created_at: new Date(r.created_at).toISOString(),
@@ -155,7 +162,7 @@ export async function getWorkoutByIdDB(id: number) {
  * Get recent workouts (last N entries)
  */
 export async function getRecentWorkoutsDB(limit: number = 30) {
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     SELECT
       id,
       date,
@@ -173,13 +180,14 @@ export async function getRecentWorkoutsDB(limit: number = 30) {
     LIMIT ${limit}
   `;
 
-  return rows.map(r => ({
+  return rows.map((r) => ({
     id: Number(r.id),
     date: new Date(r.date),
     workout_type: r.workout_type,
     duration_min: Number(r.duration_min),
     intensity: r.intensity || undefined,
-    perceived_effort: r.perceived_effort === null ? undefined : Number(r.perceived_effort),
+    perceived_effort:
+      r.perceived_effort === null ? undefined : Number(r.perceived_effort),
     details: r.details || undefined,
     notes: r.notes || undefined,
     created_at: new Date(r.created_at).toISOString(),
@@ -189,8 +197,11 @@ export async function getRecentWorkoutsDB(limit: number = 30) {
 /**
  * Get workouts by type (last N entries)
  */
-export async function getWorkoutsByTypeDB(workoutType: string, limit: number = 30) {
-  const rows = await sql/*sql*/`
+export async function getWorkoutsByTypeDB(
+  workoutType: string,
+  limit: number = 30
+) {
+  const rows = await sql /*sql*/ `
     SELECT
       id,
       date,
@@ -209,13 +220,14 @@ export async function getWorkoutsByTypeDB(workoutType: string, limit: number = 3
     LIMIT ${limit}
   `;
 
-  return rows.map(r => ({
+  return rows.map((r) => ({
     id: Number(r.id),
     date: new Date(r.date),
     workout_type: r.workout_type,
     duration_min: Number(r.duration_min),
     intensity: r.intensity || undefined,
-    perceived_effort: r.perceived_effort === null ? undefined : Number(r.perceived_effort),
+    perceived_effort:
+      r.perceived_effort === null ? undefined : Number(r.perceived_effort),
     details: r.details || undefined,
     notes: r.notes || undefined,
     created_at: new Date(r.created_at).toISOString(),
@@ -232,7 +244,7 @@ export async function getTotalDistanceDB(
   startDate: Date,
   endDate: Date
 ): Promise<number> {
-  const rows = await sql/*sql*/`
+  const rows = await sql /*sql*/ `
     SELECT COALESCE(SUM((details->>'distance_km')::numeric), 0) as total_distance
     FROM workouts
     WHERE workout_type = ${workoutType}

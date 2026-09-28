@@ -51,7 +51,9 @@ function normalizeHit(hit: AlgoliaSearchHit): NormalizedHit {
       author: hit.author || '',
       url: hit.url,
       image: hit.image,
-      categories: hit.categories ? hit.categories.split(',').filter(Boolean) : [],
+      categories: hit.categories
+        ? hit.categories.split(',').filter(Boolean)
+        : [],
       slug: slug,
     };
   }
@@ -86,7 +88,9 @@ function normalizeHit(hit: AlgoliaSearchHit): NormalizedHit {
 
 // Fetch hero image URLs from Contentful for posts without images
 async function fetchMissingImages(hits: NormalizedHit[]): Promise<void> {
-  const hitsNeedingImages = hits.filter(hit => !hit.image && (hit.slug || hit.heroImageId));
+  const hitsNeedingImages = hits.filter(
+    (hit) => !hit.image && (hit.slug || hit.heroImageId)
+  );
 
   if (hitsNeedingImages.length === 0) return;
 
@@ -127,7 +131,7 @@ async function fetchMissingImages(hits: NormalizedHit[]): Promise<void> {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${env.CONTENTFUL_ACCESS_TOKEN}`,
+          Authorization: `Bearer ${env.CONTENTFUL_ACCESS_TOKEN}`,
         },
         body: JSON.stringify({ query }),
       }
@@ -142,13 +146,17 @@ async function fetchMissingImages(hits: NormalizedHit[]): Promise<void> {
       if (hit.heroImageId) {
         const asset = data.data?.[`asset${i}`];
         if (asset?.url) {
-          hit.image = asset.url.startsWith('//') ? `https:${asset.url}` : asset.url;
+          hit.image = asset.url.startsWith('//')
+            ? `https:${asset.url}`
+            : asset.url;
         }
       } else if (hit.slug) {
         const post = data.data?.[`post${i}`];
         const imageUrl = post?.items?.[0]?.heroImage?.url;
         if (imageUrl) {
-          hit.image = imageUrl.startsWith('//') ? `https:${imageUrl}` : imageUrl;
+          hit.image = imageUrl.startsWith('//')
+            ? `https:${imageUrl}`
+            : imageUrl;
         }
       }
     });
@@ -159,11 +167,14 @@ async function fetchMissingImages(hits: NormalizedHit[]): Promise<void> {
 }
 
 export async function GET(request: Request) {
-  const rl = await rateLimit(request, "algolia-search", RATE_LIMITS.SEARCH);
+  const rl = await rateLimit(request, 'algolia-search', RATE_LIMITS.SEARCH);
   if (!rl.ok) {
     return NextResponse.json(
       { error: 'Too many requests' },
-      { status: HTTP_STATUS.TOO_MANY_REQUESTS, headers: { "Retry-After": String(rl.retryAfterSec) } }
+      {
+        status: HTTP_STATUS.TOO_MANY_REQUESTS,
+        headers: { 'Retry-After': String(rl.retryAfterSec) },
+      }
     );
   }
   const { searchParams } = new URL(request.url);
@@ -173,25 +184,24 @@ export async function GET(request: Request) {
   // Handle click tracking - use REST API for Edge compatibility
   if (objectID) {
     try {
-      await fetch(
-        `https://insights.algolia.io/1/events`,
-        {
-          method: 'POST',
-          headers: {
-            'X-Algolia-Application-Id': env.ALGOLIA_APP_ID,
-            'X-Algolia-API-Key': env.ALGOLIA_SEARCH_KEY,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            events: [{
+      await fetch(`https://insights.algolia.io/1/events`, {
+        method: 'POST',
+        headers: {
+          'X-Algolia-Application-Id': env.ALGOLIA_APP_ID,
+          'X-Algolia-API-Key': env.ALGOLIA_SEARCH_KEY,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          events: [
+            {
               eventType: 'click',
               eventName: 'Post Clicked',
               index: env.ALGOLIA_INDEX,
               objectIDs: [objectID],
-            }]
-          }),
-        }
-      );
+            },
+          ],
+        }),
+      });
     } catch {
       // Silently fail - analytics shouldn't block response
     }
@@ -225,13 +235,15 @@ export async function GET(request: Request) {
     const hits = (data.hits || []) as AlgoliaSearchHit[];
 
     // Normalize hits to expected format
-    const normalizedHits = hits.map(hit => normalizeHit(hit));
+    const normalizedHits = hits.map((hit) => normalizeHit(hit));
 
     // Fetch missing images from Contentful
     await fetchMissingImages(normalizedHits);
 
     // Remove temporary fields before returning
-    const cleanedHits = normalizedHits.map(({ slug, heroImageId, ...hit }) => hit);
+    const cleanedHits = normalizedHits.map(
+      ({ slug, heroImageId, ...hit }) => hit
+    );
 
     return NextResponse.json({
       hits: cleanedHits,
@@ -239,6 +251,9 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error('Search error:', error);
-    return NextResponse.json({ hits: [], queryID: null }, { status: HTTP_STATUS.INTERNAL_SERVER_ERROR });
+    return NextResponse.json(
+      { hits: [], queryID: null },
+      { status: HTTP_STATUS.INTERNAL_SERVER_ERROR }
+    );
   }
-} 
+}

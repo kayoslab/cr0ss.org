@@ -29,7 +29,10 @@ describe('POST /api/algolia/analytics', () => {
 
   describe('events', () => {
     it('defaults to a view event and passes the user token per event', async () => {
-      const response = await post({ objectID: 'blog-post-123', userToken: 'user_abc' });
+      const response = await post({
+        objectID: 'blog-post-123',
+        userToken: 'user_abc',
+      });
 
       expect(response.status).toBe(200);
       expect(await response.json()).toEqual({ success: true });
@@ -46,17 +49,20 @@ describe('POST /api/algolia/analytics', () => {
     it.each([
       ['click', 'Blog Clicked'],
       ['recommendation_click', 'Recommendation Clicked'],
-    ])('records %s as a clickedObjectIDs event', async (eventType, eventName) => {
-      const response = await post({ objectID: 'blog-post-123', eventType });
+    ])(
+      'records %s as a clickedObjectIDs event',
+      async (eventType, eventName) => {
+        const response = await post({ objectID: 'blog-post-123', eventType });
 
-      expect(response.status).toBe(200);
-      expect(aa).toHaveBeenCalledWith('clickedObjectIDs', {
-        eventName,
-        index: 'www',
-        objectIDs: ['blog-post-123'],
-        userToken: undefined,
-      });
-    });
+        expect(response.status).toBe(200);
+        expect(aa).toHaveBeenCalledWith('clickedObjectIDs', {
+          eventName,
+          index: 'www',
+          objectIDs: ['blog-post-123'],
+          userToken: undefined,
+        });
+      }
+    );
   });
 
   describe('validation', () => {

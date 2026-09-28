@@ -89,7 +89,9 @@ export function blogPostToMarkdown(post: BlogProps): string {
       ['Categories', categories || undefined],
       ['Canonical', htmlUrl('blog', post.slug)],
     ]),
-    post.heroImage?.url ? `![${escape(post.title)}](${post.heroImage.url})` : '',
+    post.heroImage?.url
+      ? `![${escape(post.title)}](${post.heroImage.url})`
+      : '',
     // Despite its name, `authorText` is the article's lead paragraph, shown
     // under the hero on the page.
     oneLine(post.authorText),
@@ -201,7 +203,11 @@ export async function buildLlmsIndex(): Promise<string> {
     '',
     '## Optional',
     '',
-    entry('Coffee log', `${SITE_URL}/coffee`, 'Specialty coffees I have brewed, by origin and roaster'),
+    entry(
+      'Coffee log',
+      `${SITE_URL}/coffee`,
+      'Specialty coffees I have brewed, by origin and roaster'
+    ),
     entry('RSS feed', `${SITE_URL}/rss.xml`),
     entry('Sitemap', `${SITE_URL}/sitemap.xml`),
     '',

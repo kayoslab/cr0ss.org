@@ -1,5 +1,5 @@
-import { defineMcpClientConnection } from "eve/connections";
-import { connect } from "@vercel/connect/eve";
+import { defineMcpClientConnection } from 'eve/connections';
+import { connect } from '@vercel/connect/eve';
 
 /**
  * Connection from the Eve agent to this site's private contact-memory MCP server.
@@ -14,9 +14,9 @@ import { connect } from "@vercel/connect/eve";
  *   vercel connect create https://cr0ss.org/api/mcp --name contacts
  */
 export default defineMcpClientConnection({
-  url: "https://cr0ss.org/api/mcp",
+  url: 'https://cr0ss.org/api/mcp',
   description:
     "Private contact memory — semantic recall over the people I've met.",
   // Per-user OAuth flow via Vercel Connect (owner identity only).
-  auth: connect("mcp.cr0ss.org/contacts"),
+  auth: connect('mcp.cr0ss.org/contacts'),
 });

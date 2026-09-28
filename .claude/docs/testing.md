@@ -36,6 +36,7 @@ npm run build
 ### When to Run Build
 
 Run a full production build when:
+
 - ✅ Adding or modifying API routes
 - ✅ Changing data fetching logic
 - ✅ Modifying build-time generation (sitemap, RSS, static params)
@@ -44,6 +45,7 @@ Run a full production build when:
 - ✅ Before creating a pull request
 
 Skip build for:
+
 - ❌ Minor copy changes
 - ❌ Style-only modifications
 - ❌ Documentation updates
@@ -75,7 +77,7 @@ const data: BlogProps = await fetchData();
 
 // ❌ Bad: Ignoring null/undefined
 function getTitle(blog: BlogProps) {
-  return blog.title.toUpperCase();  // What if title is undefined?
+  return blog.title.toUpperCase(); // What if title is undefined?
 }
 
 // ✅ Good: Handle null/undefined
@@ -109,23 +111,23 @@ npm run lint -- --fix
 
 ```typescript
 // ❌ Bad: Unused imports
-import { useState } from 'react';  // Warning: 'useState' is defined but never used
+import { useState } from 'react'; // Warning: 'useState' is defined but never used
 
 // ❌ Bad: Missing dependencies in useEffect
 useEffect(() => {
   fetchData(id);
-}, []);  // Warning: React Hook useEffect has a missing dependency: 'id'
+}, []); // Warning: React Hook useEffect has a missing dependency: 'id'
 
 // ❌ Bad: Unnecessary escape characters
-const regex = /\d+/;  // Warning: Unnecessary escape character
+const regex = /\d+/; // Warning: Unnecessary escape character
 
 // ✅ Good: Clean code
-import { useState } from 'react';  // Only if used
+import { useState } from 'react'; // Only if used
 const [state, setState] = useState();
 
 useEffect(() => {
   fetchData(id);
-}, [id]);  // Include all dependencies
+}, [id]); // Include all dependencies
 ```
 
 ## Code Formatting
@@ -155,6 +157,7 @@ npm run format:fix
 When implementing a new feature:
 
 1. **Local Development Testing**
+
    ```bash
    npm run dev
    ```
@@ -185,6 +188,7 @@ When implementing a new feature:
 When creating or modifying API routes:
 
 1. **Authentication Testing**
+
    ```bash
    # Test without auth (should fail)
    curl http://localhost:3000/api/protected
@@ -195,6 +199,7 @@ When creating or modifying API routes:
    ```
 
 2. **Rate Limiting Testing**
+
    ```bash
    # Rapid requests to test rate limiting
    for i in {1..15}; do
@@ -204,6 +209,7 @@ When creating or modifying API routes:
    ```
 
 3. **Input Validation Testing**
+
    ```bash
    # Valid input
    curl -X POST http://localhost:3000/api/endpoint \
@@ -237,6 +243,7 @@ When modifying webhook endpoints:
    - Click "View recent calls" or "Send test payload"
 
 2. **Local Testing with cURL**
+
    ```bash
    # Blog post publish
    curl -X POST http://localhost:3000/api/revalidate \
@@ -330,6 +337,7 @@ npm run start
 ### Browsers to Test
 
 Minimum testing browsers:
+
 - ✅ Chrome (latest)
 - ✅ Firefox (latest)
 - ✅ Safari (latest)
@@ -500,6 +508,7 @@ When testing content features:
 ### Common Issues
 
 **TypeScript errors after dependency update:**
+
 ```bash
 # Clear cache and reinstall
 rm -rf node_modules
@@ -508,6 +517,7 @@ npm install
 ```
 
 **Build fails but dev works:**
+
 ```bash
 # Check for environment variables
 # Verify all required env vars in .env.local
@@ -517,6 +527,7 @@ npm install
 ```
 
 **Lint errors on commit:**
+
 ```bash
 # Auto-fix what's possible
 npm run lint -- --fix
@@ -554,6 +565,7 @@ If automated tests are added in the future, consider:
 ### Test Coverage Goals
 
 If implementing automated tests:
+
 - **Components**: 80%+ coverage
 - **API Routes**: 100% coverage
 - **Utilities**: 90%+ coverage
@@ -562,6 +574,7 @@ If implementing automated tests:
 ## Checklist Summary
 
 ### Every Commit
+
 - [ ] TypeScript compiles (`npx tsc --noEmit`)
 - [ ] Linting passes (`npm run lint`)
 - [ ] Code formatted (`npm run format`)
@@ -569,6 +582,7 @@ If implementing automated tests:
 - [ ] No console errors or warnings
 
 ### Significant Changes
+
 - [ ] Production build succeeds (`npm run build`)
 - [ ] Manual testing of affected features
 - [ ] Cross-browser testing
@@ -576,6 +590,7 @@ If implementing automated tests:
 - [ ] Webhooks tested (if modified)
 
 ### Before Release
+
 - [ ] All pre-commit checks pass
 - [ ] Production build succeeds
 - [ ] Regression testing complete

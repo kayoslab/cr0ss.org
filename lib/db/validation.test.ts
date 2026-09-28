@@ -236,7 +236,16 @@ describe('validation schemas', () => {
     });
 
     it('should validate all workout types', () => {
-      const types = ['running', 'climbing', 'bouldering', 'rowing', 'cycling', 'hiking', 'strength', 'other'];
+      const types = [
+        'running',
+        'climbing',
+        'bouldering',
+        'rowing',
+        'cycling',
+        'hiking',
+        'strength',
+        'other',
+      ];
 
       types.forEach((type) => {
         const data = {

@@ -11,12 +11,12 @@ import {
   type DailyMetrics,
   AVAILABLE_METRICS,
   type MetricDefinition,
-} from "./data-aggregator";
+} from './data-aggregator';
 import {
   calculatePearsonCorrelation,
   calculatePointBiserialCorrelation,
   type CorrelationResult,
-} from "../stats/correlation";
+} from '../stats/correlation';
 
 export interface DiscoveredCorrelation {
   metricA: MetricDefinition;
@@ -90,8 +90,8 @@ export async function discoverCorrelations(
 
       // Determine if we have a binary×continuous pair (use point-biserial)
       // or continuous×continuous pair (use Pearson)
-      const aIsBoolean = metricA.unit === "boolean";
-      const bIsBoolean = metricB.unit === "boolean";
+      const aIsBoolean = metricA.unit === 'boolean';
+      const bIsBoolean = metricB.unit === 'boolean';
 
       // Skip if both are boolean (no meaningful correlation)
       if (aIsBoolean && bIsBoolean) {
@@ -100,18 +100,18 @@ export async function discoverCorrelations(
 
       // Skip obvious/trivial correlations that are directly related
       const obviousCorrelations = [
-        ["totalCaffeineMg", "coffeeCount"], // Caffeine is calculated from coffee
-        ["runDistanceKm", "runDurationMin"], // Distance and duration are directly related
-        ["outdoorMinutes", "runDurationMin"], // Running is outdoor activity
-        ["outdoorMinutes", "runDistanceKm"], // Running is outdoor activity
-        ["workoutCount", "workoutDurationMin"], // Duration depends on count
-        ["prevDayWorkout", "prevDayWorkoutDuration"], // Workout implies duration
-        ["prevDayRunning", "prevDayRunDistance"], // Running implies distance
+        ['totalCaffeineMg', 'coffeeCount'], // Caffeine is calculated from coffee
+        ['runDistanceKm', 'runDurationMin'], // Distance and duration are directly related
+        ['outdoorMinutes', 'runDurationMin'], // Running is outdoor activity
+        ['outdoorMinutes', 'runDistanceKm'], // Running is outdoor activity
+        ['workoutCount', 'workoutDurationMin'], // Duration depends on count
+        ['prevDayWorkout', 'prevDayWorkoutDuration'], // Workout implies duration
+        ['prevDayRunning', 'prevDayRunDistance'], // Running implies distance
         // Weather-to-weather correlations (obvious environmental relationships)
-        ["avgCloudiness", "sunnyDay"], // sunnyDay is calculated from cloudiness < 30%
-        ["avgTempCelsius", "avgHumidity"], // Temperature and humidity are physically related
-        ["avgCloudiness", "avgTempCelsius"], // Cloudiness affects temperature
-        ["avgCloudiness", "avgHumidity"], // Cloudiness affects humidity
+        ['avgCloudiness', 'sunnyDay'], // sunnyDay is calculated from cloudiness < 30%
+        ['avgTempCelsius', 'avgHumidity'], // Temperature and humidity are physically related
+        ['avgCloudiness', 'avgTempCelsius'], // Cloudiness affects temperature
+        ['avgCloudiness', 'avgHumidity'], // Cloudiness affects humidity
       ];
 
       const isObvious = obviousCorrelations.some(
@@ -169,8 +169,8 @@ export async function discoverCorrelations(
           metricB,
           correlation,
           dateRange: {
-            start: startDate.toISOString().split("T")[0],
-            end: endDate.toISOString().split("T")[0],
+            start: startDate.toISOString().split('T')[0],
+            end: endDate.toISOString().split('T')[0],
           },
           interpretation: generateInterpretation(metricA, metricB, correlation),
         });
@@ -209,8 +209,8 @@ function alignMetricsByDate(
       valA === undefined ||
       valB === null ||
       valB === undefined ||
-      typeof valA === "boolean" ||
-      typeof valB === "boolean"
+      typeof valA === 'boolean' ||
+      typeof valB === 'boolean'
     ) {
       continue;
     }
@@ -234,21 +234,30 @@ function alignMetricsByDateFlexible(
   metricA: keyof DailyMetrics,
   metricB: keyof DailyMetrics
 ): Array<{ date: string; valueA: number | boolean; valueB: number | boolean }> {
-  const aligned: Array<{ date: string; valueA: number | boolean; valueB: number | boolean }> = [];
+  const aligned: Array<{
+    date: string;
+    valueA: number | boolean;
+    valueB: number | boolean;
+  }> = [];
 
   for (const day of data) {
     const valA = day[metricA];
     const valB = day[metricB];
 
     // Skip if either value is null/undefined
-    if (valA === null || valA === undefined || valB === null || valB === undefined) {
+    if (
+      valA === null ||
+      valA === undefined ||
+      valB === null ||
+      valB === undefined
+    ) {
       continue;
     }
 
     aligned.push({
       date: day.date,
-      valueA: typeof valA === "boolean" ? valA : Number(valA),
-      valueB: typeof valB === "boolean" ? valB : Number(valB),
+      valueA: typeof valA === 'boolean' ? valA : Number(valA),
+      valueB: typeof valB === 'boolean' ? valB : Number(valB),
     });
   }
 
@@ -268,8 +277,8 @@ function generateInterpretation(
   const confidence = correlation.confidence;
 
   // Check if either metric is binary (boolean unit)
-  const aIsBoolean = metricA.unit === "boolean";
-  const bIsBoolean = metricB.unit === "boolean";
+  const aIsBoolean = metricA.unit === 'boolean';
+  const bIsBoolean = metricB.unit === 'boolean';
 
   // Check if either metric is lagged (previous day)
   const aIsLagged = metricA.key.toString().startsWith('prevDay');
@@ -284,20 +293,20 @@ function generateInterpretation(
       // metricA is previous day boolean, metricB is today continuous
       // Proper time order: yesterday's event → today's outcome
       const event = metricA.label.replace('Previous Day ', '');
-      const direction = correlation.r > 0 ? "higher" : "lower";
+      const direction = correlation.r > 0 ? 'higher' : 'lower';
       interpretation = `On days after ${event}, ${metricB.label} tends to be ${direction}.`;
     } else if (bIsBoolean && bIsLagged) {
       // metricB is previous day boolean, metricA is today continuous
       // Proper time order: yesterday's event → today's outcome
       const event = metricB.label.replace('Previous Day ', '');
       // Need to flip direction since we're describing B→A relationship
-      const direction = correlation.r > 0 ? "higher" : "lower";
+      const direction = correlation.r > 0 ? 'higher' : 'lower';
       interpretation = `On days after ${event}, ${metricA.label} tends to be ${direction}.`;
     } else {
       // Same-day interpretation
       const binaryMetric = aIsBoolean ? metricA : metricB;
       const continuousMetric = aIsBoolean ? metricB : metricA;
-      const direction = correlation.r > 0 ? "higher" : "lower";
+      const direction = correlation.r > 0 ? 'higher' : 'lower';
       interpretation = `On days when ${binaryMetric.description}, ${continuousMetric.label} tends to be ${direction}.`;
     }
   } else {
@@ -307,35 +316,35 @@ function generateInterpretation(
       // metricA is previous day, metricB is today
       // Proper time order: yesterday's value → today's outcome
       const event = metricA.label.replace('Previous Day ', '');
-      const direction = correlation.r > 0 ? "increases" : "decreases";
+      const direction = correlation.r > 0 ? 'increases' : 'decreases';
       interpretation = `When ${event} goes up, next day's ${metricB.label} tends to ${direction}.`;
     } else if (bIsLagged && !aIsLagged) {
       // metricB is previous day, metricA is today
       // Proper time order: yesterday's value → today's outcome
       const event = metricB.label.replace('Previous Day ', '');
-      const direction = correlation.r > 0 ? "increases" : "decreases";
+      const direction = correlation.r > 0 ? 'increases' : 'decreases';
       interpretation = `When ${event} goes up, next day's ${metricA.label} tends to ${direction}.`;
     } else if (aIsLagged && bIsLagged) {
       // Both are lagged - unusual but handle gracefully
       // Just describe as regular correlation
-      const direction = correlation.r > 0 ? "increases" : "decreases";
+      const direction = correlation.r > 0 ? 'increases' : 'decreases';
       interpretation = `When ${metricA.label} goes up, ${metricB.label} tends to ${direction}.`;
     } else {
       // Neither is lagged - same-day correlation
-      const direction = correlation.r > 0 ? "increases" : "decreases";
+      const direction = correlation.r > 0 ? 'increases' : 'decreases';
       interpretation = `When ${metricA.label} goes up, ${metricB.label} tends to ${direction}.`;
     }
   }
 
-  if (strength === "very strong" || strength === "strong") {
+  if (strength === 'very strong' || strength === 'strong') {
     interpretation += ` This is a ${strength} relationship.`;
   }
 
-  if (confidence === "strong") {
+  if (confidence === 'strong') {
     interpretation += ` High statistical confidence (p < 0.01).`;
-  } else if (confidence === "moderate") {
+  } else if (confidence === 'moderate') {
     interpretation += ` Moderate statistical confidence (p < 0.05).`;
-  } else if (confidence === "exploratory") {
+  } else if (confidence === 'exploratory') {
     interpretation += ` Exploratory finding (p < 0.1).`;
   }
 
@@ -378,8 +387,8 @@ export async function getCorrelationBetween(
     metricB: metricBDef,
     correlation,
     dateRange: {
-      start: startDate.toISOString().split("T")[0],
-      end: endDate.toISOString().split("T")[0],
+      start: startDate.toISOString().split('T')[0],
+      end: endDate.toISOString().split('T')[0],
     },
     interpretation: generateInterpretation(metricADef, metricBDef, correlation),
   };

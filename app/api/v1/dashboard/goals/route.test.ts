@@ -24,21 +24,28 @@ describe('GET /api/v1/dashboard/goals', () => {
 
   describe('Authentication', () => {
     it('should require authentication', async () => {
-      const request = new Request('http://localhost:3000/api/v1/dashboard/goals');
+      const request = new Request(
+        'http://localhost:3000/api/v1/dashboard/goals'
+      );
       const response = await GET(request);
 
       expect(response.status).toBe(401);
     });
 
     it('should accept valid secret', async () => {
-      vi.mocked(sql).mockResolvedValueOnce([{ month_start: '2025-12-01' }] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { month_start: '2025-12-01' },
+      ] as never);
       vi.mocked(sql).mockResolvedValueOnce([] as never);
 
-      const request = new Request('http://localhost:3000/api/v1/dashboard/goals', {
-        headers: {
-          'x-admin-secret': 'test-dashboard-secret-1234567890',
-        },
-      });
+      const request = new Request(
+        'http://localhost:3000/api/v1/dashboard/goals',
+        {
+          headers: {
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
+          },
+        }
+      );
       const response = await GET(request);
 
       expect(response.status).toBe(200);
@@ -47,14 +54,19 @@ describe('GET /api/v1/dashboard/goals', () => {
 
   describe('Response Data', () => {
     it('should return empty goals when none exist', async () => {
-      vi.mocked(sql).mockResolvedValueOnce([{ month_start: '2025-12-01' }] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { month_start: '2025-12-01' },
+      ] as never);
       vi.mocked(sql).mockResolvedValueOnce([] as never);
 
-      const request = new Request('http://localhost:3000/api/v1/dashboard/goals', {
-        headers: {
-          'x-admin-secret': 'test-dashboard-secret-1234567890',
-        },
-      });
+      const request = new Request(
+        'http://localhost:3000/api/v1/dashboard/goals',
+        {
+          headers: {
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
+          },
+        }
+      );
       const response = await GET(request);
       const data = await response.json();
 
@@ -65,7 +77,9 @@ describe('GET /api/v1/dashboard/goals', () => {
     });
 
     it('should return daily and monthly goals', async () => {
-      vi.mocked(sql).mockResolvedValueOnce([{ month_start: '2025-12-01' }] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { month_start: '2025-12-01' },
+      ] as never);
       vi.mocked(sql).mockResolvedValueOnce([
         { kind: 'steps', target: 10000, period: 'daily' },
         { kind: 'reading_minutes', target: 30, period: 'daily' },
@@ -76,11 +90,14 @@ describe('GET /api/v1/dashboard/goals', () => {
         { kind: 'running_distance_km', target: 100, period: 'monthly' },
       ] as never);
 
-      const request = new Request('http://localhost:3000/api/v1/dashboard/goals', {
-        headers: {
-          'x-admin-secret': 'test-dashboard-secret-1234567890',
-        },
-      });
+      const request = new Request(
+        'http://localhost:3000/api/v1/dashboard/goals',
+        {
+          headers: {
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
+          },
+        }
+      );
       const response = await GET(request);
       const data = await response.json();
 
@@ -100,17 +117,22 @@ describe('GET /api/v1/dashboard/goals', () => {
     });
 
     it('should only return daily goals when no monthly goals exist', async () => {
-      vi.mocked(sql).mockResolvedValueOnce([{ month_start: '2025-12-01' }] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { month_start: '2025-12-01' },
+      ] as never);
       vi.mocked(sql).mockResolvedValueOnce([
         { kind: 'steps', target: 10000, period: 'daily' },
         { kind: 'reading_minutes', target: 30, period: 'daily' },
       ] as never);
 
-      const request = new Request('http://localhost:3000/api/v1/dashboard/goals', {
-        headers: {
-          'x-admin-secret': 'test-dashboard-secret-1234567890',
-        },
-      });
+      const request = new Request(
+        'http://localhost:3000/api/v1/dashboard/goals',
+        {
+          headers: {
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
+          },
+        }
+      );
       const response = await GET(request);
       const data = await response.json();
 
@@ -122,17 +144,22 @@ describe('GET /api/v1/dashboard/goals', () => {
     });
 
     it('should only return monthly goals when no daily goals exist', async () => {
-      vi.mocked(sql).mockResolvedValueOnce([{ month_start: '2025-12-01' }] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { month_start: '2025-12-01' },
+      ] as never);
       vi.mocked(sql).mockResolvedValueOnce([
         { kind: 'running_distance_km', target: 100, period: 'monthly' },
         { kind: 'climbing_sessions', target: 8, period: 'monthly' },
       ] as never);
 
-      const request = new Request('http://localhost:3000/api/v1/dashboard/goals', {
-        headers: {
-          'x-admin-secret': 'test-dashboard-secret-1234567890',
-        },
-      });
+      const request = new Request(
+        'http://localhost:3000/api/v1/dashboard/goals',
+        {
+          headers: {
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
+          },
+        }
+      );
       const response = await GET(request);
       const data = await response.json();
 
@@ -146,30 +173,39 @@ describe('GET /api/v1/dashboard/goals', () => {
 
   describe('Cache Headers', () => {
     it('should set correct cache headers (10 minutes for stable data)', async () => {
-      vi.mocked(sql).mockResolvedValueOnce([{ month_start: '2025-12-01' }] as never);
+      vi.mocked(sql).mockResolvedValueOnce([
+        { month_start: '2025-12-01' },
+      ] as never);
       vi.mocked(sql).mockResolvedValueOnce([] as never);
 
-      const request = new Request('http://localhost:3000/api/v1/dashboard/goals', {
-        headers: {
-          'x-admin-secret': 'test-dashboard-secret-1234567890',
-        },
-      });
+      const request = new Request(
+        'http://localhost:3000/api/v1/dashboard/goals',
+        {
+          headers: {
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
+          },
+        }
+      );
       const response = await GET(request);
 
       expect(response.headers.get('Cache-Control')).toBe('private, no-store');
     });
-
   });
 
   describe('Error Handling', () => {
     it('should return 500 on database error', async () => {
-      vi.mocked(sql).mockRejectedValueOnce(new Error('Database connection failed'));
+      vi.mocked(sql).mockRejectedValueOnce(
+        new Error('Database connection failed')
+      );
 
-      const request = new Request('http://localhost:3000/api/v1/dashboard/goals', {
-        headers: {
-          'x-admin-secret': 'test-dashboard-secret-1234567890',
-        },
-      });
+      const request = new Request(
+        'http://localhost:3000/api/v1/dashboard/goals',
+        {
+          headers: {
+            'x-admin-secret': 'test-dashboard-secret-1234567890',
+          },
+        }
+      );
       const response = await GET(request);
 
       expect(response.status).toBe(500);

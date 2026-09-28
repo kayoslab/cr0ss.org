@@ -29,7 +29,10 @@ vi.mock('@/lib/cache/revalidate', () => ({
 }));
 
 vi.mock('@/lib/obs/trace', () => ({
-  wrapTrace: <T extends (...args: unknown[]) => unknown>(_name: string, fn: T): T => fn,
+  wrapTrace: <T extends (...args: unknown[]) => unknown>(
+    _name: string,
+    fn: T
+  ): T => fn,
 }));
 
 import { rateLimit } from '@/lib/rate/limit';
@@ -44,13 +47,13 @@ describe('GET /api/habits/run', () => {
     vi.mocked(assertSecret).mockImplementation(() => {});
   });
 
-  describe("Authentication", () => {
-    it("should require authentication", async () => {
+  describe('Authentication', () => {
+    it('should require authentication', async () => {
       vi.mocked(assertSecret).mockImplementation(() => {
-        throw { status: 401, message: "Unauthorized" };
+        throw { status: 401, message: 'Unauthorized' };
       });
 
-      const request = new Request("http://localhost:3000/api/habits/run");
+      const request = new Request('http://localhost:3000/api/habits/run');
       const response = await GET(request);
 
       expect(response.status).toBe(401);
@@ -75,19 +78,30 @@ describe('GET /api/habits/run', () => {
       const request = new Request('http://localhost:3000/api/habits/run');
       await GET(request);
 
-      expect(rateLimit).toHaveBeenCalledWith(
-        request,
-        'get-run',
-        { windowSec: 60, max: 30 }
-      );
+      expect(rateLimit).toHaveBeenCalledWith(request, 'get-run', {
+        windowSec: 60,
+        max: 30,
+      });
     });
   });
 
   describe('Data Fetching', () => {
     it('should return list of runs', async () => {
       const mockRuns = [
-        { id: 1, date: '2025-01-15', distance_km: 5.2, duration_min: 30, avg_pace_sec_per_km: 346 },
-        { id: 2, date: '2025-01-14', distance_km: 10.0, duration_min: 55, avg_pace_sec_per_km: 330 },
+        {
+          id: 1,
+          date: '2025-01-15',
+          distance_km: 5.2,
+          duration_min: 30,
+          avg_pace_sec_per_km: 346,
+        },
+        {
+          id: 2,
+          date: '2025-01-14',
+          distance_km: 10.0,
+          duration_min: 55,
+          avg_pace_sec_per_km: 330,
+        },
       ];
       vi.mocked(sql).mockResolvedValue(mockRuns);
 
@@ -129,7 +143,11 @@ describe('POST /api/habits/run', () => {
       const request = new Request('http://localhost:3000/api/habits/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date: '2025-01-15', distance_km: 5.2, duration_min: 30 }),
+        body: JSON.stringify({
+          date: '2025-01-15',
+          distance_km: 5.2,
+          duration_min: 30,
+        }),
       });
       const response = await POST(request);
 
@@ -144,7 +162,11 @@ describe('POST /api/habits/run', () => {
       const request = new Request('http://localhost:3000/api/habits/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date: '2025-01-15', distance_km: 5.2, duration_min: 30 }),
+        body: JSON.stringify({
+          date: '2025-01-15',
+          distance_km: 5.2,
+          duration_min: 30,
+        }),
       });
       const response = await POST(request);
 
@@ -158,7 +180,11 @@ describe('POST /api/habits/run', () => {
       const request = new Request('http://localhost:3000/api/habits/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date: 'invalid', distance_km: 5.2, duration_min: 30 }),
+        body: JSON.stringify({
+          date: 'invalid',
+          distance_km: 5.2,
+          duration_min: 30,
+        }),
       });
       const response = await POST(request);
 
@@ -171,7 +197,11 @@ describe('POST /api/habits/run', () => {
       const request = new Request('http://localhost:3000/api/habits/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date: '2025-01-15', distance_km: -5, duration_min: 30 }),
+        body: JSON.stringify({
+          date: '2025-01-15',
+          distance_km: -5,
+          duration_min: 30,
+        }),
       });
       const response = await POST(request);
 
@@ -182,7 +212,11 @@ describe('POST /api/habits/run', () => {
       const request = new Request('http://localhost:3000/api/habits/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date: '2025-01-15', distance_km: 5.2, duration_min: -10 }),
+        body: JSON.stringify({
+          date: '2025-01-15',
+          distance_km: 5.2,
+          duration_min: -10,
+        }),
       });
       const response = await POST(request);
 
@@ -197,7 +231,11 @@ describe('POST /api/habits/run', () => {
       const request = new Request('http://localhost:3000/api/habits/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date: '2025-01-15', distance_km: 5.2, duration_min: 30 }),
+        body: JSON.stringify({
+          date: '2025-01-15',
+          distance_km: 5.2,
+          duration_min: 30,
+        }),
       });
       const response = await POST(request);
 
@@ -214,11 +252,11 @@ describe('POST /api/habits/run', () => {
       const request = new Request('http://localhost:3000/api/habits/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          date: '2025-01-15', 
-          distance_km: 5.2, 
+        body: JSON.stringify({
+          date: '2025-01-15',
+          distance_km: 5.2,
           duration_min: 30,
-          avg_pace_sec_per_km: 346
+          avg_pace_sec_per_km: 346,
         }),
       });
       const response = await POST(request);

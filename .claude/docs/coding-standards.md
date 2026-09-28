@@ -5,6 +5,7 @@
 ### Type Definitions
 
 **✅ Good**:
+
 ```typescript
 interface BlogProps {
   sys: {
@@ -14,18 +15,19 @@ interface BlogProps {
   slug: string;
   title: string;
   categoriesCollection: {
-    items: CategoryProps[];  // Array type
+    items: CategoryProps[]; // Array type
   };
 }
 ```
 
 **❌ Bad**:
+
 ```typescript
 interface BlogProps {
-  sys: any;  // Never use 'any'
+  sys: any; // Never use 'any'
   slug: string;
   title: string;
-  categories: any[];  // Untyped array
+  categories: any[]; // Untyped array
 }
 ```
 
@@ -158,7 +160,7 @@ import { BlogGrid } from './blog-grid';
 
 ```typescript
 // 1. Exports (runtime, config)
-export const runtime = "edge";
+export const runtime = 'edge';
 
 // 2. Type definitions
 interface Props {
@@ -249,9 +251,12 @@ return (
 ### Structure
 
 ```typescript
-export const runtime = "edge";
+export const runtime = 'edge';
 
-import { createErrorResponse, createSuccessResponse } from '@/lib/api/middleware';
+import {
+  createErrorResponse,
+  createSuccessResponse,
+} from '@/lib/api/middleware';
 
 export async function POST(request: Request) {
   // 1. Authentication
@@ -263,7 +268,12 @@ export async function POST(request: Request) {
   const body = await request.json();
   const validation = ZInputSchema.safeParse(body);
   if (!validation.success) {
-    return createErrorResponse('Invalid input', 400, validation.error, 'VALIDATION_ERROR');
+    return createErrorResponse(
+      'Invalid input',
+      400,
+      validation.error,
+      'VALIDATION_ERROR'
+    );
   }
 
   // 3. Business logic
@@ -303,7 +313,7 @@ try {
   }
 
   console.error('Failed to process:', error);
-  throw error;  // Re-throw if can't handle
+  throw error; // Re-throw if can't handle
 }
 ```
 
@@ -503,11 +513,15 @@ export async function BlogList() {
 ```typescript
 // ❌ Bad: Magic numbers
 const pages = Math.ceil(total / 9);
-if (items.length > 1200) { /* ... */ }
+if (items.length > 1200) {
+  /* ... */
+}
 
 // ✅ Good: Named constants
 const pages = Math.ceil(total / POSTS_PER_PAGE);
-if (imageWidth > OG_IMAGE_WIDTH) { /* ... */ }
+if (imageWidth > OG_IMAGE_WIDTH) {
+  /* ... */
+}
 ```
 
 ## Performance Best Practices

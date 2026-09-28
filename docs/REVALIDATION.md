@@ -28,14 +28,17 @@ This single secret is used for all Contentful webhook operations (cache revalida
 ### Blog Posts (`blogPost`)
 
 **Cache Tags Revalidated:**
+
 - `blogPosts` - General blog collection
 - `{slug}` - Specific blog post (if slug available)
 
 **Paths Revalidated:**
+
 - `/blog` - Blog index page
 - `/blog/{slug}` - Specific blog post page
 
 **Example Webhook Payload:**
+
 ```json
 {
   "sys": {
@@ -54,6 +57,7 @@ This single secret is used for all Contentful webhook operations (cache revalida
 ```
 
 **Example Response:**
+
 ```json
 {
   "revalidated": true,
@@ -71,13 +75,16 @@ This single secret is used for all Contentful webhook operations (cache revalida
 ### Pages (`page`)
 
 **Cache Tags Revalidated:**
+
 - `pages` - General pages collection
 - `{slug}` - Specific page (if slug available)
 
 **Paths Revalidated:**
+
 - `/page/{slug}` - Specific page
 
 **Example Webhook Payload:**
+
 ```json
 {
   "sys": {
@@ -96,6 +103,7 @@ This single secret is used for all Contentful webhook operations (cache revalida
 ```
 
 **Example Response:**
+
 ```json
 {
   "revalidated": true,
@@ -113,12 +121,15 @@ This single secret is used for all Contentful webhook operations (cache revalida
 ### Countries (`country`)
 
 **Cache Tags Revalidated:**
+
 - `countries` - All country-related data
 
 **Paths Revalidated:**
+
 - `/` - Home page (may display country data)
 
 **Example Webhook Payload:**
+
 ```json
 {
   "sys": {
@@ -132,6 +143,7 @@ This single secret is used for all Contentful webhook operations (cache revalida
 ```
 
 **Example Response:**
+
 ```json
 {
   "revalidated": true,
@@ -147,12 +159,15 @@ This single secret is used for all Contentful webhook operations (cache revalida
 ### Coffee (`coffee`)
 
 **Cache Tags Revalidated:**
+
 - `coffee` - Coffee collection
 
 **Paths Revalidated:**
+
 - `/dashboard` - Dashboard page (displays coffee data)
 
 **Example Webhook Payload:**
+
 ```json
 {
   "sys": {
@@ -166,6 +181,7 @@ This single secret is used for all Contentful webhook operations (cache revalida
 ```
 
 **Example Response:**
+
 ```json
 {
   "revalidated": true,
@@ -183,6 +199,7 @@ This single secret is used for all Contentful webhook operations (cache revalida
 The endpoint also supports a legacy manual format:
 
 **Request:**
+
 ```json
 {
   "tag": "blogPosts",
@@ -191,6 +208,7 @@ The endpoint also supports a legacy manual format:
 ```
 
 **Response:**
+
 ```json
 {
   "revalidated": true,
@@ -208,6 +226,7 @@ The endpoint also supports a legacy manual format:
 ## Error Responses
 
 ### 401 Unauthorized
+
 ```json
 {
   "error": "Unauthorized",
@@ -216,6 +235,7 @@ The endpoint also supports a legacy manual format:
 ```
 
 ### 400 Missing Targets
+
 ```json
 {
   "error": "No revalidation targets determined from payload",
@@ -225,6 +245,7 @@ The endpoint also supports a legacy manual format:
 ```
 
 ### 500 Server Error
+
 ```json
 {
   "error": "Failed to revalidate",
@@ -287,6 +308,7 @@ curl -X POST https://cr0ss.org/api/revalidate \
 ```
 
 The response indicates:
+
 - ✅ Cache tags and paths were revalidated
 - ✅ Blog post was indexed in Algolia for search
 

@@ -16,7 +16,9 @@ export function isStravaConfigured(): boolean {
  */
 export function assertStravaConfigured(): void {
   if (!isStravaConfigured()) {
-    throw new Error('Strava integration is not configured. Please set STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET, and STRAVA_WEBHOOK_VERIFY_TOKEN environment variables.');
+    throw new Error(
+      'Strava integration is not configured. Please set STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET, and STRAVA_WEBHOOK_VERIFY_TOKEN environment variables.'
+    );
   }
 }
 

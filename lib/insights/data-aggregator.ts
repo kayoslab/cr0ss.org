@@ -5,7 +5,7 @@
  * by date for correlation analysis.
  */
 
-import { sql } from "../db/client";
+import { sql } from '../db/client';
 
 export interface DailyMetrics {
   date: string; // ISO date string (YYYY-MM-DD)
@@ -63,32 +63,157 @@ export interface MetricDefinition {
  * All available metrics for correlation analysis
  */
 export const AVAILABLE_METRICS: MetricDefinition[] = [
-  { key: "sleepScore", label: "Sleep Score", description: "Sleep quality score (0-100)", unit: "points" },
-  { key: "focusMinutes", label: "Focus Time", description: "Deep focus work time", unit: "minutes" },
-  { key: "readingMinutes", label: "Reading Time", description: "Time spent reading", unit: "minutes" },
-  { key: "outdoorMinutes", label: "Outdoor Time", description: "Time spent outdoors", unit: "minutes" },
-  { key: "writingMinutes", label: "Writing Time", description: "Time spent writing", unit: "minutes" },
-  { key: "coffeeCount", label: "Coffee Cups", description: "Number of coffee servings", unit: "cups" },
-  { key: "totalCaffeineMg", label: "Caffeine Intake", description: "Total caffeine consumed", unit: "mg" },
-  { key: "runDistanceKm", label: "Running Distance", description: "Distance ran", unit: "km" },
-  { key: "runDurationMin", label: "Running Duration", description: "Time spent running", unit: "minutes" },
-  { key: "workoutCount", label: "Workout Sessions", description: "Number of workout sessions", unit: "sessions" },
-  { key: "workoutDurationMin", label: "Workout Duration", description: "Total workout time", unit: "minutes" },
-  { key: "avgTempCelsius", label: "Temperature", description: "Average daily temperature", unit: "°C" },
-  { key: "avgHumidity", label: "Humidity", description: "Average daily humidity", unit: "%" },
-  { key: "avgCloudiness", label: "Cloudiness", description: "Average daily cloud cover", unit: "%" },
-  { key: "sunnyDay", label: "Sunny Day", description: "Clear weather (cloudiness < 30%)", unit: "boolean" },
-  { key: "mood", label: "Mood", description: "Daily mood rating (1-10)", unit: "score" },
-  { key: "energy", label: "Energy", description: "Daily energy level (1-10)", unit: "score" },
-  { key: "stress", label: "Stress", description: "Daily stress level (1-10)", unit: "score" },
-  { key: "focusQuality", label: "Focus Quality", description: "Subjective focus quality (1-10)", unit: "score" },
+  {
+    key: 'sleepScore',
+    label: 'Sleep Score',
+    description: 'Sleep quality score (0-100)',
+    unit: 'points',
+  },
+  {
+    key: 'focusMinutes',
+    label: 'Focus Time',
+    description: 'Deep focus work time',
+    unit: 'minutes',
+  },
+  {
+    key: 'readingMinutes',
+    label: 'Reading Time',
+    description: 'Time spent reading',
+    unit: 'minutes',
+  },
+  {
+    key: 'outdoorMinutes',
+    label: 'Outdoor Time',
+    description: 'Time spent outdoors',
+    unit: 'minutes',
+  },
+  {
+    key: 'writingMinutes',
+    label: 'Writing Time',
+    description: 'Time spent writing',
+    unit: 'minutes',
+  },
+  {
+    key: 'coffeeCount',
+    label: 'Coffee Cups',
+    description: 'Number of coffee servings',
+    unit: 'cups',
+  },
+  {
+    key: 'totalCaffeineMg',
+    label: 'Caffeine Intake',
+    description: 'Total caffeine consumed',
+    unit: 'mg',
+  },
+  {
+    key: 'runDistanceKm',
+    label: 'Running Distance',
+    description: 'Distance ran',
+    unit: 'km',
+  },
+  {
+    key: 'runDurationMin',
+    label: 'Running Duration',
+    description: 'Time spent running',
+    unit: 'minutes',
+  },
+  {
+    key: 'workoutCount',
+    label: 'Workout Sessions',
+    description: 'Number of workout sessions',
+    unit: 'sessions',
+  },
+  {
+    key: 'workoutDurationMin',
+    label: 'Workout Duration',
+    description: 'Total workout time',
+    unit: 'minutes',
+  },
+  {
+    key: 'avgTempCelsius',
+    label: 'Temperature',
+    description: 'Average daily temperature',
+    unit: '°C',
+  },
+  {
+    key: 'avgHumidity',
+    label: 'Humidity',
+    description: 'Average daily humidity',
+    unit: '%',
+  },
+  {
+    key: 'avgCloudiness',
+    label: 'Cloudiness',
+    description: 'Average daily cloud cover',
+    unit: '%',
+  },
+  {
+    key: 'sunnyDay',
+    label: 'Sunny Day',
+    description: 'Clear weather (cloudiness < 30%)',
+    unit: 'boolean',
+  },
+  {
+    key: 'mood',
+    label: 'Mood',
+    description: 'Daily mood rating (1-10)',
+    unit: 'score',
+  },
+  {
+    key: 'energy',
+    label: 'Energy',
+    description: 'Daily energy level (1-10)',
+    unit: 'score',
+  },
+  {
+    key: 'stress',
+    label: 'Stress',
+    description: 'Daily stress level (1-10)',
+    unit: 'score',
+  },
+  {
+    key: 'focusQuality',
+    label: 'Focus Quality',
+    description: 'Subjective focus quality (1-10)',
+    unit: 'score',
+  },
   // Lagged metrics for cross-day correlations
-  { key: "prevDayWorkout", label: "Previous Day Workout", description: "Whether you worked out yesterday", unit: "boolean" },
-  { key: "prevDayWorkoutDuration", label: "Previous Day Workout Duration", description: "Workout duration yesterday", unit: "minutes" },
-  { key: "prevDayRunning", label: "Previous Day Running", description: "Whether you ran yesterday", unit: "boolean" },
-  { key: "prevDayRunDistance", label: "Previous Day Run Distance", description: "Running distance yesterday", unit: "km" },
-  { key: "prevDaySleepScore", label: "Previous Day Sleep", description: "Sleep score yesterday", unit: "points" },
-  { key: "prevDayCoffeeCount", label: "Previous Day Coffee", description: "Coffee cups yesterday", unit: "cups" },
+  {
+    key: 'prevDayWorkout',
+    label: 'Previous Day Workout',
+    description: 'Whether you worked out yesterday',
+    unit: 'boolean',
+  },
+  {
+    key: 'prevDayWorkoutDuration',
+    label: 'Previous Day Workout Duration',
+    description: 'Workout duration yesterday',
+    unit: 'minutes',
+  },
+  {
+    key: 'prevDayRunning',
+    label: 'Previous Day Running',
+    description: 'Whether you ran yesterday',
+    unit: 'boolean',
+  },
+  {
+    key: 'prevDayRunDistance',
+    label: 'Previous Day Run Distance',
+    description: 'Running distance yesterday',
+    unit: 'km',
+  },
+  {
+    key: 'prevDaySleepScore',
+    label: 'Previous Day Sleep',
+    description: 'Sleep score yesterday',
+    unit: 'points',
+  },
+  {
+    key: 'prevDayCoffeeCount',
+    label: 'Previous Day Coffee',
+    description: 'Coffee cups yesterday',
+    unit: 'cups',
+  },
 ];
 
 /**
@@ -101,8 +226,8 @@ export async function fetchDailyMetrics(
   startDate: Date,
   endDate: Date
 ): Promise<DailyMetrics[]> {
-  const startISO = startDate.toISOString().split("T")[0];
-  const endISO = endDate.toISOString().split("T")[0];
+  const startISO = startDate.toISOString().split('T')[0];
+  const endISO = endDate.toISOString().split('T')[0];
 
   const rows = await sql`
     WITH date_range AS (
@@ -263,7 +388,9 @@ export async function fetchDailyMetrics(
       runDistanceKm: r.run_distance_km ? Number(r.run_distance_km) : null,
       runDurationMin: r.run_duration_min ? Number(r.run_duration_min) : null,
       workoutCount: Number(r.workout_count) || null,
-      workoutDurationMin: r.workout_duration_min ? Number(r.workout_duration_min) : null,
+      workoutDurationMin: r.workout_duration_min
+        ? Number(r.workout_duration_min)
+        : null,
       avgTempCelsius: r.avg_temp_celsius ? Number(r.avg_temp_celsius) : null,
       avgHumidity: r.avg_humidity ? Number(r.avg_humidity) : null,
       avgCloudiness: r.avg_cloudiness ? Number(r.avg_cloudiness) : null,
@@ -274,9 +401,13 @@ export async function fetchDailyMetrics(
       focusQuality: r.focus_quality,
       // Lagged metrics
       prevDayWorkout: r.prev_day_workout,
-      prevDayWorkoutDuration: r.prev_day_workout_duration ? Number(r.prev_day_workout_duration) : null,
+      prevDayWorkoutDuration: r.prev_day_workout_duration
+        ? Number(r.prev_day_workout_duration)
+        : null,
       prevDayRunning: r.prev_day_running,
-      prevDayRunDistance: r.prev_day_run_distance ? Number(r.prev_day_run_distance) : null,
+      prevDayRunDistance: r.prev_day_run_distance
+        ? Number(r.prev_day_run_distance)
+        : null,
       prevDaySleepScore: r.prev_day_sleep_score,
       prevDayCoffeeCount: Number(r.prev_day_coffee_count) || null,
     };
@@ -298,7 +429,7 @@ export function extractMetricValues(
     const value = day[metric];
 
     // Skip null/undefined values and boolean (sunny_day)
-    if (value === null || value === undefined || typeof value === "boolean") {
+    if (value === null || value === undefined || typeof value === 'boolean') {
       continue;
     }
 

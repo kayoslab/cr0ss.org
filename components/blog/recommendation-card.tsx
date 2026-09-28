@@ -42,7 +42,10 @@ export function RecommendationCard({
   priority = false,
 }: RecommendationCardProps) {
   const href = `/blog/${post.slug}`;
-  const optimizedImageUrl = optimizeWithPreset(post.heroImageUrl, 'gridThumbnail');
+  const optimizedImageUrl = optimizeWithPreset(
+    post.heroImageUrl,
+    'gridThumbnail'
+  );
 
   return (
     <article className='flex h-full flex-col overflow-hidden rounded-lg shadow-lg'>

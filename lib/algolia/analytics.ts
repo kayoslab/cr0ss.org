@@ -6,10 +6,10 @@ export async function trackSearch(query: string, resultsCount: number) {
       body: JSON.stringify({
         type: 'search',
         query,
-        resultsCount
-      })
+        resultsCount,
+      }),
     });
   } catch (error) {
     console.error('Failed to track search:', error);
   }
-} 
+}

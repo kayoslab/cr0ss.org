@@ -1,1 +1,1 @@
-export const SECRET_HEADER = "x-admin-secret";
+export const SECRET_HEADER = 'x-admin-secret';

@@ -1,5 +1,5 @@
 // lib/user/profile.ts
-import { getBodyProfileDB } from "@/lib/db/profile";
+import { getBodyProfileDB } from '@/lib/db/profile';
 
 export type BodyProfile = {
   weight_kg: number;
@@ -13,7 +13,6 @@ export type BodyProfile = {
   age?: number | null;
   sex?: string | null;
 };
-
 
 function envNum(s: string | undefined) {
   const n = s ? Number(s) : NaN;

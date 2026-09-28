@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
         { error: 'Rate limit exceeded' },
         {
           status: 429,
-          headers: { 'Retry-After': rateLimitResult.retryAfterSec.toString() }
+          headers: { 'Retry-After': rateLimitResult.retryAfterSec.toString() },
         }
       );
     }
@@ -67,7 +67,10 @@ export async function POST(request: NextRequest) {
 
     // Strava returns 200 on successful deauthorization
     if (!deauthorizeResponse.ok) {
-      console.error('Strava deauthorization failed:', await deauthorizeResponse.text());
+      console.error(
+        'Strava deauthorization failed:',
+        await deauthorizeResponse.text()
+      );
       // Continue anyway to clean up local data
     }
 
@@ -84,14 +87,10 @@ export async function POST(request: NextRequest) {
       ok: true,
       message: 'Strava connection removed successfully',
     });
-
   } catch (error) {
     if (typeof error === 'object' && error !== null && 'status' in error) {
       const err = error as { status: number; message: string };
-      return NextResponse.json(
-        { error: err.message },
-        { status: err.status }
-      );
+      return NextResponse.json({ error: err.message }, { status: err.status });
     }
 
     console.error('Strava disconnect error:', error);

@@ -59,7 +59,9 @@ async function startApifyRun(contactId: string): Promise<string | null> {
   );
   if (!res.ok) {
     const body = await res.text().catch(() => '');
-    throw new FatalError(`Apify run start failed: ${res.status} ${body.slice(0, 300)}`);
+    throw new FatalError(
+      `Apify run start failed: ${res.status} ${body.slice(0, 300)}`
+    );
   }
   const json = (await res.json()) as { data?: { id?: string } };
   const runId = json.data?.id;
@@ -92,7 +94,8 @@ async function buildAndEmbed(contactId: string, runId: string): Promise<void> {
   const res = await fetch(
     `${APIFY_BASE}/actor-runs/${runId}/dataset/items?token=${token}&limit=1`
   );
-  if (!res.ok) throw new FatalError(`Apify dataset fetch failed: ${res.status}`);
+  if (!res.ok)
+    throw new FatalError(`Apify dataset fetch failed: ${res.status}`);
   const items = (await res.json()) as Array<Record<string, unknown>>;
   const raw = items[0] ?? {};
 
@@ -138,7 +141,8 @@ async function buildAndEmbed(contactId: string, runId: string): Promise<void> {
     headline: str(raw.headline),
     company: str(cur.companyName) ?? str(raw.companyName) ?? str(raw.company),
     role: str(cur.position) ?? str(raw.jobTitle) ?? str(raw.title),
-    location: str(loc.linkedinText) ?? str(raw.location) ?? str(raw.addressWithCountry),
+    location:
+      str(loc.linkedinText) ?? str(raw.location) ?? str(raw.addressWithCountry),
     linkedinUrl:
       str(raw.linkedinUrl) ??
       str(raw.profileUrl) ??

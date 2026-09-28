@@ -22,7 +22,10 @@ type Node = Block | Inline | Text;
 
 interface Context {
   assets: Map<string, ContentfulAsset>;
-  entries: Map<string, { __typename: string; codeSnippet?: string; language?: string }>;
+  entries: Map<
+    string,
+    { __typename: string; codeSnippet?: string; language?: string }
+  >;
 }
 
 export function richTextToMarkdown(
@@ -107,7 +110,9 @@ function renderList(
 function renderTable(rows: Node[], ctx: Context): string {
   const cells = rows.map((row) =>
     children(row).map((cell) =>
-      renderBlocks(children(cell), ctx).replace(/\s*\n\s*/g, ' ').trim()
+      renderBlocks(children(cell), ctx)
+        .replace(/\s*\n\s*/g, ' ')
+        .trim()
     )
   );
   if (cells.length === 0) return '';
@@ -117,7 +122,11 @@ function renderTable(rows: Node[], ctx: Context): string {
   // GFM needs a header row; Contentful's first row is the header when it
   // uses header cells, and reads fine as one otherwise.
   const [head, ...body] = cells;
-  return [line(head), `| ${Array(width).fill('---').join(' | ')} |`, ...body.map(line)].join('\n');
+  return [
+    line(head),
+    `| ${Array(width).fill('---').join(' | ')} |`,
+    ...body.map(line),
+  ].join('\n');
 }
 
 function renderInlines(nodes: Node[], ctx: Context): string {

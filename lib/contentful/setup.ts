@@ -1,6 +1,26 @@
 import * as management from 'contentful-management';
 import countries from './countries.json';
-const visitedCountries = ["DE", "AT", "IT", "ES", "FR", "PT", "HR", "FI", "GB", "EG", "TH", "US", "LU", "BE", "NL", "PL", "MT", "GR", "GP"];
+const visitedCountries = [
+  'DE',
+  'AT',
+  'IT',
+  'ES',
+  'FR',
+  'PT',
+  'HR',
+  'FI',
+  'GB',
+  'EG',
+  'TH',
+  'US',
+  'LU',
+  'BE',
+  'NL',
+  'PL',
+  'MT',
+  'GR',
+  'GP',
+];
 const { CONTENTFUL_SPACE_ID, CONTENTFUL_MANAGEMENT_TOKEN } = process.env;
 
 if (!CONTENTFUL_SPACE_ID || !CONTENTFUL_MANAGEMENT_TOKEN) {
@@ -43,8 +63,14 @@ interface ContentfulEntries {
 }
 
 interface ContentfulEnvironment {
-  getEntries: (options: { content_type: string; limit: string }) => Promise<ContentfulEntries>;
-  createEntry: (contentType: string, fields: unknown) => Promise<ContentfulEntry>;
+  getEntries: (options: {
+    content_type: string;
+    limit: string;
+  }) => Promise<ContentfulEntries>;
+  createEntry: (
+    contentType: string,
+    fields: unknown
+  ) => Promise<ContentfulEntry>;
 }
 
 interface CountryData {
@@ -59,54 +85,61 @@ const client = management.createClient({
 
 client.getSpace(CONTENTFUL_SPACE_ID).then((space) => {
   space.getEnvironment('master').then((environment) => {
-    environment.getEntries({'content_type': 'country', 'limit': '1000'}).then(async (entries) => {
+    environment
+      .getEntries({ content_type: 'country', limit: '1000' })
+      .then(async (entries) => {
+        // entries.items.forEach((entry) => {
+        //   entry.unpublish();
+        //   entry.delete();
+        // });
+        // return;
+        const entryIds = entries.items.map((entry) => entry.fields.id['en-US']);
+        const localCountries = (countries as CountryData[]).filter(
+          (country) => !entryIds.includes(country.id)
+        );
 
-      // entries.items.forEach((entry) => {
-      //   entry.unpublish();
-      //   entry.delete();
-      // });
-      // return;
-      const entryIds = entries.items.map((entry) => entry.fields.id['en-US']);
-      const localCountries = (countries as CountryData[]).filter((country) => !entryIds.includes(country.id));
+        for (const country of localCountries) {
+          if (!country.id || !country.title || !country.d) {
+            continue;
+          }
 
-      for (const country of localCountries) {
-        if (!country.id || !country.title || !country.d) {
-          continue;
-        }
-
-        if (entryIds.includes(country.id)) {
-          continue;
-        }
-
-        try {
-          const entry = await environment.createEntry('country', {
-            fields: {
-              id: {
-                'en-US': country.id,
-              },
-              name: {
-                'en-US': country.title,
-              },
-              visited: {
-                'en-US': visitedCountries.includes(country.id),
-              },
-              data: {
-                'en-US': '{ "path": "' + country.d + '" }',
-              }
-            },
-          });
+          if (entryIds.includes(country.id)) {
+            continue;
+          }
 
           try {
-            await entry.publish();
-            console.log('Country published', country.title);
-          } catch (publishError) {
-            console.log('Country created but not published', country.title);
-            console.error('Publish error:', publishError);
+            const entry = await environment.createEntry('country', {
+              fields: {
+                id: {
+                  'en-US': country.id,
+                },
+                name: {
+                  'en-US': country.title,
+                },
+                visited: {
+                  'en-US': visitedCountries.includes(country.id),
+                },
+                data: {
+                  'en-US': '{ "path": "' + country.d + '" }',
+                },
+              },
+            });
+
+            try {
+              await entry.publish();
+              console.log('Country published', country.title);
+            } catch (publishError) {
+              console.log('Country created but not published', country.title);
+              console.error('Publish error:', publishError);
+            }
+          } catch (createError) {
+            console.error(
+              'Failed to create country',
+              country.title,
+              createError
+            );
           }
-        } catch (createError) {
-          console.error('Failed to create country', country.title, createError);
         }
-      }
-    });
+      });
   });
 });

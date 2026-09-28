@@ -1,4 +1,4 @@
-import { SECRET_HEADER } from "@/lib/auth/constants";
+import { SECRET_HEADER } from '@/lib/auth/constants';
 
 export function getClientId(req: Request): string {
   const h = new Headers(req.headers);
@@ -9,9 +9,9 @@ export function getClientId(req: Request): string {
   // Fallback: client IP. Vercel sets x-real-ip from the connection itself;
   // x-forwarded-for's first hop is caller-controlled, so it's only a last resort.
   const ip =
-    h.get("x-real-ip") ||
-    h.get("x-forwarded-for")?.split(",")[0].trim() ||
-    "ip:unknown";
+    h.get('x-real-ip') ||
+    h.get('x-forwarded-for')?.split(',')[0].trim() ||
+    'ip:unknown';
 
   return `ip:${ip}`;
 }

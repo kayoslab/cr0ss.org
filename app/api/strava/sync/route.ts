@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
         { error: 'Rate limit exceeded. Please wait before syncing again.' },
         {
           status: 429,
-          headers: { 'Retry-After': rateLimitResult.retryAfterSec.toString() }
+          headers: { 'Retry-After': rateLimitResult.retryAfterSec.toString() },
         }
       );
     }
@@ -62,12 +62,17 @@ export async function POST(request: NextRequest) {
     const daysBack = body.daysBack || 30; // Default to last 30 days
 
     // Calculate "after" timestamp (activities after this date)
-    const afterTimestamp = Math.floor(Date.now() / 1000) - (daysBack * 24 * 60 * 60);
+    const afterTimestamp =
+      Math.floor(Date.now() / 1000) - daysBack * 24 * 60 * 60;
 
     console.log(`Syncing Strava activities from last ${daysBack} days...`);
 
     // Fetch recent activities
-    const activities = await fetchStravaActivities(accessToken, afterTimestamp, 100);
+    const activities = await fetchStravaActivities(
+      accessToken,
+      afterTimestamp,
+      100
+    );
 
     console.log(`Found ${activities.length} activities to sync`);
 
@@ -81,7 +86,9 @@ export async function POST(request: NextRequest) {
         // Only sync running activities
         const runningTypes = ['Run', 'TrailRun', 'VirtualRun'];
         if (!runningTypes.includes(activity.type)) {
-          console.log(`Skipping non-running activity ${activity.id}: ${activity.type}`);
+          console.log(
+            `Skipping non-running activity ${activity.id}: ${activity.type}`
+          );
           skipped++;
           continue;
         }
@@ -160,7 +167,6 @@ export async function POST(request: NextRequest) {
         `;
 
         synced++;
-
       } catch (error) {
         console.error(`Failed to sync activity ${activity.id}:`, error);
 
@@ -199,14 +205,10 @@ export async function POST(request: NextRequest) {
       errors,
       total: activities.length,
     });
-
   } catch (error) {
     if (typeof error === 'object' && error !== null && 'status' in error) {
       const err = error as { status: number; message: string };
-      return NextResponse.json(
-        { error: err.message },
-        { status: err.status }
-      );
+      return NextResponse.json({ error: err.message }, { status: err.status });
     }
 
     console.error('Strava sync error:', error);

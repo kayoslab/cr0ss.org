@@ -291,12 +291,13 @@ describe('GET /api/v1/dashboard/coffee/timeline', () => {
 
       expect(response.headers.get('Cache-Control')).toBe('private, no-store');
     });
-
   });
 
   describe('Error Handling', () => {
     it('should return 500 on database error', async () => {
-      vi.mocked(sql).mockRejectedValueOnce(new Error('Database connection failed'));
+      vi.mocked(sql).mockRejectedValueOnce(
+        new Error('Database connection failed')
+      );
 
       const request = new Request(
         'http://localhost:3000/api/v1/dashboard/coffee/timeline?start_date=2025-12-01&end_date=2025-12-05',

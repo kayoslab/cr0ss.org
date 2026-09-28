@@ -1,17 +1,18 @@
 import { documentToReactComponents } from '@contentful/rich-text-react-renderer';
 import { ContentfulImage } from '@/components/ui/contentful-image';
 import { PageProps } from '@/lib/contentful/api/props/page';
-import { createRichTextOptions, PAGE_STYLES } from '@/lib/contentful/rich-text-renderer';
+import {
+  createRichTextOptions,
+  PAGE_STYLES,
+} from '@/lib/contentful/rich-text-renderer';
 import { optimizeWithPreset } from '@/lib/contentful/image-utils';
 
 export const Page = ({ page }: { page: PageProps }) => {
   return (
-    <section className='w-full max-w-7xl mx-auto'>
+    <section className='mx-auto w-full max-w-7xl'>
       <div className='space-y-12 px-4 md:px-6'>
         <div className='space-y-4'>
-          <h1
-            className='text-4xl font-bold tracking-tighter sm:text-5xl'
-          >
+          <h1 className='text-4xl font-bold tracking-tighter sm:text-5xl'>
             {page.title}
           </h1>
         </div>
@@ -23,7 +24,7 @@ export const Page = ({ page }: { page: PageProps }) => {
               src={optimizeWithPreset(page.heroImage.url, 'hero')}
               width={0}
               height={0}
-              sizes="(max-width: 1280px) 100vw, 1232px"
+              sizes='(max-width: 1280px) 100vw, 1232px'
               style={{ width: '100%', height: 'auto' }}
               priority={true}
               fetchPriority='high'
@@ -31,12 +32,12 @@ export const Page = ({ page }: { page: PageProps }) => {
           )}
           <div className='space-y-4 md:space-y-6'>
             <div className='space-y-2'>
-              <div
-                className='prose prose-lg max-w-full text-zinc-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed'
-              >
+              <div className='prose prose-lg max-w-full text-zinc-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed'>
                 {documentToReactComponents(
                   page.details.json,
-                  createRichTextOptions(page.details.links, PAGE_STYLES, { enableCodeSnippets: false })
+                  createRichTextOptions(page.details.links, PAGE_STYLES, {
+                    enableCodeSnippets: false,
+                  })
                 )}
               </div>
             </div>
