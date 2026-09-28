@@ -40,7 +40,6 @@ interface SeedProject {
   summary: string;
   url: string;
   external: boolean;
-  order: number;
 }
 
 const seedProjects: SeedProject[] = [
@@ -51,7 +50,6 @@ const seedProjects: SeedProject[] = [
       'A browser-based self-audit that reveals what a device and browser expose before a user logs into any website.',
     url: 'https://signal.cr0ss.org',
     external: true,
-    order: 1,
   },
   {
     slug: '404-museum',
@@ -60,7 +58,6 @@ const seedProjects: SeedProject[] = [
       'Every page refresh reveals a fake abandoned website from an alternate internet timeline. Each generated website feels like something that genuinely could have existed.',
     url: 'https://404.cr0ss.org',
     external: true,
-    order: 2,
   },
   {
     slug: 'latency-cathedral',
@@ -69,7 +66,6 @@ const seedProjects: SeedProject[] = [
       'Uses live network timings (ping, resource load, packet jitter) to generate gothic structures in WebGL. Every network condition creates a different cathedral.',
     url: 'https://latency.cr0ss.org',
     external: true,
-    order: 3,
   },
   {
     slug: 'eavi',
@@ -78,7 +74,6 @@ const seedProjects: SeedProject[] = [
       'An ephemeral audiovisual installation in the browser. Each visit becomes a one-off composition shaped by your environment, time and motion — then disappears, leaving no trace.',
     url: 'https://eavi.cr0ss.org',
     external: true,
-    order: 4,
   },
   {
     slug: 'migration-readiness-assessment',
@@ -87,7 +82,6 @@ const seedProjects: SeedProject[] = [
       'A diagnostic framework for engineering leaders and CTOs to evaluate whether their organisation is ready for platform modernisation. It surfaces misalignments across six readiness domains using statistical validation and NLP-driven qualitative analysis.',
     url: 'https://github.com/kayoslab/Migration-Readiness-Assessment',
     external: true,
-    order: 5,
   },
   {
     slug: 'dashboard',
@@ -96,7 +90,6 @@ const seedProjects: SeedProject[] = [
       'A quantified-self dashboard that tracks daily habits, coffee and caffeine metabolism, workouts, running stats, and travel across countries — with an insights engine that discovers statistical correlations between metrics.',
     url: '/dashboard',
     external: false,
-    order: 6,
   },
   {
     slug: 'coffee',
@@ -105,7 +98,6 @@ const seedProjects: SeedProject[] = [
       'A curated journal of specialty coffees documenting origin, roaster, processing method, variety, tasting notes, SCA scores, and brewing recipes — each with an interactive map pinpointing where the beans were grown.',
     url: '/coffee',
     external: false,
-    order: 7,
   },
 ];
 
@@ -208,13 +200,6 @@ async function ensureContentType() {
           localized: false,
         },
         {
-          id: 'order',
-          name: 'Order',
-          type: 'Integer',
-          required: false,
-          localized: false,
-        },
-        {
           id: 'heroImage',
           name: 'Hero Image',
           type: 'Link',
@@ -260,7 +245,6 @@ async function seedEntries() {
             summary: { 'en-US': project.summary },
             url: { 'en-US': project.url },
             external: { 'en-US': project.external },
-            order: { 'en-US': project.order },
           },
         }
       );

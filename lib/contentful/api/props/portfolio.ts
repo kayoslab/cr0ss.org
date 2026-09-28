@@ -13,7 +13,6 @@ export interface PortfolioProps {
   url?: string | null;
   githubUrl?: string | null;
   external?: boolean | null;
-  order?: number | null;
   heroImage?: {
     sys: { id: string };
     url: string;
@@ -40,7 +39,6 @@ export const PORTFOLIO_LIST_FIELDS = `
   summary
   url
   external
-  order
   heroImage {
     sys {
       id
@@ -64,7 +62,6 @@ export const PORTFOLIO_GRAPHQL_FIELDS = `
   url
   githubUrl
   external
-  order
   heroImage {
     sys {
       id

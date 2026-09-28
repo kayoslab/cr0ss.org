@@ -25,11 +25,11 @@ function extractCollection(response: GraphQLResponse): PortfolioCollection {
   return response.data.portfolioProjectCollection;
 }
 
-/** All portfolio projects, ordered by the `order` field (ascending). */
+/** All portfolio projects, newest first. */
 export async function getAllProjects(): Promise<PortfolioCollection> {
   try {
     const query = `query {
-      portfolioProjectCollection(order: order_ASC, limit: 100, preview: false) {
+      portfolioProjectCollection(order: sys_firstPublishedAt_DESC, limit: 100, preview: false) {
         total
         skip
         limit
