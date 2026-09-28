@@ -49,6 +49,16 @@ const nextConfig = {
     // can select.
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 2560],
   },
+  async rewrites() {
+    // Markdown renditions for agents: /blog/<slug>.md etc. A `[slug].md`
+    // segment is not expressible in the App Router, so map onto the
+    // catch-all handler in app/llms/[...path]/route.ts.
+    return [
+      { source: '/blog/:slug.md', destination: '/llms/blog/:slug' },
+      { source: '/page/:slug.md', destination: '/llms/page/:slug' },
+      { source: '/portfolio/:slug.md', destination: '/llms/portfolio/:slug' },
+    ];
+  },
   async headers() {
     return [
       {

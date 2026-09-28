@@ -1,125 +1,58 @@
 import Link from 'next/link';
 import { CurrentYear } from '@/components/current-year';
+import {
+  GitHubIcon,
+  InstagramIcon,
+  LinkedInIcon,
+} from '@/components/social-icons';
+
+const socialLinks = [
+  {
+    label: 'Instagram',
+    href: 'https://www.instagram.com/cr0ss.mind/',
+    Icon: InstagramIcon,
+  },
+  {
+    label: 'LinkedIn',
+    href: 'https://www.linkedin.com/in/cr0ss/',
+    Icon: LinkedInIcon,
+  },
+  { label: 'GitHub', href: 'https://github.com/kayoslab', Icon: GitHubIcon },
+];
 
 export default function Footer() {
   return (
     <footer className='mt-auto border-t border-gray-200 bg-white'>
-      <div className='mx-auto max-w-7xl px-6 py-12 lg:px-8'>
-        <div className='grid grid-cols-1 gap-8 md:grid-cols-4'>
-          {/* Brand Section */}
-          <div className='col-span-1 md:col-span-1'>
-            <Link href='/' className='text-xl font-bold text-gray-900'>
-              cr0ss.org
-            </Link>
-            <p className='mt-4 text-sm text-gray-600'>
-              Personal and professional website of Simon Krüger.
-            </p>
-          </div>
-
-          {/* Navigation Links */}
-          <div className='col-span-1'>
-            <h3 className='mb-4 text-sm font-semibold text-gray-900'>
-              Navigation
-            </h3>
-            <ul className='space-y-3'>
-              <li>
-                <Link
-                  href='/'
-                  className='text-sm text-gray-600 transition-colors hover:text-gray-900'
-                >
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href='/blog'
-                  className='text-sm text-gray-600 transition-colors hover:text-gray-900'
-                >
-                  Blog
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href='/portfolio'
-                  className='text-sm text-gray-600 transition-colors hover:text-gray-900'
-                >
-                  Portfolio
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Information Links */}
-          <div className='col-span-1'>
-            <h3 className='mb-4 text-sm font-semibold text-gray-900'>
-              Information
-            </h3>
-            <ul className='space-y-3'>
-              <li>
-                <Link
-                  href='/page/contact'
-                  className='text-sm text-gray-600 transition-colors hover:text-gray-900'
-                >
-                  Contact
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href='/page/imprint'
-                  className='text-sm text-gray-600 transition-colors hover:text-gray-900'
-                >
-                  Imprint
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href='/cv.pdf'
-                  className='text-sm text-gray-600 transition-colors hover:text-gray-900'
-                >
-                  Vita
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Social/Tech Stack */}
-          <div className='col-span-1'>
-            <h3 className='mb-4 text-sm font-semibold text-gray-900'>Social</h3>
-            <ul className='space-y-3'>
-              <li>
-                <Link
-                  href='https://github.com/kayoslab'
-                  className='text-sm text-gray-600 transition-colors hover:text-gray-900'
-                >
-                  GitHub
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href='https://www.instagram.com/cr0ss.mind/'
-                  className='text-sm text-gray-600 transition-colors hover:text-gray-900'
-                >
-                  Instagram
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href='https://www.linkedin.com/in/cr0ss/'
-                  className='text-sm text-gray-600 transition-colors hover:text-gray-900'
-                >
-                  LinkedIn
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        {/* Bottom Bar */}
-        <div className='mt-12 border-t border-gray-200 pt-8'>
-          <p className='text-center text-sm text-gray-600'>
-            © <CurrentYear /> Simon Krüger. All rights reserved.
-          </p>
-        </div>
+      <div className='mx-auto flex max-w-7xl items-center justify-between px-6 py-8 lg:px-8'>
+        <p className='text-sm text-gray-500'>
+          © <CurrentYear /> Simon Krüger
+          <span aria-hidden='true' className='mx-2 text-gray-300'>
+            ·
+          </span>
+          {/* Impressum must stay reachable from every page. */}
+          <Link
+            href='/page/imprint'
+            className='transition-colors hover:text-gray-900'
+          >
+            Imprint
+          </Link>
+        </p>
+        <ul className='flex items-center gap-5'>
+          {socialLinks.map(({ label, href, Icon }) => (
+            <li key={label}>
+              <a
+                href={href}
+                aria-label={label}
+                title={label}
+                rel='me noopener'
+                target='_blank'
+                className='block text-gray-400 transition-colors hover:text-gray-900'
+              >
+                <Icon className='h-5 w-5' />
+              </a>
+            </li>
+          ))}
+        </ul>
       </div>
     </footer>
   );

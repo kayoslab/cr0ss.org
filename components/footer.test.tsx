@@ -8,131 +8,65 @@ vi.mock('@/components/current-year', () => ({
 }));
 
 describe('Footer', () => {
-  it('should render the brand name', () => {
-    const { getByText } = render(<Footer />);
-
-    expect(getByText('cr0ss.org')).toBeInTheDocument();
-  });
-
-  it('should render the description', () => {
-    const { getByText } = render(<Footer />);
-
-    expect(
-      getByText(/Personal and professional website of Simon Krüger/i)
-    ).toBeInTheDocument();
-  });
-
-  it('should display the current year in copyright', () => {
+  it('shows a minimal copyright with the current year', () => {
     const currentYear = new Date().getFullYear();
     const { getByText } = render(<Footer />);
 
-    expect(
-      getByText(new RegExp(`© ${currentYear} Simon Krüger`))
-    ).toBeInTheDocument();
+    expect(getByText(`© ${currentYear} Simon Krüger`)).toBeInTheDocument();
   });
 
-  it('should render Navigation section header', () => {
-    const { getByText } = render(<Footer />);
+  it('does not render the old link columns or tagline', () => {
+    const { queryByText } = render(<Footer />);
 
-    expect(getByText('Navigation')).toBeInTheDocument();
+    for (const text of [
+      'Navigation',
+      'Information',
+      'Social',
+      'All rights reserved',
+      'Personal and professional website',
+    ]) {
+      expect(queryByText(new RegExp(text))).not.toBeInTheDocument();
+    }
   });
 
-  it('should render navigation links', () => {
-    const { getAllByText } = render(<Footer />);
-
-    // Home appears in brand and navigation
-    const homeLinks = getAllByText('Home');
-    expect(homeLinks.length).toBeGreaterThan(0);
-
-    expect(getAllByText('Blog').length).toBeGreaterThan(0);
-    expect(getAllByText('Portfolio').length).toBeGreaterThan(0);
-  });
-
-  it('should render Information section header', () => {
-    const { getByText } = render(<Footer />);
-
-    expect(getByText('Information')).toBeInTheDocument();
-  });
-
-  it('should render information links', () => {
-    const { getByText } = render(<Footer />);
-
-    expect(getByText('Contact')).toBeInTheDocument();
-    expect(getByText('Imprint')).toBeInTheDocument();
-  });
-
-  it('should render Social section header', () => {
-    const { getByText } = render(<Footer />);
-
-    expect(getByText('Social')).toBeInTheDocument();
-  });
-
-  it('should render social links', () => {
-    const { getByText } = render(<Footer />);
-
-    expect(getByText('LinkedIn')).toBeInTheDocument();
-    expect(getByText('GitHub')).toBeInTheDocument();
-  });
-
-  it('should render correct href for Home link', () => {
-    const { getAllByRole } = render(<Footer />);
-
-    const homeLinks = getAllByRole('link', { name: /Home/i });
-    expect(homeLinks[0]).toHaveAttribute('href', '/');
-  });
-
-  it('should render correct href for Blog link', () => {
-    const { getAllByRole } = render(<Footer />);
-
-    const blogLinks = getAllByRole('link', { name: /Blog/i });
-    expect(blogLinks[0]).toHaveAttribute('href', '/blog');
-  });
-
-  it('should render correct href for Portfolio link', () => {
-    const { getAllByRole } = render(<Footer />);
-
-    const portfolioLinks = getAllByRole('link', { name: /Portfolio/i });
-    expect(portfolioLinks[0]).toHaveAttribute('href', '/portfolio');
-  });
-
-  it('should render correct href for Contact link', () => {
-    const { getAllByRole } = render(<Footer />);
-
-    const contactLinks = getAllByRole('link', { name: /Contact/i });
-    // Filter out the one in Information section
-    const contactLink = contactLinks.find(
-      (link) => link.getAttribute('href') === '/page/contact'
-    );
-    expect(contactLink).toHaveAttribute('href', '/page/contact');
-  });
-
-  it('should render correct href for Imprint link', () => {
+  it.each([
+    ['Instagram', 'https://www.instagram.com/cr0ss.mind/'],
+    ['LinkedIn', 'https://www.linkedin.com/in/cr0ss/'],
+    ['GitHub', 'https://github.com/kayoslab'],
+  ])('links the %s icon to %s', (label, href) => {
     const { getByRole } = render(<Footer />);
 
-    const imprintLink = getByRole('link', { name: 'Imprint' });
-    expect(imprintLink).toHaveAttribute('href', '/page/imprint');
+    const link = getByRole('link', { name: label });
+    expect(link).toHaveAttribute('href', href);
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link.getAttribute('rel')).toContain('noopener');
+    expect(link.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
   });
 
-  it('should have footer element', () => {
+  it('keeps the imprint reachable next to the copyright', () => {
+    const { getByRole } = render(<Footer />);
+
+    expect(getByRole('link', { name: 'Imprint' })).toHaveAttribute(
+      'href',
+      '/page/imprint'
+    );
+  });
+
+  it('renders the imprint and three social links and nothing else', () => {
+    const { getAllByRole } = render(<Footer />);
+
+    expect(getAllByRole('link')).toHaveLength(4);
+  });
+
+  it('lays the copyright and icons out on one row', () => {
     const { container } = render(<Footer />);
 
     const footer = container.querySelector('footer');
-    expect(footer).toBeInTheDocument();
-  });
-
-  it('should have correct styling classes', () => {
-    const { container } = render(<Footer />);
-
-    const footer = container.querySelector('footer');
-    expect(footer).toHaveClass('bg-white');
-    expect(footer).toHaveClass('border-t');
-  });
-
-  it('should use responsive grid layout', () => {
-    const { container } = render(<Footer />);
-
-    const grid = container.querySelector('.grid');
-    expect(grid).toHaveClass('grid-cols-1');
-    expect(grid).toHaveClass('md:grid-cols-4');
+    expect(footer).toHaveClass('border-t', 'bg-white');
+    expect(footer?.firstElementChild).toHaveClass(
+      'flex',
+      'items-center',
+      'justify-between'
+    );
   });
 });

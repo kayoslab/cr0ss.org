@@ -93,6 +93,8 @@ export function createBlogMetadata({
     },
     alternates: {
       canonical: url,
+      // Markdown rendition for agents (see app/llms/[...path]/route.ts).
+      types: { 'text/markdown': `${url}.md` },
     },
     creator: author,
     publisher: SITE_AUTHOR,
@@ -159,6 +161,8 @@ export function createPageMetadata({
     },
     alternates: {
       canonical: url,
+      // Markdown rendition for agents (see app/llms/[...path]/route.ts).
+      types: { 'text/markdown': `${url}.md` },
     },
     publisher: SITE_AUTHOR,
     robots: {
