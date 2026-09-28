@@ -8,6 +8,9 @@ import {
   OG_IMAGE_HEIGHT,
 } from './constants';
 
+/** app/opengraph-image.tsx, resolved against metadataBase. */
+export const DEFAULT_OG_IMAGE = '/opengraph-image';
+
 /**
  * Ensures image URL is absolute and, for Contentful assets, asks the Images
  * API for the exact Open Graph rendition: a 1200×630 JPEG crop. The metadata
@@ -15,7 +18,9 @@ import {
  * never be handed the raw multi-megabyte upload. JPEG because LinkedIn and
  * others don't render AVIF previews.
  */
-export function ensureAbsoluteUrl(url: string | undefined | null): string | null {
+export function ensureAbsoluteUrl(
+  url: string | undefined | null
+): string | null {
   if (!url) return null;
 
   const absoluteUrl = url.startsWith('http') ? url : `https:${url}`;
@@ -201,11 +206,15 @@ export function createListMetadata({
       description,
       siteName: SITE_NAME,
       url,
+      // A child openGraph block replaces the root's, file-based image
+      // included, so point at the generated default explicitly.
+      images: [DEFAULT_OG_IMAGE],
     },
     twitter: {
-      card: 'summary',
+      card: 'summary_large_image',
       title,
       description,
+      images: [DEFAULT_OG_IMAGE],
     },
     robots: {
       index: true,

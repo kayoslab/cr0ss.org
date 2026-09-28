@@ -1,8 +1,44 @@
 import { Options } from '@contentful/rich-text-react-renderer';
 import { BLOCKS, INLINES, Block, Inline } from '@contentful/rich-text-types';
 import Link from 'next/link';
-import SyntaxHighlighter from 'react-syntax-highlighter';
+import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import bash from 'react-syntax-highlighter/dist/esm/languages/prism/bash';
+import css from 'react-syntax-highlighter/dist/esm/languages/prism/css';
+import diff from 'react-syntax-highlighter/dist/esm/languages/prism/diff';
+import javascript from 'react-syntax-highlighter/dist/esm/languages/prism/javascript';
+import json from 'react-syntax-highlighter/dist/esm/languages/prism/json';
+import markdown from 'react-syntax-highlighter/dist/esm/languages/prism/markdown';
+import python from 'react-syntax-highlighter/dist/esm/languages/prism/python';
+import sql from 'react-syntax-highlighter/dist/esm/languages/prism/sql';
+import tsx from 'react-syntax-highlighter/dist/esm/languages/prism/tsx';
+import typescript from 'react-syntax-highlighter/dist/esm/languages/prism/typescript';
+import yaml from 'react-syntax-highlighter/dist/esm/languages/prism/yaml';
+
+// The default export bundles every highlight.js grammar (~2.8 MB) yet the
+// theme is a Prism one, so most tokens never matched. Register only Prism
+// grammars for the languages the content uses; anything else renders plain.
+for (const [name, grammar] of Object.entries({
+  bash,
+  css,
+  diff,
+  javascript,
+  json,
+  markdown,
+  python,
+  sql,
+  tsx,
+  typescript,
+  yaml,
+})) {
+  SyntaxHighlighter.registerLanguage(name, grammar);
+}
+SyntaxHighlighter.registerLanguage('ts', typescript);
+SyntaxHighlighter.registerLanguage('js', javascript);
+SyntaxHighlighter.registerLanguage('shell', bash);
+SyntaxHighlighter.registerLanguage('sh', bash);
+SyntaxHighlighter.registerLanguage('yml', yaml);
+SyntaxHighlighter.registerLanguage('py', python);
 import { LightboxImage } from '@/components/blog/lightbox-image';
 
 /**
@@ -66,7 +102,8 @@ export const BLOG_ARTICLE_STYLES: RichTextStyleConfig = {
   ulList: 'list-disc list-style-position:outside ms-4',
   olList: 'list-decimal list-style-position:outside ms-4',
   listItem: 'my-4 list-style-position:outside ms-4',
-  hyperlink: 'text-gray-700 underline decoration-gray-700/30 hover:decoration-gray-700:decoration-gray-300 transition-all duration-200',
+  hyperlink:
+    'text-gray-700 underline decoration-gray-700/30 hover:decoration-gray-700:decoration-gray-300 transition-all duration-200',
 };
 
 /**
@@ -84,7 +121,8 @@ export const PAGE_STYLES: RichTextStyleConfig = {
   ulList: 'list-disc list-style-position:outside ms-4',
   olList: 'list-decimal list-style-position:outside ms-4',
   listItem: 'my-4 list-style-position:outside ms-4',
-  hyperlink: 'text-gray-700 underline decoration-gray-700/30 hover:decoration-gray-700:decoration-gray-300 transition-all duration-200',
+  hyperlink:
+    'text-gray-700 underline decoration-gray-700/30 hover:decoration-gray-700:decoration-gray-300 transition-all duration-200',
 };
 
 /**
@@ -158,7 +196,7 @@ export function createRichTextOptions(
       }
 
       return (
-        <div className="my-6">
+        <div className='my-6'>
           <LightboxImage
             src={asset.url}
             alt={asset.description || asset.title || 'Embedded asset'}

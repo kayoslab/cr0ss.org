@@ -1,6 +1,21 @@
+import type { Metadata } from 'next';
 import Image from 'next/image';
 import homeImage from '@/public/home-image.jpeg';
 import { FeaturedPosts } from '@/components/home/featured-posts';
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/constants';
+import { DEFAULT_OG_IMAGE } from '@/lib/metadata';
+
+export const metadata: Metadata = {
+  title: { absolute: SITE_NAME },
+  description: SITE_DESCRIPTION,
+  alternates: { canonical: SITE_URL },
+  openGraph: {
+    url: SITE_URL,
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+    images: [DEFAULT_OG_IMAGE],
+  },
+};
 
 export default async function HomeContent() {
   return (

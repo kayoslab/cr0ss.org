@@ -4,7 +4,7 @@ import Navigation from '@/components/navigation';
 import Footer from '@/components/footer';
 
 export const metadata: Metadata = {
-  title: 'Page not found | cr0ss.mind',
+  title: 'Page not found',
   robots: { index: false, follow: false },
 };
 

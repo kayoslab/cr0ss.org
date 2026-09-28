@@ -3,7 +3,7 @@ import { createListMetadata } from '@/lib/metadata';
 import { BlogList } from './blog-list';
 
 export const metadata: Metadata = createListMetadata({
-  title: 'Blog | cr0ss.mind',
+  title: 'Blog',
   description:
     'Explore articles on software development, technology, and personal insights from Simon Krüger.',
   path: '/blog',

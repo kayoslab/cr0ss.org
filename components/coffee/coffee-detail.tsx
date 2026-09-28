@@ -1,12 +1,7 @@
-'use client';
-
 import { CoffeeProps } from '@/lib/contentful/api/props/coffee';
 import { CountryProps } from '@/lib/contentful/api/props/country';
 import MapClient from '@/components/map.client';
-import {
-  pathAnchor,
-  compactSvgPath,
-} from '@/lib/map/projection';
+import { pathAnchor, compactSvgPath } from '@/lib/map/projection';
 import Link from 'next/link';
 import { ContentfulImage } from '@/components/ui/contentful-image';
 import Markdown from 'react-markdown';

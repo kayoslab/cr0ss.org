@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
 
     return createPageMetadata({
-      title: `${page.title} | cr0ss.mind`,
+      title: page.title,
       description: `${page.title} - Personal page on cr0ss.org`,
       slug: page.slug,
       heroImageUrl: page.heroImage?.url,

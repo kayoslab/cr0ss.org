@@ -33,14 +33,14 @@ export async function generateMetadata({
 
   if (!query) {
     return createListMetadata({
-      title: 'Search | Blog | cr0ss.mind',
+      title: 'Search | Blog',
       description: 'Search through blog articles on cr0ss.org',
       path: '/blog/search',
     });
   }
 
   return createListMetadata({
-    title: `Search: ${query} | Blog | cr0ss.mind`,
+    title: `Search: ${query} | Blog`,
     description: `Search results for "${query}" on cr0ss.org blog`,
     path: `/blog/search?q=${encodeURIComponent(query)}`,
   });

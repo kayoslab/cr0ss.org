@@ -6,7 +6,7 @@ import { getAllProjects } from '@/lib/contentful/api/portfolio';
 import { CaptureForm } from '@/components/capture/capture-form';
 
 export const metadata: Metadata = {
-  title: 'Portfolio | cr0ss.mind',
+  title: 'Portfolio',
   description: 'Things I’ve been building.',
 };
 

@@ -24,14 +24,11 @@ const nextConfig = {
     // Contentful content: invalidated by webhook, refreshed hourly as a backstop.
     content: { stale: 3600, revalidate: 3600, expire: 604800 },
   },
-  // The Tailwind sheet is ~90 KB (dashboard, charts, sidebar). Inlining it
-  // embedded three copies in every HTML response (style tag + RSC payload),
-  // so it is served as one immutable, cached file instead.
-  experimental: {
-    serverActions: { bodySizeLimit: '2mb' },
-    optimizePackageImports: ['@heroicons/react'],
-  },
+  // The Tailwind sheet is ~90 KB (dashboard, charts, sidebar); it is served
+  // as one immutable file rather than inlined (experimental.inlineCss), which
+  // embedded three copies in every HTML response.
   reactStrictMode: true,
+  poweredByHeader: false,
   compiler: {
     // Keep error/warn: they are the only signal in Vercel's runtime logs.
     removeConsole:
@@ -69,10 +66,8 @@ const nextConfig = {
       {
         source: '/:path*',
         headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'SAMEORIGIN',
-          },
+          // frame-ancestors supersedes X-Frame-Options and, unlike it, can
+          // allow the Contentful preview iframe.
           {
             key: 'Content-Security-Policy',
             value: `frame-ancestors 'self' https://app.contentful.com`,

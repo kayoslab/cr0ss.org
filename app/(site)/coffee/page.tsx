@@ -3,7 +3,7 @@ import { createListMetadata } from '@/lib/metadata';
 import { CoffeeList } from './coffee-list';
 
 export const metadata: Metadata = createListMetadata({
-  title: 'Coffee | cr0ss.mind',
+  title: 'Coffee',
   description: 'Explore my coffee collection from around the world.',
   path: '/coffee',
 });

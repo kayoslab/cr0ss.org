@@ -1,3 +1,4 @@
+import { SITE_AUTHOR } from '@/lib/constants';
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -69,7 +70,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: `${coffee.name} | Coffee Collection`,
       description: fullDescription,
       keywords,
-      authors: [{ name: 'Christian Kienle' }],
+      authors: [{ name: SITE_AUTHOR }],
       openGraph: {
         type: 'article',
         title: `${coffee.name} - ${coffee.roaster}`,
@@ -92,7 +93,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         title: `${coffee.name} - ${coffee.roaster}`,
         description: fullDescription,
         images: imageUrl ? [imageUrl] : undefined,
-        creator: '@ckienle',
       },
       alternates: {
         canonical: canonicalUrl,

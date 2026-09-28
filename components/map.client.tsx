@@ -1,5 +1,3 @@
-'use client';
-
 import clsx from 'clsx';
 import { MAP_HEIGHT, MAP_WIDTH, geoToPixel } from '@/lib/map/projection';
 
