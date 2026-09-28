@@ -1,54 +1,45 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
 import { aa } from '@/lib/algolia/client';
-import { HTTP_STATUS } from '@/lib/constants/http';
+import { createApiRoute, validateRequestBody } from '@/lib/api/middleware';
+import { RATE_LIMITS } from '@/lib/rate/config';
+import { env } from '@/env';
 
-export async function POST(request: Request) {
-  try {
-    const { objectID, eventType, userToken } = await request.json();
+const eventSchema = z.object({
+  objectID: z.string().min(1).max(200),
+  eventType: z.enum(['view', 'click', 'recommendation_click']).default('view'),
+  userToken: z.string().min(1).max(128).optional(),
+});
 
-    if (!objectID) {
-      return NextResponse.json({ error: 'objectID is required' }, { status: HTTP_STATUS.BAD_REQUEST });
-    }
+/**
+ * Public beacon for Algolia Insights (views and clicks feed Recommend).
+ *
+ * The user token travels with each event rather than via `setUserToken`:
+ * the insights client is a module singleton, and under Fluid Compute one
+ * instance serves concurrent requests, so a global token would bleed
+ * between visitors.
+ */
+export const POST = createApiRoute()
+  .withRateLimit('algolia-analytics', RATE_LIMITS.ANALYTICS)
+  .withTrace('POST /api/algolia/analytics')
+  .handle(async (request) => {
+    const body = await validateRequestBody(request, eventSchema);
+    if (!body.success) return body.response;
 
-    // Set user token for personalization (important for Algolia Recommend)
-    if (userToken) {
-      aa('setUserToken', userToken);
-    }
+    const { objectID, eventType, userToken } = body.data;
+    const event = { index: env.ALGOLIA_INDEX, objectIDs: [objectID], userToken };
 
-    // Use viewedObjectIDs for page views (important for Algolia Recommend)
-    // Use clickedObjectIDs for search result clicks and recommendation clicks
     switch (eventType) {
       case 'click':
-        aa('clickedObjectIDs', {
-          eventName: 'Blog Clicked',
-          index: 'www',
-          objectIDs: [objectID],
-        });
+        aa('clickedObjectIDs', { ...event, eventName: 'Blog Clicked' });
         break;
-
       case 'recommendation_click':
-        // Track clicks on recommended posts - helps Algolia learn effective recommendations
-        aa('clickedObjectIDs', {
-          eventName: 'Recommendation Clicked',
-          index: 'www',
-          objectIDs: [objectID],
-        });
+        aa('clickedObjectIDs', { ...event, eventName: 'Recommendation Clicked' });
         break;
-
       case 'view':
-      default:
-        // Default to view event
-        aa('viewedObjectIDs', {
-          eventName: 'Blog Viewed',
-          index: 'www',
-          objectIDs: [objectID],
-        });
+        aa('viewedObjectIDs', { ...event, eventName: 'Blog Viewed' });
         break;
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Error tracking view:', error);
-    return NextResponse.json({ error: 'Failed to track view' }, { status: HTTP_STATUS.INTERNAL_SERVER_ERROR });
-  }
-} 
+  });

@@ -6,7 +6,10 @@ import { CategoryProps } from '@/lib/contentful/api/props/category';
 import { createRichTextOptions, BLOG_ARTICLE_STYLES } from '@/lib/contentful/rich-text-renderer';
 import { optimizeWithPreset } from '@/lib/contentful/image-utils';
 import { Lightbox } from '@/components/ui/lightbox';
-import { RecommendationCard } from '@/components/blog/recommendation-card';
+import {
+  RecommendationCard,
+  toCardPost,
+} from '@/components/blog/recommendation-card';
 
 export const Blog = ({ blog, recommendations }: { blog: BlogProps, recommendations: BlogProps[] }) => {
   // Format the date
@@ -93,7 +96,7 @@ export const Blog = ({ blog, recommendations }: { blog: BlogProps, recommendatio
               {recommendations.map((recommendation: BlogProps) => (
                 <RecommendationCard
                   key={recommendation.slug}
-                  recommendation={recommendation}
+                  post={toCardPost(recommendation)}
                 />
               ))}
             </div>

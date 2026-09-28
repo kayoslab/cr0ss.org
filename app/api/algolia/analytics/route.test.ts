@@ -1,211 +1,111 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { POST } from './route';
 
-// Mock dependencies
-vi.mock('@/lib/algolia/client', () => ({
-  aa: vi.fn(),
+vi.mock('@/lib/algolia/client', () => ({ aa: vi.fn() }));
+vi.mock('@/lib/rate/limit', () => ({ rateLimit: vi.fn() }));
+vi.mock('@/lib/rate/who', () => ({ getClientId: () => 'test-client' }));
+vi.mock('@/env', () => ({
+  env: { ALGOLIA_INDEX: 'www' },
 }));
 
 import { aa } from '@/lib/algolia/client';
+import { rateLimit } from '@/lib/rate/limit';
+import { POST } from './route';
+
+const post = (body: unknown) =>
+  POST(
+    new Request('http://localhost:3000/api/algolia/analytics', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: typeof body === 'string' ? body : JSON.stringify(body),
+    })
+  );
 
 describe('POST /api/algolia/analytics', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Reset aa mock to default implementation (no-op)
     vi.mocked(aa).mockImplementation(() => {});
+    vi.mocked(rateLimit).mockResolvedValue({ ok: true });
   });
 
-  describe('Success Cases', () => {
-    it('should track view event with valid objectID', async () => {
-      const request = new Request('http://localhost:3000/api/algolia/analytics', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ objectID: 'blog-post-123' }),
-      });
-
-      const response = await POST(request);
+  describe('events', () => {
+    it('defaults to a view event and passes the user token per event', async () => {
+      const response = await post({ objectID: 'blog-post-123', userToken: 'user_abc' });
 
       expect(response.status).toBe(200);
+      expect(await response.json()).toEqual({ success: true });
+      expect(aa).toHaveBeenCalledTimes(1);
       expect(aa).toHaveBeenCalledWith('viewedObjectIDs', {
         eventName: 'Blog Viewed',
         index: 'www',
         objectIDs: ['blog-post-123'],
+        userToken: 'user_abc',
       });
-
-      const data = await response.json();
-      expect(data).toEqual({ success: true });
+      expect(aa).not.toHaveBeenCalledWith('setUserToken', expect.anything());
     });
 
-    it('should track click event when eventType is click', async () => {
-      const request = new Request('http://localhost:3000/api/algolia/analytics', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ objectID: 'blog-post-123', eventType: 'click' }),
-      });
-
-      const response = await POST(request);
+    it.each([
+      ['click', 'Blog Clicked'],
+      ['recommendation_click', 'Recommendation Clicked'],
+    ])('records %s as a clickedObjectIDs event', async (eventType, eventName) => {
+      const response = await post({ objectID: 'blog-post-123', eventType });
 
       expect(response.status).toBe(200);
       expect(aa).toHaveBeenCalledWith('clickedObjectIDs', {
-        eventName: 'Blog Clicked',
+        eventName,
         index: 'www',
         objectIDs: ['blog-post-123'],
-      });
-    });
-
-    it('should set user token when provided', async () => {
-      const request = new Request('http://localhost:3000/api/algolia/analytics', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ objectID: 'blog-post-123', userToken: 'user_abc123' }),
-      });
-
-      const response = await POST(request);
-
-      expect(response.status).toBe(200);
-      expect(aa).toHaveBeenCalledWith('setUserToken', 'user_abc123');
-      expect(aa).toHaveBeenCalledWith('viewedObjectIDs', {
-        eventName: 'Blog Viewed',
-        index: 'www',
-        objectIDs: ['blog-post-123'],
-      });
-    });
-
-    it('should handle numeric objectID', async () => {
-      const request = new Request('http://localhost:3000/api/algolia/analytics', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ objectID: 12345 }),
-      });
-
-      const response = await POST(request);
-
-      expect(response.status).toBe(200);
-      expect(aa).toHaveBeenCalledWith('viewedObjectIDs', {
-        eventName: 'Blog Viewed',
-        index: 'www',
-        objectIDs: [12345],
+        userToken: undefined,
       });
     });
   });
 
-  describe('Validation', () => {
-    it('should return 400 when objectID is missing', async () => {
-      const request = new Request('http://localhost:3000/api/algolia/analytics', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
-      });
-
-      const response = await POST(request);
+  describe('validation', () => {
+    it.each([
+      ['missing objectID', {}],
+      ['null objectID', { objectID: null }],
+      ['empty objectID', { objectID: '' }],
+      ['numeric objectID', { objectID: 12345 }],
+      ['unknown eventType', { objectID: 'x', eventType: 'purchase' }],
+      ['oversized userToken', { objectID: 'x', userToken: 'a'.repeat(129) }],
+    ])('rejects %s with 400', async (_label, body) => {
+      const response = await post(body);
 
       expect(response.status).toBe(400);
       expect(aa).not.toHaveBeenCalled();
-
-      const data = await response.json();
-      expect(data).toEqual({ error: 'objectID is required' });
     });
 
-    it('should return 400 when objectID is null', async () => {
-      const request = new Request('http://localhost:3000/api/algolia/analytics', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ objectID: null }),
-      });
-
-      const response = await POST(request);
+    it('rejects malformed JSON with 400', async () => {
+      const response = await post('{not json');
 
       expect(response.status).toBe(400);
-      const data = await response.json();
-      expect(data).toEqual({ error: 'objectID is required' });
+      expect(aa).not.toHaveBeenCalled();
     });
 
-    it('should return 400 when objectID is empty string', async () => {
-      const request = new Request('http://localhost:3000/api/algolia/analytics', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ objectID: '' }),
-      });
+    it('ignores extra fields', async () => {
+      const response = await post({ objectID: 'x', extra: 'ignored' });
 
-      const response = await POST(request);
-
-      expect(response.status).toBe(400);
-      const data = await response.json();
-      expect(data).toEqual({ error: 'objectID is required' });
+      expect(response.status).toBe(200);
     });
   });
 
-  describe('Error Handling', () => {
-    it('should return 500 when JSON parsing fails', async () => {
-      const request = new Request('http://localhost:3000/api/algolia/analytics', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: 'invalid json{',
-      });
+  describe('protection', () => {
+    it('returns 429 when the rate limit is exceeded', async () => {
+      vi.mocked(rateLimit).mockResolvedValue({ ok: false, retryAfterSec: 30 });
 
-      const response = await POST(request);
+      const response = await post({ objectID: 'x' });
 
-      expect(response.status).toBe(500);
-      const data = await response.json();
-      expect(data).toEqual({ error: 'Failed to track view' });
+      expect(response.status).toBe(429);
+      expect(aa).not.toHaveBeenCalled();
     });
 
-    it('should return 500 when aa function throws error', async () => {
+    it('returns 500 when the insights client throws', async () => {
       vi.mocked(aa).mockImplementation(() => {
-        throw new Error('Algolia Analytics Error');
+        throw new Error('boom');
       });
 
-      const request = new Request('http://localhost:3000/api/algolia/analytics', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ objectID: 'test-id' }),
-      });
-
-      const response = await POST(request);
+      const response = await post({ objectID: 'x' });
 
       expect(response.status).toBe(500);
-      const data = await response.json();
-      expect(data).toEqual({ error: 'Failed to track view' });
-    });
-  });
-
-  describe('Request Body Edge Cases', () => {
-    it('should handle extra fields in request body', async () => {
-      const request = new Request('http://localhost:3000/api/algolia/analytics', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          objectID: 'test-id',
-          extraField: 'ignored',
-          anotherField: 123,
-        }),
-      });
-
-      const response = await POST(request);
-
-      expect(response.status).toBe(200);
-      expect(aa).toHaveBeenCalledWith('viewedObjectIDs', {
-        eventName: 'Blog Viewed',
-        index: 'www',
-        objectIDs: ['test-id'],
-      });
-    });
-
-    it('should handle objectID with special characters', async () => {
-      const request = new Request('http://localhost:3000/api/algolia/analytics', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ objectID: 'post-123-@-special!' }),
-      });
-
-      const response = await POST(request);
-
-      expect(response.status).toBe(200);
-      expect(aa).toHaveBeenCalledWith('viewedObjectIDs', {
-        eventName: 'Blog Viewed',
-        index: 'www',
-        objectIDs: ['post-123-@-special!'],
-      });
     });
   });
 });

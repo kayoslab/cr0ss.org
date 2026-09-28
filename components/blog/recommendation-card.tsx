@@ -1,92 +1,78 @@
-'use client';
-
 import { ContentfulImage } from '@/components/ui/contentful-image';
-import Link from 'next/link';
-import { BlogProps } from '@/lib/contentful/api/props/blog';
+import { TrackedLink } from '@/components/blog/tracked-link';
+import type { BlogProps } from '@/lib/contentful/api/props/blog';
 import { optimizeWithPreset } from '@/lib/contentful/image-utils';
 
+/**
+ * The slice of a post a card needs. Cards used to receive the whole
+ * BlogProps (rich-text body included), which was serialized into the RSC
+ * payload of every page that shows them.
+ */
+export interface CardPost {
+  id: string;
+  slug: string;
+  title: string;
+  heroImageUrl?: string;
+}
+
+export function toCardPost(post: BlogProps): CardPost {
+  return {
+    id: post.sys.id,
+    slug: post.slug,
+    title: post.title,
+    heroImageUrl: post.heroImage?.url,
+  };
+}
+
 interface RecommendationCardProps {
-  recommendation: BlogProps;
-  /** Eager, high-priority image (for the card that is the page's LCP). */
+  post: CardPost;
+  /**
+   * Load the image eagerly with high fetch priority, without a preload.
+   * For the card that is the page's LCP on narrow viewports while another
+   * element (the home avatar) is preloaded as the wide-viewport LCP.
+   */
+  eager?: boolean;
+  /** Eager, high-priority and preloaded: the card is the page's only LCP. */
   priority?: boolean;
 }
 
-/**
- * Get or create user token for Algolia analytics
- */
-function getUserToken(): string {
-  const STORAGE_KEY = 'algolia_user_token';
-
-  if (typeof window === 'undefined') {
-    return 'anonymous';
-  }
-
-  return localStorage.getItem(STORAGE_KEY) || 'anonymous';
-}
-
-/**
- * Track recommendation click via the analytics API
- */
-async function trackRecommendationClick(objectID: string) {
-  try {
-    const userToken = getUserToken();
-
-    await fetch('/api/algolia/analytics', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        objectID,
-        eventType: 'recommendation_click',
-        userToken,
-      }),
-    });
-  } catch {
-    // Silently fail - analytics shouldn't block user interaction
-  }
-}
-
 export function RecommendationCard({
-  recommendation,
+  post,
+  eager = false,
   priority = false,
 }: RecommendationCardProps) {
-  const optimizedImageUrl = optimizeWithPreset(
-    recommendation?.heroImage?.url,
-    'gridThumbnail'
-  );
-
-  const handleClick = () => {
-    trackRecommendationClick(recommendation.sys.id);
-  };
+  const href = `/blog/${post.slug}`;
+  const optimizedImageUrl = optimizeWithPreset(post.heroImageUrl, 'gridThumbnail');
 
   return (
     <article className='flex h-full flex-col overflow-hidden rounded-lg shadow-lg'>
-      <Link href={`/blog/${recommendation.slug}`} onClick={handleClick}>
+      <TrackedLink href={href} objectID={post.id}>
         <ContentfulImage
-          alt={recommendation.title}
+          alt={post.title}
           className='aspect-4/3 w-full object-cover'
           height={450}
           src={optimizedImageUrl}
           width={600}
           sizes='(max-width: 768px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 400px'
           priority={priority}
+          loading={eager || priority ? 'eager' : undefined}
+          fetchPriority={eager || priority ? 'high' : undefined}
         />
-      </Link>
+      </TrackedLink>
       <div className='flex-1 p-6'>
-        <Link href={`/blog/${recommendation.slug}`} onClick={handleClick}>
+        <TrackedLink href={href} objectID={post.id}>
           <h2 className='py-4 text-2xl leading-tight font-bold text-zinc-900'>
-            {recommendation.title}
+            {post.title}
           </h2>
-        </Link>
+        </TrackedLink>
         <div className='flex justify-end'>
-          <Link
+          <TrackedLink
             className='inline-flex h-10 items-center justify-center text-sm font-medium'
-            href={`/blog/${recommendation.slug}`}
-            onClick={handleClick}
+            href={href}
+            objectID={post.id}
           >
             Read More →
-          </Link>
+          </TrackedLink>
         </div>
       </div>
     </article>

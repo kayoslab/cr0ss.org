@@ -67,10 +67,12 @@ vi.mock('@upstash/redis', () => ({
       set: vi.fn(),
       del: vi.fn(),
       ttl: vi.fn(),
+      expire: vi.fn(),
       multi: vi.fn(() => ({
         incr: vi.fn(),
-        expire: vi.fn(),
-        exec: vi.fn(async () => [1, 1]), // Return count of 1 (within limit)
+        ttl: vi.fn(),
+        // [count, ttl]: first hit in a fresh window (within limit)
+        exec: vi.fn(async () => [1, -1]),
       })),
     };
   }),
