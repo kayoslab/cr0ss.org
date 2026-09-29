@@ -16,8 +16,11 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  // `await params` stays outside the try: during the PPR fallback prerender
+  // it rejects with Next's interrupt signal, which must propagate rather
+  // than be caught and logged as an error.
+  const { slug } = await params;
   try {
-    const { slug } = await params;
     const category = await getCategory(slug);
     if (!category) {
       return {
@@ -26,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       };
     }
     return createListMetadata({
-      title: `${category.title} | Blog | cr0ss.mind`,
+      title: `${category.title} | Blog`,
       description: `Explore articles about ${category.title} from Simon Krüger's blog.`,
       path: `/blog/category/${slug}`,
     });

@@ -12,13 +12,17 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  // `await params` stays outside the try: during the PPR fallback prerender
+  // it rejects with Next's interrupt signal, which must propagate rather
+  // than be caught and logged as an error.
+  const { slug } = await params;
   try {
-    const { slug } = await params;
     const page = (await getPage(slug)) as unknown as PageProps;
     if (!page) {
       return {
         title: 'Page Not Found',
         description: 'The requested page could not be found',
+        robots: { index: false, follow: false },
       };
     }
 

@@ -18,12 +18,17 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  // `await params` stays outside the try: during the PPR fallback prerender
+  // it rejects with Next's interrupt signal, which must propagate rather
+  // than be caught and logged as an error.
+  const { slug } = await params;
   try {
-    const { slug } = await params;
-    const blog = (await getBlog(slug)) as unknown as BlogProps;
+    // getBlog throws for an unknown slug; that is a 404, not an error.
+    const blog = (await getBlog(slug).catch(() => null)) as BlogProps | null;
     if (!blog) {
       return {
         title: 'Blog Not Found',
+        robots: { index: false, follow: false },
         description: 'The requested blog post could not be found',
       };
     }
@@ -135,21 +140,17 @@ export default async function BlogContent({
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  let blog: BlogProps;
-  let recommendations: BlogProps[];
-
+  const { slug } = await params;
+  let blog: BlogProps | null;
   try {
-    const { slug } = await params;
-    const fetched = (await getBlog(slug)) as unknown as BlogProps | null;
-    if (!fetched) {
-      notFound();
-    }
-    blog = fetched;
-    recommendations = await getRecommendations(blog);
+    blog = (await getBlog(slug)) as unknown as BlogProps | null;
   } catch (error) {
     console.error('Error loading blog content:', error);
-    notFound();
+    blog = null;
   }
+  // Outside the try so the not-found signal is not caught and logged.
+  if (!blog) notFound();
+  const recommendations = await getRecommendations(blog);
 
   const jsonLd = createBlogJsonLd({
     title: blog.title,

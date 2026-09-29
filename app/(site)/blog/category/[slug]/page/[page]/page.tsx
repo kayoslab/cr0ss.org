@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const category = await getCategory(slug);
   if (!category) return { title: 'Category Not Found' };
   return createListMetadata({
-    title: `${category.title} · Page ${page} | Blog | cr0ss.mind`,
+    title: `${category.title} · Page ${page} | Blog`,
     description: `Explore articles about ${category.title} from Simon Krüger's blog.`,
     path: `/blog/category/${slug}/page/${page}`,
   });

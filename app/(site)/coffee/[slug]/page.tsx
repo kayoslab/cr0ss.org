@@ -15,12 +15,18 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  // `await params` stays outside the try: during the PPR fallback prerender
+  // it rejects with Next's interrupt signal, which must propagate rather
+  // than be caught and logged as an error.
+  const { slug } = await params;
   try {
-    const { slug } = await params;
-    const coffee = (await getCoffee(slug)) as unknown as CoffeeProps;
+    const coffee = (await getCoffee(slug).catch(
+      () => null
+    )) as CoffeeProps | null;
     if (!coffee) {
       return {
         title: 'Coffee Not Found',
+        robots: { index: false, follow: false },
         description: 'The requested coffee could not be found',
       };
     }
@@ -128,23 +134,20 @@ export async function generateStaticParams() {
 }
 
 async function CoffeeDetailContent({ params }: Props) {
-  let slug: string;
-  let coffee: CoffeeProps;
-  let allCountriesData: CountryProps[];
-
+  const { slug } = await params;
+  let coffee: CoffeeProps | null;
+  let allCountriesData: CountryProps[] = [];
   try {
-    ({ slug } = await params);
-    const fetched = (await getCoffee(slug)) as unknown as CoffeeProps | null;
-    if (!fetched) {
-      notFound();
+    coffee = (await getCoffee(slug)) as unknown as CoffeeProps | null;
+    if (coffee) {
+      allCountriesData = (await getAllCountries()) as unknown as CountryProps[];
     }
-    coffee = fetched;
-    const allCountries = await getAllCountries();
-    allCountriesData = allCountries as unknown as CountryProps[];
   } catch (error) {
     console.error('Error loading coffee content:', error);
-    notFound();
+    coffee = null;
   }
+  // Outside the try so the not-found signal is not caught and logged.
+  if (!coffee) notFound();
 
   // Find the origin country
   const originCountry = coffee.country?.sys?.id

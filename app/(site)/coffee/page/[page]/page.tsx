@@ -20,7 +20,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const page = parsePage((await params).page) ?? 1;
   return createListMetadata({
-    title: `Coffee · Page ${page} | cr0ss.mind`,
+    title: `Coffee · Page ${page}`,
     description: 'Explore my coffee collection from around the world.',
     path: `/coffee/page/${page}`,
   });
