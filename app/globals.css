@@ -258,4 +258,8 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* A native modal <dialog> (the mobile menu) leaves the page scrollable. */
+  body:has(dialog[open]) {
+    overflow: hidden;
+  }
 }
