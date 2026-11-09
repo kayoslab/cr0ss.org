@@ -1,43 +1,41 @@
 import { getImageProps, type ImageProps } from 'next/image';
 import { preload } from 'react-dom';
-import { contentfulLoaderFor } from '@/lib/contentful/image-loader';
-
-const avifLoader = contentfulLoaderFor('avif');
-const webpLoader = contentfulLoaderFor('webp');
+import {
+  contentfulLoader,
+  contentfulSrcSet,
+} from '@/lib/contentful/image-loader';
 
 /**
- * next/image semantics (srcset from `sizes`, lazy loading, priority preload)
- * bound to Contentful's Images API, rendered as a <picture> so the browser
- * negotiates the format itself: AVIF where supported, WebP everywhere else.
- * Contentful cannot negotiate from the Accept header, so a bare <img> would
- * hand AVIF-less browsers a broken image.
+ * next/image semantics (lazy loading, priority preload, sizing) bound to
+ * Contentful's Images API as a plain WebP <img>.
+ *
+ * Responsive images (`sizes` set) use the fixed width ladder in
+ * lib/contentful/image-loader.ts rather than next.config's deviceSizes, so
+ * every page requests the same few URLs and Contentful's CDN stays warm.
+ * Fixed-width images (no `sizes`) keep next/image's 1x/2x pair.
  *
  * Accepts every next/image prop except `loader`. Renders on the server, so
  * server components can use it without crossing the client boundary.
  */
 export function ContentfulImage(props: Omit<ImageProps, 'loader'>) {
-  const { props: avif } = getImageProps({ ...props, loader: avifLoader });
-  const { props: img } = getImageProps({ ...props, loader: webpLoader });
+  const { props: img } = getImageProps({ ...props, loader: contentfulLoader });
 
-  // next/image only preloads from its client component; mirror it here for
-  // the AVIF candidates. Browsers that can't decode AVIF skip a typed preload
-  // and simply fetch the WebP the <picture> resolves to.
-  if (props.priority && avif.srcSet) {
-    preload(avif.src, {
+  if (img.sizes && typeof props.src === 'string') {
+    const quality = props.quality === undefined ? undefined : +props.quality;
+    Object.assign(img, contentfulSrcSet(props.src, quality));
+  }
+
+  // next/image only preloads from its client component; mirror it here.
+  if (props.priority && img.srcSet) {
+    preload(img.src, {
       as: 'image',
-      type: 'image/avif',
-      imageSrcSet: avif.srcSet,
-      imageSizes: avif.sizes,
+      imageSrcSet: img.srcSet,
+      imageSizes: img.sizes,
       fetchPriority: 'high',
     });
   }
 
-  return (
-    // display: contents keeps <picture> out of the layout so the img's
-    // width/aspect classes resolve exactly as they did on a bare <img>.
-    <picture className='contents'>
-      <source type='image/avif' srcSet={avif.srcSet} sizes={avif.sizes} />
-      <img {...img} />
-    </picture>
-  );
+  // Props come from getImageProps with a custom loader: this is next/image.
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img {...img} />;
 }
