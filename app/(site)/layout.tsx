@@ -1,5 +1,6 @@
 import Navigation from '@/components/navigation';
 import Footer from '@/components/footer';
+import { WebVitalsReporter } from '@/components/web-vitals-reporter';
 
 /**
  * Chrome for the public site (home, blog, coffee, portfolio, pages).
@@ -25,6 +26,7 @@ export default function SiteLayout({
         {children}
       </div>
       <Footer />
+      <WebVitalsReporter />
     </>
   );
 }
