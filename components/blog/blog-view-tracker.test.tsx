@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render } from '@testing-library/react';
 import { BlogViewTracker } from './blog-view-tracker';
-import type { BlogProps } from '@/lib/contentful/api/props/blog';
 
 describe('BlogViewTracker', () => {
   let mockFetch: ReturnType<typeof vi.fn>;
@@ -27,17 +26,10 @@ describe('BlogViewTracker', () => {
     vi.unstubAllGlobals();
   });
 
-  const mockBlog = {
-    sys: {
-      id: 'test-blog-123',
-    },
-    title: 'Test Blog',
-  } as unknown as BlogProps;
-
   it('should render nothing (null)', () => {
     mockFetch.mockResolvedValueOnce({ ok: true });
 
-    const { container } = render(<BlogViewTracker blog={mockBlog} />);
+    const { container } = render(<BlogViewTracker objectID='test-blog-123' />);
 
     expect(container.firstChild).toBeNull();
   });
@@ -45,7 +37,7 @@ describe('BlogViewTracker', () => {
   it('should track blog view on mount', async () => {
     mockFetch.mockResolvedValueOnce({ ok: true });
 
-    render(<BlogViewTracker blog={mockBlog} />);
+    render(<BlogViewTracker objectID='test-blog-123' />);
 
     // Wait for effect to run
     await vi.runAllTimersAsync();
@@ -70,7 +62,7 @@ describe('BlogViewTracker', () => {
       .mockResolvedValueOnce({ ok: false })
       .mockResolvedValueOnce({ ok: true });
 
-    render(<BlogViewTracker blog={mockBlog} />);
+    render(<BlogViewTracker objectID='test-blog-123' />);
 
     await vi.runAllTimersAsync();
 
@@ -86,7 +78,7 @@ describe('BlogViewTracker', () => {
       .spyOn(console, 'error')
       .mockImplementation(() => {});
 
-    render(<BlogViewTracker blog={mockBlog} />);
+    render(<BlogViewTracker objectID='test-blog-123' />);
 
     await vi.runAllTimersAsync();
 
@@ -106,7 +98,7 @@ describe('BlogViewTracker', () => {
       .spyOn(console, 'error')
       .mockImplementation(() => {});
 
-    render(<BlogViewTracker blog={mockBlog} />);
+    render(<BlogViewTracker objectID='test-blog-123' />);
 
     await vi.runAllTimersAsync();
 
@@ -121,7 +113,7 @@ describe('BlogViewTracker', () => {
       .mockResolvedValueOnce({ ok: false })
       .mockResolvedValueOnce({ ok: true });
 
-    render(<BlogViewTracker blog={mockBlog} />);
+    render(<BlogViewTracker objectID='test-blog-123' />);
 
     // First call happens immediately
     expect(mockFetch).toHaveBeenCalledTimes(1);
@@ -136,16 +128,7 @@ describe('BlogViewTracker', () => {
   it('should track view with different blog IDs', async () => {
     mockFetch.mockResolvedValue({ ok: true });
 
-    const blog1 = {
-      ...mockBlog,
-      sys: { id: 'blog-1' },
-    } as unknown as BlogProps;
-    const blog2 = {
-      ...mockBlog,
-      sys: { id: 'blog-2' },
-    } as unknown as BlogProps;
-
-    const { rerender } = render(<BlogViewTracker blog={blog1} />);
+    const { rerender } = render(<BlogViewTracker objectID='blog-1' />);
     await vi.runAllTimersAsync();
 
     // Verify the first blog was tracked
@@ -156,7 +139,7 @@ describe('BlogViewTracker', () => {
 
     mockFetch.mockClear();
 
-    rerender(<BlogViewTracker blog={blog2} />);
+    rerender(<BlogViewTracker objectID='blog-2' />);
     await vi.runAllTimersAsync();
 
     // Verify the second blog was tracked

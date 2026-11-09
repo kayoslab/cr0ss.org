@@ -1,6 +1,5 @@
 'use client';
 import { useEffect } from 'react';
-import { BlogProps } from '@/lib/contentful/api/props/blog';
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
@@ -29,7 +28,12 @@ function getOrCreateUserToken(): string {
   return token;
 }
 
-export function BlogViewTracker({ blog }: { blog: BlogProps }) {
+/**
+ * Reports a post view to Algolia. Takes only the ID: a client component's
+ * props are serialized into the page payload, so passing the whole post
+ * would send its rich-text body to the browser a second time.
+ */
+export function BlogViewTracker({ objectID }: { objectID: string }) {
   useEffect(() => {
     const trackView = async (retryCount = 0) => {
       try {
@@ -41,7 +45,7 @@ export function BlogViewTracker({ blog }: { blog: BlogProps }) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            objectID: blog.sys.id,
+            objectID,
             eventType: 'view',
             userToken,
           }),
@@ -61,7 +65,7 @@ export function BlogViewTracker({ blog }: { blog: BlogProps }) {
     };
 
     trackView();
-  }, [blog.sys.id]);
+  }, [objectID]);
 
   return null;
 }
