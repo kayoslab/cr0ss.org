@@ -88,7 +88,7 @@
     "@types/rss": "^0.0.32",
     "@typescript-eslint/eslint-plugin": "^8.72.1",
     "@typescript-eslint/parser": "^8.72.1",
-    "@vercel/config": "^0.7.2",
+    "@vercel/config": "^0.14.1",
     "@vitejs/plugin-react": "^6.3.0",
     "@vitest/coverage-v8": "^5.1.0",
     "@vitest/ui": "^5.1.0",
