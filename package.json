@@ -82,7 +82,7 @@
     "@types/react-syntax-highlighter": "^15.5.13",
     "@types/rss": "^0.0.32",
     "@typescript-eslint/eslint-plugin": "^8.72.1",
-    "@typescript-eslint/parser": "^8.72.1",
+    "@typescript-eslint/parser": "^8.72.2",
     "@vercel/config": "^0.7.2",
     "@vitejs/plugin-react": "^6.3.0",
     "@vitest/coverage-v8": "^5.1.0",
