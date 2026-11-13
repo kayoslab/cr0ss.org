@@ -4,7 +4,10 @@ import { GET } from './route';
 // Mock dependencies
 vi.mock('@/lib/rate/limit', () => ({
   rateLimit: vi.fn(),
+  globalRateLimit: vi.fn(),
 }));
+
+vi.mock('@/lib/rate/bot', () => ({ isBot: vi.fn() }));
 
 vi.mock('@/env', () => ({
   env: {
@@ -16,7 +19,9 @@ vi.mock('@/env', () => ({
   },
 }));
 
-import { rateLimit } from '@/lib/rate/limit';
+import { globalRateLimit, rateLimit } from '@/lib/rate/limit';
+import { isBot } from '@/lib/rate/bot';
+import { cacheLife } from 'next/cache';
 
 // Store original fetch
 const originalFetch = global.fetch;
@@ -67,6 +72,8 @@ describe('GET /api/algolia/search', () => {
     global.fetch = mockFetch;
     // Default: rate limit passes
     vi.mocked(rateLimit).mockResolvedValue({ ok: true });
+    vi.mocked(globalRateLimit).mockResolvedValue({ ok: true });
+    vi.mocked(isBot).mockResolvedValue(false);
   });
 
   afterEach(() => {
@@ -106,6 +113,69 @@ describe('GET /api/algolia/search', () => {
         windowSec: 60,
         max: 100,
       });
+    });
+  });
+
+  describe('Bot and quota protection', () => {
+    it('returns 403 for bots without searching', async () => {
+      vi.mocked(isBot).mockResolvedValue(true);
+
+      const response = await GET(
+        new Request('http://localhost:3000/api/algolia/search?q=test')
+      );
+
+      expect(response.status).toBe(403);
+      expect(rateLimit).not.toHaveBeenCalled();
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('returns 429 without searching once the global daily cap is spent', async () => {
+      vi.mocked(globalRateLimit).mockResolvedValue({
+        ok: false,
+        retryAfterSec: 3600,
+      });
+
+      const response = await GET(
+        new Request('http://localhost:3000/api/algolia/search?q=test')
+      );
+
+      expect(response.status).toBe(429);
+      expect(response.headers.get('Retry-After')).toBe('60');
+      expect(globalRateLimit).toHaveBeenCalledWith('algolia-search', {
+        windowSec: 86400,
+        max: 250,
+      });
+      expect(mockFetch).not.toHaveBeenCalled();
+      // The spent-budget answer must not stick for the full content lifetime.
+      expect(cacheLife).toHaveBeenCalledWith({ revalidate: 60, expire: 120 });
+      expect(cacheLife).not.toHaveBeenCalledWith('content');
+    });
+
+    it('caches results for the content lifetime and searches the normalised query', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => createMockAlgoliaResponse([], 'qid'),
+      });
+
+      await GET(
+        new Request(
+          'http://localhost:3000/api/algolia/search?q=%20%20TypeScript%20%20Tips%20'
+        )
+      );
+
+      expect(cacheLife).toHaveBeenCalledWith('content');
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(body.query).toBe('typescript tips');
+    });
+
+    it('does not spend the search quota on click events', async () => {
+      mockFetch.mockResolvedValueOnce({ ok: true });
+
+      await GET(
+        new Request('http://localhost:3000/api/algolia/search?objectID=123')
+      );
+
+      expect(globalRateLimit).not.toHaveBeenCalled();
     });
   });
 

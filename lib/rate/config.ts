@@ -64,6 +64,24 @@ export const RATE_LIMITS = {
   } as RateLimitConfig,
 
   /**
+   * Algolia searches across all clients (search box + /blog/search page)
+   * 250 per day, which keeps a month under the free plan's 10k search requests
+   */
+  SEARCH_GLOBAL: {
+    windowSec: 86400,
+    max: 250,
+  } as RateLimitConfig,
+
+  /**
+   * Insights events across all clients
+   * 5000 per day, bounding how far fake views can skew "Trending"
+   */
+  ANALYTICS_GLOBAL: {
+    windowSec: 86400,
+    max: 5000,
+  } as RateLimitConfig,
+
+  /**
    * Revalidation endpoint - very restrictive
    * 5 requests per 300 seconds (5 minutes)
    */

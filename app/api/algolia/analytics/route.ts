@@ -20,7 +20,9 @@ const eventSchema = z.object({
  * between visitors.
  */
 export const POST = createApiRoute()
+  .withBotProtection()
   .withRateLimit('algolia-analytics', RATE_LIMITS.ANALYTICS)
+  .withGlobalRateLimit('algolia-analytics', RATE_LIMITS.ANALYTICS_GLOBAL)
   .withTrace('POST /api/algolia/analytics')
   .handle(async (request) => {
     const body = await validateRequestBody(request, eventSchema);

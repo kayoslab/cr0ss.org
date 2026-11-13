@@ -64,9 +64,8 @@ curl -H "X-Secret: your-secret-token" https://cr0ss.org/api/habits/coffee
 Public endpoints (no auth required):
 
 - `/chat` - AI chat
-- `/algolia/search` - Search
-- `/algolia/analytics` - Analytics tracking
-- `/featured-posts` - Featured blog posts
+- `/algolia/search` - Search (Vercel BotID; 250 searches/day across all clients)
+- `/algolia/analytics` - Analytics tracking (Vercel BotID; 5000 events/day across all clients)
 
 ### Rate Limits
 
@@ -103,7 +102,6 @@ When rate limited, the `Retry-After` header indicates seconds until retry.
 
 ### 📝 Content
 
-- `GET /featured-posts` - Get trending/recent posts
 - `POST /revalidate` - Trigger cache revalidation
 
 ### 📍 Location

@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
-import { withWorkflow } from 'workflow/next';
 import { fileURLToPath } from 'node:url';
 import createJiti from 'jiti';
+import { withBotId } from 'botid/next/config';
 const jiti = createJiti(fileURLToPath(import.meta.url));
 jiti('./env');
 
@@ -84,4 +84,4 @@ const nextConfig = {
   },
 };
 
-export default withWorkflow(nextConfig);
+export default withBotId(nextConfig);

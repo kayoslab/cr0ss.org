@@ -13,8 +13,6 @@ const eslintConfig = [
       'build/**',
       'coverage/**',
       'next-env.d.ts',
-      'eve/**',
-      'app/.well-known/**',
       'scripts/*.js',
     ],
   },

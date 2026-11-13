@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
+import { cacheLife, cacheTag } from 'next/cache';
+import { tags } from '@/lib/cache/tags';
+import { normalizeQuery } from '@/lib/algolia/query';
 import { env } from '@/env';
-import { rateLimit } from '@/lib/rate/limit';
+import { globalRateLimit, rateLimit } from '@/lib/rate/limit';
+import { isBot } from '@/lib/rate/bot';
 import { HTTP_STATUS } from '@/lib/constants/http';
 import { RATE_LIMITS } from '@/lib/rate/config';
 
@@ -166,17 +170,87 @@ async function fetchMissingImages(hits: NormalizedHit[]): Promise<void> {
   }
 }
 
+/**
+ * Search-as-you-type suggestions, cached remotely so every instance shares
+ * one entry per query and repeats never reach Algolia. Only a miss spends the
+ * daily search budget; `null` means it's gone, and that answer is cached for
+ * just a minute. Publishing a post clears the cache through its tag.
+ */
+async function searchSuggestions(query: string): Promise<{
+  hits: Omit<NormalizedHit, 'slug' | 'heroImageId'>[];
+  queryID: string | null;
+} | null> {
+  'use cache: remote';
+  cacheTag(tags.content.blogPosts);
+
+  const quota = await globalRateLimit(
+    'algolia-search',
+    RATE_LIMITS.SEARCH_GLOBAL
+  );
+  if (!quota.ok) {
+    cacheLife({ revalidate: 60, expire: 120 });
+    return null;
+  }
+  cacheLife('content');
+
+  // Use Algolia REST API directly for Edge runtime compatibility
+  const response = await fetch(
+    `https://${env.ALGOLIA_APP_ID}-dsn.algolia.net/1/indexes/${env.ALGOLIA_INDEX}/query`,
+    {
+      method: 'POST',
+      headers: {
+        'X-Algolia-Application-Id': env.ALGOLIA_APP_ID,
+        'X-Algolia-API-Key': env.ALGOLIA_SEARCH_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query,
+        hitsPerPage: 5,
+        clickAnalytics: true,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Algolia search failed: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const hits = (data.hits || []) as AlgoliaSearchHit[];
+
+  // Normalize hits to expected format
+  const normalizedHits = hits.map((hit) => normalizeHit(hit));
+
+  // Fetch missing images from Contentful
+  await fetchMissingImages(normalizedHits);
+
+  // Remove temporary fields before returning
+  const cleanedHits = normalizedHits.map(
+    ({ slug, heroImageId, ...hit }) => hit
+  );
+
+  return { hits: cleanedHits, queryID: data.queryID || null };
+}
+
+function tooManyRequests(retryAfterSec: number) {
+  return NextResponse.json(
+    { error: 'Too many requests' },
+    {
+      status: HTTP_STATUS.TOO_MANY_REQUESTS,
+      headers: { 'Retry-After': String(retryAfterSec) },
+    }
+  );
+}
+
 export async function GET(request: Request) {
-  const rl = await rateLimit(request, 'algolia-search', RATE_LIMITS.SEARCH);
-  if (!rl.ok) {
+  if (await isBot()) {
     return NextResponse.json(
-      { error: 'Too many requests' },
-      {
-        status: HTTP_STATUS.TOO_MANY_REQUESTS,
-        headers: { 'Retry-After': String(rl.retryAfterSec) },
-      }
+      { error: 'Access denied' },
+      { status: HTTP_STATUS.FORBIDDEN }
     );
   }
+  const rl = await rateLimit(request, 'algolia-search', RATE_LIMITS.SEARCH);
+  if (!rl.ok) return tooManyRequests(rl.retryAfterSec);
   const { searchParams } = new URL(request.url);
   const query = searchParams.get('q') || '';
   const objectID = searchParams.get('objectID');
@@ -209,46 +283,9 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Use Algolia REST API directly for Edge runtime compatibility
-    const response = await fetch(
-      `https://${env.ALGOLIA_APP_ID}-dsn.algolia.net/1/indexes/${env.ALGOLIA_INDEX}/query`,
-      {
-        method: 'POST',
-        headers: {
-          'X-Algolia-Application-Id': env.ALGOLIA_APP_ID,
-          'X-Algolia-API-Key': env.ALGOLIA_SEARCH_KEY,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query,
-          hitsPerPage: 5,
-          clickAnalytics: true,
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`Algolia search failed: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const hits = (data.hits || []) as AlgoliaSearchHit[];
-
-    // Normalize hits to expected format
-    const normalizedHits = hits.map((hit) => normalizeHit(hit));
-
-    // Fetch missing images from Contentful
-    await fetchMissingImages(normalizedHits);
-
-    // Remove temporary fields before returning
-    const cleanedHits = normalizedHits.map(
-      ({ slug, heroImageId, ...hit }) => hit
-    );
-
-    return NextResponse.json({
-      hits: cleanedHits,
-      queryID: data.queryID || null,
-    });
+    const result = await searchSuggestions(normalizeQuery(query));
+    if (!result) return tooManyRequests(60);
+    return NextResponse.json(result);
   } catch (error) {
     console.error('Search error:', error);
     return NextResponse.json(

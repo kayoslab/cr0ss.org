@@ -21,11 +21,28 @@ function getRedis(): Redis {
 export async function rateLimit(
   req: Request,
   bucket: string,
+  options?: { windowSec?: number; max?: number }
+): Promise<RateLimitResult> {
+  return consume(`ratelimit:${bucket}:${getClientId(req)}`, options);
+}
+
+/**
+ * One counter shared by every caller. Per-client limits can't protect an
+ * upstream quota (Algolia's free plan) from traffic spread over many IPs;
+ * this caps the total no matter where it comes from.
+ */
+export async function globalRateLimit(
+  bucket: string,
+  options?: { windowSec?: number; max?: number }
+): Promise<RateLimitResult> {
+  return consume(`ratelimit:${bucket}:global`, options);
+}
+
+async function consume(
+  key: string,
   { windowSec = 60, max = 30 }: { windowSec?: number; max?: number } = {}
 ): Promise<RateLimitResult> {
   const kv = getRedis();
-  const id = getClientId(req);
-  const key = `ratelimit:${bucket}:${id}`;
   const tx = kv.multi();
   tx.incr(key);
   tx.ttl(key);

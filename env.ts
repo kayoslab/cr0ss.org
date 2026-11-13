@@ -2,7 +2,7 @@ import { createEnv } from '@t3-oss/env-nextjs';
 import { z } from 'zod';
 
 export const env = createEnv({
-  // Treat `FOO=""` as unset so optional integrations (Apify, Strava, ...)
+  // Treat `FOO=""` as unset so optional integrations (Strava, OpenWeather)
   // can be left blank in Vercel without failing validation at build time.
   emptyStringAsUndefined: true,
   server: {
@@ -19,15 +19,6 @@ export const env = createEnv({
     CONTENTFUL_REVALIDATE_SECRET: z.string().min(20),
     DASHBOARD_API_SECRET: z.string().min(20),
     OPENWEATHER_API_KEY: z.string().min(1).optional(),
-    // AI Gateway (Vercel AI)
-    AI_GATEWAY_API_KEY: z.string().min(10).optional(),
-    // Networking capture + enrichment (contact-memory system)
-    OWNER_WHATSAPP: z.string().min(6).optional(), // international format, digits only
-    APIFY_TOKEN: z.string().min(1).optional(),
-    APIFY_ACTOR_ID: z.string().min(1).optional(),
-    CRON_SECRET: z.string().min(20).optional(),
-    // Owner-only bearer for the MCP contact-search endpoint (Eve queries)
-    MCP_BEARER_TOKEN: z.string().min(20).optional(),
     // Strava Integration (optional - only required if using Strava sync)
     STRAVA_CLIENT_ID: z.string().min(1).optional(),
     STRAVA_CLIENT_SECRET: z.string().min(1).optional(),
@@ -48,11 +39,6 @@ export const env = createEnv({
     CONTENTFUL_REVALIDATE_SECRET: process.env.CONTENTFUL_REVALIDATE_SECRET,
     DASHBOARD_API_SECRET: process.env.DASHBOARD_API_SECRET,
     OPENWEATHER_API_KEY: process.env.OPENWEATHER_API_KEY,
-    OWNER_WHATSAPP: process.env.OWNER_WHATSAPP,
-    APIFY_TOKEN: process.env.APIFY_TOKEN,
-    APIFY_ACTOR_ID: process.env.APIFY_ACTOR_ID,
-    CRON_SECRET: process.env.CRON_SECRET,
-    MCP_BEARER_TOKEN: process.env.MCP_BEARER_TOKEN,
     STRAVA_CLIENT_ID: process.env.STRAVA_CLIENT_ID,
     STRAVA_CLIENT_SECRET: process.env.STRAVA_CLIENT_SECRET,
     STRAVA_WEBHOOK_VERIFY_TOKEN: process.env.STRAVA_WEBHOOK_VERIFY_TOKEN,

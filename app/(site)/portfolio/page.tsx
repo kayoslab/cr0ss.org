@@ -1,9 +1,7 @@
-import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import { getAllProjects } from '@/lib/contentful/api/portfolio';
-import { CaptureForm } from '@/components/capture/capture-form';
 
 export const metadata: Metadata = {
   title: 'Portfolio',
@@ -17,46 +15,12 @@ const INTRO_PARAGRAPHS = [
   'I leverage my expertise in e-commerce, cloud, and MACH (microservices, API-first, cloud-native, and headless) solutions to guide and advise clients on their digital transformation journeys. At the same time I believe composable commerce isn’t a silver bullet, it’s a shift that succeeds only when your people are ready to lead the way. Beyond client work, I care deeply about how digital commerce evolves, particularly the tension between fast retail and the growing need for ethical, personalized, customer-centric experiences.',
 ];
 
-/** Normalize a search param that may be a string, array, or undefined. */
-function firstParam(value: string | string[] | undefined): string | undefined {
-  if (Array.isArray(value)) return value[0];
-  return value;
-}
-
-type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
-// The "Let's stay in touch" box only appears when arriving via a campaign
-// link (e.g. the NFC card → /portfolio?campaign-id=shoreditch-meetup). It's
-// the one part of the page that depends on the URL, so it streams in on its
-// own while the rest is prerendered.
-async function CampaignCapture({
-  searchParams,
-}: {
-  searchParams: SearchParams;
-}) {
-  const campaignId = firstParam((await searchParams)['campaign-id']);
-  if (!campaignId) return null;
-  return (
-    <div className='mb-12'>
-      <CaptureForm campaignId={campaignId} />
-    </div>
-  );
-}
-
-export default async function PortfolioPage({
-  searchParams,
-}: {
-  searchParams: SearchParams;
-}) {
+export default async function PortfolioPage() {
   const { items } = await getAllProjects();
 
   return (
     <main className='flex flex-col items-center bg-white pb-12'>
       <div className='w-full max-w-4xl px-6 pt-10 lg:px-8'>
-        <Suspense>
-          <CampaignCapture searchParams={searchParams} />
-        </Suspense>
-
         <section>
           <h1 className='text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl'>
             Who am I?

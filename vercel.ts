@@ -13,8 +13,4 @@ export const config: VercelConfig = {
       permanent: true,
     },
   ],
-  crons: [
-    // Sweep for contacts whose enrichment workflow never started.
-    { path: '/api/cron/enrich', schedule: '0 * * * *' },
-  ],
 };

@@ -154,6 +154,41 @@ export class ApiRouteBuilder<TContext extends ApiContext = ApiContext> {
   }
 
   /**
+   * Add a cap shared by all clients, for upstream quotas a per-client limit
+   * can't protect. Chain it after withRateLimit so one noisy client is turned
+   * away before it spends the shared budget.
+   */
+  withGlobalRateLimit(
+    bucket: string,
+    options: { windowSec: number; max: number }
+  ): this {
+    return this.use(async () => {
+      const { globalRateLimit } = await import('@/lib/rate/limit');
+      const { tooManyRequests } = await import('@/lib/api/responses');
+
+      const result = await globalRateLimit(bucket, options);
+      if (!result.ok) {
+        throw tooManyRequests(result.retryAfterSec);
+      }
+    });
+  }
+
+  /**
+   * Reject requests Vercel BotID classifies as bots (403). The path must also
+   * be listed in instrumentation-client.ts.
+   */
+  withBotProtection(): this {
+    return this.use(async () => {
+      const { isBot } = await import('@/lib/rate/bot');
+      const { apiError } = await import('@/lib/api/responses');
+
+      if (await isBot()) {
+        throw apiError('Access denied', 403, undefined, 'BOT_DETECTED');
+      }
+    });
+  }
+
+  /**
    * Add observability tracing
    *
    * @param name - Trace name (e.g., "GET /api/dashboard")
