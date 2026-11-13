@@ -28,7 +28,7 @@
     "e2e": "playwright test"
   },
   "dependencies": {
-    "@algolia/client-search": "^5.61.0",
+    "@algolia/client-search": "^5.63.0",
     "@contentful/rich-text-plain-text-renderer": "^17.2.1",
     "@contentful/rich-text-react-renderer": "^16.2.2",
     "@contentful/rich-text-types": "^17.2.7",
