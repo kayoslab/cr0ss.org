@@ -4,6 +4,7 @@ import { ZStravaWebhookEvent, ZStravaActivity } from '@/lib/db/validation';
 import { rateLimit } from '@/lib/rate/limit';
 import { revalidateWorkouts } from '@/lib/cache/revalidate';
 import { getStravaConfig } from '@/lib/strava/config';
+import { readStravaJson } from '@/lib/strava/json';
 
 /**
  * GET /api/strava/webhook
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
+    const body = await readStravaJson(request);
 
     // Validate webhook event structure
     const event = ZStravaWebhookEvent.parse(body);
@@ -104,7 +105,7 @@ export async function POST(request: NextRequest) {
     }
 
     const auth = authRecords[0] as {
-      athlete_id: number;
+      athlete_id: string;
       access_token: string;
       refresh_token: string;
       expires_at: string;
@@ -138,9 +139,9 @@ export async function POST(request: NextRequest) {
  * Syncs an activity from Strava to the database
  */
 async function handleActivitySync(
-  event: { object_id: number; owner_id: number; aspect_type: string },
+  event: { object_id: string; owner_id: string; aspect_type: string },
   auth: {
-    athlete_id: number;
+    athlete_id: string;
     access_token: string;
     refresh_token: string;
     expires_at: string;
@@ -177,7 +178,7 @@ async function handleActivitySync(
       );
     }
 
-    const activityData = await activityResponse.json();
+    const activityData = await readStravaJson(activityResponse);
     const activity = ZStravaActivity.parse(activityData);
 
     // Only sync running activities
@@ -211,7 +212,7 @@ async function handleActivitySync(
     // Check if workout already exists
     const existingWorkout = await sql`
       SELECT id FROM workouts
-      WHERE external_id = ${activity.id.toString()}
+      WHERE external_id = ${activity.id}
         AND source = 'strava'
       LIMIT 1
     `;
@@ -227,7 +228,7 @@ async function handleActivitySync(
           details = ${JSON.stringify(details)},
           notes = ${activity.description || null},
           synced_at = now()
-        WHERE external_id = ${activity.id.toString()}
+        WHERE external_id = ${activity.id}
           AND source = 'strava'
       `;
     } else {
@@ -250,7 +251,7 @@ async function handleActivitySync(
           ${JSON.stringify(details)},
           ${activity.description || null},
           'strava',
-          ${activity.id.toString()},
+          ${activity.id},
           now()
         )
       `;
@@ -300,13 +301,13 @@ async function handleActivitySync(
  * Deletes an activity from the database
  */
 async function handleActivityDelete(event: {
-  object_id: number;
-  owner_id: number;
+  object_id: string;
+  owner_id: string;
 }) {
   try {
     await sql`
       DELETE FROM workouts
-      WHERE external_id = ${event.object_id.toString()}
+      WHERE external_id = ${event.object_id}
         AND source = 'strava'
     `;
 
@@ -352,7 +353,7 @@ async function handleActivityDelete(event: {
 /**
  * Refreshes an expired access token
  */
-async function refreshAccessToken(athleteId: number, refreshToken: string) {
+async function refreshAccessToken(athleteId: string, refreshToken: string) {
   try {
     const config = getStravaConfig();
     const tokenUrl = 'https://www.strava.com/oauth/token';

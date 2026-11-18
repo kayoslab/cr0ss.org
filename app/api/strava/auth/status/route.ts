@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
     }
 
     const auth = authRecords[0] as {
-      athlete_id: number;
+      athlete_id: string;
       athlete_name: string | null;
       expires_at: string;
       last_sync_at: string | null;

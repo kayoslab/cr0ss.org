@@ -4,6 +4,7 @@ import { ZStravaTokenResponse } from '@/lib/db/validation';
 import { rateLimit } from '@/lib/rate/limit';
 import { revalidateWorkouts } from '@/lib/cache/revalidate';
 import { getStravaConfig } from '@/lib/strava/config';
+import { readStravaJson } from '@/lib/strava/json';
 
 /**
  * GET /api/strava/auth/callback
@@ -75,7 +76,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const tokenData = await tokenResponse.json();
+    const tokenData = await readStravaJson(tokenResponse);
     console.log('Received token data from Strava');
 
     // Validate response structure

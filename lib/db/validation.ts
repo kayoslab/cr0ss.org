@@ -200,6 +200,10 @@ export const ZMonthlyGoalsUpsert = z.object({
 
 // ===== Strava Integration Schemas =====
 
+// Strava activity and athlete IDs are 64-bit, beyond what a JS number holds
+// exactly. Read payloads with parseStravaJson so IDs arrive as digit strings.
+const ZStravaId = z.string().regex(/^\d+$/, 'Expected a numeric Strava ID');
+
 // Strava OAuth token response
 export const ZStravaTokenResponse = z.object({
   token_type: z.string(),
@@ -208,7 +212,7 @@ export const ZStravaTokenResponse = z.object({
   refresh_token: z.string(),
   access_token: z.string(),
   athlete: z.object({
-    id: z.number(),
+    id: ZStravaId,
     username: z.string().nullable().optional(),
     firstname: z.string().nullable().optional(),
     lastname: z.string().nullable().optional(),
@@ -218,17 +222,17 @@ export const ZStravaTokenResponse = z.object({
 // Strava webhook event
 export const ZStravaWebhookEvent = z.object({
   object_type: z.enum(['activity', 'athlete']),
-  object_id: z.number(),
+  object_id: ZStravaId,
   aspect_type: z.enum(['create', 'update', 'delete']),
   updates: z.record(z.string(), z.boolean()).optional(),
-  owner_id: z.number(),
+  owner_id: ZStravaId,
   subscription_id: z.number(),
   event_time: z.number(),
 });
 
 // Strava activity (simplified - only fields we care about)
 export const ZStravaActivity = z.object({
-  id: z.number(),
+  id: ZStravaId,
   name: z.string(),
   type: z.string(),
   start_date: z.string(),

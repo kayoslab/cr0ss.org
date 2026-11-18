@@ -141,7 +141,7 @@ export function transformStravaActivityToWorkout(
     details,
     notes: activity.description || undefined,
     source: 'strava',
-    external_id: activity.id.toString(),
+    external_id: activity.id,
   };
 }
 

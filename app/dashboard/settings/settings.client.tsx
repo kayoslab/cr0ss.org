@@ -255,7 +255,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
   const [syncingStrava, setSyncingStrava] = useState(false);
   const [stravaStatus, setStravaStatus] = useState<{
     connected: boolean;
-    athlete?: { id: number; name: string | null };
+    athlete?: { id: string; name: string | null };
     lastSync?: string | null;
   } | null>(null);
 
@@ -662,7 +662,7 @@ export default function SettingsClient({ coffees }: { coffees: CoffeeRow[] }) {
     try {
       const res = await jfetch<{
         connected: boolean;
-        athlete?: { id: number; name: string | null };
+        athlete?: { id: string; name: string | null };
         lastSync?: string | null;
       }>('/api/strava/auth/status', { method: 'GET' }, secret);
 

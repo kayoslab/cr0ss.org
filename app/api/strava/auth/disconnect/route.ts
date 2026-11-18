@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { athlete_id, access_token } = authRecords[0] as {
-      athlete_id: number;
+      athlete_id: string;
       access_token: string;
     };
 

@@ -1,13 +1,14 @@
 import { env } from '@/env';
 import { sql } from '@/lib/db/client';
 import { ZStravaActivity } from '@/lib/db/validation';
+import { readStravaJson } from '@/lib/strava/json';
 
 /**
  * Strava API client for fetching activities and managing authentication
  */
 
 export interface StravaAuth {
-  athlete_id: number;
+  athlete_id: string;
   access_token: string;
   refresh_token: string;
   expires_at: string;
@@ -86,7 +87,7 @@ export async function refreshAccessTokenIfNeeded(
  * Fetches a single activity from Strava by ID
  */
 export async function fetchStravaActivity(
-  activityId: number,
+  activityId: string,
   accessToken: string
 ) {
   const activityUrl = `https://www.strava.com/api/v3/activities/${activityId}`;
@@ -102,7 +103,7 @@ export async function fetchStravaActivity(
     );
   }
 
-  const activityData = await response.json();
+  const activityData = await readStravaJson(response);
   return ZStravaActivity.parse(activityData);
 }
 
@@ -134,18 +135,16 @@ export async function fetchStravaActivities(
     throw new Error(`Failed to fetch activities: ${response.statusText}`);
   }
 
-  const activitiesData = await response.json();
+  const activitiesData = await readStravaJson(response);
 
   // Validate each activity
-  return activitiesData.map((activity: unknown) =>
-    ZStravaActivity.parse(activity)
-  );
+  return ZStravaActivity.array().parse(activitiesData);
 }
 
 /**
  * Updates the last sync timestamp for the athlete
  */
-export async function updateLastSync(athleteId: number) {
+export async function updateLastSync(athleteId: string) {
   await sql`
     UPDATE strava_auth
     SET last_sync_at = now()
